@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Plus, GripVertical, Trash2, Edit2, Check, X, UserPlus } from "lucide-react";
+import { ArrowLeft, Plus, GripVertical, Trash2, Edit2, Check, X, UserPlus, AlertTriangle, UserMinus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
@@ -18,7 +18,18 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export default function ConfiguracaoTerapeutasPage() {
   const queryClient = useQueryClient();
@@ -26,6 +37,8 @@ export default function ConfiguracaoTerapeutasPage() {
   const [editandoProfissional, setEditandoProfissional] = useState(null);
   const [nomeEditado, setNomeEditado] = useState("");
   const [dialogNovoAberto, setDialogNovoAberto] = useState(false);
+  const [alertExcluirAberto, setAlertExcluirAberto] = useState(false);
+  const [profissionalParaExcluir, setProfissionalParaExcluir] = useState(null);
   const [novoProfissional, setNovoProfissional] = useState({
     nome: "",
     especialidade: ""
@@ -106,10 +119,17 @@ export default function ConfiguracaoTerapeutasPage() {
     return profissionais.filter(p => !idsUsados.includes(p.id));
   };
 
+  const getUnidadesDoProfissional = (profissionalId) => {
+    return configuracoes
+      .filter(c => c.profissional_id === profissionalId)
+      .map(c => unidades.find(u => u.id === c.unidade_id))
+      .filter(Boolean);
+  };
+
   const handleCriarNovoProfissional = async () => {
     if (!novoProfissional.nome) return;
     
-    const profissionalCriado = await criarProfissionalMutation.mutateAsync({
+    await criarProfissionalMutation.mutateAsync({
       nome: novoProfissional.nome,
       especialidade: novoProfissional.especialidade || "Terapeuta",
       ativo: true
@@ -134,8 +154,33 @@ export default function ConfiguracaoTerapeutasPage() {
     });
   };
 
-  const handleRemoverTerapeuta = async (configId) => {
-    await deletarConfiguracaoMutation.mutateAsync(configId);
+  const handleRemoverDaUnidade = async (profissionalId, unidadeId) => {
+    const config = configuracoes.find(c => c.profissional_id === profissionalId && c.unidade_id === unidadeId);
+    if (config) {
+      await deletarConfiguracaoMutation.mutateAsync(config.id);
+    }
+  };
+
+  const handleAbrirDialogExcluir = (profissional) => {
+    setProfissionalParaExcluir(profissional);
+    setAlertExcluirAberto(true);
+  };
+
+  const handleExcluirPermanentemente = async () => {
+    if (!profissionalParaExcluir) return;
+
+    // Primeiro, deletar todas as configurações deste profissional em todas as unidades
+    const configsDoProfissional = configuracoes.filter(c => c.profissional_id === profissionalParaExcluir.id);
+    
+    for (const config of configsDoProfissional) {
+      await deletarConfiguracaoMutation.mutateAsync(config.id);
+    }
+
+    // Depois, deletar o profissional
+    await deletarProfissionalMutation.mutateAsync(profissionalParaExcluir.id);
+
+    setAlertExcluirAberto(false);
+    setProfissionalParaExcluir(null);
   };
 
   const handleDragEnd = async (result, unidadeId) => {
@@ -174,22 +219,6 @@ export default function ConfiguracaoTerapeutasPage() {
     setNomeEditado("");
   };
 
-  const handleDeletarProfissional = async (profissionalId, unidadeId) => {
-    // Primeiro remove a configuração
-    const config = configuracoes.find(c => c.profissional_id === profissionalId && c.unidade_id === unidadeId);
-    if (config) {
-      await deletarConfiguracaoMutation.mutateAsync(config.id);
-    }
-    
-    // Verifica se o profissional está em outras unidades
-    const outrasConfigs = configuracoes.filter(c => c.profissional_id === profissionalId && c.unidade_id !== unidadeId);
-    
-    // Se não está em outras unidades, pode deletar o profissional
-    if (outrasConfigs.length === 0) {
-      await deletarProfissionalMutation.mutateAsync(profissionalId);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -202,7 +231,7 @@ export default function ConfiguracaoTerapeutasPage() {
             </Link>
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Configuração de Terapeutas</h1>
-              <p className="text-gray-500 mt-1">Adicione e gerencie os terapeutas de cada unidade</p>
+              <p className="text-gray-500 mt-1">Adicione, edite e gerencie os terapeutas de cada unidade</p>
             </div>
           </div>
 
@@ -267,6 +296,8 @@ export default function ConfiguracaoTerapeutasPage() {
                               const profissional = profissionais.find(p => p.id === config.profissional_id);
                               if (!profissional) return null;
 
+                              const unidadesDoProfissional = getUnidadesDoProfissional(profissional.id);
+
                               return (
                                 <Draggable key={config.id} draggableId={config.id} index={index}>
                                   {(provided) => (
@@ -306,24 +337,43 @@ export default function ConfiguracaoTerapeutasPage() {
                                                 <Edit2 className="w-3 h-3 text-gray-400" />
                                               </Button>
                                             </div>
-                                            <span className="text-sm text-gray-500">{profissional.especialidade}</span>
+                                            <div className="flex items-center gap-2 mt-1">
+                                              <span className="text-sm text-gray-500">{profissional.especialidade}</span>
+                                              {unidadesDoProfissional.length > 1 && (
+                                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                                  Em {unidadesDoProfissional.length} unidades
+                                                </span>
+                                              )}
+                                            </div>
                                           </div>
                                         )}
                                       </div>
 
-                                      <div className="flex items-center gap-4">
-                                        <div className="flex items-center gap-2">
+                                      <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-2 mr-2">
                                           <Label className="text-sm text-gray-600">Ativo</Label>
                                           <Switch
                                             checked={config.ativo}
                                             onCheckedChange={() => handleToggleAtivo(config)}
                                           />
                                         </div>
+                                        
                                         <Button
                                           variant="ghost"
                                           size="icon"
-                                          onClick={() => handleDeletarProfissional(profissional.id, unidade.id)}
+                                          onClick={() => handleRemoverDaUnidade(profissional.id, unidade.id)}
+                                          className="hover:bg-orange-50"
+                                          title="Remover desta unidade"
+                                        >
+                                          <UserMinus className="w-4 h-4 text-orange-500" />
+                                        </Button>
+
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() => handleAbrirDialogExcluir(profissional)}
                                           className="hover:bg-red-50"
+                                          title="Excluir permanentemente"
                                         >
                                           <Trash2 className="w-4 h-4 text-red-500" />
                                         </Button>
@@ -396,6 +446,50 @@ export default function ConfiguracaoTerapeutasPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Alert Dialog para confirmar exclusão permanente */}
+      <AlertDialog open={alertExcluirAberto} onOpenChange={setAlertExcluirAberto}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="w-5 h-5 text-red-500" />
+              Excluir Terapeuta Permanentemente?
+            </AlertDialogTitle>
+            <AlertDialogDescription className="space-y-3 pt-2">
+              <p>
+                Você está prestes a excluir permanentemente <strong>{profissionalParaExcluir?.nome}</strong>.
+              </p>
+              <p className="text-red-600 font-medium">
+                Esta ação não pode ser desfeita!
+              </p>
+              <p>
+                O terapeuta será removido de todas as unidades e todos os agendamentos futuros associados ficarão sem profissional.
+              </p>
+              {profissionalParaExcluir && getUnidadesDoProfissional(profissionalParaExcluir.id).length > 0 && (
+                <div className="bg-orange-50 border border-orange-200 rounded p-3 mt-3">
+                  <p className="text-sm font-medium text-orange-800">
+                    Este terapeuta está vinculado às seguintes unidades:
+                  </p>
+                  <ul className="list-disc list-inside text-sm text-orange-700 mt-1">
+                    {getUnidadesDoProfissional(profissionalParaExcluir.id).map(unidade => (
+                      <li key={unidade.id}>{unidade.nome}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleExcluirPermanentemente}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Sim, Excluir Permanentemente
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
