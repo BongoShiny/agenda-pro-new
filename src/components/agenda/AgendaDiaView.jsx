@@ -16,13 +16,12 @@ export default function AgendaDiaView({
     if (h < 20) horarios.push(`${h.toString().padStart(2, '0')}:30`);
   }
 
-  // Filtrar terapeutas pela unidade selecionada
+  // Filtrar terapeutas pela unidade selecionada - SEM LIMITE
   const terapeutasAtivos = configuracoes
     .filter(config => config.unidade_id === unidadeSelecionada.id && config.ativo)
     .sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
     .map(config => profissionais.find(p => p.id === config.profissional_id))
-    .filter(Boolean)
-    .slice(0, 8); // Máximo 8 terapeutas por unidade
+    .filter(Boolean);
 
   const getAgendamentosParaSlot = (profissionalId, horario) => {
     return agendamentos.filter(ag => {
@@ -40,12 +39,23 @@ export default function AgendaDiaView({
     return Math.ceil((minutosFim - minutosInicio) / 30);
   };
 
+  if (terapeutasAtivos.length === 0) {
+    return (
+      <div className="flex-1 flex items-center justify-center bg-gray-50">
+        <div className="text-center text-gray-500">
+          <p className="text-lg font-medium">Nenhum terapeuta ativo nesta unidade</p>
+          <p className="text-sm mt-2">Configure os terapeutas na página de configuração</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="flex-1 bg-gray-50">
       <div className="flex border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
         <div className="w-20 flex-shrink-0 border-r border-gray-200"></div>
         
-        <div className="flex">
+        <div className="flex overflow-x-auto">
           {terapeutasAtivos.map(terapeuta => (
             <div key={terapeuta.id} className="min-w-[200px] flex-1 p-3 border-r border-gray-200 last:border-r-0">
               <div className="text-sm font-bold text-gray-900 truncate text-center">{terapeuta.nome}</div>
@@ -68,7 +78,7 @@ export default function AgendaDiaView({
             ))}
           </div>
 
-          <div className="flex">
+          <div className="flex overflow-x-auto">
             {terapeutasAtivos.map(terapeuta => (
               <div key={terapeuta.id} className="min-w-[200px] flex-1 border-r border-gray-200 last:border-r-0">
                 {horarios.map((horario, idx) => {
