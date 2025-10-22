@@ -2,16 +2,31 @@ import React from "react";
 import AgendamentoCard from "./AgendamentoCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-export default function AgendaDiaView({ agendamentos, unidades, profissionais, onAgendamentoClick, onSlotClick }) {
+export default function AgendaDiaView({ 
+  agendamentos, 
+  unidadeSelecionada, 
+  profissionais, 
+  configuracoes,
+  onAgendamentoClick, 
+  onSlotClick 
+}) {
   const horarios = [];
   for (let h = 8; h <= 20; h++) {
     horarios.push(`${h.toString().padStart(2, '0')}:00`);
     if (h < 20) horarios.push(`${h.toString().padStart(2, '0')}:30`);
   }
 
-  const getAgendamentosParaSlot = (unidadeId, profissionalId, horario) => {
+  // Filtrar terapeutas pela unidade selecionada
+  const terapeutasAtivos = configuracoes
+    .filter(config => config.unidade_id === unidadeSelecionada.id && config.ativo)
+    .sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
+    .map(config => profissionais.find(p => p.id === config.profissional_id))
+    .filter(Boolean)
+    .slice(0, 8); // Máximo 8 terapeutas por unidade
+
+  const getAgendamentosParaSlot = (profissionalId, horario) => {
     return agendamentos.filter(ag => {
-      return ag.unidade_id === unidadeId && 
+      return ag.unidade_id === unidadeSelecionada.id &&
              ag.profissional_id === profissionalId && 
              ag.hora_inicio === horario;
     });
@@ -25,93 +40,70 @@ export default function AgendaDiaView({ agendamentos, unidades, profissionais, o
     return Math.ceil((minutosFim - minutosInicio) / 30);
   };
 
-  // Agrupar profissionais por unidade
-  const profissionaisPorUnidade = unidades.map(unidade => {
-    return {
-      unidade,
-      profissionais: profissionais.filter(prof => prof.ativo)
-    };
-  });
-
-  const totalColunas = profissionaisPorUnidade.reduce((sum, item) => sum + item.profissionais.length, 0);
-
   return (
     <div className="flex-1 bg-gray-50">
-      <div className="flex border-b border-gray-200 bg-white sticky top-0 z-10">
+      <div className="flex border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
         <div className="w-20 flex-shrink-0 border-r border-gray-200"></div>
         
-        {profissionaisPorUnidade.map(({ unidade, profissionais: profsUnidade }) => (
-          <div key={unidade.id} className="flex flex-col border-r border-gray-200 last:border-r-0" style={{ minWidth: `${profsUnidade.length * 180}px` }}>
-            <div className="p-3 border-b border-gray-200 bg-gray-50">
-              <div className="font-bold text-gray-900 text-center">{unidade.nome}</div>
-              <div className="text-xs text-gray-500 text-center mt-0.5">{unidade.endereco}</div>
+        <div className="flex">
+          {terapeutasAtivos.map(terapeuta => (
+            <div key={terapeuta.id} className="min-w-[200px] flex-1 p-3 border-r border-gray-200 last:border-r-0">
+              <div className="text-sm font-bold text-gray-900 truncate text-center">{terapeuta.nome}</div>
+              <div className="text-xs text-gray-500 truncate text-center mt-1">{terapeuta.especialidade}</div>
             </div>
-            
-            <div className="flex">
-              {profsUnidade.map(prof => (
-                <div key={prof.id} className="flex-1 min-w-[180px] p-2 border-r border-gray-200 last:border-r-0">
-                  <div className="text-sm font-semibold text-gray-700 truncate text-center">{prof.nome}</div>
-                  <div className="text-xs text-gray-500 truncate text-center">{prof.especialidade}</div>
-                </div>
-              ))}
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
 
       <ScrollArea className="h-[calc(100vh-240px)]">
         <div className="flex">
-          <div className="w-20 flex-shrink-0 border-r border-gray-200">
+          <div className="w-20 flex-shrink-0 border-r border-gray-200 bg-gray-50">
             {horarios.map((horario, idx) => (
               <div
                 key={horario}
-                className={`h-16 flex items-start justify-center pt-1 text-xs text-gray-500 font-medium border-b border-gray-200 ${
-                  idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-                }`}
+                className={`h-16 flex items-start justify-center pt-1 text-xs text-gray-600 font-semibold border-b border-gray-200`}
               >
                 {horario}
               </div>
             ))}
           </div>
 
-          {profissionaisPorUnidade.map(({ unidade, profissionais: profsUnidade }) => (
-            <div key={unidade.id} className="flex border-r border-gray-200 last:border-r-0">
-              {profsUnidade.map(prof => (
-                <div key={prof.id} className="min-w-[180px] border-r border-gray-200 last:border-r-0">
-                  {horarios.map((horario, idx) => {
-                    const agendamentosSlot = getAgendamentosParaSlot(unidade.id, prof.id, horario);
-                    const isOcupado = agendamentosSlot.length > 0;
+          <div className="flex">
+            {terapeutasAtivos.map(terapeuta => (
+              <div key={terapeuta.id} className="min-w-[200px] flex-1 border-r border-gray-200 last:border-r-0">
+                {horarios.map((horario, idx) => {
+                  const agendamentosSlot = getAgendamentosParaSlot(terapeuta.id, horario);
+                  const isOcupado = agendamentosSlot.length > 0;
 
-                    return (
-                      <div
-                        key={horario}
-                        className={`h-16 border-b border-gray-200 p-1 relative ${
-                          idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-                        } ${!isOcupado ? 'hover:bg-blue-50/30 cursor-pointer transition-colors' : ''}`}
-                        onClick={() => !isOcupado && onSlotClick(unidade.id, prof.id, horario)}
-                      >
-                        {agendamentosSlot.map(agendamento => {
-                          const duracao = calcularDuracaoSlots(agendamento.hora_inicio, agendamento.hora_fim);
-                          return (
-                            <div
-                              key={agendamento.id}
-                              style={{ height: `${duracao * 4}rem` }}
-                              className="absolute inset-x-1 z-10"
-                            >
-                              <AgendamentoCard
-                                agendamento={agendamento}
-                                onClick={onAgendamentoClick}
-                              />
-                            </div>
-                          );
-                        })}
-                      </div>
-                    );
-                  })}
-                </div>
-              ))}
-            </div>
-          ))}
+                  return (
+                    <div
+                      key={horario}
+                      className={`h-16 border-b border-gray-200 p-1 relative ${
+                        idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
+                      } ${!isOcupado ? 'hover:bg-blue-50/40 cursor-pointer transition-colors' : ''}`}
+                      onClick={() => !isOcupado && onSlotClick(unidadeSelecionada.id, terapeuta.id, horario)}
+                    >
+                      {agendamentosSlot.map(agendamento => {
+                        const duracao = calcularDuracaoSlots(agendamento.hora_inicio, agendamento.hora_fim);
+                        return (
+                          <div
+                            key={agendamento.id}
+                            style={{ height: `${duracao * 4}rem` }}
+                            className="absolute inset-x-1 z-10"
+                          >
+                            <AgendamentoCard
+                              agendamento={agendamento}
+                              onClick={onAgendamentoClick}
+                            />
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })}
+              </div>
+            ))}
+          </div>
         </div>
       </ScrollArea>
     </div>

@@ -1,0 +1,28 @@
+{
+  "name": "ConfiguracaoTerapeuta",
+  "type": "object",
+  "properties": {
+    "profissional_id": {
+      "type": "string",
+      "description": "ID do profissional"
+    },
+    "unidade_id": {
+      "type": "string",
+      "description": "ID da unidade"
+    },
+    "ordem": {
+      "type": "number",
+      "description": "Ordem de exibi\u00e7\u00e3o na agenda",
+      "default": 0
+    },
+    "ativo": {
+      "type": "boolean",
+      "description": "Se o terapeuta est\u00e1 ativo nesta unidade",
+      "default": true
+    }
+  },
+  "required": [
+    "profissional_id",
+    "unidade_id"
+  ]
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -11,12 +11,12 @@ import DetalhesAgendamentoDialog from "../components/agenda/DetalhesAgendamentoD
 
 export default function AgendaPage() {
   const [dataAtual, setDataAtual] = useState(new Date());
-  const [visualizacao, setVisualizacao] = useState("dia");
   const [dialogNovoAberto, setDialogNovoAberto] = useState(false);
   const [dialogDetalhesAberto, setDialogDetalhesAberto] = useState(false);
   const [agendamentoSelecionado, setAgendamentoSelecionado] = useState(null);
   const [agendamentoInicial, setAgendamentoInicial] = useState({});
   const [filters, setFilters] = useState({});
+  const [unidadeSelecionada, setUnidadeSelecionada] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -47,6 +47,12 @@ export default function AgendaPage() {
   const { data: servicos = [] } = useQuery({
     queryKey: ['servicos'],
     queryFn: () => base44.entities.Servico.list("nome"),
+    initialData: [],
+  });
+
+  const { data: configuracoes = [] } = useQuery({
+    queryKey: ['configuracoes'],
+    queryFn: () => base44.entities.ConfiguracaoTerapeuta.list("ordem"),
     initialData: [],
   });
 
@@ -109,11 +115,10 @@ export default function AgendaPage() {
     const dataAgendamento = format(new Date(ag.data), "yyyy-MM-dd");
     const dataFiltro = format(dataAtual, "yyyy-MM-dd");
     
-    if (visualizacao === "dia" && dataAgendamento !== dataFiltro) return false;
-    
+    if (dataAgendamento !== dataFiltro) return false;
+    if (unidadeSelecionada && ag.unidade_id !== unidadeSelecionada.id) return false;
     if (filters.cliente && !ag.cliente_nome.toLowerCase().includes(filters.cliente.toLowerCase())) return false;
     if (filters.profissional && ag.profissional_id !== filters.profissional) return false;
-    if (filters.unidade && ag.unidade_id !== filters.unidade) return false;
     if (filters.servico && ag.servico_id !== filters.servico) return false;
     if (filters.status && ag.status !== filters.status) return false;
     if (filters.data && ag.data !== filters.data) return false;
@@ -121,13 +126,17 @@ export default function AgendaPage() {
     return true;
   });
 
+  // Se não há unidade selecionada, usar a primeira
+  const unidadeAtual = unidadeSelecionada || unidades[0];
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       <AgendaHeader
         dataAtual={dataAtual}
-        visualizacao={visualizacao}
+        unidades={unidades}
+        unidadeSelecionada={unidadeSelecionada}
+        onUnidadeChange={setUnidadeSelecionada}
         onDataChange={setDataAtual}
-        onVisualizacaoChange={setVisualizacao}
         onNovoAgendamento={handleNovoAgendamento}
       />
 
@@ -137,17 +146,19 @@ export default function AgendaPage() {
           onFilterChange={handleFilterChange}
           clientes={clientes}
           profissionais={profissionais}
-          unidades={unidades}
           servicos={servicos}
         />
 
-        <AgendaDiaView
-          agendamentos={agendamentosFiltrados}
-          unidades={unidades}
-          profissionais={profissionais}
-          onAgendamentoClick={handleAgendamentoClick}
-          onSlotClick={handleSlotClick}
-        />
+        {unidadeAtual && (
+          <AgendaDiaView
+            agendamentos={agendamentosFiltrados}
+            unidadeSelecionada={unidadeAtual}
+            profissionais={profissionais}
+            configuracoes={configuracoes}
+            onAgendamentoClick={handleAgendamentoClick}
+            onSlotClick={handleSlotClick}
+          />
+        )}
       </div>
 
       <NovoAgendamentoDialog
