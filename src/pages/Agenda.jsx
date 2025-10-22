@@ -77,11 +77,14 @@ export default function AgendaPage() {
     setDialogNovoAberto(true);
   };
 
-  const handleSlotClick = (unidadeId, horario) => {
+  const handleSlotClick = (unidadeId, profissionalId, horario) => {
     const unidade = unidades.find(u => u.id === unidadeId);
+    const profissional = profissionais.find(p => p.id === profissionalId);
     setAgendamentoInicial({
       unidade_id: unidadeId,
       unidade_nome: unidade?.nome || "",
+      profissional_id: profissionalId,
+      profissional_nome: profissional?.nome || "",
       data: format(dataAtual, "yyyy-MM-dd"),
       hora_inicio: horario,
       hora_fim: horario
@@ -141,6 +144,7 @@ export default function AgendaPage() {
         <AgendaDiaView
           agendamentos={agendamentosFiltrados}
           unidades={unidades}
+          profissionais={profissionais}
           onAgendamentoClick={handleAgendamentoClick}
           onSlotClick={handleSlotClick}
         />

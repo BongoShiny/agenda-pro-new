@@ -2,16 +2,18 @@ import React from "react";
 import AgendamentoCard from "./AgendamentoCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-export default function AgendaDiaView({ agendamentos, unidades, onAgendamentoClick, onSlotClick }) {
+export default function AgendaDiaView({ agendamentos, unidades, profissionais, onAgendamentoClick, onSlotClick }) {
   const horarios = [];
   for (let h = 8; h <= 20; h++) {
     horarios.push(`${h.toString().padStart(2, '0')}:00`);
     if (h < 20) horarios.push(`${h.toString().padStart(2, '0')}:30`);
   }
 
-  const getAgendamentosParaSlot = (unidadeId, horario) => {
+  const getAgendamentosParaSlot = (unidadeId, profissionalId, horario) => {
     return agendamentos.filter(ag => {
-      return ag.unidade_id === unidadeId && ag.hora_inicio === horario;
+      return ag.unidade_id === unidadeId && 
+             ag.profissional_id === profissionalId && 
+             ag.hora_inicio === horario;
     });
   };
 
@@ -23,21 +25,43 @@ export default function AgendaDiaView({ agendamentos, unidades, onAgendamentoCli
     return Math.ceil((minutosFim - minutosInicio) / 30);
   };
 
+  // Agrupar profissionais por unidade
+  const profissionaisPorUnidade = unidades.map(unidade => {
+    return {
+      unidade,
+      profissionais: profissionais.filter(prof => prof.ativo)
+    };
+  });
+
+  const totalColunas = profissionaisPorUnidade.reduce((sum, item) => sum + item.profissionais.length, 0);
+
   return (
     <div className="flex-1 bg-gray-50">
       <div className="flex border-b border-gray-200 bg-white sticky top-0 z-10">
         <div className="w-20 flex-shrink-0 border-r border-gray-200"></div>
-        {unidades.map(unidade => (
-          <div key={unidade.id} className="flex-1 p-4 border-r border-gray-200 last:border-r-0">
-            <div className="font-semibold text-gray-900">{unidade.nome}</div>
-            <div className="text-sm text-gray-500">{unidade.endereco}</div>
+        
+        {profissionaisPorUnidade.map(({ unidade, profissionais: profsUnidade }) => (
+          <div key={unidade.id} className="flex flex-col border-r border-gray-200 last:border-r-0" style={{ minWidth: `${profsUnidade.length * 180}px` }}>
+            <div className="p-3 border-b border-gray-200 bg-gray-50">
+              <div className="font-bold text-gray-900 text-center">{unidade.nome}</div>
+              <div className="text-xs text-gray-500 text-center mt-0.5">{unidade.endereco}</div>
+            </div>
+            
+            <div className="flex">
+              {profsUnidade.map(prof => (
+                <div key={prof.id} className="flex-1 min-w-[180px] p-2 border-r border-gray-200 last:border-r-0">
+                  <div className="text-sm font-semibold text-gray-700 truncate text-center">{prof.nome}</div>
+                  <div className="text-xs text-gray-500 truncate text-center">{prof.especialidade}</div>
+                </div>
+              ))}
+            </div>
           </div>
         ))}
       </div>
 
-      <ScrollArea className="h-[calc(100vh-200px)]">
+      <ScrollArea className="h-[calc(100vh-240px)]">
         <div className="flex">
-          <div className="w-20 flex-shrink-0">
+          <div className="w-20 flex-shrink-0 border-r border-gray-200">
             {horarios.map((horario, idx) => (
               <div
                 key={horario}
@@ -50,38 +74,42 @@ export default function AgendaDiaView({ agendamentos, unidades, onAgendamentoCli
             ))}
           </div>
 
-          {unidades.map(unidade => (
-            <div key={unidade.id} className="flex-1 border-r border-gray-200 last:border-r-0">
-              {horarios.map((horario, idx) => {
-                const agendamentosSlot = getAgendamentosParaSlot(unidade.id, horario);
-                const isOcupado = agendamentosSlot.length > 0;
+          {profissionaisPorUnidade.map(({ unidade, profissionais: profsUnidade }) => (
+            <div key={unidade.id} className="flex border-r border-gray-200 last:border-r-0">
+              {profsUnidade.map(prof => (
+                <div key={prof.id} className="min-w-[180px] border-r border-gray-200 last:border-r-0">
+                  {horarios.map((horario, idx) => {
+                    const agendamentosSlot = getAgendamentosParaSlot(unidade.id, prof.id, horario);
+                    const isOcupado = agendamentosSlot.length > 0;
 
-                return (
-                  <div
-                    key={horario}
-                    className={`h-16 border-b border-gray-200 p-1 relative ${
-                      idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-                    } ${!isOcupado ? 'hover:bg-blue-50/30 cursor-pointer' : ''}`}
-                    onClick={() => !isOcupado && onSlotClick(unidade.id, horario)}
-                  >
-                    {agendamentosSlot.map(agendamento => {
-                      const duracao = calcularDuracaoSlots(agendamento.hora_inicio, agendamento.hora_fim);
-                      return (
-                        <div
-                          key={agendamento.id}
-                          style={{ height: `${duracao * 4}rem` }}
-                          className="absolute inset-x-1 z-10"
-                        >
-                          <AgendamentoCard
-                            agendamento={agendamento}
-                            onClick={onAgendamentoClick}
-                          />
-                        </div>
-                      );
-                    })}
-                  </div>
-                );
-              })}
+                    return (
+                      <div
+                        key={horario}
+                        className={`h-16 border-b border-gray-200 p-1 relative ${
+                          idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
+                        } ${!isOcupado ? 'hover:bg-blue-50/30 cursor-pointer transition-colors' : ''}`}
+                        onClick={() => !isOcupado && onSlotClick(unidade.id, prof.id, horario)}
+                      >
+                        {agendamentosSlot.map(agendamento => {
+                          const duracao = calcularDuracaoSlots(agendamento.hora_inicio, agendamento.hora_fim);
+                          return (
+                            <div
+                              key={agendamento.id}
+                              style={{ height: `${duracao * 4}rem` }}
+                              className="absolute inset-x-1 z-10"
+                            >
+                              <AgendamentoCard
+                                agendamento={agendamento}
+                                onClick={onAgendamentoClick}
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })}
+                </div>
+              ))}
             </div>
           ))}
         </div>
