@@ -1,0 +1,27 @@
+{
+  "name": "Profissional",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome do profissional"
+    },
+    "especialidade": {
+      "type": "string",
+      "description": "Especialidade ou \u00e1rea de atua\u00e7\u00e3o"
+    },
+    "cor": {
+      "type": "string",
+      "description": "Cor para identifica\u00e7\u00e3o na agenda",
+      "default": "#10B981"
+    },
+    "ativo": {
+      "type": "boolean",
+      "description": "Se o profissional est\u00e1 ativo",
+      "default": true
+    }
+  },
+  "required": [
+    "nome"
+  ]
+}

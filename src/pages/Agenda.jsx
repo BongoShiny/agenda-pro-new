@@ -1,0 +1,168 @@
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
+
+import AgendaHeader from "../components/agenda/AgendaHeader";
+import AgendaFilters from "../components/agenda/AgendaFilters";
+import AgendaDiaView from "../components/agenda/AgendaDiaView";
+import NovoAgendamentoDialog from "../components/agenda/NovoAgendamentoDialog";
+import DetalhesAgendamentoDialog from "../components/agenda/DetalhesAgendamentoDialog";
+
+export default function AgendaPage() {
+  const [dataAtual, setDataAtual] = useState(new Date());
+  const [visualizacao, setVisualizacao] = useState("dia");
+  const [dialogNovoAberto, setDialogNovoAberto] = useState(false);
+  const [dialogDetalhesAberto, setDialogDetalhesAberto] = useState(false);
+  const [agendamentoSelecionado, setAgendamentoSelecionado] = useState(null);
+  const [agendamentoInicial, setAgendamentoInicial] = useState({});
+  const [filters, setFilters] = useState({});
+
+  const queryClient = useQueryClient();
+
+  const { data: agendamentos = [] } = useQuery({
+    queryKey: ['agendamentos'],
+    queryFn: () => base44.entities.Agendamento.list("-data"),
+    initialData: [],
+  });
+
+  const { data: clientes = [] } = useQuery({
+    queryKey: ['clientes'],
+    queryFn: () => base44.entities.Cliente.list("nome"),
+    initialData: [],
+  });
+
+  const { data: profissionais = [] } = useQuery({
+    queryKey: ['profissionais'],
+    queryFn: () => base44.entities.Profissional.list("nome"),
+    initialData: [],
+  });
+
+  const { data: unidades = [] } = useQuery({
+    queryKey: ['unidades'],
+    queryFn: () => base44.entities.Unidade.list("nome"),
+    initialData: [],
+  });
+
+  const { data: servicos = [] } = useQuery({
+    queryKey: ['servicos'],
+    queryFn: () => base44.entities.Servico.list("nome"),
+    initialData: [],
+  });
+
+  const criarAgendamentoMutation = useMutation({
+    mutationFn: (dados) => base44.entities.Agendamento.create(dados),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+    },
+  });
+
+  const deletarAgendamentoMutation = useMutation({
+    mutationFn: (id) => base44.entities.Agendamento.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+    },
+  });
+
+  const handleFilterChange = (field, value) => {
+    if (field === "limpar") {
+      setFilters({});
+    } else {
+      setFilters(prev => ({ ...prev, [field]: value }));
+    }
+  };
+
+  const handleNovoAgendamento = () => {
+    setAgendamentoInicial({});
+    setDialogNovoAberto(true);
+  };
+
+  const handleSlotClick = (unidadeId, horario) => {
+    const unidade = unidades.find(u => u.id === unidadeId);
+    setAgendamentoInicial({
+      unidade_id: unidadeId,
+      unidade_nome: unidade?.nome || "",
+      data: format(dataAtual, "yyyy-MM-dd"),
+      hora_inicio: horario,
+      hora_fim: horario
+    });
+    setDialogNovoAberto(true);
+  };
+
+  const handleAgendamentoClick = (agendamento) => {
+    setAgendamentoSelecionado(agendamento);
+    setDialogDetalhesAberto(true);
+  };
+
+  const handleSalvarAgendamento = async (dados) => {
+    await criarAgendamentoMutation.mutateAsync(dados);
+  };
+
+  const handleDeletarAgendamento = async (id) => {
+    await deletarAgendamentoMutation.mutateAsync(id);
+  };
+
+  const agendamentosFiltrados = agendamentos.filter(ag => {
+    const dataAgendamento = format(new Date(ag.data), "yyyy-MM-dd");
+    const dataFiltro = format(dataAtual, "yyyy-MM-dd");
+    
+    if (visualizacao === "dia" && dataAgendamento !== dataFiltro) return false;
+    
+    if (filters.cliente && !ag.cliente_nome.toLowerCase().includes(filters.cliente.toLowerCase())) return false;
+    if (filters.profissional && ag.profissional_id !== filters.profissional) return false;
+    if (filters.unidade && ag.unidade_id !== filters.unidade) return false;
+    if (filters.servico && ag.servico_id !== filters.servico) return false;
+    if (filters.status && ag.status !== filters.status) return false;
+    if (filters.data && ag.data !== filters.data) return false;
+    
+    return true;
+  });
+
+  return (
+    <div className="h-screen flex flex-col bg-gray-50">
+      <AgendaHeader
+        dataAtual={dataAtual}
+        visualizacao={visualizacao}
+        onDataChange={setDataAtual}
+        onVisualizacaoChange={setVisualizacao}
+        onNovoAgendamento={handleNovoAgendamento}
+      />
+
+      <div className="flex-1 flex overflow-hidden">
+        <AgendaFilters
+          filters={filters}
+          onFilterChange={handleFilterChange}
+          clientes={clientes}
+          profissionais={profissionais}
+          unidades={unidades}
+          servicos={servicos}
+        />
+
+        <AgendaDiaView
+          agendamentos={agendamentosFiltrados}
+          unidades={unidades}
+          onAgendamentoClick={handleAgendamentoClick}
+          onSlotClick={handleSlotClick}
+        />
+      </div>
+
+      <NovoAgendamentoDialog
+        open={dialogNovoAberto}
+        onOpenChange={setDialogNovoAberto}
+        onSave={handleSalvarAgendamento}
+        agendamentoInicial={agendamentoInicial}
+        clientes={clientes}
+        profissionais={profissionais}
+        unidades={unidades}
+        servicos={servicos}
+      />
+
+      <DetalhesAgendamentoDialog
+        open={dialogDetalhesAberto}
+        onOpenChange={setDialogDetalhesAberto}
+        agendamento={agendamentoSelecionado}
+        onDelete={handleDeletarAgendamento}
+      />
+    </div>
+  );
+}

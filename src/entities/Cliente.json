@@ -1,0 +1,30 @@
+{
+  "name": "Cliente",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome completo do cliente"
+    },
+    "telefone": {
+      "type": "string",
+      "description": "Telefone de contato"
+    },
+    "email": {
+      "type": "string",
+      "description": "E-mail do cliente"
+    },
+    "data_nascimento": {
+      "type": "string",
+      "format": "date",
+      "description": "Data de nascimento"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es sobre o cliente"
+    }
+  },
+  "required": [
+    "nome"
+  ]
+}

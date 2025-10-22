@@ -1,0 +1,27 @@
+{
+  "name": "Unidade",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome da unidade"
+    },
+    "endereco": {
+      "type": "string",
+      "description": "Endere\u00e7o completo"
+    },
+    "cor": {
+      "type": "string",
+      "description": "Cor hexadecimal para identifica\u00e7\u00e3o visual",
+      "default": "#3B82F6"
+    },
+    "ativa": {
+      "type": "boolean",
+      "description": "Se a unidade est\u00e1 ativa",
+      "default": true
+    }
+  },
+  "required": [
+    "nome"
+  ]
+}

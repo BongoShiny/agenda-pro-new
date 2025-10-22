@@ -1,0 +1,93 @@
+{
+  "name": "Agendamento",
+  "type": "object",
+  "properties": {
+    "cliente_id": {
+      "type": "string",
+      "description": "ID do cliente"
+    },
+    "cliente_nome": {
+      "type": "string",
+      "description": "Nome do cliente para exibi\u00e7\u00e3o r\u00e1pida"
+    },
+    "profissional_id": {
+      "type": "string",
+      "description": "ID do profissional"
+    },
+    "profissional_nome": {
+      "type": "string",
+      "description": "Nome do profissional"
+    },
+    "servico_id": {
+      "type": "string",
+      "description": "ID do servi\u00e7o"
+    },
+    "servico_nome": {
+      "type": "string",
+      "description": "Nome do servi\u00e7o"
+    },
+    "unidade_id": {
+      "type": "string",
+      "description": "ID da unidade"
+    },
+    "unidade_nome": {
+      "type": "string",
+      "description": "Nome da unidade"
+    },
+    "data": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do agendamento"
+    },
+    "hora_inicio": {
+      "type": "string",
+      "description": "Hora de in\u00edcio (formato HH:mm)"
+    },
+    "hora_fim": {
+      "type": "string",
+      "description": "Hora de t\u00e9rmino (formato HH:mm)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "agendado",
+        "confirmado",
+        "ausencia",
+        "cancelado",
+        "concluido"
+      ],
+      "default": "agendado",
+      "description": "Status do agendamento"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "consulta",
+        "liberacao_miofascial",
+        "pacote",
+        "avaliacao"
+      ],
+      "default": "consulta"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es sobre o agendamento"
+    },
+    "sala": {
+      "type": "string",
+      "description": "Sala onde ocorrer\u00e1 o atendimento"
+    },
+    "equipamento": {
+      "type": "string",
+      "description": "Equipamento necess\u00e1rio"
+    }
+  },
+  "required": [
+    "cliente_nome",
+    "profissional_nome",
+    "unidade_id",
+    "data",
+    "hora_inicio",
+    "hora_fim"
+  ]
+}
