@@ -120,6 +120,8 @@ export default function AgendaDiaView({
                       ) : (
                         agendamentosSlot.map(agendamento => {
                           const duracao = calcularDuracaoSlots(agendamento.hora_inicio, agendamento.hora_fim);
+                          const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio";
+                          
                           return (
                             <div
                               key={agendamento.id}

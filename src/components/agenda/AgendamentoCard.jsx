@@ -9,7 +9,7 @@ const statusColors = {
   ausencia: "bg-fuchsia-600",
   cancelado: "bg-red-500",
   concluido: "bg-blue-500",
-  bloqueio: "bg-gray-700"
+  bloqueio: "bg-red-600"
 };
 
 const statusIcons = {
