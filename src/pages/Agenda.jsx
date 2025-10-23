@@ -66,12 +66,6 @@ export default function AgendaPage() {
     initialData: [],
   });
 
-  const { data: configAgenda = [] } = useQuery({
-    queryKey: ['configAgenda'],
-    queryFn: () => base44.entities.ConfiguracaoAgenda.list(),
-    initialData: [],
-  });
-
   const criarAgendamentoMutation = useMutation({
     mutationFn: (dados) => base44.entities.Agendamento.create(dados),
     onSuccess: () => {
@@ -85,41 +79,6 @@ export default function AgendaPage() {
       queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
     },
   });
-
-  const atualizarConfigAgendaMutation = useMutation({
-    mutationFn: ({ id, dados }) => base44.entities.ConfiguracaoAgenda.update(id, dados),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['configAgenda'] });
-    },
-  });
-
-  const criarConfigAgendaMutation = useMutation({
-    mutationFn: (dados) => base44.entities.ConfiguracaoAgenda.create(dados),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['configAgenda'] });
-    },
-  });
-
-  const agendaBloqueada = configAgenda[0]?.agenda_bloqueada || false;
-
-  const handleToggleBloqueio = async () => {
-    if (configAgenda.length === 0) {
-      await criarConfigAgendaMutation.mutateAsync({
-        agenda_bloqueada: true,
-        bloqueada_por: usuarioAtual.email,
-        bloqueada_em: new Date().toISOString()
-      });
-    } else {
-      await atualizarConfigAgendaMutation.mutateAsync({
-        id: configAgenda[0].id,
-        dados: {
-          agenda_bloqueada: !agendaBloqueada,
-          bloqueada_por: !agendaBloqueada ? usuarioAtual.email : null,
-          bloqueada_em: !agendaBloqueada ? new Date().toISOString() : null
-        }
-      });
-    }
-  };
 
   const handleFilterChange = (field, value) => {
     if (field === "limpar") {
@@ -188,8 +147,6 @@ export default function AgendaPage() {
         onUnidadeChange={setUnidadeSelecionada}
         onDataChange={setDataAtual}
         onNovoAgendamento={handleNovoAgendamento}
-        agendaBloqueada={agendaBloqueada}
-        onToggleBloqueio={handleToggleBloqueio}
         usuarioAtual={usuarioAtual}
       />
 
@@ -210,8 +167,6 @@ export default function AgendaPage() {
             configuracoes={configuracoes}
             onAgendamentoClick={handleAgendamentoClick}
             onSlotClick={handleSlotClick}
-            agendaBloqueada={agendaBloqueada}
-            usuarioAtual={usuarioAtual}
           />
         )}
       </div>
@@ -232,7 +187,6 @@ export default function AgendaPage() {
         onOpenChange={setDialogDetalhesAberto}
         agendamento={agendamentoSelecionado}
         onDelete={handleDeletarAgendamento}
-        usuarioAtual={usuarioAtual}
       />
     </div>
   );

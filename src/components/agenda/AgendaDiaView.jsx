@@ -1,7 +1,7 @@
+
 import React from "react";
 import AgendamentoCard from "./AgendamentoCard";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Lock } from "lucide-react";
 
 export default function AgendaDiaView({ 
   agendamentos, 
@@ -9,9 +9,7 @@ export default function AgendaDiaView({
   profissionais, 
   configuracoes,
   onAgendamentoClick, 
-  onSlotClick,
-  agendaBloqueada,
-  usuarioAtual
+  onSlotClick
 }) {
   const horarios = [];
   for (let h = 8; h <= 20; h++) {
@@ -41,9 +39,6 @@ export default function AgendaDiaView({
     return Math.ceil((minutosFim - minutosInicio) / 30);
   };
 
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
-  const podeEditar = !agendaBloqueada || isAdmin;
-
   if (terapeutasAtivos.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center bg-gray-50">
@@ -57,15 +52,6 @@ export default function AgendaDiaView({
 
   return (
     <div className="flex-1 bg-gray-50 relative">
-      {agendaBloqueada && !isAdmin && (
-        <div className="absolute inset-0 bg-gray-900/5 z-20 pointer-events-none">
-          <div className="absolute top-4 right-4 bg-red-100 text-red-700 px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
-            <Lock className="w-4 h-4" />
-            <span className="font-medium">Agenda bloqueada para edição</span>
-          </div>
-        </div>
-      )}
-
       <div className="flex border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
         <div className="w-20 flex-shrink-0 border-r border-gray-200"></div>
         
@@ -104,8 +90,8 @@ export default function AgendaDiaView({
                       key={horario}
                       className={`h-16 border-b border-gray-200 p-1 relative ${
                         idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-                      } ${!isOcupado && podeEditar ? 'hover:bg-blue-50/40 cursor-pointer transition-colors' : ''}`}
-                      onClick={() => !isOcupado && podeEditar && onSlotClick(unidadeSelecionada.id, terapeuta.id, horario)}
+                      } ${!isOcupado ? 'hover:bg-blue-50/40 cursor-pointer transition-colors' : ''}`}
+                      onClick={() => !isOcupado && onSlotClick(unidadeSelecionada.id, terapeuta.id, horario)}
                     >
                       {agendamentosSlot.map(agendamento => {
                         const duracao = calcularDuracaoSlots(agendamento.hora_inicio, agendamento.hora_fim);
@@ -117,7 +103,7 @@ export default function AgendaDiaView({
                           >
                             <AgendamentoCard
                               agendamento={agendamento}
-                              onClick={podeEditar ? onAgendamentoClick : null}
+                              onClick={onAgendamentoClick}
                             />
                           </div>
                         );

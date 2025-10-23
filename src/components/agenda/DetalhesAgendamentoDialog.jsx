@@ -20,11 +20,10 @@ const statusLabels = {
   concluido: { label: "Concluído", color: "bg-blue-500" }
 };
 
-export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendamento, onDelete, usuarioAtual }) {
+export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendamento, onDelete }) {
   if (!agendamento) return null;
 
   const statusInfo = statusLabels[agendamento.status] || statusLabels.agendado;
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -118,11 +117,9 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Fechar
           </Button>
-          {isAdmin && (
-            <Button variant="destructive" onClick={() => { onDelete(agendamento.id); onOpenChange(false); }}>
-              Excluir
-            </Button>
-          )}
+          <Button variant="destructive" onClick={() => { onDelete(agendamento.id); onOpenChange(false); }}>
+            Excluir
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

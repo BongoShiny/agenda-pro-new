@@ -1,12 +1,11 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, Settings, Lock, Unlock, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, Settings, Users } from "lucide-react";
 import { format, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Badge } from "@/components/ui/badge";
 
 export default function AgendaHeader({ 
   dataAtual,
@@ -15,8 +14,6 @@ export default function AgendaHeader({
   onUnidadeChange,
   onDataChange,
   onNovoAgendamento,
-  agendaBloqueada,
-  onToggleBloqueio,
   usuarioAtual
 }) {
   const formatarDataExibicao = () => {
@@ -41,12 +38,6 @@ export default function AgendaHeader({
             <div className="flex items-center gap-2">
               <CalendarIcon className="w-6 h-6 text-blue-600" />
               <h1 className="text-2xl font-bold text-gray-900">Agenda</h1>
-              {agendaBloqueada && (
-                <Badge variant="secondary" className="bg-red-100 text-red-700 border-red-200">
-                  <Lock className="w-3 h-3 mr-1" />
-                  Bloqueada
-                </Badge>
-              )}
             </div>
             
             <div className="flex items-center gap-2">
@@ -69,24 +60,6 @@ export default function AgendaHeader({
           <div className="flex items-center gap-3">
             {isAdmin && (
               <>
-                <Button
-                  variant={agendaBloqueada ? "default" : "outline"}
-                  onClick={onToggleBloqueio}
-                  className={agendaBloqueada ? "bg-red-600 hover:bg-red-700" : ""}
-                >
-                  {agendaBloqueada ? (
-                    <>
-                      <Unlock className="w-4 h-4 mr-2" />
-                      Desbloquear Agenda
-                    </>
-                  ) : (
-                    <>
-                      <Lock className="w-4 h-4 mr-2" />
-                      Bloquear Agenda
-                    </>
-                  )}
-                </Button>
-
                 <Link to={createPageUrl("GerenciarUsuarios")}>
                   <Button variant="outline">
                     <Users className="w-4 h-4 mr-2" />
@@ -106,7 +79,6 @@ export default function AgendaHeader({
             <Button 
               className="bg-blue-600 hover:bg-blue-700" 
               onClick={onNovoAgendamento}
-              disabled={agendaBloqueada && !isAdmin}
             >
               <Plus className="w-4 h-4 mr-2" />
               Novo Agendamento
@@ -123,9 +95,6 @@ export default function AgendaHeader({
           }
         }}>
           <TabsList className="bg-gray-100 p-1 h-auto">
-            <TabsTrigger value="todas" className="px-6 py-2.5 text-sm font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white">
-              Todas as Unidades
-            </TabsTrigger>
             {unidades.map(unidade => (
               <TabsTrigger 
                 key={unidade.id} 
