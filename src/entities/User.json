@@ -1,0 +1,27 @@
+{
+  "type": "object",
+  "properties": {
+    "cargo": {
+      "type": "string",
+      "enum": [
+        "administrador",
+        "funcionario"
+      ],
+      "default": "funcionario",
+      "description": "Cargo do usu\u00e1rio no sistema"
+    },
+    "unidades_acesso": {
+      "type": "array",
+      "description": "IDs das unidades que o usu\u00e1rio tem acesso",
+      "items": {
+        "type": "string"
+      }
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se o usu\u00e1rio est\u00e1 ativo no sistema"
+    }
+  },
+  "name": "User"
+}

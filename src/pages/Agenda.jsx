@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -17,8 +17,17 @@ export default function AgendaPage() {
   const [agendamentoInicial, setAgendamentoInicial] = useState({});
   const [filters, setFilters] = useState({});
   const [unidadeSelecionada, setUnidadeSelecionada] = useState(null);
+  const [usuarioAtual, setUsuarioAtual] = useState(null);
 
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const carregarUsuario = async () => {
+      const user = await base44.auth.me();
+      setUsuarioAtual(user);
+    };
+    carregarUsuario();
+  }, []);
 
   const { data: agendamentos = [] } = useQuery({
     queryKey: ['agendamentos'],
@@ -56,6 +65,12 @@ export default function AgendaPage() {
     initialData: [],
   });
 
+  const { data: configAgenda = [] } = useQuery({
+    queryKey: ['configAgenda'],
+    queryFn: () => base44.entities.ConfiguracaoAgenda.list(),
+    initialData: [],
+  });
+
   const criarAgendamentoMutation = useMutation({
     mutationFn: (dados) => base44.entities.Agendamento.create(dados),
     onSuccess: () => {
@@ -69,6 +84,41 @@ export default function AgendaPage() {
       queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
     },
   });
+
+  const atualizarConfigAgendaMutation = useMutation({
+    mutationFn: ({ id, dados }) => base44.entities.ConfiguracaoAgenda.update(id, dados),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['configAgenda'] });
+    },
+  });
+
+  const criarConfigAgendaMutation = useMutation({
+    mutationFn: (dados) => base44.entities.ConfiguracaoAgenda.create(dados),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['configAgenda'] });
+    },
+  });
+
+  const agendaBloqueada = configAgenda[0]?.agenda_bloqueada || false;
+
+  const handleToggleBloqueio = async () => {
+    if (configAgenda.length === 0) {
+      await criarConfigAgendaMutation.mutateAsync({
+        agenda_bloqueada: true,
+        bloqueada_por: usuarioAtual.email,
+        bloqueada_em: new Date().toISOString()
+      });
+    } else {
+      await atualizarConfigAgendaMutation.mutateAsync({
+        id: configAgenda[0].id,
+        dados: {
+          agenda_bloqueada: !agendaBloqueada,
+          bloqueada_por: !agendaBloqueada ? usuarioAtual.email : null,
+          bloqueada_em: !agendaBloqueada ? new Date().toISOString() : null
+        }
+      });
+    }
+  };
 
   const handleFilterChange = (field, value) => {
     if (field === "limpar") {
@@ -126,7 +176,6 @@ export default function AgendaPage() {
     return true;
   });
 
-  // Se não há unidade selecionada, usar a primeira
   const unidadeAtual = unidadeSelecionada || unidades[0];
 
   return (
@@ -138,6 +187,9 @@ export default function AgendaPage() {
         onUnidadeChange={setUnidadeSelecionada}
         onDataChange={setDataAtual}
         onNovoAgendamento={handleNovoAgendamento}
+        agendaBloqueada={agendaBloqueada}
+        onToggleBloqueio={handleToggleBloqueio}
+        usuarioAtual={usuarioAtual}
       />
 
       <div className="flex-1 flex overflow-hidden">
@@ -157,6 +209,8 @@ export default function AgendaPage() {
             configuracoes={configuracoes}
             onAgendamentoClick={handleAgendamentoClick}
             onSlotClick={handleSlotClick}
+            agendaBloqueada={agendaBloqueada}
+            usuarioAtual={usuarioAtual}
           />
         )}
       </div>
