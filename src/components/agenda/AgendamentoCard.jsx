@@ -1,14 +1,15 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, XCircle, Calendar } from "lucide-react";
+import { CheckCircle, Clock, XCircle, Calendar, Ban } from "lucide-react";
 
 const statusColors = {
   confirmado: "bg-emerald-500",
   agendado: "bg-amber-400",
   ausencia: "bg-fuchsia-600",
   cancelado: "bg-red-500",
-  concluido: "bg-blue-500"
+  concluido: "bg-blue-500",
+  bloqueio: "bg-gray-700"
 };
 
 const statusIcons = {
@@ -16,7 +17,8 @@ const statusIcons = {
   agendado: Clock,
   ausencia: XCircle,
   cancelado: XCircle,
-  concluido: CheckCircle
+  concluido: CheckCircle,
+  bloqueio: Ban
 };
 
 const statusLabels = {
@@ -24,12 +26,32 @@ const statusLabels = {
   agendado: "Agendado",
   ausencia: "Ausência",
   cancelado: "Cancelado",
-  concluido: "Concluído"
+  concluido: "Concluído",
+  bloqueio: "Horário Bloqueado"
 };
 
 export default function AgendamentoCard({ agendamento, onClick }) {
   const StatusIcon = statusIcons[agendamento.status] || Clock;
   const bgColor = statusColors[agendamento.status] || "bg-gray-500";
+
+  // Se for um bloqueio, mostrar layout diferente
+  if (agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio") {
+    return (
+      <Card
+        className={`${bgColor} text-white p-3 cursor-pointer hover:shadow-lg transition-all duration-200 border-0 rounded-lg flex items-center justify-center`}
+        onClick={() => onClick(agendamento)}
+      >
+        <div className="text-center">
+          <Ban className="w-6 h-6 mx-auto mb-2" />
+          <div className="text-sm font-semibold">Horário Bloqueado</div>
+          <div className="text-xs opacity-90 mt-1">{agendamento.hora_inicio} - {agendamento.hora_fim}</div>
+          {agendamento.observacoes && (
+            <div className="text-xs opacity-75 mt-1 italic">{agendamento.observacoes}</div>
+          )}
+        </div>
+      </Card>
+    );
+  }
 
   return (
     <Card
@@ -48,7 +70,7 @@ export default function AgendamentoCard({ agendamento, onClick }) {
         <div className="text-xs opacity-95 space-y-0.5">
           <div className="truncate">{agendamento.servico_nome}</div>
           <div className="truncate font-medium">{agendamento.profissional_nome}</div>
-          {agendamento.tipo && (
+          {agendamento.tipo && agendamento.tipo !== "bloqueio" && (
             <div className="truncate capitalize">{agendamento.tipo.replace(/_/g, ' ')}</div>
           )}
         </div>

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -93,9 +92,14 @@ export default function AgendaPage() {
     setDialogNovoAberto(true);
   };
 
-  const handleSlotClick = (unidadeId, profissionalId, horario) => {
+  const handleNovoAgendamentoSlot = (unidadeId, profissionalId, horario) => {
     const unidade = unidades.find(u => u.id === unidadeId);
     const profissional = profissionais.find(p => p.id === profissionalId);
+    
+    // Calcular hora_fim (1 hora depois por padrão)
+    const [hora, minuto] = horario.split(':').map(Number);
+    const horaFim = `${(hora + 1).toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
+    
     setAgendamentoInicial({
       unidade_id: unidadeId,
       unidade_nome: unidade?.nome || "",
@@ -103,9 +107,33 @@ export default function AgendaPage() {
       profissional_nome: profissional?.nome || "",
       data: format(dataAtual, "yyyy-MM-dd"),
       hora_inicio: horario,
-      hora_fim: horario
+      hora_fim: horaFim
     });
     setDialogNovoAberto(true);
+  };
+
+  const handleBloquearHorario = async (unidadeId, profissionalId, horario) => {
+    const unidade = unidades.find(u => u.id === unidadeId);
+    const profissional = profissionais.find(p => p.id === profissionalId);
+    
+    // Calcular hora_fim (1 hora depois por padrão)
+    const [hora, minuto] = horario.split(':').map(Number);
+    const horaFim = `${(hora + 1).toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
+    
+    await criarAgendamentoMutation.mutateAsync({
+      cliente_nome: "BLOQUEIO",
+      profissional_id: profissionalId,
+      profissional_nome: profissional?.nome || "",
+      unidade_id: unidadeId,
+      unidade_nome: unidade?.nome || "",
+      servico_nome: "Horário Bloqueado",
+      data: format(dataAtual, "yyyy-MM-dd"),
+      hora_inicio: horario,
+      hora_fim: horaFim,
+      status: "bloqueio",
+      tipo: "bloqueio",
+      observacoes: "Horário bloqueado para agendamentos"
+    });
   };
 
   const handleAgendamentoClick = (agendamento) => {
@@ -166,7 +194,8 @@ export default function AgendaPage() {
             profissionais={profissionais}
             configuracoes={configuracoes}
             onAgendamentoClick={handleAgendamentoClick}
-            onSlotClick={handleSlotClick}
+            onNovoAgendamento={handleNovoAgendamentoSlot}
+            onBloquearHorario={handleBloquearHorario}
           />
         )}
       </div>

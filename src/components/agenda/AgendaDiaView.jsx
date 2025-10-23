@@ -1,6 +1,6 @@
-
-import React from "react";
+import React, { useState } from "react";
 import AgendamentoCard from "./AgendamentoCard";
+import SlotMenu from "./SlotMenu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 export default function AgendaDiaView({ 
@@ -9,8 +9,11 @@ export default function AgendaDiaView({
   profissionais, 
   configuracoes,
   onAgendamentoClick, 
-  onSlotClick
+  onNovoAgendamento,
+  onBloquearHorario
 }) {
+  const [slotMenuAberto, setSlotMenuAberto] = useState(null);
+
   const horarios = [];
   for (let h = 8; h <= 20; h++) {
     horarios.push(`${h.toString().padStart(2, '0')}:00`);
@@ -39,6 +42,10 @@ export default function AgendaDiaView({
     return Math.ceil((minutosFim - minutosInicio) / 30);
   };
 
+  const handleSlotClick = (unidadeId, profissionalId, horario) => {
+    setSlotMenuAberto({ unidadeId, profissionalId, horario });
+  };
+
   if (terapeutasAtivos.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center bg-gray-50">
@@ -52,7 +59,7 @@ export default function AgendaDiaView({
 
   return (
     <div className="flex-1 bg-gray-50 relative">
-      <div className="flex border-b border-gray-200 bg-white sticky top-0 z-10 shadow-sm">
+      <div className="flex border-b border-gray-200 bg-white sticky top-0 z-10">
         <div className="w-20 flex-shrink-0 border-r border-gray-200"></div>
         
         <div className="flex overflow-x-auto">
@@ -84,30 +91,49 @@ export default function AgendaDiaView({
                 {horarios.map((horario, idx) => {
                   const agendamentosSlot = getAgendamentosParaSlot(terapeuta.id, horario);
                   const isOcupado = agendamentosSlot.length > 0;
+                  const slotKey = `${unidadeSelecionada.id}-${terapeuta.id}-${horario}`;
+                  const isMenuAberto = slotMenuAberto?.unidadeId === unidadeSelecionada.id && 
+                                      slotMenuAberto?.profissionalId === terapeuta.id && 
+                                      slotMenuAberto?.horario === horario;
 
                   return (
                     <div
                       key={horario}
                       className={`h-16 border-b border-gray-200 p-1 relative ${
                         idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
-                      } ${!isOcupado ? 'hover:bg-blue-50/40 cursor-pointer transition-colors' : ''}`}
-                      onClick={() => !isOcupado && onSlotClick(unidadeSelecionada.id, terapeuta.id, horario)}
+                      }`}
                     >
-                      {agendamentosSlot.map(agendamento => {
-                        const duracao = calcularDuracaoSlots(agendamento.hora_inicio, agendamento.hora_fim);
-                        return (
-                          <div
-                            key={agendamento.id}
-                            style={{ height: `${duracao * 4}rem` }}
-                            className="absolute inset-x-1 z-10"
-                          >
-                            <AgendamentoCard
-                              agendamento={agendamento}
-                              onClick={onAgendamentoClick}
-                            />
-                          </div>
-                        );
-                      })}
+                      {!isOcupado ? (
+                        <SlotMenu
+                          open={isMenuAberto}
+                          onOpenChange={(open) => {
+                            if (!open) setSlotMenuAberto(null);
+                          }}
+                          onNovoAgendamento={() => onNovoAgendamento(unidadeSelecionada.id, terapeuta.id, horario)}
+                          onBloquearHorario={() => onBloquearHorario(unidadeSelecionada.id, terapeuta.id, horario)}
+                        >
+                          <button
+                            className="w-full h-full hover:bg-blue-50/40 cursor-pointer transition-colors"
+                            onClick={() => handleSlotClick(unidadeSelecionada.id, terapeuta.id, horario)}
+                          />
+                        </SlotMenu>
+                      ) : (
+                        agendamentosSlot.map(agendamento => {
+                          const duracao = calcularDuracaoSlots(agendamento.hora_inicio, agendamento.hora_fim);
+                          return (
+                            <div
+                              key={agendamento.id}
+                              style={{ height: `${duracao * 4}rem` }}
+                              className="absolute inset-x-1 z-10"
+                            >
+                              <AgendamentoCard
+                                agendamento={agendamento}
+                                onClick={onAgendamentoClick}
+                              />
+                            </div>
+                          );
+                        })
+                      )}
                     </div>
                   );
                 })}
