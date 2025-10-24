@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, User, Briefcase, MapPin, Tag, FileText, Ban } from "lucide-react";
+import { Calendar, Clock, User, Briefcase, MapPin, Tag, FileText, Ban, AlertTriangle } from "lucide-react";
 
 const statusLabels = {
   confirmado: { label: "Confirmado", color: "bg-emerald-500" },
@@ -29,7 +29,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
 
   const handleDelete = () => {
-    console.log("Tentando deletar agendamento:", agendamento.id);
+    console.log("Deletando agendamento:", agendamento.id);
     onDelete(agendamento.id);
     onOpenChange(false);
   };

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -115,24 +116,24 @@ export default function AgendaPage() {
     try {
       const unidade = unidades.find(u => u.id === unidadeId);
       
+      // Calcular hora_fim (30 minutos depois para slots de meia hora)
       const [hora, minuto] = horario.split(':').map(Number);
-      const horaFim = `${(hora + 1).toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
+      const horaFim = `${(hora + (minuto === 30 ? 1 : 0)).toString().padStart(2, '0')}:${(minuto === 30 ? '00' : '30')}`;
       
+      // Buscar TODOS os terapeutas ativos desta unidade
       const terapeutasUnidade = configuracoes
         .filter(config => config.unidade_id === unidadeId && config.ativo)
         .map(config => profissionais.find(p => p.id === config.profissional_id))
         .filter(Boolean);
       
-      console.log("=== INICIANDO BLOQUEIO ===");
-      console.log("Unidade:", unidade?.nome);
-      console.log("Horário:", horario, "-", horaFim);
-      console.log("Terapeutas encontrados:", terapeutasUnidade.length);
-      console.log("Terapeutas:", terapeutasUnidade.map(t => t.nome));
+      if (terapeutasUnidade.length === 0) {
+        alert("Nenhum terapeuta ativo encontrado para esta unidade.");
+        return;
+      }
       
-      const bloqueios = [];
-      
-      for (const terapeuta of terapeutasUnidade) {
-        const bloqueio = {
+      // Criar bloqueio para CADA terapeuta
+      const bloqueioPromises = terapeutasUnidade.map(terapeuta => 
+        criarAgendamentoMutation.mutateAsync({
           cliente_nome: "FECHADO",
           profissional_id: terapeuta.id,
           profissional_nome: terapeuta.nome,
@@ -145,23 +146,15 @@ export default function AgendaPage() {
           status: "bloqueio",
           tipo: "bloqueio",
           observacoes: "Horário fechado para atendimentos"
-        };
-        
-        console.log("Criando bloqueio para:", terapeuta.nome, bloqueio);
-        const resultado = await criarAgendamentoMutation.mutateAsync(bloqueio);
-        console.log("Bloqueio criado com ID:", resultado?.id);
-        bloqueios.push(resultado);
-      }
+        })
+      );
       
-      console.log("=== BLOQUEIO CONCLUÍDO ===");
-      console.log("Total de bloqueios criados:", bloqueios.length);
+      await Promise.all(bloqueioPromises);
       
-      // Forçar atualização da query
-      await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
-      await queryClient.refetchQueries({ queryKey: ['agendamentos'] });
+      alert(`Horário ${horario} bloqueado com sucesso para ${terapeutasUnidade.length} terapeuta(s)!`);
       
     } catch (error) {
-      console.error("ERRO ao bloquear horário:", error);
+      console.error("Erro ao bloquear horário:", error);
       alert("Erro ao bloquear horário: " + error.message);
     }
   };
