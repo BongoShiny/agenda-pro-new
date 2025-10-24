@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Dialog,
@@ -22,11 +21,12 @@ const statusLabels = {
   bloqueio: { label: "FECHADO", color: "bg-red-600" }
 };
 
-export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendamento, onDelete }) {
+export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendamento, onDelete, usuarioAtual }) {
   if (!agendamento) return null;
 
   const statusInfo = statusLabels[agendamento.status] || statusLabels.agendado;
   const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio";
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -166,9 +166,15 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Fechar
           </Button>
-          <Button variant="destructive" onClick={() => { onDelete(agendamento.id); onOpenChange(false); }}>
-            {isBloqueio ? "Desbloquear" : "Excluir"}
-          </Button>
+          {isBloqueio && isAdmin ? (
+            <Button variant="destructive" onClick={() => { onDelete(agendamento.id); onOpenChange(false); }}>
+              Desbloquear
+            </Button>
+          ) : !isBloqueio && (
+            <Button variant="destructive" onClick={() => { onDelete(agendamento.id); onOpenChange(false); }}>
+              Excluir
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

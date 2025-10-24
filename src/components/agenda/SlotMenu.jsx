@@ -7,7 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Plus, Ban } from "lucide-react";
 
-export default function SlotMenu({ open, onOpenChange, onNovoAgendamento, onBloquearHorario, children }) {
+export default function SlotMenu({ open, onOpenChange, onNovoAgendamento, onBloquearHorario, children, isAdmin }) {
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
@@ -27,17 +27,19 @@ export default function SlotMenu({ open, onOpenChange, onNovoAgendamento, onBloq
             Novo Agendamento
           </Button>
           
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-left hover:bg-red-50"
-            onClick={() => {
-              onBloquearHorario();
-              onOpenChange(false);
-            }}
-          >
-            <Ban className="w-4 h-4 mr-2 text-red-600" />
-            Bloquear Horário
-          </Button>
+          {isAdmin && (
+            <Button
+              variant="ghost"
+              className="w-full justify-start text-left hover:bg-red-50"
+              onClick={() => {
+                onBloquearHorario();
+                onOpenChange(false);
+              }}
+            >
+              <Ban className="w-4 h-4 mr-2 text-red-600" />
+              Bloquear Horário
+            </Button>
+          )}
         </div>
       </PopoverContent>
     </Popover>

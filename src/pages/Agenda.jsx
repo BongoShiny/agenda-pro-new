@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -140,10 +141,10 @@ export default function AgendaPage() {
       observacoes: "Horário fechado para atendimentos"
     }));
     
-    // Criar todos os bloqueios
-    for (const bloqueio of bloqueios) {
-      await criarAgendamentoMutation.mutateAsync(bloqueio);
-    }
+    // Criar todos os bloqueios em paralelo
+    await Promise.all(bloqueios.map(bloqueio => 
+      criarAgendamentoMutation.mutateAsync(bloqueio)
+    ));
   };
 
   const handleAgendamentoClick = (agendamento) => {
@@ -206,6 +207,7 @@ export default function AgendaPage() {
             onAgendamentoClick={handleAgendamentoClick}
             onNovoAgendamento={handleNovoAgendamentoSlot}
             onBloquearHorario={handleBloquearHorario}
+            usuarioAtual={usuarioAtual}
           />
         )}
       </div>
@@ -226,6 +228,7 @@ export default function AgendaPage() {
         onOpenChange={setDialogDetalhesAberto}
         agendamento={agendamentoSelecionado}
         onDelete={handleDeletarAgendamento}
+        usuarioAtual={usuarioAtual}
       />
     </div>
   );

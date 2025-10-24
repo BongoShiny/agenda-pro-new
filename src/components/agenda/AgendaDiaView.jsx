@@ -10,7 +10,8 @@ export default function AgendaDiaView({
   configuracoes,
   onAgendamentoClick, 
   onNovoAgendamento,
-  onBloquearHorario
+  onBloquearHorario,
+  usuarioAtual
 }) {
   const [slotMenuAberto, setSlotMenuAberto] = useState(null);
 
@@ -45,6 +46,8 @@ export default function AgendaDiaView({
   const handleSlotClick = (unidadeId, profissionalId, horario) => {
     setSlotMenuAberto({ unidadeId, profissionalId, horario });
   };
+
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
 
   if (terapeutasAtivos.length === 0) {
     return (
@@ -91,7 +94,6 @@ export default function AgendaDiaView({
                 {horarios.map((horario, idx) => {
                   const agendamentosSlot = getAgendamentosParaSlot(terapeuta.id, horario);
                   const isOcupado = agendamentosSlot.length > 0;
-                  const slotKey = `${unidadeSelecionada.id}-${terapeuta.id}-${horario}`;
                   const isMenuAberto = slotMenuAberto?.unidadeId === unidadeSelecionada.id && 
                                       slotMenuAberto?.profissionalId === terapeuta.id && 
                                       slotMenuAberto?.horario === horario;
@@ -111,16 +113,16 @@ export default function AgendaDiaView({
                           }}
                           onNovoAgendamento={() => onNovoAgendamento(unidadeSelecionada.id, terapeuta.id, horario)}
                           onBloquearHorario={() => onBloquearHorario(unidadeSelecionada.id, terapeuta.id, horario)}
+                          isAdmin={isAdmin}
                         >
                           <button
-                            className="w-full h-full hover:bg-blue-50/40 cursor-pointer transition-colors"
+                            className="w-full h-full hover:bg-blue-50/40 cursor-pointer transition-colors rounded"
                             onClick={() => handleSlotClick(unidadeSelecionada.id, terapeuta.id, horario)}
                           />
                         </SlotMenu>
                       ) : (
                         agendamentosSlot.map(agendamento => {
                           const duracao = calcularDuracaoSlots(agendamento.hora_inicio, agendamento.hora_fim);
-                          const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio";
                           
                           return (
                             <div
