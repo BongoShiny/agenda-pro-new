@@ -27,7 +27,7 @@ const statusLabels = {
   ausencia: "Ausência",
   cancelado: "Cancelado",
   concluido: "Concluído",
-  bloqueio: "Horário Bloqueado"
+  bloqueio: "FECHADO"
 };
 
 export default function AgendamentoCard({ agendamento, onClick }) {
@@ -42,12 +42,9 @@ export default function AgendamentoCard({ agendamento, onClick }) {
         onClick={() => onClick(agendamento)}
       >
         <div className="text-center">
-          <Ban className="w-6 h-6 mx-auto mb-2" />
-          <div className="text-sm font-semibold">Horário Bloqueado</div>
-          <div className="text-xs opacity-90 mt-1">{agendamento.hora_inicio} - {agendamento.hora_fim}</div>
-          {agendamento.observacoes && (
-            <div className="text-xs opacity-75 mt-1 italic">{agendamento.observacoes}</div>
-          )}
+          <Ban className="w-8 h-8 mx-auto mb-2" />
+          <div className="text-lg font-bold">FECHADO</div>
+          <div className="text-xs opacity-90 mt-2">{agendamento.hora_inicio} - {agendamento.hora_fim}</div>
         </div>
       </Card>
     );

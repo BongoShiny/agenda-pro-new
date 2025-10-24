@@ -66,7 +66,7 @@ export default function AgendaPage() {
   });
 
   const criarAgendamentoMutation = useMutation({
-    mutationFn: (dados) => base44.entities.Agendamento.create(dados),
+    mutationFn: (taskData) => base44.entities.Agendamento.create(taskData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
     },
@@ -96,7 +96,6 @@ export default function AgendaPage() {
     const unidade = unidades.find(u => u.id === unidadeId);
     const profissional = profissionais.find(p => p.id === profissionalId);
     
-    // Calcular hora_fim (1 hora depois por padrão)
     const [hora, minuto] = horario.split(':').map(Number);
     const horaFim = `${(hora + 1).toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
     
@@ -114,26 +113,37 @@ export default function AgendaPage() {
 
   const handleBloquearHorario = async (unidadeId, profissionalId, horario) => {
     const unidade = unidades.find(u => u.id === unidadeId);
-    const profissional = profissionais.find(p => p.id === profissionalId);
     
     // Calcular hora_fim (1 hora depois por padrão)
     const [hora, minuto] = horario.split(':').map(Number);
     const horaFim = `${(hora + 1).toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
     
-    await criarAgendamentoMutation.mutateAsync({
-      cliente_nome: "BLOQUEIO",
-      profissional_id: profissionalId,
-      profissional_nome: profissional?.nome || "",
+    // Buscar todos os terapeutas ativos desta unidade
+    const terapeutasUnidade = configuracoes
+      .filter(config => config.unidade_id === unidadeId && config.ativo)
+      .map(config => profissionais.find(p => p.id === config.profissional_id))
+      .filter(Boolean);
+    
+    // Criar bloqueio para cada terapeuta
+    const bloqueios = terapeutasUnidade.map(terapeuta => ({
+      cliente_nome: "FECHADO",
+      profissional_id: terapeuta.id,
+      profissional_nome: terapeuta.nome,
       unidade_id: unidadeId,
       unidade_nome: unidade?.nome || "",
-      servico_nome: "Horário Bloqueado",
+      servico_nome: "Horário Fechado",
       data: format(dataAtual, "yyyy-MM-dd"),
       hora_inicio: horario,
       hora_fim: horaFim,
       status: "bloqueio",
       tipo: "bloqueio",
-      observacoes: "Horário bloqueado para agendamentos"
-    });
+      observacoes: "Horário fechado para atendimentos"
+    }));
+    
+    // Criar todos os bloqueios
+    for (const bloqueio of bloqueios) {
+      await criarAgendamentoMutation.mutateAsync(bloqueio);
+    }
   };
 
   const handleAgendamentoClick = (agendamento) => {
