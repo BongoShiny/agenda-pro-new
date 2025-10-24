@@ -1,7 +1,7 @@
 import React from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, XCircle, Calendar, Ban } from "lucide-react";
+import { CheckCircle, Clock, XCircle, Ban } from "lucide-react";
 
 const statusColors = {
   confirmado: "bg-emerald-500",
@@ -34,11 +34,10 @@ export default function AgendamentoCard({ agendamento, onClick }) {
   const StatusIcon = statusIcons[agendamento.status] || Clock;
   const bgColor = statusColors[agendamento.status] || "bg-gray-500";
 
-  // Se for um bloqueio, mostrar layout diferente
-  if (agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio") {
+  if (agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio" || agendamento.cliente_nome === "FECHADO") {
     return (
       <Card
-        className={`${bgColor} text-white p-3 cursor-pointer hover:shadow-lg transition-all duration-200 border-0 rounded-lg flex items-center justify-center`}
+        className="bg-red-600 text-white p-3 cursor-pointer hover:shadow-lg transition-all duration-200 border-0 rounded-lg flex items-center justify-center h-full"
         onClick={() => onClick(agendamento)}
       >
         <div className="text-center">
@@ -52,7 +51,7 @@ export default function AgendamentoCard({ agendamento, onClick }) {
 
   return (
     <Card
-      className={`${bgColor} text-white p-3 cursor-pointer hover:shadow-lg transition-all duration-200 border-0 rounded-lg`}
+      className={`${bgColor} text-white p-3 cursor-pointer hover:shadow-lg transition-all duration-200 border-0 rounded-lg h-full`}
       onClick={() => onClick(agendamento)}
     >
       <div className="space-y-1.5">

@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -115,36 +114,35 @@ export default function AgendaPage() {
   const handleBloquearHorario = async (unidadeId, profissionalId, horario) => {
     const unidade = unidades.find(u => u.id === unidadeId);
     
-    // Calcular hora_fim (1 hora depois por padrão)
     const [hora, minuto] = horario.split(':').map(Number);
     const horaFim = `${(hora + 1).toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
     
-    // Buscar todos os terapeutas ativos desta unidade
     const terapeutasUnidade = configuracoes
       .filter(config => config.unidade_id === unidadeId && config.ativo)
       .map(config => profissionais.find(p => p.id === config.profissional_id))
       .filter(Boolean);
     
-    // Criar bloqueio para cada terapeuta
-    const bloqueios = terapeutasUnidade.map(terapeuta => ({
-      cliente_nome: "FECHADO",
-      profissional_id: terapeuta.id,
-      profissional_nome: terapeuta.nome,
-      unidade_id: unidadeId,
-      unidade_nome: unidade?.nome || "",
-      servico_nome: "Horário Fechado",
-      data: format(dataAtual, "yyyy-MM-dd"),
-      hora_inicio: horario,
-      hora_fim: horaFim,
-      status: "bloqueio",
-      tipo: "bloqueio",
-      observacoes: "Horário fechado para atendimentos"
-    }));
+    console.log("Bloqueando horário para", terapeutasUnidade.length, "terapeutas");
     
-    // Criar todos os bloqueios em paralelo
-    await Promise.all(bloqueios.map(bloqueio => 
-      criarAgendamentoMutation.mutateAsync(bloqueio)
-    ));
+    for (const terapeuta of terapeutasUnidade) {
+      const bloqueio = {
+        cliente_nome: "FECHADO",
+        profissional_id: terapeuta.id,
+        profissional_nome: terapeuta.nome,
+        unidade_id: unidadeId,
+        unidade_nome: unidade?.nome || "",
+        servico_nome: "Horário Fechado",
+        data: format(dataAtual, "yyyy-MM-dd"),
+        hora_inicio: horario,
+        hora_fim: horaFim,
+        status: "bloqueio",
+        tipo: "bloqueio",
+        observacoes: "Horário fechado para atendimentos"
+      };
+      
+      console.log("Criando bloqueio:", bloqueio);
+      await criarAgendamentoMutation.mutateAsync(bloqueio);
+    }
   };
 
   const handleAgendamentoClick = (agendamento) => {
@@ -154,10 +152,13 @@ export default function AgendaPage() {
 
   const handleSalvarAgendamento = async (dados) => {
     await criarAgendamentoMutation.mutateAsync(dados);
+    setDialogNovoAberto(false);
   };
 
   const handleDeletarAgendamento = async (id) => {
+    console.log("Deletando agendamento:", id);
     await deletarAgendamentoMutation.mutateAsync(id);
+    setDialogDetalhesAberto(false);
   };
 
   const agendamentosFiltrados = agendamentos.filter(ag => {

@@ -25,8 +25,14 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
   if (!agendamento) return null;
 
   const statusInfo = statusLabels[agendamento.status] || statusLabels.agendado;
-  const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio";
+  const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio" || agendamento.cliente_nome === "FECHADO";
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
+
+  const handleDelete = () => {
+    console.log("Tentando deletar agendamento:", agendamento.id);
+    onDelete(agendamento.id);
+    onOpenChange(false);
+  };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -166,13 +172,20 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Fechar
           </Button>
-          {isBloqueio && isAdmin ? (
-            <Button variant="destructive" onClick={() => { onDelete(agendamento.id); onOpenChange(false); }}>
-              Desbloquear
+          {isBloqueio && isAdmin && (
+            <Button 
+              variant="destructive" 
+              onClick={handleDelete}
+            >
+              Desbloquear Horário
             </Button>
-          ) : !isBloqueio && (
-            <Button variant="destructive" onClick={() => { onDelete(agendamento.id); onOpenChange(false); }}>
-              Excluir
+          )}
+          {!isBloqueio && (
+            <Button 
+              variant="destructive" 
+              onClick={handleDelete}
+            >
+              Excluir Agendamento
             </Button>
           )}
         </DialogFooter>
