@@ -112,36 +112,57 @@ export default function AgendaPage() {
   };
 
   const handleBloquearHorario = async (unidadeId, profissionalId, horario) => {
-    const unidade = unidades.find(u => u.id === unidadeId);
-    
-    const [hora, minuto] = horario.split(':').map(Number);
-    const horaFim = `${(hora + 1).toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
-    
-    const terapeutasUnidade = configuracoes
-      .filter(config => config.unidade_id === unidadeId && config.ativo)
-      .map(config => profissionais.find(p => p.id === config.profissional_id))
-      .filter(Boolean);
-    
-    console.log("Bloqueando horário para", terapeutasUnidade.length, "terapeutas");
-    
-    for (const terapeuta of terapeutasUnidade) {
-      const bloqueio = {
-        cliente_nome: "FECHADO",
-        profissional_id: terapeuta.id,
-        profissional_nome: terapeuta.nome,
-        unidade_id: unidadeId,
-        unidade_nome: unidade?.nome || "",
-        servico_nome: "Horário Fechado",
-        data: format(dataAtual, "yyyy-MM-dd"),
-        hora_inicio: horario,
-        hora_fim: horaFim,
-        status: "bloqueio",
-        tipo: "bloqueio",
-        observacoes: "Horário fechado para atendimentos"
-      };
+    try {
+      const unidade = unidades.find(u => u.id === unidadeId);
       
-      console.log("Criando bloqueio:", bloqueio);
-      await criarAgendamentoMutation.mutateAsync(bloqueio);
+      const [hora, minuto] = horario.split(':').map(Number);
+      const horaFim = `${(hora + 1).toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
+      
+      const terapeutasUnidade = configuracoes
+        .filter(config => config.unidade_id === unidadeId && config.ativo)
+        .map(config => profissionais.find(p => p.id === config.profissional_id))
+        .filter(Boolean);
+      
+      console.log("=== INICIANDO BLOQUEIO ===");
+      console.log("Unidade:", unidade?.nome);
+      console.log("Horário:", horario, "-", horaFim);
+      console.log("Terapeutas encontrados:", terapeutasUnidade.length);
+      console.log("Terapeutas:", terapeutasUnidade.map(t => t.nome));
+      
+      const bloqueios = [];
+      
+      for (const terapeuta of terapeutasUnidade) {
+        const bloqueio = {
+          cliente_nome: "FECHADO",
+          profissional_id: terapeuta.id,
+          profissional_nome: terapeuta.nome,
+          unidade_id: unidadeId,
+          unidade_nome: unidade?.nome || "",
+          servico_nome: "Horário Fechado",
+          data: format(dataAtual, "yyyy-MM-dd"),
+          hora_inicio: horario,
+          hora_fim: horaFim,
+          status: "bloqueio",
+          tipo: "bloqueio",
+          observacoes: "Horário fechado para atendimentos"
+        };
+        
+        console.log("Criando bloqueio para:", terapeuta.nome, bloqueio);
+        const resultado = await criarAgendamentoMutation.mutateAsync(bloqueio);
+        console.log("Bloqueio criado com ID:", resultado?.id);
+        bloqueios.push(resultado);
+      }
+      
+      console.log("=== BLOQUEIO CONCLUÍDO ===");
+      console.log("Total de bloqueios criados:", bloqueios.length);
+      
+      // Forçar atualização da query
+      await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+      await queryClient.refetchQueries({ queryKey: ['agendamentos'] });
+      
+    } catch (error) {
+      console.error("ERRO ao bloquear horário:", error);
+      alert("Erro ao bloquear horário: " + error.message);
     }
   };
 
@@ -175,6 +196,12 @@ export default function AgendaPage() {
     
     return true;
   });
+
+  console.log("=== DEBUG AGENDA ===");
+  console.log("Total de agendamentos:", agendamentos.length);
+  console.log("Agendamentos filtrados:", agendamentosFiltrados.length);
+  console.log("Bloqueios nos agendamentos:", agendamentos.filter(a => a.status === "bloqueio" || a.cliente_nome === "FECHADO").length);
+  console.log("Bloqueios filtrados:", agendamentosFiltrados.filter(a => a.status === "bloqueio" || a.cliente_nome === "FECHADO").length);
 
   const unidadeAtual = unidadeSelecionada || unidades[0];
 
