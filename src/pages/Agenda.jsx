@@ -30,10 +30,11 @@ export default function AgendaPage() {
     carregarUsuario();
   }, []);
 
-  const { data: agendamentos = [], refetch: refetchAgendamentos } = useQuery({
+  const { data: agendamentos = [], refetch: refetchAgendamentos, isLoading: loadingAgendamentos } = useQuery({
     queryKey: ['agendamentos'],
     queryFn: () => base44.entities.Agendamento.list("-data"),
     initialData: [],
+    refetchInterval: 5000,
   });
 
   const { data: clientes = [] } = useQuery({
@@ -84,6 +85,7 @@ export default function AgendaPage() {
     }
   });
 
+  // This mutation is kept, but handleDeletarAgendamento will now use direct API calls + reload
   const deletarAgendamentoMutation = useMutation({
     mutationFn: (id) => base44.entities.Agendamento.delete(id),
     onSuccess: async () => {
@@ -154,12 +156,22 @@ export default function AgendaPage() {
       observacoes: "Horário fechado para atendimentos"
     };
 
-    console.log("Dados do bloqueio a serem criados:", bloqueio);
+    console.log("Dados do bloqueio:", bloqueio);
     
     try {
-      await criarAgendamentoMutation.mutateAsync(bloqueio);
-      console.log("Bloqueio criado com sucesso, onSuccess da mutation se encarrega do refetch.");
-      alert(`Horário ${horario} bloqueado com sucesso!`);
+      const resultado = await base44.entities.Agendamento.create(bloqueio);
+      console.log("Bloqueio criado com sucesso:", resultado);
+      
+      // Forçar recarregamento múltiplo
+      await refetchAgendamentos();
+      await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+      await refetchAgendamentos();
+      
+      // Recarregar a página inteira
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+      
     } catch (error) {
       console.error("Erro ao bloquear:", error);
       alert("Erro ao bloquear horário: " + error.message);
@@ -173,18 +185,33 @@ export default function AgendaPage() {
   };
 
   const handleSalvarAgendamento = async (dados) => {
+    // This still uses the mutation to leverage its onSuccess/onError for regular appointments
     await criarAgendamentoMutation.mutateAsync(dados);
     setDialogNovoAberto(false);
   };
 
   const handleDeletarAgendamento = async (id) => {
     console.log("Deletando agendamento ID:", id);
-    await deletarAgendamentoMutation.mutateAsync(id);
     
-    console.log("Agendamento deletado, onSuccess da mutation se encarrega do refetch.");
-    
-    setDialogDetalhesAberto(false);
-    alert("Horário desbloqueado com sucesso!");
+    try {
+      await base44.entities.Agendamento.delete(id);
+      
+      // Forçar recarregamento múltiplo
+      await refetchAgendamentos();
+      await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+      await refetchAgendamentos();
+      
+      setDialogDetalhesAberto(false);
+      
+      // Recarregar a página inteira
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+      
+    } catch (error) {
+      console.error("Erro ao deletar:", error);
+      alert("Erro ao desbloquear horário: " + error.message);
+    }
   };
 
   console.log("=== RENDERIZAÇÃO DA AGENDA ===");

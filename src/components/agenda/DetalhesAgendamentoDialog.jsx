@@ -1,3 +1,4 @@
+
 import React from "react";
 import {
   Dialog,
@@ -29,7 +30,6 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
 
   const handleDelete = () => {
-    console.log("Deletando agendamento/bloqueio:", agendamento.id);
     onDelete(agendamento.id);
   };
 
@@ -90,12 +90,12 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
             </div>
 
             {isAdmin && (
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
                 <div className="flex items-start gap-3">
-                  <Unlock className="w-5 h-5 text-amber-600 mt-0.5" />
+                  <Unlock className="w-5 h-5 text-blue-600 mt-0.5" />
                   <div className="flex-1">
-                    <div className="font-medium text-amber-900">Apenas Administradores</div>
-                    <div className="text-sm text-amber-700 mt-1">
+                    <div className="font-medium text-blue-900">Apenas Administradores</div>
+                    <div className="text-sm text-blue-700 mt-1">
                       Você pode desbloquear este horário clicando no botão abaixo
                     </div>
                   </div>
