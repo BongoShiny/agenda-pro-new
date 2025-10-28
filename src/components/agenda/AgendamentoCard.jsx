@@ -31,23 +31,25 @@ const statusLabels = {
 };
 
 export default function AgendamentoCard({ agendamento, onClick }) {
-  const StatusIcon = statusIcons[agendamento.status] || Clock;
-  const bgColor = statusColors[agendamento.status] || "bg-gray-500";
-
-  if (agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio" || agendamento.cliente_nome === "FECHADO") {
+  const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio" || agendamento.cliente_nome === "FECHADO";
+  
+  if (isBloqueio) {
     return (
       <Card
         className="bg-red-600 text-white p-3 cursor-pointer hover:shadow-lg transition-all duration-200 border-0 rounded-lg flex items-center justify-center h-full"
         onClick={() => onClick(agendamento)}
       >
-        <div className="text-center">
-          <Ban className="w-8 h-8 mx-auto mb-2" />
-          <div className="text-lg font-bold">FECHADO</div>
-          <div className="text-xs opacity-90 mt-2">{agendamento.hora_inicio} - {agendamento.hora_fim}</div>
+        <div className="text-center w-full">
+          <Ban className="w-10 h-10 mx-auto mb-2" />
+          <div className="text-2xl font-bold tracking-wide">FECHADO</div>
+          <div className="text-sm opacity-90 mt-2">{agendamento.hora_inicio} - {agendamento.hora_fim}</div>
         </div>
       </Card>
     );
   }
+
+  const StatusIcon = statusIcons[agendamento.status] || Clock;
+  const bgColor = statusColors[agendamento.status] || "bg-gray-500";
 
   return (
     <Card
