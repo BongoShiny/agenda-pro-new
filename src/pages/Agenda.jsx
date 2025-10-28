@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -29,7 +30,7 @@ export default function AgendaPage() {
     carregarUsuario();
   }, []);
 
-  const { data: agendamentos = [] } = useQuery({
+  const { data: agendamentos = [], refetch: refetchAgendamentos } = useQuery({
     queryKey: ['agendamentos'],
     queryFn: () => base44.entities.Agendamento.list("-data"),
     initialData: [],
@@ -72,8 +73,9 @@ export default function AgendaPage() {
       console.log("MUTATION: Agendamento criado com sucesso:", resultado);
       return resultado;
     },
-    onSuccess: (data) => {
-      console.log("MUTATION SUCCESS: Invalidando queries");
+    onSuccess: async (data) => {
+      console.log("MUTATION SUCCESS: Recarregando agendamentos");
+      await refetchAgendamentos();
       queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
     },
     onError: (error) => {
@@ -84,7 +86,8 @@ export default function AgendaPage() {
 
   const deletarAgendamentoMutation = useMutation({
     mutationFn: (id) => base44.entities.Agendamento.delete(id),
-    onSuccess: () => {
+    onSuccess: async () => {
+      await refetchAgendamentos();
       queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
     },
   });
@@ -155,7 +158,7 @@ export default function AgendaPage() {
     
     try {
       await criarAgendamentoMutation.mutateAsync(bloqueio);
-      console.log("Bloqueio criado com sucesso!");
+      console.log("Bloqueio criado com sucesso, onSuccess da mutation se encarrega do refetch.");
       alert(`Horário ${horario} bloqueado com sucesso!`);
     } catch (error) {
       console.error("Erro ao bloquear:", error);
@@ -177,31 +180,60 @@ export default function AgendaPage() {
   const handleDeletarAgendamento = async (id) => {
     console.log("Deletando agendamento ID:", id);
     await deletarAgendamentoMutation.mutateAsync(id);
+    
+    console.log("Agendamento deletado, onSuccess da mutation se encarrega do refetch.");
+    
     setDialogDetalhesAberto(false);
     alert("Horário desbloqueado com sucesso!");
   };
 
   console.log("=== RENDERIZAÇÃO DA AGENDA ===");
   console.log("Total de agendamentos carregados:", agendamentos.length);
-  console.log("Agendamentos:", agendamentos);
+  console.log("Todos os agendamentos:", agendamentos);
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
     const dataAgendamento = format(new Date(ag.data), "yyyy-MM-dd");
     const dataFiltro = format(dataAtual, "yyyy-MM-dd");
     
-    if (dataAgendamento !== dataFiltro) return false;
-    if (unidadeSelecionada && ag.unidade_id !== unidadeSelecionada.id) return false;
-    if (filters.cliente && !ag.cliente_nome.toLowerCase().includes(filters.cliente.toLowerCase())) return false;
-    if (filters.profissional && ag.profissional_id !== filters.profissional) return false;
-    if (filters.servico && ag.servico_id !== filters.servico) return false;
-    if (filters.status && ag.status !== filters.status) return false;
-    if (filters.data && ag.data !== filters.data) return false;
+    console.log("Verificando agendamento:", ag.cliente_nome, "Data:", dataAgendamento, "vs", dataFiltro);
     
+    if (dataAgendamento !== dataFiltro) {
+      console.log(`  -> Agendamento '${ag.cliente_nome}' filtrado por data diferente (${dataAgendamento} !== ${dataFiltro})`);
+      return false;
+    }
+    if (unidadeSelecionada && ag.unidade_id !== unidadeSelecionada.id) {
+      console.log(`  -> Agendamento '${ag.cliente_nome}' filtrado por unidade diferente (${ag.unidade_id} !== ${unidadeSelecionada.id})`);
+      return false;
+    }
+    if (filters.cliente && ag.cliente_nome && !ag.cliente_nome.toLowerCase().includes(filters.cliente.toLowerCase())) {
+      console.log(`  -> Agendamento '${ag.cliente_nome}' filtrado por nome de cliente ('${ag.cliente_nome}' não inclui '${filters.cliente}')`);
+      return false;
+    }
+    if (filters.profissional && ag.profissional_id !== filters.profissional) {
+      console.log(`  -> Agendamento '${ag.cliente_nome}' filtrado por profissional (${ag.profissional_id} !== ${filters.profissional})`);
+      return false;
+    }
+    if (filters.servico && ag.servico_id !== filters.servico) {
+      console.log(`  -> Agendamento '${ag.cliente_nome}' filtrado por serviço (${ag.servico_id} !== ${filters.servico})`);
+      return false;
+    }
+    if (filters.status && ag.status !== filters.status) {
+      console.log(`  -> Agendamento '${ag.cliente_nome}' filtrado por status (${ag.status} !== ${filters.status})`);
+      return false;
+    }
+    if (filters.data && ag.data !== filters.data) {
+      console.log(`  -> Agendamento '${ag.cliente_nome}' filtrado por data específica (${ag.data} !== ${filters.data})`);
+      return false;
+    }
+    
+    console.log(`  -> Agendamento '${ag.cliente_nome}' PASSOU nos filtros!`);
     return true;
   });
 
-  console.log("Agendamentos filtrados:", agendamentosFiltrados.length);
-  console.log("Bloqueios encontrados:", agendamentosFiltrados.filter(ag => ag.status === "bloqueio" || ag.cliente_nome === "FECHADO"));
+  console.log("Agendamentos após filtro:", agendamentosFiltrados.length);
+  console.log("Bloqueios nos agendamentos filtrados:", agendamentosFiltrados.filter(ag => 
+    ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO"
+  ));
 
   const unidadeAtual = unidadeSelecionada || unidades[0];
 

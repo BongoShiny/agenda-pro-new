@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import AgendamentoCard from "./AgendamentoCard";
 import SlotMenu from "./SlotMenu";
@@ -28,11 +29,25 @@ export default function AgendaDiaView({
     .filter(Boolean);
 
   const getAgendamentosParaSlot = (profissionalId, horario) => {
-    return agendamentos.filter(ag => {
-      return ag.unidade_id === unidadeSelecionada.id &&
+    const agendamentosSlot = agendamentos.filter(ag => {
+      const match = ag.unidade_id === unidadeSelecionada.id &&
              ag.profissional_id === profissionalId && 
              ag.hora_inicio === horario;
+      
+      if (match) {
+        console.log("Agendamento encontrado para slot:", {
+          profissional: profissionalId,
+          horario: horario,
+          cliente: ag.cliente_nome,
+          status: ag.status,
+          tipo: ag.tipo
+        });
+      }
+      
+      return match;
     });
+    
+    return agendamentosSlot;
   };
 
   const calcularDuracaoSlots = (horaInicio, horaFim) => {
