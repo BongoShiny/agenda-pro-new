@@ -115,43 +115,29 @@ export default function AgendaPage() {
   const handleBloquearHorario = async (unidadeId, profissionalId, horario) => {
     try {
       const unidade = unidades.find(u => u.id === unidadeId);
+      const profissional = profissionais.find(p => p.id === profissionalId);
       
       // Calcular hora_fim (30 minutos depois para slots de meia hora)
       const [hora, minuto] = horario.split(':').map(Number);
       const horaFim = `${(hora + (minuto === 30 ? 1 : 0)).toString().padStart(2, '0')}:${(minuto === 30 ? '00' : '30')}`;
       
-      // Buscar TODOS os terapeutas ativos desta unidade
-      const terapeutasUnidade = configuracoes
-        .filter(config => config.unidade_id === unidadeId && config.ativo)
-        .map(config => profissionais.find(p => p.id === config.profissional_id))
-        .filter(Boolean);
+      // Criar bloqueio apenas para O terapeuta e horário específico clicado
+      await criarAgendamentoMutation.mutateAsync({
+        cliente_nome: "FECHADO",
+        profissional_id: profissionalId,
+        profissional_nome: profissional?.nome || "",
+        unidade_id: unidadeId,
+        unidade_nome: unidade?.nome || "",
+        servico_nome: "Horário Fechado",
+        data: format(dataAtual, "yyyy-MM-dd"),
+        hora_inicio: horario,
+        hora_fim: horaFim,
+        status: "bloqueio",
+        tipo: "bloqueio",
+        observacoes: "Horário fechado para atendimentos"
+      });
       
-      if (terapeutasUnidade.length === 0) {
-        alert("Nenhum terapeuta ativo encontrado para esta unidade.");
-        return;
-      }
-      
-      // Criar bloqueio para CADA terapeuta
-      const bloqueioPromises = terapeutasUnidade.map(terapeuta => 
-        criarAgendamentoMutation.mutateAsync({
-          cliente_nome: "FECHADO",
-          profissional_id: terapeuta.id,
-          profissional_nome: terapeuta.nome,
-          unidade_id: unidadeId,
-          unidade_nome: unidade?.nome || "",
-          servico_nome: "Horário Fechado",
-          data: format(dataAtual, "yyyy-MM-dd"),
-          hora_inicio: horario,
-          hora_fim: horaFim,
-          status: "bloqueio",
-          tipo: "bloqueio",
-          observacoes: "Horário fechado para atendimentos"
-        })
-      );
-      
-      await Promise.all(bloqueioPromises);
-      
-      alert(`Horário ${horario} bloqueado com sucesso para ${terapeutasUnidade.length} terapeuta(s)!`);
+      alert(`Horário ${horario} bloqueado com sucesso para ${profissional?.nome}!`);
       
     } catch (error) {
       console.error("Erro ao bloquear horário:", error);

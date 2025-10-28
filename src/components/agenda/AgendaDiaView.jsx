@@ -94,6 +94,9 @@ export default function AgendaDiaView({
                 {horarios.map((horario, idx) => {
                   const agendamentosSlot = getAgendamentosParaSlot(terapeuta.id, horario);
                   const isOcupado = agendamentosSlot.length > 0;
+                  const temBloqueio = agendamentosSlot.some(ag => 
+                    ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO"
+                  );
                   const isMenuAberto = slotMenuAberto?.unidadeId === unidadeSelecionada.id && 
                                       slotMenuAberto?.profissionalId === terapeuta.id && 
                                       slotMenuAberto?.horario === horario;
