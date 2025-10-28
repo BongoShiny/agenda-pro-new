@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, User, Briefcase, MapPin, Tag, FileText, Ban, AlertTriangle } from "lucide-react";
+import { Calendar, Clock, User, Briefcase, MapPin, Tag, FileText, Ban, Unlock } from "lucide-react";
 
 const statusLabels = {
   confirmado: { label: "Confirmado", color: "bg-emerald-500" },
@@ -29,9 +29,8 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
 
   const handleDelete = () => {
-    console.log("Deletando agendamento:", agendamento.id);
+    console.log("Deletando agendamento/bloqueio:", agendamento.id);
     onDelete(agendamento.id);
-    onOpenChange(false);
   };
 
   return (
@@ -51,7 +50,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <Ban className="w-16 h-16 mx-auto mb-4 text-red-600" />
-                <h3 className="text-xl font-bold text-gray-900 mb-2">Horário Fechado</h3>
+                <h3 className="text-2xl font-bold text-gray-900 mb-2">HORÁRIO FECHADO</h3>
                 <p className="text-gray-600">Este horário está bloqueado para atendimentos</p>
               </div>
             </div>
@@ -89,6 +88,20 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
                 <div className="font-medium">{agendamento.hora_inicio} - {agendamento.hora_fim}</div>
               </div>
             </div>
+
+            {isAdmin && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
+                <div className="flex items-start gap-3">
+                  <Unlock className="w-5 h-5 text-amber-600 mt-0.5" />
+                  <div className="flex-1">
+                    <div className="font-medium text-amber-900">Apenas Administradores</div>
+                    <div className="text-sm text-amber-700 mt-1">
+                      Você pode desbloquear este horário clicando no botão abaixo
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="space-y-4 py-4">
@@ -174,9 +187,11 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
           </Button>
           {isBloqueio && isAdmin && (
             <Button 
-              variant="destructive" 
+              variant="default"
               onClick={handleDelete}
+              className="bg-green-600 hover:bg-green-700"
             >
+              <Unlock className="w-4 h-4 mr-2" />
               Desbloquear Horário
             </Button>
           )}

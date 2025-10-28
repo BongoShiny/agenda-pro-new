@@ -66,10 +66,20 @@ export default function AgendaPage() {
   });
 
   const criarAgendamentoMutation = useMutation({
-    mutationFn: (taskData) => base44.entities.Agendamento.create(taskData),
-    onSuccess: () => {
+    mutationFn: async (taskData) => {
+      console.log("MUTATION: Criando agendamento com dados:", taskData);
+      const resultado = await base44.entities.Agendamento.create(taskData);
+      console.log("MUTATION: Agendamento criado com sucesso:", resultado);
+      return resultado;
+    },
+    onSuccess: (data) => {
+      console.log("MUTATION SUCCESS: Invalidando queries");
       queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
     },
+    onError: (error) => {
+      console.error("MUTATION ERROR:", error);
+      alert("Erro ao criar agendamento: " + error.message);
+    }
   });
 
   const deletarAgendamentoMutation = useMutation({
@@ -112,8 +122,16 @@ export default function AgendaPage() {
   };
 
   const handleBloquearHorario = async (unidadeId, profissionalId, horario) => {
+    console.log("=== INICIANDO BLOQUEIO ===");
+    console.log("Unidade ID:", unidadeId);
+    console.log("Profissional ID:", profissionalId);
+    console.log("Horário:", horario);
+    
     const unidade = unidades.find(u => u.id === unidadeId);
     const profissional = profissionais.find(p => p.id === profissionalId);
+    
+    console.log("Unidade encontrada:", unidade);
+    console.log("Profissional encontrado:", profissional);
     
     const [hora, minuto] = horario.split(':').map(Number);
     const horaFim = `${(hora + (minuto === 30 ? 1 : 0)).toString().padStart(2, '0')}:${(minuto === 30 ? '00' : '30')}`;
@@ -130,17 +148,23 @@ export default function AgendaPage() {
       hora_fim: horaFim,
       status: "bloqueio",
       tipo: "bloqueio",
-      observacoes: "Horário fechado"
+      observacoes: "Horário fechado para atendimentos"
     };
 
-    console.log("Criando bloqueio:", bloqueio);
+    console.log("Dados do bloqueio a serem criados:", bloqueio);
     
-    await criarAgendamentoMutation.mutateAsync(bloqueio);
-    
-    alert(`Horário ${horario} bloqueado!`);
+    try {
+      await criarAgendamentoMutation.mutateAsync(bloqueio);
+      console.log("Bloqueio criado com sucesso!");
+      alert(`Horário ${horario} bloqueado com sucesso!`);
+    } catch (error) {
+      console.error("Erro ao bloquear:", error);
+      alert("Erro ao bloquear horário: " + error.message);
+    }
   };
 
   const handleAgendamentoClick = (agendamento) => {
+    console.log("Agendamento clicado:", agendamento);
     setAgendamentoSelecionado(agendamento);
     setDialogDetalhesAberto(true);
   };
@@ -151,9 +175,15 @@ export default function AgendaPage() {
   };
 
   const handleDeletarAgendamento = async (id) => {
+    console.log("Deletando agendamento ID:", id);
     await deletarAgendamentoMutation.mutateAsync(id);
     setDialogDetalhesAberto(false);
+    alert("Horário desbloqueado com sucesso!");
   };
+
+  console.log("=== RENDERIZAÇÃO DA AGENDA ===");
+  console.log("Total de agendamentos carregados:", agendamentos.length);
+  console.log("Agendamentos:", agendamentos);
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
     const dataAgendamento = format(new Date(ag.data), "yyyy-MM-dd");
@@ -169,6 +199,9 @@ export default function AgendaPage() {
     
     return true;
   });
+
+  console.log("Agendamentos filtrados:", agendamentosFiltrados.length);
+  console.log("Bloqueios encontrados:", agendamentosFiltrados.filter(ag => ag.status === "bloqueio" || ag.cliente_nome === "FECHADO"));
 
   const unidadeAtual = unidadeSelecionada || unidades[0];
 
