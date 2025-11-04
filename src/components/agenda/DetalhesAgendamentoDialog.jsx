@@ -1,4 +1,3 @@
-
 import React from "react";
 import {
   Dialog,
@@ -22,6 +21,12 @@ const statusLabels = {
   bloqueio: { label: "FECHADO", color: "bg-red-600" }
 };
 
+// Função para criar data local sem conversão de timezone
+const criarDataLocal = (dataString) => {
+  const [ano, mes, dia] = dataString.split('-').map(Number);
+  return new Date(ano, mes - 1, dia);
+};
+
 export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendamento, onDelete, usuarioAtual }) {
   if (!agendamento) return null;
 
@@ -31,6 +36,12 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
 
   const handleDelete = () => {
     onDelete(agendamento.id);
+  };
+
+  // Formatar data sem problemas de timezone
+  const formatarDataExibicao = (dataString) => {
+    const dataLocal = criarDataLocal(dataString);
+    return format(dataLocal, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
   };
 
   return (
@@ -76,7 +87,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               <div>
                 <div className="text-sm text-gray-500">Data</div>
                 <div className="font-medium">
-                  {format(new Date(agendamento.data), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                  {formatarDataExibicao(agendamento.data)}
                 </div>
               </div>
             </div>
@@ -146,7 +157,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               <div>
                 <div className="text-sm text-gray-500">Data</div>
                 <div className="font-medium">
-                  {format(new Date(agendamento.data), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                  {formatarDataExibicao(agendamento.data)}
                 </div>
               </div>
             </div>
