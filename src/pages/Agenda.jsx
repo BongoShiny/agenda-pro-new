@@ -1,14 +1,21 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, parseISO, addDays, startOfDay } from "date-fns";
 
 import AgendaHeader from "../components/agenda/AgendaHeader";
 import AgendaFilters from "../components/agenda/AgendaFilters";
 import AgendaDiaView from "../components/agenda/AgendaDiaView";
 import NovoAgendamentoDialog from "../components/agenda/NovoAgendamentoDialog";
 import DetalhesAgendamentoDialog from "../components/agenda/DetalhesAgendamentoDialog";
+
+// Função para formatar data sem problemas de timezone
+const formatarDataLocal = (data) => {
+  const ano = data.getFullYear();
+  const mes = String(data.getMonth() + 1).padStart(2, '0');
+  const dia = String(data.getDate()).padStart(2, '0');
+  return `${ano}-${mes}-${dia}`;
+};
 
 export default function AgendaPage() {
   const [dataAtual, setDataAtual] = useState(new Date());
@@ -34,8 +41,8 @@ export default function AgendaPage() {
     queryKey: ['agendamentos'],
     queryFn: () => base44.entities.Agendamento.list("-data"),
     initialData: [],
-    refetchInterval: 2000, // Changed from 5000 to 2000
-    refetchIntervalInBackground: true, // Added this line
+    refetchInterval: 2000,
+    refetchIntervalInBackground: true,
   });
 
   const { data: clientes = [] } = useQuery({
@@ -86,7 +93,6 @@ export default function AgendaPage() {
     }
   });
 
-  // This mutation is kept, but handleDeletarAgendamento will now use direct API calls + reload
   const deletarAgendamentoMutation = useMutation({
     mutationFn: (id) => base44.entities.Agendamento.delete(id),
     onSuccess: async () => {
@@ -120,7 +126,7 @@ export default function AgendaPage() {
       unidade_nome: unidade?.nome || "",
       profissional_id: profissionalId,
       profissional_nome: profissional?.nome || "",
-      data: format(dataAtual, "yyyy-MM-dd"),
+      data: formatarDataLocal(dataAtual),
       hora_inicio: horario,
       hora_fim: horaFim
     });
@@ -132,6 +138,8 @@ export default function AgendaPage() {
     console.log("Unidade ID:", unidadeId);
     console.log("Profissional ID:", profissionalId);
     console.log("Horário:", horario);
+    console.log("Data atual:", dataAtual);
+    console.log("Data formatada:", formatarDataLocal(dataAtual));
     
     const unidade = unidades.find(u => u.id === unidadeId);
     const profissional = profissionais.find(p => p.id === profissionalId);
@@ -149,7 +157,7 @@ export default function AgendaPage() {
       unidade_id: unidadeId,
       unidade_nome: unidade?.nome || "",
       servico_nome: "Horário Bloqueado",
-      data: format(dataAtual, "yyyy-MM-dd"),
+      data: formatarDataLocal(dataAtual),
       hora_inicio: horario,
       hora_fim: horaFim,
       status: "bloqueio",
@@ -166,7 +174,7 @@ export default function AgendaPage() {
       await refetchAgendamentos();
       await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
       
-      alert(`Horário ${horario} bloqueado! A agenda atualizará automaticamente para todos.`); // Added alert
+      alert(`Horário ${horario} bloqueado! A agenda atualizará automaticamente para todos.`);
       
     } catch (error) {
       console.error("Erro ao bloquear:", error);
@@ -181,7 +189,6 @@ export default function AgendaPage() {
   };
 
   const handleSalvarAgendamento = async (dados) => {
-    // This still uses the mutation to leverage its onSuccess/onError for regular appointments
     await criarAgendamentoMutation.mutateAsync(dados);
     setDialogNovoAberto(false);
   };
@@ -196,7 +203,7 @@ export default function AgendaPage() {
       await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
       
       setDialogDetalhesAberto(false);
-      alert("Horário desbloqueado! A agenda atualizará automaticamente para todos."); // Added alert
+      alert("Horário desbloqueado! A agenda atualizará automaticamente para todos.");
       
     } catch (error) {
       console.error("Erro ao deletar:", error);
@@ -205,41 +212,35 @@ export default function AgendaPage() {
   };
 
   console.log("=== RENDERIZAÇÃO DA AGENDA ===");
+  console.log("Data atual:", dataAtual);
+  console.log("Data atual formatada:", formatarDataLocal(dataAtual));
   console.log("Total de agendamentos carregados:", agendamentos.length);
-  console.log("Todos os agendamentos:", agendamentos);
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
-    const dataAgendamento = format(new Date(ag.data), "yyyy-MM-dd");
-    const dataFiltro = format(dataAtual, "yyyy-MM-dd");
+    const dataAgendamento = ag.data;
+    const dataFiltro = formatarDataLocal(dataAtual);
     
     console.log("Verificando agendamento:", ag.cliente_nome, "Data:", dataAgendamento, "vs", dataFiltro);
     
     if (dataAgendamento !== dataFiltro) {
-      console.log(`  -> Agendamento '${ag.cliente_nome}' filtrado por data diferente (${dataAgendamento} !== ${dataFiltro})`);
       return false;
     }
     if (unidadeSelecionada && ag.unidade_id !== unidadeSelecionada.id) {
-      console.log(`  -> Agendamento '${ag.cliente_nome}' filtrado por unidade diferente (${ag.unidade_id} !== ${unidadeSelecionada.id})`);
       return false;
     }
     if (filters.cliente && ag.cliente_nome && !ag.cliente_nome.toLowerCase().includes(filters.cliente.toLowerCase())) {
-      console.log(`  -> Agendamento '${ag.cliente_nome}' filtrado por nome de cliente ('${ag.cliente_nome}' não inclui '${filters.cliente}')`);
       return false;
     }
     if (filters.profissional && ag.profissional_id !== filters.profissional) {
-      console.log(`  -> Agendamento '${ag.cliente_nome}' filtrado por profissional (${ag.profissional_id} !== ${filters.profissional})`);
       return false;
     }
     if (filters.servico && ag.servico_id !== filters.servico) {
-      console.log(`  -> Agendamento '${ag.cliente_nome}' filtrado por serviço (${ag.servico_id} !== ${filters.servico})`);
       return false;
     }
     if (filters.status && ag.status !== filters.status) {
-      console.log(`  -> Agendamento '${ag.cliente_nome}' filtrado por status (${ag.status} !== ${filters.status})`);
       return false;
     }
     if (filters.data && ag.data !== filters.data) {
-      console.log(`  -> Agendamento '${ag.cliente_nome}' filtrado por data específica (${ag.data} !== ${filters.data})`);
       return false;
     }
     
@@ -248,9 +249,6 @@ export default function AgendaPage() {
   });
 
   console.log("Agendamentos após filtro:", agendamentosFiltrados.length);
-  console.log("Bloqueios nos agendamentos filtrados:", agendamentosFiltrados.filter(ag => 
-    ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO"
-  ));
 
   const unidadeAtual = unidadeSelecionada || unidades[0];
 

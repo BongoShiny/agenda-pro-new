@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -17,6 +17,20 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
+// Função para formatar data sem problemas de timezone
+const formatarDataLocal = (data) => {
+  const ano = data.getFullYear();
+  const mes = String(data.getMonth() + 1).padStart(2, '0');
+  const dia = String(data.getDate()).padStart(2, '0');
+  return `${ano}-${mes}-${dia}`;
+};
+
+// Função para criar data local sem conversão de timezone
+const criarDataLocal = (dataString) => {
+  const [ano, mes, dia] = dataString.split('-').map(Number);
+  return new Date(ano, mes - 1, dia);
+};
+
 export default function NovoAgendamentoDialog({
   open,
   onOpenChange,
@@ -28,23 +42,46 @@ export default function NovoAgendamentoDialog({
   servicos = []
 }) {
   const [formData, setFormData] = useState({
-    cliente_id: agendamentoInicial.cliente_id || "",
-    cliente_nome: agendamentoInicial.cliente_nome || "",
-    profissional_id: agendamentoInicial.profissional_id || "",
-    profissional_nome: agendamentoInicial.profissional_nome || "",
-    servico_id: agendamentoInicial.servico_id || "",
-    servico_nome: agendamentoInicial.servico_nome || "",
-    unidade_id: agendamentoInicial.unidade_id || "",
-    unidade_nome: agendamentoInicial.unidade_nome || "",
-    data: agendamentoInicial.data || format(new Date(), "yyyy-MM-dd"),
-    hora_inicio: agendamentoInicial.hora_inicio || "09:00",
-    hora_fim: agendamentoInicial.hora_fim || "10:00",
-    status: agendamentoInicial.status || "agendado",
-    tipo: agendamentoInicial.tipo || "consulta",
-    observacoes: agendamentoInicial.observacoes || "",
-    sala: agendamentoInicial.sala || "",
-    equipamento: agendamentoInicial.equipamento || ""
+    cliente_id: "",
+    cliente_nome: "",
+    profissional_id: "",
+    profissional_nome: "",
+    servico_id: "",
+    servico_nome: "",
+    unidade_id: "",
+    unidade_nome: "",
+    data: formatarDataLocal(new Date()),
+    hora_inicio: "09:00",
+    hora_fim: "10:00",
+    status: "agendado",
+    tipo: "consulta",
+    observacoes: "",
+    sala: "",
+    equipamento: ""
   });
+
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        cliente_id: agendamentoInicial.cliente_id || "",
+        cliente_nome: agendamentoInicial.cliente_nome || "",
+        profissional_id: agendamentoInicial.profissional_id || "",
+        profissional_nome: agendamentoInicial.profissional_nome || "",
+        servico_id: agendamentoInicial.servico_id || "",
+        servico_nome: agendamentoInicial.servico_nome || "",
+        unidade_id: agendamentoInicial.unidade_id || "",
+        unidade_nome: agendamentoInicial.unidade_nome || "",
+        data: agendamentoInicial.data || formatarDataLocal(new Date()),
+        hora_inicio: agendamentoInicial.hora_inicio || "09:00",
+        hora_fim: agendamentoInicial.hora_fim || "10:00",
+        status: agendamentoInicial.status || "agendado",
+        tipo: agendamentoInicial.tipo || "consulta",
+        observacoes: agendamentoInicial.observacoes || "",
+        sala: agendamentoInicial.sala || "",
+        equipamento: agendamentoInicial.equipamento || ""
+      });
+    }
+  }, [open, agendamentoInicial]);
 
   const handleClienteChange = (clienteId) => {
     const cliente = clientes.find(c => c.id === clienteId);
@@ -82,10 +119,21 @@ export default function NovoAgendamentoDialog({
     }));
   };
 
+  const handleDataChange = (date) => {
+    if (date) {
+      const dataFormatada = formatarDataLocal(date);
+      console.log("Data selecionada:", date, "Formatada:", dataFormatada);
+      setFormData(prev => ({ ...prev, data: dataFormatada }));
+    }
+  };
+
   const handleSubmit = () => {
+    console.log("Salvando agendamento com data:", formData.data);
     onSave(formData);
     onOpenChange(false);
   };
+
+  const dataSelecionada = formData.data ? criarDataLocal(formData.data) : undefined;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -157,14 +205,14 @@ export default function NovoAgendamentoDialog({
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start">
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.data ? format(new Date(formData.data), "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
+                  {formData.data ? format(criarDataLocal(formData.data), "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
                 <Calendar
                   mode="single"
-                  selected={formData.data ? new Date(formData.data) : undefined}
-                  onSelect={(date) => setFormData(prev => ({ ...prev, data: format(date, "yyyy-MM-dd") }))}
+                  selected={dataSelecionada}
+                  onSelect={handleDataChange}
                   locale={ptBR}
                 />
               </PopoverContent>
