@@ -34,7 +34,8 @@ export default function AgendaPage() {
     queryKey: ['agendamentos'],
     queryFn: () => base44.entities.Agendamento.list("-data"),
     initialData: [],
-    refetchInterval: 5000,
+    refetchInterval: 2000, // Changed from 5000 to 2000
+    refetchIntervalInBackground: true, // Added this line
   });
 
   const { data: clientes = [] } = useQuery({
@@ -162,15 +163,10 @@ export default function AgendaPage() {
       const resultado = await base44.entities.Agendamento.create(bloqueio);
       console.log("Bloqueio criado com sucesso:", resultado);
       
-      // Forçar recarregamento múltiplo
       await refetchAgendamentos();
       await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
-      await refetchAgendamentos();
       
-      // Recarregar a página inteira
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      alert(`Horário ${horario} bloqueado! A agenda atualizará automaticamente para todos.`); // Added alert
       
     } catch (error) {
       console.error("Erro ao bloquear:", error);
@@ -196,17 +192,11 @@ export default function AgendaPage() {
     try {
       await base44.entities.Agendamento.delete(id);
       
-      // Forçar recarregamento múltiplo
       await refetchAgendamentos();
       await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
-      await refetchAgendamentos();
       
       setDialogDetalhesAberto(false);
-      
-      // Recarregar a página inteira
-      setTimeout(() => {
-        window.location.reload();
-      }, 500);
+      alert("Horário desbloqueado! A agenda atualizará automaticamente para todos."); // Added alert
       
     } catch (error) {
       console.error("Erro ao deletar:", error);
