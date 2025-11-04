@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -38,33 +39,6 @@ export default function AgendaPage() {
     carregarUsuario();
   }, []);
 
-  // Monitorar mudanças nos agendamentos para forçar reload a cada 3 bloqueios
-  useEffect(() => {
-    const ultimoTotalBloqueios = parseInt(localStorage.getItem('total_bloqueios') || '0');
-    const bloqueiosAtuais = agendamentos.filter(ag => 
-      ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO"
-    ).length;
-
-    if (bloqueiosAtuais > ultimoTotalBloqueios) {
-      const diferenca = bloqueiosAtuais - ultimoTotalBloqueios;
-      const novoContador = contadorBloqueios + diferenca;
-      setContadorBloqueios(novoContador);
-
-      console.log(`Bloqueios detectados: ${diferenca}, Total acumulado: ${novoContador}`);
-
-      if (novoContador >= 3) {
-        console.log("3 bloqueios atingidos! Recarregando página para todos...");
-        localStorage.setItem('total_bloqueios', bloqueiosAtuais.toString());
-        setContadorBloqueios(0);
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
-      } else {
-        localStorage.setItem('total_bloqueios', bloqueiosAtuais.toString());
-      }
-    }
-  }, [agendamentos]);
-
   const { data: agendamentos = [], refetch: refetchAgendamentos } = useQuery({
     queryKey: ['agendamentos'],
     queryFn: () => base44.entities.Agendamento.list("-data"),
@@ -102,6 +76,33 @@ export default function AgendaPage() {
     queryFn: () => base44.entities.ConfiguracaoTerapeuta.list("ordem"),
     initialData: [],
   });
+
+  // Monitorar mudanças nos agendamentos para forçar reload a cada 3 bloqueios
+  useEffect(() => {
+    const ultimoTotalBloqueios = parseInt(localStorage.getItem('total_bloqueios') || '0');
+    const bloqueiosAtuais = agendamentos.filter(ag => 
+      ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO"
+    ).length;
+
+    if (bloqueiosAtuais > ultimoTotalBloqueios) {
+      const diferenca = bloqueiosAtuais - ultimoTotalBloqueios;
+      const novoContador = contadorBloqueios + diferenca;
+      setContadorBloqueios(novoContador);
+
+      console.log(`Bloqueios detectados: ${diferenca}, Total acumulado: ${novoContador}`);
+
+      if (novoContador >= 3) {
+        console.log("3 bloqueios atingidos! Recarregando página para todos...");
+        localStorage.setItem('total_bloqueios', bloqueiosAtuais.toString());
+        setContadorBloqueios(0);
+        setTimeout(() => {
+          window.location.reload();
+        }, 1000);
+      } else {
+        localStorage.setItem('total_bloqueios', bloqueiosAtuais.toString());
+      }
+    }
+  }, [agendamentos, contadorBloqueios]);
 
   const criarAgendamentoMutation = useMutation({
     mutationFn: async (taskData) => {
