@@ -18,6 +18,25 @@ const formatarDataLocal = (data) => {
   return `${ano}-${mes}-${dia}`;
 };
 
+// Função para normalizar data string (garantir que está no formato YYYY-MM-DD)
+const normalizarData = (dataString) => {
+  if (!dataString) return null;
+  
+  // Se já está no formato correto, retorna direto
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dataString)) {
+    return dataString;
+  }
+  
+  // Tenta fazer parse e reformatar
+  try {
+    const data = new Date(dataString);
+    return formatarDataLocal(data);
+  } catch (e) {
+    console.error("Erro ao normalizar data:", dataString, e);
+    return null;
+  }
+};
+
 export default function AgendaPage() {
   const [dataAtual, setDataAtual] = useState(new Date());
   const [dialogNovoAberto, setDialogNovoAberto] = useState(false);
@@ -35,13 +54,24 @@ export default function AgendaPage() {
     const carregarUsuario = async () => {
       const user = await base44.auth.me();
       setUsuarioAtual(user);
+      console.log("=== USUÁRIO CARREGADO ===");
+      console.log("Email:", user.email);
+      console.log("Timezone do navegador:", Intl.DateTimeFormat().resolvedOptions().timeZone);
     };
     carregarUsuario();
   }, []);
 
   const { data: agendamentos = [], refetch: refetchAgendamentos } = useQuery({
     queryKey: ['agendamentos'],
-    queryFn: () => base44.entities.Agendamento.list("-data"),
+    queryFn: async () => {
+      const lista = await base44.entities.Agendamento.list("-data");
+      console.log("=== AGENDAMENTOS CARREGADOS ===");
+      console.log("Total:", lista.length);
+      lista.forEach(ag => {
+        console.log("ID:", ag.id, "Data original:", ag.data, "Data normalizada:", normalizarData(ag.data), "Cliente:", ag.cliente_nome);
+      });
+      return lista;
+    },
     initialData: [],
     refetchInterval: 2000,
     refetchIntervalInBackground: true,
@@ -106,9 +136,17 @@ export default function AgendaPage() {
 
   const criarAgendamentoMutation = useMutation({
     mutationFn: async (taskData) => {
-      console.log("MUTATION: Criando agendamento com dados:", taskData);
+      console.log("=== CRIANDO AGENDAMENTO ===");
+      console.log("Dados enviados:", taskData);
+      console.log("Data formatada:", taskData.data);
+      console.log("Timezone do navegador:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+      
       const resultado = await base44.entities.Agendamento.create(taskData);
-      console.log("MUTATION: Agendamento criado com sucesso:", resultado);
+      
+      console.log("=== AGENDAMENTO CRIADO ===");
+      console.log("ID:", resultado.id);
+      console.log("Data retornada:", resultado.data);
+      
       return resultado;
     },
     onSuccess: async (data) => {
@@ -163,10 +201,14 @@ export default function AgendaPage() {
   };
 
   const handleBloquearHorario = async (unidadeId, profissionalId, horario) => {
-    console.log("=== INICIANDO BLOQUEIO ===");
-    console.log("Data atual (Brasília):", dataAtual);
-    console.log("Data formatada:", formatarDataLocal(dataAtual));
+    const dataFormatada = formatarDataLocal(dataAtual);
+    
+    console.log("=== BLOQUEANDO HORÁRIO ===");
+    console.log("Usuário:", usuarioAtual?.email);
+    console.log("Data atual do navegador:", dataAtual);
+    console.log("Data formatada (YYYY-MM-DD):", dataFormatada);
     console.log("Horário:", horario);
+    console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
     
     const unidade = unidades.find(u => u.id === unidadeId);
     const profissional = profissionais.find(p => p.id === profissionalId);
@@ -181,24 +223,23 @@ export default function AgendaPage() {
       unidade_id: unidadeId,
       unidade_nome: unidade?.nome || "",
       servico_nome: "Horário Bloqueado",
-      data: formatarDataLocal(dataAtual),
+      data: dataFormatada,
       hora_inicio: horario,
       hora_fim: horaFim,
       status: "bloqueio",
       tipo: "bloqueio",
       observacoes: "Horário fechado para atendimentos"
     };
-
-    console.log("Dados do bloqueio:", bloqueio);
     
     try {
       const resultado = await criarAgendamentoMutation.mutateAsync(bloqueio);
-      console.log("Bloqueio criado com sucesso:", resultado);
+      console.log("=== BLOQUEIO CRIADO COM SUCESSO ===");
+      console.log("Data salva:", resultado.data);
       
       await refetchAgendamentos();
       await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
       
-      alert(`Horário ${horario} bloqueado! A agenda atualizará automaticamente.`);
+      alert(`Horário ${horario} do dia ${dataFormatada} bloqueado! A agenda atualizará automaticamente.`);
       
     } catch (error) {
       console.error("Erro ao bloquear:", error);
@@ -235,14 +276,23 @@ export default function AgendaPage() {
     }
   };
 
-  console.log("=== RENDERIZAÇÃO DA AGENDA (Horário Brasília-DF) ===");
-  console.log("Data atual:", dataAtual);
-  console.log("Data formatada:", formatarDataLocal(dataAtual));
+  const dataFiltro = formatarDataLocal(dataAtual);
+  
+  console.log("=== FILTRANDO AGENDAMENTOS ===");
+  console.log("Data do filtro:", dataFiltro);
   console.log("Total de agendamentos:", agendamentos.length);
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
-    const dataAgendamento = ag.data;
-    const dataFiltro = formatarDataLocal(dataAtual);
+    const dataAgendamento = normalizarData(ag.data);
+    
+    console.log("Comparando:", {
+      agendamentoId: ag.id,
+      dataOriginal: ag.data,
+      dataNormalizada: dataAgendamento,
+      dataFiltro: dataFiltro,
+      match: dataAgendamento === dataFiltro,
+      cliente: ag.cliente_nome
+    });
     
     if (dataAgendamento !== dataFiltro) {
       return false;
@@ -262,12 +312,14 @@ export default function AgendaPage() {
     if (filters.status && ag.status !== filters.status) {
       return false;
     }
-    if (filters.data && ag.data !== filters.data) {
+    if (filters.data && normalizarData(ag.data) !== filters.data) {
       return false;
     }
     
     return true;
   });
+
+  console.log("Total de agendamentos filtrados:", agendamentosFiltrados.length);
 
   const unidadeAtual = unidadeSelecionada || unidades[0];
 
