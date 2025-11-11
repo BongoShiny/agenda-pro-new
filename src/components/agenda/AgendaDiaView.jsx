@@ -3,24 +3,6 @@ import AgendamentoCard from "./AgendamentoCard";
 import SlotMenu from "./SlotMenu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-// Função para normalizar data (garantir formato YYYY-MM-DD)
-const normalizarData = (dataString) => {
-  if (!dataString) return null;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(dataString)) {
-    return dataString;
-  }
-  try {
-    const data = new Date(dataString);
-    const ano = data.getFullYear();
-    const mes = String(data.getMonth() + 1).padStart(2, '0');
-    const dia = String(data.getDate()).padStart(2, '0');
-    return `${ano}-${mes}-${dia}`;
-  } catch (e) {
-    console.error("Erro ao normalizar data:", dataString, e);
-    return null;
-  }
-};
-
 export default function AgendaDiaView({ 
   agendamentos, 
   unidadeSelecionada, 
@@ -46,18 +28,17 @@ export default function AgendaDiaView({
     .filter(Boolean);
 
   const getAgendamentosParaSlot = (profissionalId, horario) => {
-    const agendamentosSlot = agendamentos.filter(ag => {
-      const match = ag.unidade_id === unidadeSelecionada.id &&
-             ag.profissional_id === profissionalId && 
-             ag.hora_inicio === horario;
-      
-      if (match) {
-        const dataNormalizada = normalizarData(ag.data);
-        console.log("Slot encontrado - Data:", ag.data, "Normalizada:", dataNormalizada, "Cliente:", ag.cliente_nome);
-      }
-      
-      return match;
-    });
+    const agendamentosSlot = agendamentos.filter(ag => 
+      ag.unidade_id === unidadeSelecionada.id &&
+      ag.profissional_id === profissionalId && 
+      ag.hora_inicio === horario
+    );
+    
+    if (agendamentosSlot.length > 0) {
+      agendamentosSlot.forEach(ag => {
+        console.log(`📍 SLOT ${horario} | ${ag.cliente_nome} | Data: ${ag.data}`);
+      });
+    }
     
     return agendamentosSlot;
   };
@@ -105,10 +86,10 @@ export default function AgendaDiaView({
       <ScrollArea className="h-[calc(100vh-240px)]">
         <div className="flex">
           <div className="w-20 flex-shrink-0 border-r border-gray-200 bg-gray-50">
-            {horarios.map((horario, idx) => (
+            {horarios.map((horario) => (
               <div
                 key={horario}
-                className={`h-16 flex items-start justify-center pt-1 text-xs text-gray-600 font-semibold border-b border-gray-200`}
+                className="h-16 flex items-start justify-center pt-1 text-xs text-gray-600 font-semibold border-b border-gray-200"
               >
                 {horario}
               </div>
@@ -121,9 +102,6 @@ export default function AgendaDiaView({
                 {horarios.map((horario, idx) => {
                   const agendamentosSlot = getAgendamentosParaSlot(terapeuta.id, horario);
                   const isOcupado = agendamentosSlot.length > 0;
-                  const temBloqueio = agendamentosSlot.some(ag => 
-                    ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO"
-                  );
                   const isMenuAberto = slotMenuAberto?.unidadeId === unidadeSelecionada.id && 
                                       slotMenuAberto?.profissionalId === terapeuta.id && 
                                       slotMenuAberto?.horario === horario;

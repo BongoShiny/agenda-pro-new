@@ -21,10 +21,11 @@ const statusLabels = {
   bloqueio: { label: "FECHADO", color: "bg-red-600" }
 };
 
-// Função para criar data local sem conversão de timezone
-const criarDataLocal = (dataString) => {
+// Mesma lógica em todos os componentes
+const criarDataPura = (dataString) => {
+  if (!dataString) return new Date();
   const [ano, mes, dia] = dataString.split('-').map(Number);
-  return new Date(ano, mes - 1, dia);
+  return new Date(ano, mes - 1, dia, 12, 0, 0);
 };
 
 export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendamento, onDelete, usuarioAtual }) {
@@ -35,13 +36,15 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
 
   const handleDelete = () => {
+    console.log("🗑️ DELETANDO | ID:", agendamento.id, "| Data:", agendamento.data);
     onDelete(agendamento.id);
   };
 
-  // Formatar data sem problemas de timezone
   const formatarDataExibicao = (dataString) => {
-    const dataLocal = criarDataLocal(dataString);
-    return format(dataLocal, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    const dataLocal = criarDataPura(dataString);
+    const dataFormatada = format(dataLocal, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    console.log("📅 DETALHES - Exibindo:", dataFormatada, "| Data original:", dataString);
+    return dataFormatada;
   };
 
   return (
@@ -86,9 +89,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               <Calendar className="w-5 h-5 text-gray-500 mt-0.5" />
               <div>
                 <div className="text-sm text-gray-500">Data</div>
-                <div className="font-medium">
-                  {formatarDataExibicao(agendamento.data)}
-                </div>
+                <div className="font-medium">{formatarDataExibicao(agendamento.data)}</div>
               </div>
             </div>
 
@@ -156,9 +157,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               <Calendar className="w-5 h-5 text-gray-500 mt-0.5" />
               <div>
                 <div className="text-sm text-gray-500">Data</div>
-                <div className="font-medium">
-                  {formatarDataExibicao(agendamento.data)}
-                </div>
+                <div className="font-medium">{formatarDataExibicao(agendamento.data)}</div>
               </div>
             </div>
 

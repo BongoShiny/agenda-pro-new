@@ -17,16 +17,15 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-// Função para formatar data sem problemas de timezone
-const formatarDataLocal = (data) => {
+// Mesma lógica de data em todos os componentes
+const formatarDataPura = (data) => {
   const ano = data.getFullYear();
   const mes = String(data.getMonth() + 1).padStart(2, '0');
   const dia = String(data.getDate()).padStart(2, '0');
   return `${ano}-${mes}-${dia}`;
 };
 
-// Função para criar data local sem conversão de timezone
-const criarDataLocal = (dataString) => {
+const criarDataPura = (dataString) => {
   if (!dataString || !/^\d{4}-\d{2}-\d{2}$/.test(dataString)) {
     return new Date();
   }
@@ -53,7 +52,7 @@ export default function NovoAgendamentoDialog({
     servico_nome: "",
     unidade_id: "",
     unidade_nome: "",
-    data: formatarDataLocal(new Date()),
+    data: formatarDataPura(new Date()),
     hora_inicio: "09:00",
     hora_fim: "10:00",
     status: "agendado",
@@ -65,7 +64,7 @@ export default function NovoAgendamentoDialog({
 
   useEffect(() => {
     if (open) {
-      setFormData({
+      const dados = {
         cliente_id: agendamentoInicial.cliente_id || "",
         cliente_nome: agendamentoInicial.cliente_nome || "",
         profissional_id: agendamentoInicial.profissional_id || "",
@@ -74,7 +73,7 @@ export default function NovoAgendamentoDialog({
         servico_nome: agendamentoInicial.servico_nome || "",
         unidade_id: agendamentoInicial.unidade_id || "",
         unidade_nome: agendamentoInicial.unidade_nome || "",
-        data: agendamentoInicial.data || formatarDataLocal(new Date()),
+        data: agendamentoInicial.data || formatarDataPura(new Date()),
         hora_inicio: agendamentoInicial.hora_inicio || "09:00",
         hora_fim: agendamentoInicial.hora_fim || "10:00",
         status: agendamentoInicial.status || "agendado",
@@ -82,7 +81,10 @@ export default function NovoAgendamentoDialog({
         observacoes: agendamentoInicial.observacoes || "",
         sala: agendamentoInicial.sala || "",
         equipamento: agendamentoInicial.equipamento || ""
-      });
+      };
+      
+      console.log("📝 DIALOG ABERTO | Data inicial:", dados.data);
+      setFormData(dados);
     }
   }, [open, agendamentoInicial]);
 
@@ -124,23 +126,17 @@ export default function NovoAgendamentoDialog({
 
   const handleDataChange = (date) => {
     if (date) {
-      const dataFormatada = formatarDataLocal(date);
-      console.log("=== DIALOG - DATA SELECIONADA ===");
-      console.log("Date object:", date);
-      console.log("Data formatada (YYYY-MM-DD):", dataFormatada);
+      const dataFormatada = formatarDataPura(date);
+      console.log("📅 DIALOG - Data selecionada:", dataFormatada, "| Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
       setFormData(prev => ({ ...prev, data: dataFormatada }));
     }
   };
 
   const handleSubmit = () => {
-    console.log("=== DIALOG - SALVANDO AGENDAMENTO ===");
-    console.log("Data (string YYYY-MM-DD):", formData.data);
-    console.log("Dados completos:", formData);
+    console.log("💾 DIALOG - Salvando com data:", formData.data);
     onSave(formData);
     onOpenChange(false);
   };
-
-  const dataSelecionada = formData.data ? criarDataLocal(formData.data) : undefined;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -212,13 +208,13 @@ export default function NovoAgendamentoDialog({
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start">
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.data ? format(criarDataLocal(formData.data), "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
+                  {formData.data ? format(criarDataPura(formData.data), "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
                 <Calendar
                   mode="single"
-                  selected={dataSelecionada}
+                  selected={criarDataPura(formData.data)}
                   onSelect={handleDataChange}
                   locale={ptBR}
                 />

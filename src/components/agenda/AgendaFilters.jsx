@@ -10,16 +10,16 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
-// Função para converter data para string no formato YYYY-MM-DD sem timezone
-const formatarDataLocal = (data) => {
+// Mesma lógica em todos os componentes
+const formatarDataPura = (data) => {
   const ano = data.getFullYear();
   const mes = String(data.getMonth() + 1).padStart(2, '0');
   const dia = String(data.getDate()).padStart(2, '0');
   return `${ano}-${mes}-${dia}`;
 };
 
-// Função para criar data local a partir de string YYYY-MM-DD
-const criarDataLocal = (dataString) => {
+const criarDataPura = (dataString) => {
+  if (!dataString) return undefined;
   const [ano, mes, dia] = dataString.split('-').map(Number);
   return new Date(ano, mes - 1, dia, 12, 0, 0);
 };
@@ -31,6 +31,16 @@ export default function AgendaFilters({
   profissionais = [],
   servicos = []
 }) {
+  const handleDataChange = (date) => {
+    if (date) {
+      const dataFormatada = formatarDataPura(date);
+      console.log("🔍 FILTRO - Data selecionada:", dataFormatada);
+      onFilterChange("data", dataFormatada);
+    } else {
+      onFilterChange("data", null);
+    }
+  };
+
   return (
     <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
       <div className="p-6 border-b border-gray-200">
@@ -63,14 +73,14 @@ export default function AgendaFilters({
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start text-left font-normal h-11 border-gray-300">
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {filters.data ? format(criarDataLocal(filters.data), "dd/MM/yyyy", { locale: ptBR }) : "Selecionar data"}
+                  {filters.data ? format(criarDataPura(filters.data), "dd/MM/yyyy", { locale: ptBR }) : "Selecionar data"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={filters.data ? criarDataLocal(filters.data) : undefined}
-                  onSelect={(date) => onFilterChange("data", date ? formatarDataLocal(date) : null)}
+                  selected={filters.data ? criarDataPura(filters.data) : undefined}
+                  onSelect={handleDataChange}
                   locale={ptBR}
                 />
               </PopoverContent>

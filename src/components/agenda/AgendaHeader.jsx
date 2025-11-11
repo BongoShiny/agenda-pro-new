@@ -1,11 +1,20 @@
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, Settings, Users } from "lucide-react";
-import { format, addDays, subDays } from "date-fns";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { addDays, subDays } from "date-fns";
+
+// Usar mesma lógica de formatação em todos os componentes
+const formatarDataPura = (data) => {
+  const ano = data.getFullYear();
+  const mes = String(data.getMonth() + 1).padStart(2, '0');
+  const dia = String(data.getDate()).padStart(2, '0');
+  return `${ano}-${mes}-${dia}`;
+};
 
 export default function AgendaHeader({ 
   dataAtual,
@@ -17,24 +26,35 @@ export default function AgendaHeader({
   usuarioAtual
 }) {
   const formatarDataExibicao = () => {
-    // Garantir que a data seja exibida sem conversão de timezone
+    // Criar data às 12h para evitar problemas de timezone na exibição
     const ano = dataAtual.getFullYear();
     const mes = dataAtual.getMonth();
     const dia = dataAtual.getDate();
-    
-    // Criar data local para formatação
     const dataLocal = new Date(ano, mes, dia, 12, 0, 0);
-    return format(dataLocal, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    
+    const dataFormatada = format(dataLocal, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    
+    console.log("📅 HEADER - Exibindo:", dataFormatada, "| Data pura:", formatarDataPura(dataAtual));
+    
+    return dataFormatada;
   };
 
   const navegarAnterior = () => {
     const novaData = subDays(dataAtual, 1);
+    console.log("⬅️ Dia anterior:", formatarDataPura(novaData));
     onDataChange(novaData);
   };
 
   const navegarProximo = () => {
     const novaData = addDays(dataAtual, 1);
+    console.log("➡️ Próximo dia:", formatarDataPura(novaData));
     onDataChange(novaData);
+  };
+
+  const irParaHoje = () => {
+    const hoje = new Date();
+    console.log("📍 Voltar para hoje:", formatarDataPura(hoje));
+    onDataChange(hoje);
   };
 
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
@@ -53,7 +73,7 @@ export default function AgendaHeader({
               <Button variant="outline" size="icon" onClick={navegarAnterior}>
                 <ChevronLeft className="w-4 h-4" />
               </Button>
-              <Button variant="outline" onClick={() => onDataChange(new Date())}>
+              <Button variant="outline" onClick={irParaHoje}>
                 Hoje
               </Button>
               <Button variant="outline" size="icon" onClick={navegarProximo}>
@@ -95,13 +115,10 @@ export default function AgendaHeader({
           </div>
         </div>
 
-        <Tabs value={unidadeSelecionada?.id || "todas"} onValueChange={(value) => {
-          if (value === "todas") {
-            onUnidadeChange(null);
-          } else {
-            const unidade = unidades.find(u => u.id === value);
-            onUnidadeChange(unidade);
-          }
+        <Tabs value={unidadeSelecionada?.id || unidades[0]?.id} onValueChange={(value) => {
+          const unidade = unidades.find(u => u.id === value);
+          console.log("🏢 Unidade selecionada:", unidade?.nome);
+          onUnidadeChange(unidade);
         }}>
           <TabsList className="bg-gray-100 p-1 h-auto">
             {unidades.map(unidade => (
