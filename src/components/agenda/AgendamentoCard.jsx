@@ -33,6 +33,14 @@ const statusLabels = {
 export default function AgendamentoCard({ agendamento, onClick }) {
   const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio" || agendamento.cliente_nome === "FECHADO";
   
+  // Log para debug de timezone
+  console.log("=== CARD AGENDAMENTO ===", {
+    id: agendamento.id,
+    cliente: agendamento.cliente_nome,
+    data: agendamento.data,
+    isBloqueio
+  });
+  
   if (isBloqueio) {
     return (
       <Card

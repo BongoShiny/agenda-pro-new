@@ -27,8 +27,11 @@ const formatarDataLocal = (data) => {
 
 // Função para criar data local sem conversão de timezone
 const criarDataLocal = (dataString) => {
+  if (!dataString || !/^\d{4}-\d{2}-\d{2}$/.test(dataString)) {
+    return new Date();
+  }
   const [ano, mes, dia] = dataString.split('-').map(Number);
-  return new Date(ano, mes - 1, dia);
+  return new Date(ano, mes - 1, dia, 12, 0, 0);
 };
 
 export default function NovoAgendamentoDialog({
@@ -122,13 +125,17 @@ export default function NovoAgendamentoDialog({
   const handleDataChange = (date) => {
     if (date) {
       const dataFormatada = formatarDataLocal(date);
-      console.log("Data selecionada:", date, "Formatada:", dataFormatada);
+      console.log("=== DIALOG - DATA SELECIONADA ===");
+      console.log("Date object:", date);
+      console.log("Data formatada (YYYY-MM-DD):", dataFormatada);
       setFormData(prev => ({ ...prev, data: dataFormatada }));
     }
   };
 
   const handleSubmit = () => {
-    console.log("Salvando agendamento com data:", formData.data);
+    console.log("=== DIALOG - SALVANDO AGENDAMENTO ===");
+    console.log("Data (string YYYY-MM-DD):", formData.data);
+    console.log("Dados completos:", formData);
     onSave(formData);
     onOpenChange(false);
   };
