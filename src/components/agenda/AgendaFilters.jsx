@@ -10,6 +10,20 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
+// Função para converter data para string no formato YYYY-MM-DD sem timezone
+const formatarDataLocal = (data) => {
+  const ano = data.getFullYear();
+  const mes = String(data.getMonth() + 1).padStart(2, '0');
+  const dia = String(data.getDate()).padStart(2, '0');
+  return `${ano}-${mes}-${dia}`;
+};
+
+// Função para criar data local a partir de string YYYY-MM-DD
+const criarDataLocal = (dataString) => {
+  const [ano, mes, dia] = dataString.split('-').map(Number);
+  return new Date(ano, mes - 1, dia, 12, 0, 0);
+};
+
 export default function AgendaFilters({ 
   filters, 
   onFilterChange,
@@ -49,14 +63,14 @@ export default function AgendaFilters({
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start text-left font-normal h-11 border-gray-300">
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {filters.data ? format(new Date(filters.data), "dd/MM/yyyy", { locale: ptBR }) : "Selecionar data"}
+                  {filters.data ? format(criarDataLocal(filters.data), "dd/MM/yyyy", { locale: ptBR }) : "Selecionar data"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
                   mode="single"
-                  selected={filters.data ? new Date(filters.data) : undefined}
-                  onSelect={(date) => onFilterChange("data", date ? format(date, "yyyy-MM-dd") : null)}
+                  selected={filters.data ? criarDataLocal(filters.data) : undefined}
+                  onSelect={(date) => onFilterChange("data", date ? formatarDataLocal(date) : null)}
                   locale={ptBR}
                 />
               </PopoverContent>

@@ -17,15 +17,24 @@ export default function AgendaHeader({
   usuarioAtual
 }) {
   const formatarDataExibicao = () => {
-    return format(dataAtual, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    // Garantir que a data seja exibida sem conversão de timezone
+    const ano = dataAtual.getFullYear();
+    const mes = dataAtual.getMonth();
+    const dia = dataAtual.getDate();
+    
+    // Criar data local para formatação
+    const dataLocal = new Date(ano, mes, dia, 12, 0, 0);
+    return format(dataLocal, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
   };
 
   const navegarAnterior = () => {
-    onDataChange(subDays(dataAtual, 1));
+    const novaData = subDays(dataAtual, 1);
+    onDataChange(novaData);
   };
 
   const navegarProximo = () => {
-    onDataChange(addDays(dataAtual, 1));
+    const novaData = addDays(dataAtual, 1);
+    onDataChange(novaData);
   };
 
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";

@@ -1,8 +1,25 @@
-
 import React, { useState } from "react";
 import AgendamentoCard from "./AgendamentoCard";
 import SlotMenu from "./SlotMenu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+
+// Função para normalizar data (garantir formato YYYY-MM-DD)
+const normalizarData = (dataString) => {
+  if (!dataString) return null;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(dataString)) {
+    return dataString;
+  }
+  try {
+    const data = new Date(dataString);
+    const ano = data.getFullYear();
+    const mes = String(data.getMonth() + 1).padStart(2, '0');
+    const dia = String(data.getDate()).padStart(2, '0');
+    return `${ano}-${mes}-${dia}`;
+  } catch (e) {
+    console.error("Erro ao normalizar data:", dataString, e);
+    return null;
+  }
+};
 
 export default function AgendaDiaView({ 
   agendamentos, 
@@ -35,13 +52,8 @@ export default function AgendaDiaView({
              ag.hora_inicio === horario;
       
       if (match) {
-        console.log("Agendamento encontrado para slot:", {
-          profissional: profissionalId,
-          horario: horario,
-          cliente: ag.cliente_nome,
-          status: ag.status,
-          tipo: ag.tipo
-        });
+        const dataNormalizada = normalizarData(ag.data);
+        console.log("Slot encontrado - Data:", ag.data, "Normalizada:", dataNormalizada, "Cliente:", ag.cliente_nome);
       }
       
       return match;
