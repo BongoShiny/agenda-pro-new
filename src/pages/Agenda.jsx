@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { format, parseISO, addDays, subDays, startOfDay } from "date-fns";
+import { addDays, subDays } from "date-fns";
 
 import AgendaHeader from "../components/agenda/AgendaHeader";
 import AgendaFilters from "../components/agenda/AgendaFilters";
@@ -10,7 +9,7 @@ import AgendaDiaView from "../components/agenda/AgendaDiaView";
 import NovoAgendamentoDialog from "../components/agenda/NovoAgendamentoDialog";
 import DetalhesAgendamentoDialog from "../components/agenda/DetalhesAgendamentoDialog";
 
-// Função para formatar data sem problemas de timezone - SEMPRE usar esta função
+// Função DEFINITIVA para formatar data - sempre retorna YYYY-MM-DD como STRING PURA
 const formatarDataLocal = (data) => {
   const ano = data.getFullYear();
   const mes = String(data.getMonth() + 1).padStart(2, '0');
@@ -18,8 +17,8 @@ const formatarDataLocal = (data) => {
   return `${ano}-${mes}-${dia}`;
 };
 
-// Função para normalizar data string (garantir que está no formato YYYY-MM-DD)
-const normalizarData = (dataString) => {
+// Função para normalizar qualquer data que venha do banco
+const normalizarDataDoBanco = (dataString) => {
   if (!dataString) return null;
   
   // Se já está no formato correto, retorna direto
@@ -27,12 +26,17 @@ const normalizarData = (dataString) => {
     return dataString;
   }
   
-  // Tenta fazer parse e reformatar
+  // Se vier com timestamp/timezone (ex: "2025-11-11T00:00:00.000Z"), extrair apenas a parte da data
+  if (dataString.includes('T')) {
+    return dataString.split('T')[0];
+  }
+  
+  // Último recurso: tentar fazer parse
   try {
-    const data = new Date(dataString);
+    const data = new Date(dataString + 'T12:00:00'); // Força meio-dia UTC para evitar shifts
     return formatarDataLocal(data);
   } catch (e) {
-    console.error("Erro ao normalizar data:", dataString, e);
+    console.error("❌ Erro ao normalizar data:", dataString, e);
     return null;
   }
 };
@@ -54,9 +58,7 @@ export default function AgendaPage() {
     const carregarUsuario = async () => {
       const user = await base44.auth.me();
       setUsuarioAtual(user);
-      console.log("=== USUÁRIO CARREGADO ===");
-      console.log("Email:", user.email);
-      console.log("Timezone do navegador:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+      console.log("✅ USUÁRIO:", user.email, "| TIMEZONE:", Intl.DateTimeFormat().resolvedOptions().timeZone);
     };
     carregarUsuario();
   }, []);
@@ -65,12 +67,21 @@ export default function AgendaPage() {
     queryKey: ['agendamentos'],
     queryFn: async () => {
       const lista = await base44.entities.Agendamento.list("-data");
-      console.log("=== AGENDAMENTOS CARREGADOS ===");
-      console.log("Total:", lista.length);
-      lista.forEach(ag => {
-        console.log("ID:", ag.id, "Data original:", ag.data, "Data normalizada:", normalizarData(ag.data), "Cliente:", ag.cliente_nome);
+      
+      // Normalizar TODAS as datas assim que chegam do banco
+      const listaNormalizada = lista.map(ag => ({
+        ...ag,
+        data: normalizarDataDoBanco(ag.data)
+      }));
+      
+      console.log("📅 AGENDAMENTOS CARREGADOS E NORMALIZADOS:", listaNormalizada.length);
+      listaNormalizada.forEach(ag => {
+        if (ag.cliente_nome === "FECHADO") {
+          console.log("🔒 Bloqueio ID:", ag.id, "| Data normalizada:", ag.data, "| Profissional:", ag.profissional_nome);
+        }
       });
-      return lista;
+      
+      return listaNormalizada;
     },
     initialData: [],
     refetchInterval: 2000,
@@ -107,7 +118,6 @@ export default function AgendaPage() {
     initialData: [],
   });
 
-  // Monitorar mudanças nos agendamentos para forçar reload a cada 3 bloqueios
   useEffect(() => {
     const ultimoTotalBloqueios = parseInt(localStorage.getItem('total_bloqueios') || '0');
     const bloqueiosAtuais = agendamentos.filter(ag => 
@@ -119,15 +129,11 @@ export default function AgendaPage() {
       const novoContador = contadorBloqueios + diferenca;
       setContadorBloqueios(novoContador);
 
-      console.log(`Bloqueios detectados: ${diferenca}, Total acumulado: ${novoContador}`);
-
       if (novoContador >= 3) {
-        console.log("3 bloqueios atingidos! Recarregando página para todos...");
+        console.log("🔄 3 bloqueios atingidos! Recarregando...");
         localStorage.setItem('total_bloqueios', bloqueiosAtuais.toString());
         setContadorBloqueios(0);
-        setTimeout(() => {
-          window.location.reload();
-        }, 1000);
+        setTimeout(() => window.location.reload(), 1000);
       } else {
         localStorage.setItem('total_bloqueios', bloqueiosAtuais.toString());
       }
@@ -136,26 +142,20 @@ export default function AgendaPage() {
 
   const criarAgendamentoMutation = useMutation({
     mutationFn: async (taskData) => {
-      console.log("=== CRIANDO AGENDAMENTO ===");
-      console.log("Dados enviados:", taskData);
-      console.log("Data formatada:", taskData.data);
-      console.log("Timezone do navegador:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+      console.log("📝 SALVANDO | Data:", taskData.data, "| Cliente:", taskData.cliente_nome, "| Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
       
       const resultado = await base44.entities.Agendamento.create(taskData);
       
-      console.log("=== AGENDAMENTO CRIADO ===");
-      console.log("ID:", resultado.id);
-      console.log("Data retornada:", resultado.data);
+      console.log("✅ SALVO | ID:", resultado.id, "| Data retornada:", resultado.data);
       
       return resultado;
     },
     onSuccess: async (data) => {
-      console.log("MUTATION SUCCESS: Recarregando agendamentos");
       await refetchAgendamentos();
       await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
     },
     onError: (error) => {
-      console.error("MUTATION ERROR:", error);
+      console.error("❌ ERRO ao criar:", error);
       alert("Erro ao criar agendamento: " + error.message);
     }
   });
@@ -203,12 +203,7 @@ export default function AgendaPage() {
   const handleBloquearHorario = async (unidadeId, profissionalId, horario) => {
     const dataFormatada = formatarDataLocal(dataAtual);
     
-    console.log("=== BLOQUEANDO HORÁRIO ===");
-    console.log("Usuário:", usuarioAtual?.email);
-    console.log("Data atual do navegador:", dataAtual);
-    console.log("Data formatada (YYYY-MM-DD):", dataFormatada);
-    console.log("Horário:", horario);
-    console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+    console.log("🔒 BLOQUEANDO | Data:", dataFormatada, "| Horário:", horario, "| User:", usuarioAtual?.email);
     
     const unidade = unidades.find(u => u.id === unidadeId);
     const profissional = profissionais.find(p => p.id === profissionalId);
@@ -233,22 +228,20 @@ export default function AgendaPage() {
     
     try {
       const resultado = await criarAgendamentoMutation.mutateAsync(bloqueio);
-      console.log("=== BLOQUEIO CRIADO COM SUCESSO ===");
-      console.log("Data salva:", resultado.data);
+      console.log("✅ BLOQUEADO | Data salva:", resultado.data);
       
       await refetchAgendamentos();
       await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
       
-      alert(`Horário ${horario} do dia ${dataFormatada} bloqueado! A agenda atualizará automaticamente.`);
+      alert(`Horário ${horario} bloqueado no dia ${dataFormatada}!`);
       
     } catch (error) {
-      console.error("Erro ao bloquear:", error);
+      console.error("❌ Erro ao bloquear:", error);
       alert("Erro ao bloquear horário: " + error.message);
     }
   };
 
   const handleAgendamentoClick = (agendamento) => {
-    console.log("Agendamento clicado:", agendamento);
     setAgendamentoSelecionado(agendamento);
     setDialogDetalhesAberto(true);
   };
@@ -259,42 +252,26 @@ export default function AgendaPage() {
   };
 
   const handleDeletarAgendamento = async (id) => {
-    console.log("Deletando agendamento ID:", id);
-    
     try {
       await base44.entities.Agendamento.delete(id);
-      
       await refetchAgendamentos();
       await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
-      
       setDialogDetalhesAberto(false);
       alert("Horário desbloqueado com sucesso!");
-      
     } catch (error) {
-      console.error("Erro ao deletar:", error);
+      console.error("❌ Erro ao deletar:", error);
       alert("Erro ao desbloquear horário: " + error.message);
     }
   };
 
+  // FILTRO DE DATA - Comparação direta de strings YYYY-MM-DD
   const dataFiltro = formatarDataLocal(dataAtual);
   
-  console.log("=== FILTRANDO AGENDAMENTOS ===");
-  console.log("Data do filtro:", dataFiltro);
-  console.log("Total de agendamentos:", agendamentos.length);
+  console.log("🔍 FILTRANDO | Data do filtro:", dataFiltro, "| Total agendamentos:", agendamentos.length);
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
-    const dataAgendamento = normalizarData(ag.data);
-    
-    console.log("Comparando:", {
-      agendamentoId: ag.id,
-      dataOriginal: ag.data,
-      dataNormalizada: dataAgendamento,
-      dataFiltro: dataFiltro,
-      match: dataAgendamento === dataFiltro,
-      cliente: ag.cliente_nome
-    });
-    
-    if (dataAgendamento !== dataFiltro) {
+    // Comparação DIRETA de strings - SEM conversão de timezone
+    if (ag.data !== dataFiltro) {
       return false;
     }
     if (unidadeSelecionada && ag.unidade_id !== unidadeSelecionada.id) {
@@ -312,14 +289,19 @@ export default function AgendaPage() {
     if (filters.status && ag.status !== filters.status) {
       return false;
     }
-    if (filters.data && normalizarData(ag.data) !== filters.data) {
+    if (filters.data && ag.data !== filters.data) {
       return false;
     }
     
     return true;
   });
 
-  console.log("Total de agendamentos filtrados:", agendamentosFiltrados.length);
+  console.log("✅ FILTRADOS:", agendamentosFiltrados.length, "agendamentos");
+  agendamentosFiltrados.forEach(ag => {
+    if (ag.cliente_nome === "FECHADO") {
+      console.log("🔒 Bloqueio visível | Data:", ag.data, "| Horário:", ag.hora_inicio);
+    }
+  });
 
   const unidadeAtual = unidadeSelecionada || unidades[0];
 
@@ -377,7 +359,6 @@ export default function AgendaPage() {
         usuarioAtual={usuarioAtual}
       />
 
-      {/* Indicador de sincronização */}
       {contadorBloqueios > 0 && (
         <div className="fixed bottom-4 right-4 bg-blue-600 text-white px-4 py-2 rounded-lg shadow-lg z-50">
           <div className="text-sm font-medium">
