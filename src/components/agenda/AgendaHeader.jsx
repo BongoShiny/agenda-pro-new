@@ -46,26 +46,48 @@ export default function AgendaHeader({
   };
 
   const navegarAnterior = () => {
-    const novaData = subDays(dataAtual, 1);
-    const dataFormatada = formatarDataPura(novaData);
     console.log("⬅️⬅️⬅️ NAVEGAÇÃO ANTERIOR ⬅️⬅️⬅️");
-    console.log("📅 Nova data:", dataFormatada);
+    console.log("Data atual (antes):", dataAtual.toString());
+    
+    // Usar subDays do date-fns (mantém hora local)
+    const novaData = subDays(dataAtual, 1);
+    
+    console.log("Nova data (depois):", novaData.toString());
+    console.log("Data formatada:", formatarDataPura(novaData));
+    console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+    
     onDataChange(novaData);
   };
 
   const navegarProximo = () => {
-    const novaData = addDays(dataAtual, 1);
-    const dataFormatada = formatarDataPura(novaData);
     console.log("➡️➡️➡️ NAVEGAÇÃO PRÓXIMA ➡️➡️➡️");
-    console.log("📅 Nova data:", dataFormatada);
+    console.log("Data atual (antes):", dataAtual.toString());
+    
+    // Usar addDays do date-fns (mantém hora local)
+    const novaData = addDays(dataAtual, 1);
+    
+    console.log("Nova data (depois):", novaData.toString());
+    console.log("Data formatada:", formatarDataPura(novaData));
+    console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+    
     onDataChange(novaData);
   };
 
   const irParaHoje = () => {
-    const hoje = new Date();
-    const dataFormatada = formatarDataPura(hoje);
     console.log("📍📍📍 VOLTAR PARA HOJE 📍📍📍");
-    console.log("📅 Data de hoje:", dataFormatada);
+    console.log("Data atual (antes):", dataAtual.toString());
+    
+    // Criar hoje sempre às 12h LOCAL
+    const agora = new Date();
+    const ano = agora.getFullYear();
+    const mes = agora.getMonth();
+    const dia = agora.getDate();
+    const hoje = new Date(ano, mes, dia, 12, 0, 0, 0);
+    
+    console.log("Hoje (depois):", hoje.toString());
+    console.log("Data formatada:", formatarDataPura(hoje));
+    console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+    
     onDataChange(hoje);
   };
 

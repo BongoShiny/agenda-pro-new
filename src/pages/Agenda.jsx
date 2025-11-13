@@ -105,7 +105,24 @@ export const normalizarData = (valor) => {
 // ============================================
 
 export default function AgendaPage() {
-  const [dataAtual, setDataAtual] = useState(new Date());
+  // ⚠️ CRÍTICO: Inicializar dataAtual sempre com meio-dia LOCAL
+  const inicializarData = () => {
+    const agora = new Date();
+    const ano = agora.getFullYear();
+    const mes = agora.getMonth();
+    const dia = agora.getDate();
+    const dataLocal = new Date(ano, mes, dia, 12, 0, 0, 0);
+    
+    console.log("🚀🚀🚀 INICIALIZANDO PÁGINA 🚀🚀🚀");
+    console.log("Data agora (raw):", agora.toString());
+    console.log("Data local (12h):", dataLocal.toString());
+    console.log("Data formatada:", formatarDataPura(dataLocal));
+    console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+    
+    return dataLocal;
+  };
+  
+  const [dataAtual, setDataAtual] = useState(inicializarData);
   const [dialogNovoAberto, setDialogNovoAberto] = useState(false);
   const [dialogDetalhesAberto, setDialogDetalhesAberto] = useState(false);
   const [agendamentoSelecionado, setAgendamentoSelecionado] = useState(null);
@@ -120,7 +137,12 @@ export default function AgendaPage() {
     const carregarUsuario = async () => {
       const user = await base44.auth.me();
       setUsuarioAtual(user);
-      console.log("👤 USUÁRIO:", user.email, "| 🌍 TIMEZONE:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+      console.log("👤👤👤 USUÁRIO CARREGADO 👤👤👤");
+      console.log("Email:", user.email);
+      console.log("Cargo:", user.cargo);
+      console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+      console.log("Data atual:", dataAtual.toString());
+      console.log("Data formatada:", formatarDataPura(dataAtual));
     };
     carregarUsuario();
   }, []);
@@ -421,6 +443,30 @@ export default function AgendaPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
+      {/* PAINEL DE DEBUG - REMOVER DEPOIS */}
+      <div className="bg-yellow-100 border-b-2 border-yellow-400 p-3 text-xs font-mono">
+        <div className="max-w-7xl mx-auto grid grid-cols-4 gap-4">
+          <div>
+            <strong>👤 Usuário:</strong> {usuarioAtual?.email || "carregando..."}
+          </div>
+          <div>
+            <strong>🌍 Timezone:</strong> {Intl.DateTimeFormat().resolvedOptions().timeZone}
+          </div>
+          <div>
+            <strong>📅 Data Atual (raw):</strong> {dataAtual.toISOString()}
+          </div>
+          <div>
+            <strong>📅 Data Formatada:</strong> {formatarDataPura(dataAtual)}
+          </div>
+          <div className="col-span-2">
+            <strong>📊 Agendamentos:</strong> Total: {agendamentos.length} | Filtrados: {agendamentosFiltrados.length}
+          </div>
+          <div className="col-span-2">
+            <strong>🔒 Bloqueios:</strong> Total: {agendamentos.filter(a => a.status === "bloqueio" || a.tipo === "bloqueio" || a.cliente_nome === "FECHADO").length} | Visíveis: {agendamentosFiltrados.filter(a => a.status === "bloqueio" || a.tipo === "bloqueio" || a.cliente_nome === "FECHADO").length}
+          </div>
+        </div>
+      </div>
+      
       <AgendaHeader
         dataAtual={dataAtual}
         unidades={unidades}
