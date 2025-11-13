@@ -16,9 +16,9 @@ export default function AgendaDiaView({
   const [slotMenuAberto, setSlotMenuAberto] = useState(null);
 
   const horarios = [];
-  for (let h = 8; h <= 20; h++) {
+  for (let h = 8; h <= 22; h++) {
     horarios.push(`${h.toString().padStart(2, '0')}:00`);
-    if (h < 20) horarios.push(`${h.toString().padStart(2, '0')}:30`);
+    if (h < 22) horarios.push(`${h.toString().padStart(2, '0')}:30`);
   }
 
   const terapeutasAtivos = configuracoes
