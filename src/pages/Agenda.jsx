@@ -13,46 +13,89 @@ import DetalhesAgendamentoDialog from "../components/agenda/DetalhesAgendamentoD
 // FUNÇÕES UNIVERSAIS DE DATA - USAR EM TODOS OS ARQUIVOS
 // ============================================
 
-// Converte Date object para string YYYY-MM-DD (SEM timezone)
+// FUNÇÃO CRÍTICA: Converte Date object para string YYYY-MM-DD (SEM timezone)
+// SEMPRE usar getFullYear, getMonth, getDate (métodos LOCAIS)
+// NUNCA usar getUTCFullYear, getUTCMonth, getUTCDate
 export const formatarDataPura = (data) => {
-  const ano = data.getFullYear();
-  const mes = String(data.getMonth() + 1).padStart(2, '0');
-  const dia = String(data.getDate()).padStart(2, '0');
-  return `${ano}-${mes}-${dia}`;
-};
-
-// Converte string YYYY-MM-DD para Date object (meio-dia UTC para evitar shifts)
-export const criarDataPura = (dataString) => {
-  if (!dataString) return new Date();
-  const [ano, mes, dia] = dataString.split('-').map(Number);
-  return new Date(ano, mes - 1, dia, 12, 0, 0);
-};
-
-// Normaliza qualquer formato de data para YYYY-MM-DD
-export const normalizarData = (valor) => {
-  if (!valor) return null;
+  const ano = data.getFullYear(); // LOCAL time
+  const mes = String(data.getMonth() + 1).padStart(2, '0'); // LOCAL time
+  const dia = String(data.getDate()).padStart(2, '0'); // LOCAL time
+  const resultado = `${ano}-${mes}-${dia}`;
   
-  // Já está no formato correto
+  console.log("🔧 FUNÇÃO formatarDataPura:", {
+    input: data.toString(),
+    ano: ano,
+    mes: mes,
+    dia: dia,
+    output: resultado,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+  });
+  
+  return resultado;
+};
+
+// FUNÇÃO CRÍTICA: Converte string YYYY-MM-DD para Date object LOCAL
+// Criar data com new Date(ano, mes, dia) - isso cria no timezone LOCAL do navegador
+export const criarDataPura = (dataString) => {
+  if (!dataString || !/^\d{4}-\d{2}-\d{2}$/.test(dataString)) {
+    console.warn("⚠️ criarDataPura: string inválida, usando data atual");
+    return new Date();
+  }
+  
+  const [ano, mes, dia] = dataString.split('-').map(Number);
+  // Criar às 12h LOCAL para evitar problemas de exibição
+  const resultado = new Date(ano, mes - 1, dia, 12, 0, 0);
+  
+  console.log("🔧 FUNÇÃO criarDataPura:", {
+    input: dataString,
+    output: resultado.toString(),
+    ano: ano,
+    mes: mes,
+    dia: dia,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+  });
+  
+  return resultado;
+};
+
+// FUNÇÃO CRÍTICA: Normaliza qualquer formato de data para YYYY-MM-DD
+export const normalizarData = (valor) => {
+  if (!valor) {
+    console.log("⚠️ normalizarData: valor vazio");
+    return null;
+  }
+  
+  console.log("🔧 normalizarData INPUT:", valor, "| Tipo:", typeof valor);
+  
+  // Já está no formato correto YYYY-MM-DD
   if (typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+    console.log("✅ normalizarData: já está correto:", valor);
     return valor;
   }
   
-  // Remover parte de timestamp se existir
+  // String com timestamp (ex: "2025-11-13T00:00:00.000Z")
   if (typeof valor === 'string' && valor.includes('T')) {
-    return valor.split('T')[0];
+    const resultado = valor.split('T')[0];
+    console.log("✅ normalizarData: extraído de timestamp:", resultado);
+    return resultado;
   }
   
-  // É um Date object
+  // É um Date object - usar métodos LOCAIS
   if (valor instanceof Date) {
-    return formatarDataPura(valor);
+    const resultado = formatarDataPura(valor);
+    console.log("✅ normalizarData: convertido de Date:", resultado);
+    return resultado;
   }
   
-  // Tentar converter string para date
+  // Último recurso: tentar parsear
   try {
+    // Forçar interpretação LOCAL adicionando horário meio-dia
     const data = new Date(valor + 'T12:00:00');
-    return formatarDataPura(data);
+    const resultado = formatarDataPura(data);
+    console.log("✅ normalizarData: parseado:", resultado);
+    return resultado;
   } catch (e) {
-    console.error("❌ Erro ao normalizar:", valor);
+    console.error("❌ normalizarData ERRO:", valor, e);
     return null;
   }
 };
@@ -219,8 +262,17 @@ export default function AgendaPage() {
   };
 
   const handleBloquearHorario = async (unidadeId, profissionalId, horario) => {
-    // SEMPRE usar a data atual formatada como string pura YYYY-MM-DD
+    console.log("🔒🔒🔒 ==================== INICIANDO BLOQUEIO ==================== 🔒🔒🔒");
+    console.log("📊 ESTADO ATUAL:");
+    console.log("  - dataAtual (Date object):", dataAtual.toString());
+    console.log("  - Timezone do navegador:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+    console.log("  - Usuário:", usuarioAtual?.email);
+    console.log("  - Cargo:", usuarioAtual?.cargo);
+    
+    // CRÍTICO: usar formatarDataPura que usa métodos LOCAIS do Date
     const dataFormatada = formatarDataPura(dataAtual);
+    
+    console.log("📅 DATA DO BLOQUEIO (formatada PURA):", dataFormatada);
     
     const unidade = unidades.find(u => u.id === unidadeId);
     const profissional = profissionais.find(p => p.id === profissionalId);
@@ -228,14 +280,11 @@ export default function AgendaPage() {
     const [hora, minuto] = horario.split(':').map(Number);
     const horaFim = `${(hora + (minuto === 30 ? 1 : 0)).toString().padStart(2, '0')}:${(minuto === 30 ? '00' : '30')}`;
     
-    console.log("🔒🔒🔒 INICIANDO BLOQUEIO 🔒🔒🔒");
-    console.log("👤 Usuário:", usuarioAtual?.email, "| Cargo:", usuarioAtual?.cargo);
-    console.log("🌍 Timezone do navegador:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-    console.log("📅 Data do bloqueio:", dataFormatada);
-    console.log("⏰ Horário:", horario, "até", horaFim);
-    console.log("👨‍⚕️ Profissional:", profissional?.nome);
-    console.log("🏢 Unidade:", unidade?.nome);
+    console.log("⏰ HORÁRIO:", horario, "até", horaFim);
+    console.log("👨‍⚕️ PROFISSIONAL:", profissional?.nome, "(ID:", profissionalId, ")");
+    console.log("🏢 UNIDADE:", unidade?.nome, "(ID:", unidadeId, ")");
     
+    // OBJETO BLOQUEIO - data como STRING PURA
     const bloqueio = {
       cliente_nome: "FECHADO",
       profissional_id: profissionalId,
@@ -243,7 +292,7 @@ export default function AgendaPage() {
       unidade_id: unidadeId,
       unidade_nome: unidade?.nome || "",
       servico_nome: "Horário Bloqueado",
-      data: dataFormatada, // STRING PURA YYYY-MM-DD
+      data: dataFormatada, // ⚠️ CRÍTICO: STRING PURA "YYYY-MM-DD"
       hora_inicio: horario,
       hora_fim: horaFim,
       status: "bloqueio",
@@ -251,21 +300,25 @@ export default function AgendaPage() {
       observacoes: "Horário fechado para atendimentos"
     };
     
-    console.log("📦 OBJETO BLOQUEIO COMPLETO:", JSON.stringify(bloqueio, null, 2));
+    console.log("📦 OBJETO COMPLETO A SER SALVO:");
+    console.log(JSON.stringify(bloqueio, null, 2));
     
     try {
+      console.log("📤 ENVIANDO PARA O BANCO...");
       const resultado = await criarAgendamentoMutation.mutateAsync(bloqueio);
       
-      console.log("✅✅✅ BLOQUEIO SALVO COM SUCESSO ✅✅✅");
-      console.log("🆔 ID do bloqueio:", resultado.id);
-      console.log("📅 Data retornada do banco:", resultado.data);
+      console.log("✅✅✅ BLOQUEIO SALVO NO BANCO ✅✅✅");
+      console.log("🆔 ID retornado:", resultado.id);
+      console.log("📅 Data retornada (bruta):", resultado.data);
       console.log("📅 Data normalizada:", normalizarData(resultado.data));
+      console.log("🔒🔒🔒 ==================== FIM DO BLOQUEIO ==================== 🔒🔒🔒");
       
-      alert(`✅ Horário ${horario} BLOQUEADO com sucesso!\n\nData: ${dataFormatada}\nProfissional: ${profissional?.nome}`);
+      alert(`✅ Horário BLOQUEADO com sucesso!\n\n📅 Data: ${dataFormatada}\n⏰ Horário: ${horario}\n👨‍⚕️ Profissional: ${profissional?.nome}`);
       
     } catch (error) {
       console.error("❌❌❌ ERRO AO BLOQUEAR ❌❌❌");
-      console.error("Detalhes:", error);
+      console.error("Detalhes completos:", error);
+      console.error("Stack:", error.stack);
       alert("❌ Erro ao bloquear horário: " + error.message);
     }
   };
@@ -306,12 +359,16 @@ export default function AgendaPage() {
   };
 
   // FILTRAR AGENDAMENTOS PELA DATA ATUAL
+  console.log("🔍🔍🔍 ==================== INICIANDO FILTRO ==================== 🔍🔍🔍");
+  console.log("📊 ESTADO DO FILTRO:");
+  console.log("  - dataAtual (Date object):", dataAtual.toString());
+  console.log("  - Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+  
   const dataFiltro = formatarDataPura(dataAtual);
   
-  console.log("🔍🔍🔍 INICIANDO FILTRO DE AGENDAMENTOS 🔍🔍🔍");
-  console.log("📅 Data do filtro:", dataFiltro);
+  console.log("📅 DATA DO FILTRO (string pura):", dataFiltro);
   console.log("📊 Total de agendamentos no banco:", agendamentos.length);
-  console.log("🏢 Unidade selecionada:", unidadeSelecionada?.nome);
+  console.log("🏢 Unidade selecionada:", unidadeSelecionada?.nome, "(ID:", unidadeSelecionada?.id, ")");
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
     // Log detalhado para cada agendamento

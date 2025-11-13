@@ -9,11 +9,15 @@ import { createPageUrl } from "@/utils";
 import { addDays, subDays } from "date-fns";
 
 // Usar mesma lógica de formatação em todos os componentes
+// FUNÇÃO CRÍTICA: Garantir que NUNCA haja conversão de timezone
 const formatarDataPura = (data) => {
+  // Usar getFullYear, getMonth, getDate (locais) - NUNCA UTC
   const ano = data.getFullYear();
   const mes = String(data.getMonth() + 1).padStart(2, '0');
   const dia = String(data.getDate()).padStart(2, '0');
-  return `${ano}-${mes}-${dia}`;
+  const resultado = `${ano}-${mes}-${dia}`;
+  console.log("🔧 formatarDataPura | Input:", data.toString(), "| Output:", resultado);
+  return resultado;
 };
 
 export default function AgendaHeader({ 
@@ -26,15 +30,17 @@ export default function AgendaHeader({
   usuarioAtual
 }) {
   const formatarDataExibicao = () => {
-    // Criar data às 12h para evitar problemas de timezone na exibição
-    const ano = dataAtual.getFullYear();
-    const mes = dataAtual.getMonth();
-    const dia = dataAtual.getDate();
-    const dataLocal = new Date(ano, mes, dia, 12, 0, 0);
+    // NUNCA usar new Date() com parâmetros - pode causar timezone issues
+    // Usar a data local direto
+    const dataFormatada = format(dataAtual, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
+    const dataPura = formatarDataPura(dataAtual);
     
-    const dataFormatada = format(dataLocal, "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR });
-    
-    console.log("📅 HEADER - Exibindo:", dataFormatada, "| Data pura:", formatarDataPura(dataAtual));
+    console.log("📅 HEADER EXIBIÇÃO:", {
+      dataBruta: dataAtual.toString(),
+      dataFormatada: dataFormatada,
+      dataPura: dataPura,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+    });
     
     return dataFormatada;
   };
