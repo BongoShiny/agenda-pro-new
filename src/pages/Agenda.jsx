@@ -85,7 +85,11 @@ export default function AgendaPage() {
   const { data: agendamentos = [], refetch: refetchAgendamentos } = useQuery({
     queryKey: ['agendamentos'],
     queryFn: async () => {
+      console.log("📥📥📥 CARREGANDO AGENDAMENTOS DO BANCO 📥📥📥");
+      
       const lista = await base44.entities.Agendamento.list("-data");
+      
+      console.log("📊 Total bruto do banco:", lista.length);
       
       // NORMALIZAR TODAS AS DATAS NA ENTRADA
       const listaNormalizada = lista.map(ag => {
@@ -93,9 +97,16 @@ export default function AgendaPage() {
         return { ...ag, data: dataNormalizada };
       });
       
-      console.log("📥 AGENDAMENTOS DO BANCO:", listaNormalizada.length);
-      listaNormalizada.forEach(ag => {
-        console.log(`  📅 ${ag.data} | ${ag.hora_inicio} | ${ag.cliente_nome} | ID: ${ag.id}`);
+      console.log("✅ Todos os agendamentos normalizados:", listaNormalizada.length);
+      
+      // Mostrar todos os bloqueios
+      const bloqueios = listaNormalizada.filter(ag => 
+        ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO"
+      );
+      
+      console.log("🔒 BLOQUEIOS NO BANCO:", bloqueios.length);
+      bloqueios.forEach(b => {
+        console.log(`  🔒 ID: ${b.id} | Data: ${b.data} | Hora: ${b.hora_inicio} | Prof: ${b.profissional_nome} | Unidade: ${b.unidade_nome}`);
       });
       
       return listaNormalizada;
@@ -208,20 +219,22 @@ export default function AgendaPage() {
   };
 
   const handleBloquearHorario = async (unidadeId, profissionalId, horario) => {
+    // SEMPRE usar a data atual formatada como string pura YYYY-MM-DD
     const dataFormatada = formatarDataPura(dataAtual);
-    
-    console.log("🔒 BLOQUEANDO:", {
-      data: dataFormatada,
-      horario: horario,
-      usuario: usuarioAtual?.email,
-      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-    });
     
     const unidade = unidades.find(u => u.id === unidadeId);
     const profissional = profissionais.find(p => p.id === profissionalId);
     
     const [hora, minuto] = horario.split(':').map(Number);
     const horaFim = `${(hora + (minuto === 30 ? 1 : 0)).toString().padStart(2, '0')}:${(minuto === 30 ? '00' : '30')}`;
+    
+    console.log("🔒🔒🔒 INICIANDO BLOQUEIO 🔒🔒🔒");
+    console.log("👤 Usuário:", usuarioAtual?.email, "| Cargo:", usuarioAtual?.cargo);
+    console.log("🌍 Timezone do navegador:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+    console.log("📅 Data do bloqueio:", dataFormatada);
+    console.log("⏰ Horário:", horario, "até", horaFim);
+    console.log("👨‍⚕️ Profissional:", profissional?.nome);
+    console.log("🏢 Unidade:", unidade?.nome);
     
     const bloqueio = {
       cliente_nome: "FECHADO",
@@ -230,7 +243,7 @@ export default function AgendaPage() {
       unidade_id: unidadeId,
       unidade_nome: unidade?.nome || "",
       servico_nome: "Horário Bloqueado",
-      data: dataFormatada,
+      data: dataFormatada, // STRING PURA YYYY-MM-DD
       hora_inicio: horario,
       hora_fim: horaFim,
       status: "bloqueio",
@@ -238,12 +251,22 @@ export default function AgendaPage() {
       observacoes: "Horário fechado para atendimentos"
     };
     
+    console.log("📦 OBJETO BLOQUEIO COMPLETO:", JSON.stringify(bloqueio, null, 2));
+    
     try {
-      await criarAgendamentoMutation.mutateAsync(bloqueio);
-      alert(`✅ Horário ${horario} bloqueado em ${dataFormatada}`);
+      const resultado = await criarAgendamentoMutation.mutateAsync(bloqueio);
+      
+      console.log("✅✅✅ BLOQUEIO SALVO COM SUCESSO ✅✅✅");
+      console.log("🆔 ID do bloqueio:", resultado.id);
+      console.log("📅 Data retornada do banco:", resultado.data);
+      console.log("📅 Data normalizada:", normalizarData(resultado.data));
+      
+      alert(`✅ Horário ${horario} BLOQUEADO com sucesso!\n\nData: ${dataFormatada}\nProfissional: ${profissional?.nome}`);
+      
     } catch (error) {
-      console.error("❌ Erro ao bloquear:", error);
-      alert("Erro: " + error.message);
+      console.error("❌❌❌ ERRO AO BLOQUEAR ❌❌❌");
+      console.error("Detalhes:", error);
+      alert("❌ Erro ao bloquear horário: " + error.message);
     }
   };
 
@@ -258,42 +281,84 @@ export default function AgendaPage() {
   };
 
   const handleDeletarAgendamento = async (id) => {
+    console.log("🗑️🗑️🗑️ PROCESSANDO DELEÇÃO 🗑️🗑️🗑️");
+    console.log("🆔 ID a deletar:", id);
+    
     try {
       await base44.entities.Agendamento.delete(id);
+      
+      console.log("✅ Deletado do banco com sucesso");
+      console.log("🔄 Recarregando agendamentos...");
+      
       await refetchAgendamentos();
       await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+      
       setDialogDetalhesAberto(false);
-      alert("✅ Horário desbloqueado!");
+      
+      console.log("✅✅✅ HORÁRIO DESBLOQUEADO COM SUCESSO ✅✅✅");
+      alert("✅ Horário desbloqueado com sucesso!");
+      
     } catch (error) {
-      console.error("❌ Erro ao deletar:", error);
-      alert("Erro: " + error.message);
+      console.error("❌❌❌ ERRO AO DELETAR ❌❌❌");
+      console.error("Detalhes:", error);
+      alert("❌ Erro ao desbloquear: " + error.message);
     }
   };
 
   // FILTRAR AGENDAMENTOS PELA DATA ATUAL
   const dataFiltro = formatarDataPura(dataAtual);
   
-  console.log("🔍 FILTRANDO PARA DATA:", dataFiltro);
+  console.log("🔍🔍🔍 INICIANDO FILTRO DE AGENDAMENTOS 🔍🔍🔍");
+  console.log("📅 Data do filtro:", dataFiltro);
+  console.log("📊 Total de agendamentos no banco:", agendamentos.length);
+  console.log("🏢 Unidade selecionada:", unidadeSelecionada?.nome);
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
-    const match = ag.data === dataFiltro;
+    // Log detalhado para cada agendamento
+    const isDataMatch = ag.data === dataFiltro;
+    const isUnidadeMatch = !unidadeSelecionada || ag.unidade_id === unidadeSelecionada.id;
+    const isClienteMatch = !filters.cliente || (ag.cliente_nome && ag.cliente_nome.toLowerCase().includes(filters.cliente.toLowerCase()));
+    const isProfissionalMatch = !filters.profissional || ag.profissional_id === filters.profissional;
+    const isServicoMatch = !filters.servico || ag.servico_id === filters.servico;
+    const isStatusMatch = !filters.status || ag.status === filters.status;
+    const isDataFilterMatch = !filters.data || ag.data === filters.data;
     
-    if (match) {
-      console.log(`  ✅ MATCH: ${ag.data} | ${ag.hora_inicio} | ${ag.cliente_nome}`);
+    const isBloqueio = ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO";
+    
+    if (isBloqueio) {
+      console.log(`🔒 BLOQUEIO ENCONTRADO:`, {
+        id: ag.id,
+        data: ag.data,
+        dataMatch: isDataMatch,
+        horario: ag.hora_inicio,
+        profissional: ag.profissional_nome,
+        unidade: ag.unidade_nome,
+        unidadeMatch: isUnidadeMatch,
+        passaNoFiltro: isDataMatch && isUnidadeMatch
+      });
     }
     
-    if (ag.data !== dataFiltro) return false;
-    if (unidadeSelecionada && ag.unidade_id !== unidadeSelecionada.id) return false;
-    if (filters.cliente && ag.cliente_nome && !ag.cliente_nome.toLowerCase().includes(filters.cliente.toLowerCase())) return false;
-    if (filters.profissional && ag.profissional_id !== filters.profissional) return false;
-    if (filters.servico && ag.servico_id !== filters.servico) return false;
-    if (filters.status && ag.status !== filters.status) return false;
-    if (filters.data && ag.data !== filters.data) return false;
+    // Retornar apenas se TODOS os filtros passarem
+    if (!isDataMatch) return false;
+    if (!isUnidadeMatch) return false;
+    if (!isClienteMatch) return false;
+    if (!isProfissionalMatch) return false;
+    if (!isServicoMatch) return false;
+    if (!isStatusMatch) return false;
+    if (!isDataFilterMatch) return false;
     
     return true;
   });
 
-  console.log("📊 TOTAL FILTRADOS:", agendamentosFiltrados.length);
+  console.log("📊 TOTAL APÓS FILTRO:", agendamentosFiltrados.length);
+  
+  const bloqueiosFiltrados = agendamentosFiltrados.filter(ag => 
+    ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO"
+  );
+  console.log("🔒 BLOQUEIOS NO FILTRO:", bloqueiosFiltrados.length);
+  bloqueiosFiltrados.forEach(b => {
+    console.log(`  🔒 ${b.hora_inicio} | ${b.profissional_nome} | Data: ${b.data}`);
+  });
 
   const unidadeAtual = unidadeSelecionada || unidades[0];
 

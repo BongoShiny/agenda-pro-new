@@ -36,7 +36,12 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
 
   const handleDelete = () => {
-    console.log("🗑️ DELETANDO | ID:", agendamento.id, "| Data:", agendamento.data);
+    console.log("🗑️🗑️🗑️ DELETANDO BLOQUEIO 🗑️🗑️🗑️");
+    console.log("🆔 ID:", agendamento.id);
+    console.log("📅 Data:", agendamento.data);
+    console.log("⏰ Horário:", agendamento.hora_inicio, "-", agendamento.hora_fim);
+    console.log("👨‍⚕️ Profissional:", agendamento.profissional_nome);
+    console.log("🏢 Unidade:", agendamento.unidade_nome);
     onDelete(agendamento.id);
   };
 

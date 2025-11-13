@@ -41,19 +41,25 @@ export default function AgendaHeader({
 
   const navegarAnterior = () => {
     const novaData = subDays(dataAtual, 1);
-    console.log("⬅️ Dia anterior:", formatarDataPura(novaData));
+    const dataFormatada = formatarDataPura(novaData);
+    console.log("⬅️⬅️⬅️ NAVEGAÇÃO ANTERIOR ⬅️⬅️⬅️");
+    console.log("📅 Nova data:", dataFormatada);
     onDataChange(novaData);
   };
 
   const navegarProximo = () => {
     const novaData = addDays(dataAtual, 1);
-    console.log("➡️ Próximo dia:", formatarDataPura(novaData));
+    const dataFormatada = formatarDataPura(novaData);
+    console.log("➡️➡️➡️ NAVEGAÇÃO PRÓXIMA ➡️➡️➡️");
+    console.log("📅 Nova data:", dataFormatada);
     onDataChange(novaData);
   };
 
   const irParaHoje = () => {
     const hoje = new Date();
-    console.log("📍 Voltar para hoje:", formatarDataPura(hoje));
+    const dataFormatada = formatarDataPura(hoje);
+    console.log("📍📍📍 VOLTAR PARA HOJE 📍📍📍");
+    console.log("📅 Data de hoje:", dataFormatada);
     onDataChange(hoje);
   };
 

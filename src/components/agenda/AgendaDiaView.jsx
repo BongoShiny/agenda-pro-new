@@ -28,15 +28,27 @@ export default function AgendaDiaView({
     .filter(Boolean);
 
   const getAgendamentosParaSlot = (profissionalId, horario) => {
+    const profissional = profissionais.find(p => p.id === profissionalId);
+    
     const agendamentosSlot = agendamentos.filter(ag => 
       ag.unidade_id === unidadeSelecionada.id &&
       ag.profissional_id === profissionalId && 
       ag.hora_inicio === horario
     );
     
+    // Log detalhado de cada slot
     if (agendamentosSlot.length > 0) {
       agendamentosSlot.forEach(ag => {
-        console.log(`📍 SLOT ${horario} | ${ag.cliente_nome} | Data: ${ag.data}`);
+        const isBloqueio = ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO";
+        console.log(`📍 SLOT ${horario}:`, {
+          cliente: ag.cliente_nome,
+          data: ag.data,
+          profissional: profissional?.nome,
+          unidade: unidadeSelecionada.nome,
+          isBloqueio: isBloqueio,
+          status: ag.status,
+          tipo: ag.tipo
+        });
       });
     }
     
