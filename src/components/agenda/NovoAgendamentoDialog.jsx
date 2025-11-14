@@ -51,6 +51,7 @@ export default function NovoAgendamentoDialog({
   servicos = [],
   modoEdicao = false
 }) {
+  // unidades já vem filtradas da página principal
   const [formData, setFormData] = useState({
     cliente_id: "",
     cliente_nome: "",

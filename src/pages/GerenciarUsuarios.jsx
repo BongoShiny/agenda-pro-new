@@ -227,6 +227,25 @@ export default function GerenciarUsuariosPage() {
                               <div className="space-y-3">
                                 <Label className="text-sm font-semibold">Unidades Permitidas</Label>
                                 <div className="space-y-2">
+                                  <div className="flex items-center space-x-2 pb-2 border-b">
+                                    <Checkbox
+                                      id={`${usuario.id}-todas`}
+                                      checked={usuario.unidades_acesso?.length === unidades.length && unidades.length > 0}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          handleAtualizarUnidades(usuario, unidades.map(u => u.id));
+                                        } else {
+                                          handleAtualizarUnidades(usuario, []);
+                                        }
+                                      }}
+                                    />
+                                    <label
+                                      htmlFor={`${usuario.id}-todas`}
+                                      className="text-sm cursor-pointer flex-1 font-semibold"
+                                    >
+                                      Todas as unidades
+                                    </label>
+                                  </div>
                                   {unidades.map(unidade => (
                                     <div key={unidade.id} className="flex items-center space-x-2">
                                       <Checkbox
