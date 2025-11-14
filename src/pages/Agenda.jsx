@@ -239,6 +239,34 @@ export default function AgendaPage() {
     }
   });
 
+  const atualizarAgendamentoMutation = useMutation({
+    mutationFn: async ({ id, dados }) => {
+      console.log("📝 ATUALIZANDO NO BANCO:", {
+        id: id,
+        data: dados.data,
+        cliente: dados.cliente_nome,
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+      });
+      
+      const resultado = await base44.entities.Agendamento.update(id, dados);
+      
+      console.log("✅ ATUALIZADO NO BANCO:", {
+        id: resultado.id,
+        dataRetornada: resultado.data
+      });
+      
+      return resultado;
+    },
+    onSuccess: async () => {
+      await refetchAgendamentos();
+      await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+    },
+    onError: (error) => {
+      console.error("❌ ERRO AO ATUALIZAR:", error);
+      alert("Erro ao atualizar: " + error.message);
+    }
+  });
+
   const deletarAgendamentoMutation = useMutation({
     mutationFn: (id) => base44.entities.Agendamento.delete(id),
     onSuccess: async () => {
@@ -351,8 +379,21 @@ export default function AgendaPage() {
   };
 
   const handleSalvarAgendamento = async (dados) => {
-    await criarAgendamentoMutation.mutateAsync(dados);
+    if (dados.id) {
+      // Modo edição
+      const { id, ...dadosSemId } = dados;
+      await atualizarAgendamentoMutation.mutateAsync({ id, dados: dadosSemId });
+    } else {
+      // Modo criação
+      await criarAgendamentoMutation.mutateAsync(dados);
+    }
     setDialogNovoAberto(false);
+  };
+
+  const handleEditarAgendamento = (agendamento) => {
+    console.log("✏️ EDITANDO AGENDAMENTO:", agendamento.id);
+    setAgendamentoInicial(agendamento);
+    setDialogNovoAberto(true);
   };
 
   const handleDeletarAgendamento = async (id) => {
@@ -509,6 +550,7 @@ export default function AgendaPage() {
         profissionais={profissionais}
         unidades={unidades}
         servicos={servicos}
+        modoEdicao={!!agendamentoInicial?.id}
       />
 
       <DetalhesAgendamentoDialog
@@ -516,6 +558,7 @@ export default function AgendaPage() {
         onOpenChange={setDialogDetalhesAberto}
         agendamento={agendamentoSelecionado}
         onDelete={handleDeletarAgendamento}
+        onEdit={handleEditarAgendamento}
         usuarioAtual={usuarioAtual}
       />
     </div>

@@ -13,9 +13,16 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon } from "lucide-react";
+import { Calendar as CalendarIcon, Search } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
 
 // Mesma lógica de data em todos os componentes
 const formatarDataPura = (data) => {
@@ -41,11 +48,13 @@ export default function NovoAgendamentoDialog({
   clientes = [],
   profissionais = [],
   unidades = [],
-  servicos = []
+  servicos = [],
+  modoEdicao = false
 }) {
   const [formData, setFormData] = useState({
     cliente_id: "",
     cliente_nome: "",
+    cliente_telefone: "",
     profissional_id: "",
     profissional_nome: "",
     servico_id: "",
@@ -62,11 +71,16 @@ export default function NovoAgendamentoDialog({
     equipamento: ""
   });
 
+  const [clientePopoverAberto, setClientePopoverAberto] = useState(false);
+  const [buscaCliente, setBuscaCliente] = useState("");
+
   useEffect(() => {
     if (open) {
       const dados = {
+        id: agendamentoInicial.id || undefined,
         cliente_id: agendamentoInicial.cliente_id || "",
         cliente_nome: agendamentoInicial.cliente_nome || "",
+        cliente_telefone: agendamentoInicial.cliente_telefone || "",
         profissional_id: agendamentoInicial.profissional_id || "",
         profissional_nome: agendamentoInicial.profissional_nome || "",
         servico_id: agendamentoInicial.servico_id || "",
@@ -83,19 +97,29 @@ export default function NovoAgendamentoDialog({
         equipamento: agendamentoInicial.equipamento || ""
       };
       
-      console.log("📝 DIALOG ABERTO | Data inicial:", dados.data);
+      console.log("📝 DIALOG ABERTO | Modo:", modoEdicao ? "EDIÇÃO" : "NOVO", "| Data:", dados.data);
       setFormData(dados);
+      setBuscaCliente(dados.cliente_nome);
     }
-  }, [open, agendamentoInicial]);
+  }, [open, agendamentoInicial, modoEdicao]);
 
   const handleClienteChange = (clienteId) => {
     const cliente = clientes.find(c => c.id === clienteId);
-    setFormData(prev => ({
-      ...prev,
-      cliente_id: clienteId,
-      cliente_nome: cliente ? cliente.nome : ""
-    }));
+    if (cliente) {
+      setFormData(prev => ({
+        ...prev,
+        cliente_id: clienteId,
+        cliente_nome: cliente.nome,
+        cliente_telefone: cliente.telefone || ""
+      }));
+      setBuscaCliente(cliente.nome);
+      setClientePopoverAberto(false);
+    }
   };
+
+  const clientesFiltrados = clientes.filter(c => 
+    c.nome.toLowerCase().includes(buscaCliente.toLowerCase())
+  );
 
   const handleProfissionalChange = (profId) => {
     const prof = profissionais.find(p => p.id === profId);
@@ -142,22 +166,72 @@ export default function NovoAgendamentoDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Novo Agendamento</DialogTitle>
+          <DialogTitle>{modoEdicao ? "Editar Agendamento" : "Novo Agendamento"}</DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-4 py-4">
           <div className="space-y-2">
             <Label>Cliente *</Label>
-            <Select value={formData.cliente_id} onValueChange={handleClienteChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o cliente" />
-              </SelectTrigger>
-              <SelectContent>
-                {clientes.map(cliente => (
-                  <SelectItem key={cliente.id} value={cliente.id}>{cliente.nome}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Popover open={clientePopoverAberto} onOpenChange={setClientePopoverAberto}>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start">
+                  <Search className="mr-2 h-4 w-4" />
+                  {buscaCliente || "Digite ou selecione o cliente"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-[300px] p-0" align="start">
+                <Command>
+                  <CommandInput 
+                    placeholder="Digite o nome do cliente..." 
+                    value={buscaCliente}
+                    onValueChange={(value) => {
+                      setBuscaCliente(value);
+                      setFormData(prev => ({ ...prev, cliente_nome: value, cliente_id: "" }));
+                    }}
+                  />
+                  <CommandEmpty>
+                    <div className="p-4 text-sm">
+                      <p className="mb-2">Cliente não encontrado.</p>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, cliente_nome: buscaCliente, cliente_id: "" }));
+                          setClientePopoverAberto(false);
+                        }}
+                      >
+                        Usar "{buscaCliente}"
+                      </Button>
+                    </div>
+                  </CommandEmpty>
+                  <CommandGroup className="max-h-[200px] overflow-y-auto">
+                    {clientesFiltrados.map(cliente => (
+                      <CommandItem
+                        key={cliente.id}
+                        value={cliente.nome}
+                        onSelect={() => handleClienteChange(cliente.id)}
+                      >
+                        <div className="flex flex-col">
+                          <span className="font-medium">{cliente.nome}</span>
+                          {cliente.telefone && (
+                            <span className="text-xs text-gray-500">{cliente.telefone}</span>
+                          )}
+                        </div>
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </Command>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Telefone do Cliente</Label>
+            <Input
+              value={formData.cliente_telefone}
+              onChange={(e) => setFormData(prev => ({ ...prev, cliente_telefone: e.target.value }))}
+              placeholder="(00) 00000-0000"
+            />
           </div>
 
           <div className="space-y-2">
