@@ -208,13 +208,44 @@ export default function GerenciarUsuariosPage() {
                             Todas as unidades
                           </Badge>
                         ) : (
-                          <div className="text-sm text-gray-600">
-                            {usuario.unidades_acesso?.length > 0 ? (
-                              `${usuario.unidades_acesso.length} unidade(s)`
-                            ) : (
-                              "Nenhuma unidade"
-                            )}
-                          </div>
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="sm" className="text-left justify-start">
+                                {usuario.unidades_acesso?.length > 0 ? (
+                                  <>
+                                    {usuario.unidades_acesso.map(uid => {
+                                      const unidade = unidades.find(u => u.id === uid);
+                                      return unidade?.nome;
+                                    }).filter(Boolean).join(", ") || "Selecionar unidades"}
+                                  </>
+                                ) : (
+                                  <span className="text-gray-400">Nenhuma unidade</span>
+                                )}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-64" align="start">
+                              <div className="space-y-3">
+                                <Label className="text-sm font-semibold">Unidades Permitidas</Label>
+                                <div className="space-y-2">
+                                  {unidades.map(unidade => (
+                                    <div key={unidade.id} className="flex items-center space-x-2">
+                                      <Checkbox
+                                        id={`${usuario.id}-${unidade.id}`}
+                                        checked={usuario.unidades_acesso?.includes(unidade.id)}
+                                        onCheckedChange={() => handleToggleUnidade(usuario, unidade.id)}
+                                      />
+                                      <label
+                                        htmlFor={`${usuario.id}-${unidade.id}`}
+                                        className="text-sm cursor-pointer flex-1"
+                                      >
+                                        {unidade.nome}
+                                      </label>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
                         )}
                       </TableCell>
 
