@@ -28,7 +28,7 @@ const criarDataPura = (dataString) => {
   return new Date(ano, mes - 1, dia, 12, 0, 0);
 };
 
-export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendamento, onDelete, usuarioAtual }) {
+export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendamento, onDelete, onEdit, usuarioAtual }) {
   if (!agendamento) return null;
 
   const statusInfo = statusLabels[agendamento.status] || statusLabels.agendado;
@@ -127,6 +127,9 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               <div>
                 <div className="text-sm text-gray-500">Cliente</div>
                 <div className="font-semibold text-lg">{agendamento.cliente_nome}</div>
+                {agendamento.cliente_telefone && (
+                  <div className="text-sm text-gray-600 mt-1">📱 {agendamento.cliente_telefone}</div>
+                )}
               </div>
             </div>
 
@@ -193,6 +196,18 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
                 </div>
               </div>
             )}
+
+            {agendamento.created_by && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
+                <div className="flex items-start gap-3">
+                  <User className="w-4 h-4 text-blue-600 mt-0.5" />
+                  <div>
+                    <div className="text-xs text-blue-600 font-medium">Criado por</div>
+                    <div className="text-sm text-blue-800">{agendamento.created_by}</div>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
@@ -210,7 +225,19 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               Desbloquear Horário
             </Button>
           )}
-          {!isBloqueio && (
+          {!isBloqueio && isAdmin && onEdit && (
+            <Button 
+              variant="outline"
+              onClick={() => {
+                onEdit(agendamento);
+                onOpenChange(false);
+              }}
+              className="bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-300"
+            >
+              ✏️ Editar Agendamento
+            </Button>
+          )}
+          {!isBloqueio && isAdmin && (
             <Button 
               variant="destructive" 
               onClick={handleDelete}

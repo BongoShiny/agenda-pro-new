@@ -382,7 +382,7 @@ export default function NovoAgendamentoDialog({
             disabled={!formData.cliente_nome || !formData.profissional_nome || !formData.unidade_id}
             className="bg-blue-600 hover:bg-blue-700"
           >
-            Salvar Agendamento
+            {modoEdicao ? "Salvar Alterações" : "Salvar Agendamento"}
           </Button>
         </DialogFooter>
       </DialogContent>
