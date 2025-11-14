@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, Settings, Users } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, Settings, Users, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -133,6 +133,13 @@ export default function AgendaHeader({
                   <Button variant="outline">
                     <Settings className="w-4 h-4 mr-2" />
                     Configurar Terapeutas
+                  </Button>
+                </Link>
+
+                <Link to={createPageUrl("HistoricoAgendamentos")}>
+                  <Button variant="outline">
+                    <FileText className="w-4 h-4 mr-2" />
+                    Histórico
                   </Button>
                 </Link>
               </>
