@@ -12,6 +12,8 @@ import { ArrowLeft, UserPlus, Shield, User, Mail, Building2, AlertCircle } from 
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Table,
   TableBody,
@@ -76,6 +78,15 @@ export default function GerenciarUsuariosPage() {
       id: usuario.id,
       dados: { unidades_acesso: unidadesIds }
     });
+  };
+
+  const handleToggleUnidade = async (usuario, unidadeId) => {
+    const unidadesAtuais = usuario.unidades_acesso || [];
+    const novasUnidades = unidadesAtuais.includes(unidadeId)
+      ? unidadesAtuais.filter(id => id !== unidadeId)
+      : [...unidadesAtuais, unidadeId];
+    
+    await handleAtualizarUnidades(usuario, novasUnidades);
   };
 
   if (!usuarioAtual) {
