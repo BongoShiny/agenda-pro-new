@@ -213,16 +213,16 @@ export default function AgendaDiaView({
                         </div>
                       </div>
                     );
-                    }
+                  }
 
-                    const agendamentosSlot = getAgendamentosParaSlot(terapeuta.id, horario);
-                    const isOcupado = agendamentosSlot.length > 0;
-                    const horarioPassou = horarioJaPassou(horario);
-                    const isMenuAberto = slotMenuAberto?.unidadeId === unidadeSelecionada.id && 
-                                      slotMenuAberto?.profissionalId === terapeuta.id && 
-                                      slotMenuAberto?.horario === horario;
+                  const agendamentosSlot = getAgendamentosParaSlot(terapeuta.id, horario);
+                  const isOcupado = agendamentosSlot.length > 0;
+                  const horarioPassou = horarioJaPassou(horario);
+                  const isMenuAberto = slotMenuAberto?.unidadeId === unidadeSelecionada.id && 
+                                    slotMenuAberto?.profissionalId === terapeuta.id && 
+                                    slotMenuAberto?.horario === horario;
 
-                    return (
+                  return (
                     <div
                       key={horario}
                       className={`h-16 md:h-20 border-b border-gray-200 p-0.5 md:p-1 relative ${
@@ -270,13 +270,13 @@ export default function AgendaDiaView({
                         })
                       )}
                     </div>
-                    );
-                    })}
-                    </div>
-                    ))}
-                    </div>
-                    </ScrollArea>
-                    </div>
-                    );
-                    }
+                  );
+                })}
+              </div>
+            ))}
+          </div>
+        </div>
+      </ScrollArea>
+    </div>
+  );
 }
