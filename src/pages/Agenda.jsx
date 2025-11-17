@@ -225,7 +225,13 @@ export default function AgendaPage() {
         usuario: usuarioAtual?.email
       });
       
-      const resultado = await base44.entities.Agendamento.create(dados);
+      // Adicionar explicitamente o email do criador
+      const dadosComCriador = {
+        ...dados,
+        created_by: usuarioAtual?.email
+      };
+      
+      const resultado = await base44.entities.Agendamento.create(dadosComCriador);
       
       console.log("✅ SALVO NO BANCO:", {
         id: resultado.id,
