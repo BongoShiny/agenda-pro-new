@@ -158,17 +158,17 @@ export default function AgendaDiaView({
   return (
     <div className="flex-1 bg-gray-50 relative">
       <div className="flex border-b border-gray-200 bg-white sticky top-0 z-10">
-        <div className="w-20 flex-shrink-0 border-r border-gray-200"></div>
+        <div className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200"></div>
         
         <div className="flex overflow-x-auto">
           {terapeutasAtivos.map(terapeuta => {
             const horarioTerapeuta = getHorarioProfissional(terapeuta);
             return (
-              <div key={terapeuta.id} className="w-[280px] flex-shrink-0 p-3 border-r border-gray-200 last:border-r-0">
-                <div className="text-sm font-bold text-gray-900 truncate text-center">{terapeuta.nome}</div>
-                <div className="text-xs text-gray-500 truncate text-center mt-1">{terapeuta.especialidade}</div>
+              <div key={terapeuta.id} className="w-[160px] md:w-[280px] flex-shrink-0 p-2 md:p-3 border-r border-gray-200 last:border-r-0">
+                <div className="text-xs md:text-sm font-bold text-gray-900 truncate text-center">{terapeuta.nome}</div>
+                <div className="text-[10px] md:text-xs text-gray-500 truncate text-center mt-1">{terapeuta.especialidade}</div>
                 {horarioTerapeuta.isExcecao && (
-                  <div className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded mt-1 text-center">
+                  <div className="text-[8px] md:text-[10px] text-blue-600 bg-blue-50 px-1 md:px-2 py-0.5 rounded mt-1 text-center">
                     📅 {horarioTerapeuta.horario_inicio} - {horarioTerapeuta.horario_fim}
                   </div>
                 )}
@@ -178,13 +178,13 @@ export default function AgendaDiaView({
         </div>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-240px)]">
+      <ScrollArea className="h-[calc(100vh-200px)] md:h-[calc(100vh-240px)]">
         <div className="flex">
-          <div className="w-20 flex-shrink-0 border-r border-gray-200 bg-gray-50">
+          <div className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200 bg-gray-50">
             {todosHorarios.map((horario) => (
               <div
                 key={horario}
-                className="h-20 flex items-start justify-center pt-1 text-xs text-gray-600 font-semibold border-b border-gray-200"
+                className="h-16 md:h-20 flex items-start justify-center pt-1 text-[10px] md:text-xs text-gray-600 font-semibold border-b border-gray-200"
               >
                 {horario}
               </div>
@@ -193,7 +193,7 @@ export default function AgendaDiaView({
 
           <div className="flex overflow-x-auto">
             {terapeutasAtivos.map(terapeuta => (
-              <div key={terapeuta.id} className="w-[280px] flex-shrink-0 border-r border-gray-200 last:border-r-0">
+              <div key={terapeuta.id} className="w-[160px] md:w-[280px] flex-shrink-0 border-r border-gray-200 last:border-r-0">
                 {todosHorarios.map((horario, idx) => {
                   const dentroDoHorario = horarioDentroDoPeriodo(horario, terapeuta);
                   
@@ -201,39 +201,39 @@ export default function AgendaDiaView({
                     return (
                       <div
                         key={horario}
-                        className={`h-20 border-b border-gray-200 p-1 ${
+                        className={`h-16 md:h-20 border-b border-gray-200 p-0.5 md:p-1 ${
                           idx % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200'
                         }`}
                       >
                         <div className="w-full h-full bg-gray-300 rounded flex items-center justify-center">
                           <div className="text-center">
-                            <div className="text-xs text-gray-600 font-medium">BLOQUEADO</div>
-                            <div className="text-[10px] text-gray-500">Fora do horário</div>
+                            <div className="text-[10px] md:text-xs text-gray-600 font-medium">BLOQ</div>
+                            <div className="text-[8px] md:text-[10px] text-gray-500 hidden md:block">Fora do horário</div>
                           </div>
                         </div>
                       </div>
                     );
-                  }
+                    }
 
-                  const agendamentosSlot = getAgendamentosParaSlot(terapeuta.id, horario);
-                  const isOcupado = agendamentosSlot.length > 0;
-                  const horarioPassou = horarioJaPassou(horario);
-                  const isMenuAberto = slotMenuAberto?.unidadeId === unidadeSelecionada.id && 
+                    const agendamentosSlot = getAgendamentosParaSlot(terapeuta.id, horario);
+                    const isOcupado = agendamentosSlot.length > 0;
+                    const horarioPassou = horarioJaPassou(horario);
+                    const isMenuAberto = slotMenuAberto?.unidadeId === unidadeSelecionada.id && 
                                       slotMenuAberto?.profissionalId === terapeuta.id && 
                                       slotMenuAberto?.horario === horario;
 
-                  return (
+                    return (
                     <div
                       key={horario}
-                      className={`h-20 border-b border-gray-200 p-1 relative ${
+                      className={`h-16 md:h-20 border-b border-gray-200 p-0.5 md:p-1 relative ${
                         idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
                       }`}
                     >
                       {!isOcupado && horarioPassou ? (
                         <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center">
                           <div className="text-center">
-                            <div className="text-xs text-gray-500 font-medium">FECHADO</div>
-                            <div className="text-[10px] text-gray-400">Horário passado</div>
+                            <div className="text-[10px] md:text-xs text-gray-500 font-medium">FECH</div>
+                            <div className="text-[8px] md:text-[10px] text-gray-400 hidden md:block">Passado</div>
                           </div>
                         </div>
                       ) : !isOcupado ? (
@@ -254,12 +254,12 @@ export default function AgendaDiaView({
                       ) : (
                         agendamentosSlot.map(agendamento => {
                           const duracao = calcularDuracaoSlots(agendamento.hora_inicio, agendamento.hora_fim);
-                          
+
                           return (
                             <div
                               key={agendamento.id}
-                              style={{ height: `${duracao}rem` }}
-                              className="absolute inset-x-1 z-10"
+                              style={{ height: `${duracao * 0.8}rem` }}
+                              className="absolute inset-x-0.5 md:inset-x-1 z-10"
                             >
                               <AgendamentoCard
                                 agendamento={agendamento}
@@ -270,13 +270,13 @@ export default function AgendaDiaView({
                         })
                       )}
                     </div>
-                  );
-                })}
-              </div>
-            ))}
-          </div>
-        </div>
-      </ScrollArea>
-    </div>
-  );
+                    );
+                    })}
+                    </div>
+                    ))}
+                    </div>
+                    </ScrollArea>
+                    </div>
+                    );
+                    }
 }

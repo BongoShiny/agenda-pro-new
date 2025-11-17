@@ -622,14 +622,17 @@ export default function AgendaPage() {
       />
 
       <div className="flex-1 flex overflow-hidden">
-        <AgendaFilters
-          filters={filters}
-          onFilterChange={handleFilterChange}
-          clientes={clientes}
-          profissionais={profissionais}
-          servicos={servicos}
-          unidades={unidades}
-        />
+        {/* Filtros: Desktop sempre visível, Mobile escondido */}
+        <div className="hidden lg:block">
+          <AgendaFilters
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            clientes={clientes}
+            profissionais={profissionais}
+            servicos={servicos}
+            unidades={unidades}
+          />
+        </div>
 
         {unidadeAtual && (
           <AgendaDiaView
