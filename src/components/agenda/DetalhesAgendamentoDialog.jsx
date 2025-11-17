@@ -246,7 +246,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               ✏️ Editar Agendamento
             </Button>
           )}
-          {!isBloqueio && isAdmin && (
+          {!isBloqueio && (
             <Button 
               variant="destructive" 
               onClick={handleDelete}
