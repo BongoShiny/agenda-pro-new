@@ -35,7 +35,12 @@ export default function ConfiguracaoTerapeutasPage() {
   const queryClient = useQueryClient();
   const [unidadeSelecionada, setUnidadeSelecionada] = useState(null);
   const [editandoProfissional, setEditandoProfissional] = useState(null);
-  const [nomeEditado, setNomeEditado] = useState("");
+  const [dadosEditados, setDadosEditados] = useState({
+    nome: "",
+    especialidade: "",
+    horario_inicio: "",
+    horario_fim: ""
+  });
   const [dialogNovoAberto, setDialogNovoAberto] = useState(false);
   const [alertExcluirAberto, setAlertExcluirAberto] = useState(false);
   const [profissionalParaExcluir, setProfissionalParaExcluir] = useState(null);
@@ -234,22 +239,27 @@ export default function ConfiguracaoTerapeutasPage() {
     }
   };
 
-  const handleEditarNome = (profissional) => {
+  const handleEditarProfissional = (profissional) => {
     setEditandoProfissional(profissional.id);
-    setNomeEditado(profissional.nome);
+    setDadosEditados({
+      nome: profissional.nome,
+      especialidade: profissional.especialidade || "",
+      horario_inicio: profissional.horario_inicio || "08:00",
+      horario_fim: profissional.horario_fim || "18:00"
+    });
   };
 
-  const handleSalvarNome = async (profissionalId) => {
+  const handleSalvarProfissional = async (profissionalId) => {
     const profissional = profissionais.find(p => p.id === profissionalId);
     await atualizarProfissionalMutation.mutateAsync({
       id: profissionalId,
-      dados: { ...profissional, nome: nomeEditado }
+      dados: { ...profissional, ...dadosEditados }
     });
   };
 
   const handleCancelarEdicao = () => {
     setEditandoProfissional(null);
-    setNomeEditado("");
+    setDadosEditados({ nome: "", especialidade: "", horario_inicio: "", horario_fim: "" });
   };
 
   return (
@@ -347,36 +357,62 @@ export default function ConfiguracaoTerapeutasPage() {
                                         {editandoProfissional === profissional.id ? (
                                           <div className="space-y-2">
                                             <div className="flex items-center gap-2">
-                                              <Input
-                                                value={nomeEditado}
-                                                onChange={(e) => setNomeEditado(e.target.value)}
-                                                placeholder="Nome do terapeuta"
-                                                className="max-w-xs"
-                                                autoFocus
-                                              />
-                                              <Button size="icon" variant="ghost" onClick={() => handleSalvarNome(profissional.id)}>
-                                                <Check className="w-4 h-4 text-green-600" />
-                                              </Button>
-                                              <Button size="icon" variant="ghost" onClick={handleCancelarEdicao}>
-                                                <X className="w-4 h-4 text-red-600" />
-                                              </Button>
+                                              <div className="flex-1 space-y-2">
+                                                <Input
+                                                  value={dadosEditados.nome}
+                                                  onChange={(e) => setDadosEditados(prev => ({ ...prev, nome: e.target.value }))}
+                                                  placeholder="Nome do terapeuta"
+                                                  autoFocus
+                                                />
+                                                <Input
+                                                  value={dadosEditados.especialidade}
+                                                  onChange={(e) => setDadosEditados(prev => ({ ...prev, especialidade: e.target.value }))}
+                                                  placeholder="Especialidade"
+                                                />
+                                                <div className="flex gap-2 items-center">
+                                                  <Input
+                                                    type="time"
+                                                    value={dadosEditados.horario_inicio}
+                                                    onChange={(e) => setDadosEditados(prev => ({ ...prev, horario_inicio: e.target.value }))}
+                                                    className="flex-1"
+                                                  />
+                                                  <span className="text-gray-500 text-sm">até</span>
+                                                  <Input
+                                                    type="time"
+                                                    value={dadosEditados.horario_fim}
+                                                    onChange={(e) => setDadosEditados(prev => ({ ...prev, horario_fim: e.target.value }))}
+                                                    className="flex-1"
+                                                  />
+                                                </div>
+                                              </div>
+                                              <div className="flex flex-col gap-1">
+                                                <Button size="icon" variant="ghost" onClick={() => handleSalvarProfissional(profissional.id)}>
+                                                  <Check className="w-4 h-4 text-green-600" />
+                                                </Button>
+                                                <Button size="icon" variant="ghost" onClick={handleCancelarEdicao}>
+                                                  <X className="w-4 h-4 text-red-600" />
+                                                </Button>
+                                              </div>
                                             </div>
                                           </div>
                                         ) : (
                                           <div>
                                             <div className="flex items-center gap-2">
                                               <span className="font-semibold text-lg">{profissional.nome}</span>
-                                              <Button size="icon" variant="ghost" onClick={() => handleEditarNome(profissional)} className="h-7 w-7">
+                                              <Button size="icon" variant="ghost" onClick={() => handleEditarProfissional(profissional)} className="h-7 w-7">
                                                 <Edit2 className="w-3 h-3 text-gray-400" />
                                               </Button>
                                             </div>
                                             <div className="flex items-center gap-2 mt-1">
                                               <span className="text-sm text-gray-500">{profissional.especialidade}</span>
                                               {unidadesDoProfissional.length > 1 && (
-                                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0-5 rounded">
                                                   Em {unidadesDoProfissional.length} unidades
                                                 </span>
                                               )}
+                                            </div>
+                                            <div className="text-xs text-gray-400 mt-1">
+                                              Horário: {profissional.horario_inicio || "08:00"} - {profissional.horario_fim || "18:00"}
                                             </div>
                                           </div>
                                         )}
