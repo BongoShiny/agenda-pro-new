@@ -257,7 +257,7 @@ export default function HistoricoAgendamentosPage() {
                             <User className="w-4 h-4 text-blue-600" />
                           </div>
                           <span className="font-medium text-sm">
-                            {ag.criador_email || "Não disponível"}
+                            {ag.criador_email || "Sistema"}
                           </span>
                         </div>
                       </TableCell>
