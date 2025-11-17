@@ -235,19 +235,6 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               Desbloquear Horário
             </Button>
           )}
-          {!isBloqueio && podeConfirmar && onConfirmar && (
-            <Button 
-              variant="default"
-              onClick={() => {
-                onConfirmar(agendamento);
-                onOpenChange(false);
-              }}
-              className="bg-green-600 hover:bg-green-700"
-            >
-              <CheckCircle className="w-4 h-4 mr-2" />
-              Confirmar Agendamento
-            </Button>
-          )}
           {!isBloqueio && onEdit && (
             <Button 
               variant="outline"
