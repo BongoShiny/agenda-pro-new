@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, XCircle, Ban } from "lucide-react";
+import { CheckCircle, Clock, XCircle, Ban, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -91,9 +91,10 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange }
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
               <Badge 
                 variant="secondary" 
-                className="bg-white/20 text-white border-0 text-[9px] md:text-xs px-1 md:px-2 py-0 md:py-1 cursor-pointer hover:bg-white/30 transition-all"
+                className="bg-white/20 text-white border-0 text-[9px] md:text-xs px-1 md:px-2 py-0 md:py-1 cursor-pointer hover:bg-white/30 transition-all flex items-center gap-1"
               >
                 {statusLabels[agendamento.status]}
+                <ChevronDown className="w-3 h-3" />
               </Badge>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
