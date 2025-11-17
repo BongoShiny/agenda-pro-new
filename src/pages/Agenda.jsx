@@ -239,6 +239,19 @@ export default function AgendaPage() {
       
       const resultado = await base44.entities.Agendamento.create(dadosComCriador);
       
+      // Criar log de ação
+      const isBloqueio = dados.status === "bloqueio" || dados.tipo === "bloqueio" || dados.cliente_nome === "FECHADO";
+      await base44.entities.LogAcao.create({
+        tipo: isBloqueio ? "bloqueou_horario" : "criou_agendamento",
+        usuario_email: usuarioAtual?.email || "sistema",
+        descricao: isBloqueio 
+          ? `Bloqueou horário: ${dados.profissional_nome} - ${dados.data} às ${dados.hora_inicio}`
+          : `Criou agendamento: ${dados.cliente_nome} com ${dados.profissional_nome} - ${dados.data} às ${dados.hora_inicio}`,
+        entidade_tipo: "Agendamento",
+        entidade_id: resultado.id,
+        dados_novos: JSON.stringify(resultado)
+      });
+      
       console.log("✅ SALVO NO BANCO:", {
         id: resultado.id,
         dataRetornada: resultado.data,
@@ -251,6 +264,7 @@ export default function AgendaPage() {
     onSuccess: async () => {
       await refetchAgendamentos();
       await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+      await queryClient.invalidateQueries({ queryKey: ['logs-acoes'] });
     },
     onError: (error) => {
       console.error("❌ ERRO AO SALVAR:", error);
@@ -259,7 +273,7 @@ export default function AgendaPage() {
   });
 
   const atualizarAgendamentoMutation = useMutation({
-    mutationFn: async ({ id, dados }) => {
+    mutationFn: async ({ id, dados, dadosAntigos }) => {
       console.log("📝 ATUALIZANDO NO BANCO:", {
         id: id,
         data: dados.data,
@@ -275,6 +289,17 @@ export default function AgendaPage() {
       
       const resultado = await base44.entities.Agendamento.update(id, dadosComEditor);
       
+      // Criar log de ação
+      await base44.entities.LogAcao.create({
+        tipo: "editou_agendamento",
+        usuario_email: usuarioAtual?.email || "sistema",
+        descricao: `Editou agendamento: ${dados.cliente_nome} com ${dados.profissional_nome} - ${dados.data} às ${dados.hora_inicio}`,
+        entidade_tipo: "Agendamento",
+        entidade_id: id,
+        dados_antigos: dadosAntigos ? JSON.stringify(dadosAntigos) : null,
+        dados_novos: JSON.stringify(resultado)
+      });
+      
       console.log("✅ ATUALIZADO NO BANCO:", {
         id: resultado.id,
         dataRetornada: resultado.data
@@ -285,6 +310,7 @@ export default function AgendaPage() {
     onSuccess: async () => {
       await refetchAgendamentos();
       await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+      await queryClient.invalidateQueries({ queryKey: ['logs-acoes'] });
     },
     onError: (error) => {
       console.error("❌ ERRO AO ATUALIZAR:", error);
@@ -293,10 +319,28 @@ export default function AgendaPage() {
   });
 
   const deletarAgendamentoMutation = useMutation({
-    mutationFn: (id) => base44.entities.Agendamento.delete(id),
+    mutationFn: async ({ id, agendamento }) => {
+      await base44.entities.Agendamento.delete(id);
+      
+      // Criar log de ação
+      const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio" || agendamento.cliente_nome === "FECHADO";
+      await base44.entities.LogAcao.create({
+        tipo: isBloqueio ? "desbloqueou_horario" : "excluiu_agendamento",
+        usuario_email: usuarioAtual?.email || "sistema",
+        descricao: isBloqueio
+          ? `Desbloqueou horário: ${agendamento.profissional_nome} - ${agendamento.data} às ${agendamento.hora_inicio}`
+          : `Excluiu agendamento: ${agendamento.cliente_nome} com ${agendamento.profissional_nome} - ${agendamento.data} às ${agendamento.hora_inicio}`,
+        entidade_tipo: "Agendamento",
+        entidade_id: id,
+        dados_antigos: JSON.stringify(agendamento)
+      });
+      
+      return id;
+    },
     onSuccess: async () => {
       await refetchAgendamentos();
       await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+      await queryClient.invalidateQueries({ queryKey: ['logs-acoes'] });
     },
   });
 
@@ -436,7 +480,8 @@ export default function AgendaPage() {
     if (dados.id) {
       // Modo edição
       const { id, ...dadosSemId } = dados;
-      await atualizarAgendamentoMutation.mutateAsync({ id, dados: dadosSemId });
+      const agendamentoAntigo = agendamentos.find(a => a.id === id);
+      await atualizarAgendamentoMutation.mutateAsync({ id, dados: dadosSemId, dadosAntigos: agendamentoAntigo });
     } else {
       // Modo criação
       await criarAgendamentoMutation.mutateAsync(dados);
@@ -455,23 +500,22 @@ export default function AgendaPage() {
     console.log("🆔 ID a deletar:", id);
     
     try {
-      await base44.entities.Agendamento.delete(id);
+      const agendamento = agendamentos.find(a => a.id === id);
+      await deletarAgendamentoMutation.mutateAsync({ id, agendamento });
       
       console.log("✅ Deletado do banco com sucesso");
       console.log("🔄 Recarregando agendamentos...");
       
-      await refetchAgendamentos();
-      await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
-      
       setDialogDetalhesAberto(false);
       
-      console.log("✅✅✅ HORÁRIO DESBLOQUEADO COM SUCESSO ✅✅✅");
-      alert("✅ Horário desbloqueado com sucesso!");
+      const isBloqueio = agendamento?.status === "bloqueio" || agendamento?.tipo === "bloqueio" || agendamento?.cliente_nome === "FECHADO";
+      console.log("✅✅✅ OPERAÇÃO CONCLUÍDA ✅✅✅");
+      alert(isBloqueio ? "✅ Horário desbloqueado com sucesso!" : "✅ Agendamento excluído com sucesso!");
       
     } catch (error) {
       console.error("❌❌❌ ERRO AO DELETAR ❌❌❌");
       console.error("Detalhes:", error);
-      alert("❌ Erro ao desbloquear: " + error.message);
+      alert("❌ Erro ao deletar: " + error.message);
     }
   };
 
