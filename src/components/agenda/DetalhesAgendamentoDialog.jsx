@@ -202,8 +202,8 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
                 <div className="flex items-start gap-3">
                   <User className="w-4 h-4 text-blue-600 mt-0.5" />
                   <div>
-                    <div className="text-xs text-blue-600 font-medium">Agendado por</div>
-                    <div className="text-sm text-blue-800">{agendamento.created_by || "Não disponível"}</div>
+                    <div className="text-xs text-blue-600 font-medium">Criado por</div>
+                    <div className="text-sm text-blue-800">{agendamento.created_by || "Sistema"}</div>
                   </div>
                 </div>
                 {agendamento.updated_by && agendamento.updated_by !== agendamento.created_by && (
