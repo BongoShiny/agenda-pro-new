@@ -215,6 +215,12 @@ export default function AgendaPage() {
     initialData: [],
   });
 
+  const { data: excecoesHorario = [] } = useQuery({
+    queryKey: ['excecoes-horario'],
+    queryFn: () => base44.entities.HorarioExcecao.list("-data"),
+    initialData: [],
+  });
+
   const criarAgendamentoMutation = useMutation({
     mutationFn: async (dados) => {
       console.log("📤 ENVIANDO AO BANCO:", {
@@ -592,6 +598,7 @@ export default function AgendaPage() {
             onBloquearHorario={handleBloquearHorario}
             usuarioAtual={usuarioAtual}
             dataAtual={dataAtual}
+            excecoesHorario={excecoesHorario}
           />
         )}
       </div>

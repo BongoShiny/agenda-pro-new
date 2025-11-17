@@ -12,7 +12,8 @@ export default function AgendaDiaView({
   onNovoAgendamento,
   onBloquearHorario,
   usuarioAtual,
-  dataAtual
+  dataAtual,
+  excecoesHorario = []
 }) {
   const [slotMenuAberto, setSlotMenuAberto] = useState(null);
 
@@ -26,19 +27,47 @@ export default function AgendaDiaView({
     return horarios;
   };
 
+  // Obter horário do profissional para a data selecionada (considerando exceções)
+  const getHorarioProfissional = (profissional) => {
+    const dataFormatada = dataAtual.toISOString().split('T')[0];
+    
+    // Procurar exceção para esta data
+    const excecao = excecoesHorario.find(e => 
+      e.profissional_id === profissional.id && 
+      e.data === dataFormatada
+    );
+    
+    if (excecao) {
+      return {
+        horario_inicio: excecao.horario_inicio,
+        horario_fim: excecao.horario_fim,
+        isExcecao: true
+      };
+    }
+    
+    // Usar horário padrão
+    return {
+      horario_inicio: profissional.horario_inicio || "08:00",
+      horario_fim: profissional.horario_fim || "18:00",
+      isExcecao: false
+    };
+  };
+
   // Verificar se horário está dentro do expediente do profissional
   const horarioDentroDoPeriodo = (horario, profissional) => {
-    if (!profissional.horario_inicio || !profissional.horario_fim) {
-      return true; // Se não tem horário definido, mostra todos
+    const horarioDia = getHorarioProfissional(profissional);
+    
+    if (!horarioDia.horario_inicio || !horarioDia.horario_fim) {
+      return true;
     }
 
     const [h, m] = horario.split(':').map(Number);
     const minutos = h * 60 + m;
 
-    const [hInicio, mInicio] = profissional.horario_inicio.split(':').map(Number);
+    const [hInicio, mInicio] = horarioDia.horario_inicio.split(':').map(Number);
     const minutosInicio = hInicio * 60 + mInicio;
 
-    const [hFim, mFim] = profissional.horario_fim.split(':').map(Number);
+    const [hFim, mFim] = horarioDia.horario_fim.split(':').map(Number);
     const minutosFim = hFim * 60 + mFim;
 
     return minutos >= minutosInicio && minutos < minutosFim;
