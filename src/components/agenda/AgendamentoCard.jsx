@@ -86,18 +86,21 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange }
           <div className="text-[9px] md:text-xs opacity-90 italic">{agendamento.observacoes}</div>
         )}
 
-        <div className="flex items-center justify-between pt-0.5 md:pt-1">
+        <div className="flex items-center justify-between pt-0.5 md:pt-1" onClick={(e) => e.stopPropagation()}>
           <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
-              <Badge 
-                variant="secondary" 
-                className="bg-white/20 text-white border-0 text-[9px] md:text-xs px-1 md:px-2 py-0 md:py-1 cursor-pointer hover:bg-white/30 transition-all flex items-center gap-1"
+            <DropdownMenuTrigger asChild>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setDropdownOpen(!dropdownOpen);
+                }}
+                className="bg-white/20 text-white border-0 text-[9px] md:text-xs px-1 md:px-2 py-0.5 md:py-1 cursor-pointer hover:bg-white/30 transition-all flex items-center gap-1 rounded"
               >
                 {statusLabels[agendamento.status]}
                 <ChevronDown className="w-3 h-3" />
-              </Badge>
+              </button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
+            <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()} className="z-50">
               <DropdownMenuItem 
                 onClick={(e) => {
                   e.stopPropagation();
