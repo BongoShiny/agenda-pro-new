@@ -208,7 +208,7 @@ export default function HistoricoAgendamentosPage() {
                     <SelectValue placeholder="Filtrar por Profissional" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value=" ">Todos os Profissionais</SelectItem>
+                    <SelectItem value={null}>Todos os Profissionais</SelectItem>
                     {profissionaisUnicos.map(prof => (
                       <SelectItem key={prof} value={prof}>{prof}</SelectItem>
                     ))}
@@ -220,7 +220,7 @@ export default function HistoricoAgendamentosPage() {
                     <SelectValue placeholder="Filtrar por Unidade" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value=" ">Todas as Unidades</SelectItem>
+                    <SelectItem value={null}>Todas as Unidades</SelectItem>
                     {unidadesUnicas.map(unidade => (
                       <SelectItem key={unidade} value={unidade}>{unidade}</SelectItem>
                     ))}
@@ -346,7 +346,7 @@ export default function HistoricoAgendamentosPage() {
                         <SelectValue placeholder="Filtrar por Tipo de Ação" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value=" ">Todas as Ações</SelectItem>
+                        <SelectItem value={null}>Todas as Ações</SelectItem>
                         {tiposAcoesUnicos.map(tipo => (
                           <SelectItem key={tipo} value={tipo}>
                             {tipoAcaoLabels[tipo] || tipo}
