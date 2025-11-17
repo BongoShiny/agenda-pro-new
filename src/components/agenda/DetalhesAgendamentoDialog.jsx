@@ -65,7 +65,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
         </DialogHeader>
 
         {isBloqueio ? (
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 overflow-y-auto">
             <div className="flex items-center justify-center py-8">
               <div className="text-center">
                 <Ban className="w-16 h-16 mx-auto mb-4 text-red-600" />
@@ -121,7 +121,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
             )}
           </div>
         ) : (
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-4 overflow-y-auto">
             <div className="flex items-start gap-3">
               <User className="w-5 h-5 text-gray-500 mt-0.5" />
               <div>
@@ -225,7 +225,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               Desbloquear Horário
             </Button>
           )}
-          {!isBloqueio && isAdmin && onEdit && (
+          {!isBloqueio && onEdit && (
             <Button 
               variant="outline"
               onClick={() => {
