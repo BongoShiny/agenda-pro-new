@@ -253,7 +253,13 @@ export default function AgendaPage() {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
       });
       
-      const resultado = await base44.entities.Agendamento.update(id, dados);
+      // Adicionar email de quem está editando
+      const dadosComEditor = {
+        ...dados,
+        updated_by: usuarioAtual?.email
+      };
+      
+      const resultado = await base44.entities.Agendamento.update(id, dadosComEditor);
       
       console.log("✅ ATUALIZADO NO BANCO:", {
         id: resultado.id,
