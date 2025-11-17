@@ -207,7 +207,10 @@ export default function AgendaDiaView({
                       >
                         <div className="w-full h-full bg-gray-300 rounded flex items-center justify-center">
                           <div className="text-center">
-                            <div className="text-[10px] md:text-xs text-gray-600 font-medium">BLOQ</div>
+                            <div className="text-[10px] md:text-xs text-gray-600 font-medium">
+                              <span className="md:hidden">BLOQ</span>
+                              <span className="hidden md:block">BLOQUEADO</span>
+                            </div>
                             <div className="text-[8px] md:text-[10px] text-gray-500 hidden md:block">Fora do horário</div>
                           </div>
                         </div>
@@ -232,8 +235,11 @@ export default function AgendaDiaView({
                       {!isOcupado && horarioPassou ? (
                         <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center">
                           <div className="text-center">
-                            <div className="text-[10px] md:text-xs text-gray-500 font-medium">FECH</div>
-                            <div className="text-[8px] md:text-[10px] text-gray-400 hidden md:block">Passado</div>
+                            <div className="text-[10px] md:text-xs text-gray-500 font-medium">
+                              <span className="md:hidden">FECH</span>
+                              <span className="hidden md:block">FECHADO</span>
+                            </div>
+                            <div className="text-[8px] md:text-[10px] text-gray-400 hidden md:block">Horário passado</div>
                           </div>
                         </div>
                       ) : !isOcupado ? (
