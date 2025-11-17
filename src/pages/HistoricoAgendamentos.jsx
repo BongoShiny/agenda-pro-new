@@ -57,7 +57,7 @@ export default function HistoricoAgendamentosPage() {
     return (
       ag.cliente_nome?.toLowerCase().includes(buscaLower) ||
       ag.profissional_nome?.toLowerCase().includes(buscaLower) ||
-      ag.created_by?.toLowerCase().includes(buscaLower) ||
+      ag.criador_email?.toLowerCase().includes(buscaLower) ||
       ag.unidade_nome?.toLowerCase().includes(buscaLower)
     );
   });
@@ -136,7 +136,7 @@ export default function HistoricoAgendamentosPage() {
                             <User className="w-4 h-4 text-blue-600" />
                           </div>
                           <span className="font-medium text-sm">
-                            {ag.created_by || "Não disponível"}
+                            {ag.criador_email || "Não disponível"}
                           </span>
                         </div>
                       </TableCell>

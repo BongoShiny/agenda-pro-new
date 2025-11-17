@@ -225,10 +225,10 @@ export default function AgendaPage() {
         usuario: usuarioAtual?.email
       });
       
-      // Adicionar explicitamente o email do criador
+      // Adicionar email do criador no campo customizado
       const dadosComCriador = {
         ...dados,
-        created_by: usuarioAtual?.email
+        criador_email: usuarioAtual?.email
       };
       
       const resultado = await base44.entities.Agendamento.create(dadosComCriador);
@@ -261,10 +261,10 @@ export default function AgendaPage() {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
       });
       
-      // Adicionar email de quem está editando (se não for o criador)
+      // Adicionar email de quem está editando
       const dadosComEditor = {
         ...dados,
-        edited_by: usuarioAtual?.email
+        editor_email: usuarioAtual?.email
       };
       
       const resultado = await base44.entities.Agendamento.update(id, dadosComEditor);

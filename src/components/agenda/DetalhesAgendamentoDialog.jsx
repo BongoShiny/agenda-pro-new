@@ -203,15 +203,15 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
                   <User className="w-4 h-4 text-blue-600 mt-0.5" />
                   <div>
                     <div className="text-xs text-blue-600 font-medium">Criado por</div>
-                    <div className="text-sm text-blue-800">{agendamento.created_by || "Não disponível"}</div>
+                    <div className="text-sm text-blue-800">{agendamento.criador_email || "Não disponível"}</div>
                   </div>
                 </div>
-                {agendamento.edited_by && agendamento.edited_by !== agendamento.created_by && (
+                {agendamento.editor_email && agendamento.editor_email !== agendamento.criador_email && (
                   <div className="flex items-start gap-3 pt-2 border-t border-blue-200">
                     <User className="w-4 h-4 text-blue-600 mt-0.5" />
                     <div>
                       <div className="text-xs text-blue-600 font-medium">Última edição por</div>
-                      <div className="text-sm text-blue-800">{agendamento.edited_by}</div>
+                      <div className="text-sm text-blue-800">{agendamento.editor_email}</div>
                     </div>
                   </div>
                 )}
