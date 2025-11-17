@@ -109,7 +109,7 @@ export default function AgendaDiaView({
         
         <div className="flex overflow-x-auto">
           {terapeutasAtivos.map(terapeuta => (
-            <div key={terapeuta.id} className="min-w-[200px] flex-1 p-3 border-r border-gray-200 last:border-r-0">
+            <div key={terapeuta.id} className="w-[280px] flex-shrink-0 p-3 border-r border-gray-200 last:border-r-0">
               <div className="text-sm font-bold text-gray-900 truncate text-center">{terapeuta.nome}</div>
               <div className="text-xs text-gray-500 truncate text-center mt-1">{terapeuta.especialidade}</div>
             </div>
@@ -123,7 +123,7 @@ export default function AgendaDiaView({
             {horarios.map((horario) => (
               <div
                 key={horario}
-                className="h-16 flex items-start justify-center pt-1 text-xs text-gray-600 font-semibold border-b border-gray-200"
+                className="h-20 flex items-start justify-center pt-1 text-xs text-gray-600 font-semibold border-b border-gray-200"
               >
                 {horario}
               </div>
@@ -132,7 +132,7 @@ export default function AgendaDiaView({
 
           <div className="flex overflow-x-auto">
             {terapeutasAtivos.map(terapeuta => (
-              <div key={terapeuta.id} className="min-w-[200px] flex-1 border-r border-gray-200 last:border-r-0">
+              <div key={terapeuta.id} className="w-[280px] flex-shrink-0 border-r border-gray-200 last:border-r-0">
                 {horarios.map((horario, idx) => {
                   const agendamentosSlot = getAgendamentosParaSlot(terapeuta.id, horario);
                   const isOcupado = agendamentosSlot.length > 0;
@@ -144,7 +144,7 @@ export default function AgendaDiaView({
                   return (
                     <div
                       key={horario}
-                      className={`h-16 border-b border-gray-200 p-1 relative ${
+                      className={`h-20 border-b border-gray-200 p-1 relative ${
                         idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
                       }`}
                     >
@@ -177,7 +177,7 @@ export default function AgendaDiaView({
                           return (
                             <div
                               key={agendamento.id}
-                              style={{ height: `${duracao * 4}rem` }}
+                              style={{ height: `${duracao}rem` }}
                               className="absolute inset-x-1 z-10"
                             >
                               <AgendamentoCard
