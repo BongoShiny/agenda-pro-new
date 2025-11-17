@@ -135,6 +135,7 @@ export default function AgendaDiaView({
                 {horarios.map((horario, idx) => {
                   const agendamentosSlot = getAgendamentosParaSlot(terapeuta.id, horario);
                   const isOcupado = agendamentosSlot.length > 0;
+                  const horarioPassou = horarioJaPassou(horario);
                   const isMenuAberto = slotMenuAberto?.unidadeId === unidadeSelecionada.id && 
                                       slotMenuAberto?.profissionalId === terapeuta.id && 
                                       slotMenuAberto?.horario === horario;
@@ -146,7 +147,14 @@ export default function AgendaDiaView({
                         idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
                       }`}
                     >
-                      {!isOcupado ? (
+                      {!isOcupado && horarioPassou ? (
+                        <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="text-xs text-gray-500 font-medium">FECHADO</div>
+                            <div className="text-[10px] text-gray-400">Horário passado</div>
+                          </div>
+                        </div>
+                      ) : !isOcupado ? (
                         <SlotMenu
                           open={isMenuAberto}
                           onOpenChange={(open) => {
