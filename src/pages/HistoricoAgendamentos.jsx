@@ -6,7 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Search, Calendar, User, Clock, FileText, X } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Search, Calendar, User, Clock, FileText, X, Activity } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -44,14 +45,44 @@ const statusLabels = {
   bloqueio: "Bloqueado"
 };
 
+const tipoAcaoLabels = {
+  criou_agendamento: "Criou Agendamento",
+  editou_agendamento: "Editou Agendamento",
+  excluiu_agendamento: "Excluiu Agendamento",
+  bloqueou_horario: "Bloqueou Horário",
+  desbloqueou_horario: "Desbloqueou Horário",
+  criou_terapeuta: "Criou Terapeuta",
+  editou_terapeuta: "Editou Terapeuta",
+  excluiu_terapeuta: "Excluiu Terapeuta"
+};
+
+const tipoAcaoColors = {
+  criou_agendamento: "bg-green-100 text-green-800",
+  editou_agendamento: "bg-blue-100 text-blue-800",
+  excluiu_agendamento: "bg-red-100 text-red-800",
+  bloqueou_horario: "bg-orange-100 text-orange-800",
+  desbloqueou_horario: "bg-teal-100 text-teal-800",
+  criou_terapeuta: "bg-purple-100 text-purple-800",
+  editou_terapeuta: "bg-indigo-100 text-indigo-800",
+  excluiu_terapeuta: "bg-red-100 text-red-800"
+};
+
 export default function HistoricoAgendamentosPage() {
   const [busca, setBusca] = useState("");
   const [profissionalFiltro, setProfissionalFiltro] = useState("");
   const [unidadeFiltro, setUnidadeFiltro] = useState("");
+  const [buscaLogs, setBuscaLogs] = useState("");
+  const [tipoAcaoFiltro, setTipoAcaoFiltro] = useState("");
 
   const { data: agendamentos = [] } = useQuery({
     queryKey: ['agendamentos-historico'],
     queryFn: () => base44.entities.Agendamento.list("-created_date"),
+    initialData: [],
+  });
+
+  const { data: logsAcoes = [] } = useQuery({
+    queryKey: ['logs-acoes'],
+    queryFn: () => base44.entities.LogAcao.list("-created_date"),
     initialData: [],
   });
 
@@ -78,13 +109,31 @@ export default function HistoricoAgendamentosPage() {
     return matchBusca && matchProfissional && matchUnidade;
   });
 
+  const logsAcoesFiltrados = logsAcoes.filter(log => {
+    const buscaLower = buscaLogs.toLowerCase();
+    const matchBusca = !buscaLogs || (
+      log.usuario_email?.toLowerCase().includes(buscaLower) ||
+      log.descricao?.toLowerCase().includes(buscaLower)
+    );
+    const matchTipo = !tipoAcaoFiltro || log.tipo === tipoAcaoFiltro;
+    return matchBusca && matchTipo;
+  });
+
+  const tiposAcoesUnicos = [...new Set(logsAcoes.map(log => log.tipo).filter(Boolean))].sort();
+
   const limparFiltros = () => {
     setBusca("");
     setProfissionalFiltro("");
     setUnidadeFiltro("");
   };
 
+  const limparFiltrosLogs = () => {
+    setBuscaLogs("");
+    setTipoAcaoFiltro("");
+  };
+
   const temFiltrosAtivos = busca || profissionalFiltro || unidadeFiltro;
+  const temFiltrosAtivosLogs = buscaLogs || tipoAcaoFiltro;
 
   const formatarDataHora = (dateString) => {
     try {
@@ -115,18 +164,31 @@ export default function HistoricoAgendamentosPage() {
           </Badge>
         </div>
 
-        <Card>
-          <CardHeader>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <CardTitle>Logs de Agendamentos</CardTitle>
-                {temFiltrosAtivos && (
-                  <Button variant="outline" size="sm" onClick={limparFiltros}>
-                    <X className="w-4 h-4 mr-2" />
-                    Limpar Filtros
-                  </Button>
-                )}
-              </div>
+        <Tabs defaultValue="agendamentos" className="w-full">
+          <TabsList className="mb-6">
+            <TabsTrigger value="agendamentos">
+              <Calendar className="w-4 h-4 mr-2" />
+              Agendamentos
+            </TabsTrigger>
+            <TabsTrigger value="usuarios">
+              <Activity className="w-4 h-4 mr-2" />
+              Ações de Usuários
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="agendamentos">
+            <Card>
+              <CardHeader>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Logs de Agendamentos</CardTitle>
+                    {temFiltrosAtivos && (
+                      <Button variant="outline" size="sm" onClick={limparFiltros}>
+                        <X className="w-4 h-4 mr-2" />
+                        Limpar Filtros
+                      </Button>
+                    )}
+                  </div>
               
               <div className="grid grid-cols-3 gap-4">
                 <div className="relative">
@@ -248,8 +310,110 @@ export default function HistoricoAgendamentosPage() {
                 </p>
               </div>
             )}
-          </CardContent>
-        </Card>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="usuarios">
+            <Card>
+              <CardHeader>
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <CardTitle>Logs de Ações dos Usuários</CardTitle>
+                    {temFiltrosAtivosLogs && (
+                      <Button variant="outline" size="sm" onClick={limparFiltrosLogs}>
+                        <X className="w-4 h-4 mr-2" />
+                        Limpar Filtros
+                      </Button>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                      <Input
+                        placeholder="Buscar por usuário ou descrição..."
+                        value={buscaLogs}
+                        onChange={(e) => setBuscaLogs(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    
+                    <Select value={tipoAcaoFiltro} onValueChange={setTipoAcaoFiltro}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Filtrar por Tipo de Ação" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value=" ">Todas as Ações</SelectItem>
+                        {tiposAcoesUnicos.map(tipo => (
+                          <SelectItem key={tipo} value={tipo}>
+                            {tipoAcaoLabels[tipo] || tipo}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="rounded-lg border border-gray-200">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Data/Hora</TableHead>
+                        <TableHead>Usuário</TableHead>
+                        <TableHead>Tipo de Ação</TableHead>
+                        <TableHead>Descrição</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {logsAcoesFiltrados.map(log => (
+                        <TableRow key={log.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Clock className="w-4 h-4 text-gray-400" />
+                              {formatarDataHora(log.created_date)}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <User className="w-4 h-4 text-blue-600" />
+                              </div>
+                              <span className="font-medium text-sm">
+                                {log.usuario_email}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge className={tipoAcaoColors[log.tipo]}>
+                              {tipoAcaoLabels[log.tipo] || log.tipo}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-sm text-gray-700">{log.descricao}</span>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+
+                {logsAcoesFiltrados.length === 0 && (
+                  <div className="text-center py-12 text-gray-500">
+                    <Activity className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                    <p className="font-medium">Nenhuma ação registrada</p>
+                    <p className="text-sm mt-2">
+                      {temFiltrosAtivosLogs 
+                        ? "Tente ajustar os filtros ou limpar para ver todos os registros" 
+                        : "As ações dos usuários aparecerão aqui"}
+                    </p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
