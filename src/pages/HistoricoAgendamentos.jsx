@@ -136,7 +136,7 @@ export default function HistoricoAgendamentosPage() {
                             <User className="w-4 h-4 text-blue-600" />
                           </div>
                           <span className="font-medium text-sm">
-                            {ag.created_by || "Sistema"}
+                            {ag.created_by || "Não disponível"}
                           </span>
                         </div>
                       </TableCell>
