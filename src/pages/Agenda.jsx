@@ -556,6 +556,7 @@ export default function AgendaPage() {
             onNovoAgendamento={handleNovoAgendamentoSlot}
             onBloquearHorario={handleBloquearHorario}
             usuarioAtual={usuarioAtual}
+            dataAtual={dataAtual}
           />
         )}
       </div>
