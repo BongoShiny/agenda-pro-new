@@ -224,7 +224,13 @@ export default function AgendaPage() {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
       });
       
-      const resultado = await base44.entities.Agendamento.create(dados);
+      // Garantir que o email do criador seja salvo
+      const dadosComCriador = {
+        ...dados,
+        created_by: usuarioAtual?.email || dados.created_by
+      };
+      
+      const resultado = await base44.entities.Agendamento.create(dadosComCriador);
       
       console.log("✅ SALVO NO BANCO:", {
         id: resultado.id,
