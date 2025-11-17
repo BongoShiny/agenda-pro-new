@@ -91,13 +91,15 @@ export default function HistoricoAgendamentosPage() {
   const unidadesUnicas = [...new Set(agendamentos.map(ag => ag.unidade_nome).filter(Boolean))].sort();
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
+    // CRÍTICO: Aba "Agendamentos" mostra APENAS registros do sistema (sem criador_email)
+    if (ag.criador_email) return false;
+    
     const buscaLower = busca.toLowerCase();
     
-    // Filtro de busca geral (cliente/telefone/criador)
+    // Filtro de busca geral (cliente/telefone)
     const matchBusca = !busca || (
       ag.cliente_nome?.toLowerCase().includes(buscaLower) ||
-      ag.cliente_telefone?.toLowerCase().includes(buscaLower) ||
-      ag.criador_email?.toLowerCase().includes(buscaLower)
+      ag.cliente_telefone?.toLowerCase().includes(buscaLower)
     );
     
     // Filtro de profissional
@@ -155,8 +157,8 @@ export default function HistoricoAgendamentosPage() {
               </Button>
             </Link>
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Histórico de Agendamentos</h1>
-              <p className="text-gray-500 mt-1">Visualize todos os agendamentos criados e seus criadores</p>
+              <h1 className="text-3xl font-bold text-gray-900">Histórico do Sistema</h1>
+              <p className="text-gray-500 mt-1">Agendamentos automáticos do sistema e ações de usuários</p>
             </div>
           </div>
           <Badge variant="secondary" className="text-lg px-4 py-2">
@@ -181,7 +183,7 @@ export default function HistoricoAgendamentosPage() {
               <CardHeader>
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <CardTitle>Logs de Agendamentos</CardTitle>
+                    <CardTitle>Agendamentos do Sistema</CardTitle>
                     {temFiltrosAtivos && (
                       <Button variant="outline" size="sm" onClick={limparFiltros}>
                         <X className="w-4 h-4 mr-2" />
@@ -194,7 +196,7 @@ export default function HistoricoAgendamentosPage() {
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                   <Input
-                    placeholder="Buscar cliente/telefone/criador..."
+                    placeholder="Buscar cliente/telefone..."
                     value={busca}
                     onChange={(e) => setBusca(e.target.value)}
                     className="pl-10"
