@@ -168,8 +168,11 @@ export default function AgendaDiaView({
                           idx % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200'
                         }`}
                       >
-                        <div className="w-full h-full flex items-center justify-center">
-                          <span className="text-xs text-gray-400">-</span>
+                        <div className="w-full h-full bg-gray-300 rounded flex items-center justify-center">
+                          <div className="text-center">
+                            <div className="text-xs text-gray-600 font-medium">BLOQUEADO</div>
+                            <div className="text-[10px] text-gray-500">Fora do horário</div>
+                          </div>
                         </div>
                       </div>
                     );
