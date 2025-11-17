@@ -56,6 +56,7 @@ export default function HistoricoAgendamentosPage() {
     const buscaLower = busca.toLowerCase();
     return (
       ag.cliente_nome?.toLowerCase().includes(buscaLower) ||
+      ag.cliente_telefone?.toLowerCase().includes(buscaLower) ||
       ag.profissional_nome?.toLowerCase().includes(buscaLower) ||
       ag.criador_email?.toLowerCase().includes(buscaLower) ||
       ag.unidade_nome?.toLowerCase().includes(buscaLower)
