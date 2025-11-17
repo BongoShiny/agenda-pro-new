@@ -16,11 +16,35 @@ export default function AgendaDiaView({
 }) {
   const [slotMenuAberto, setSlotMenuAberto] = useState(null);
 
-  const horarios = [];
-  for (let h = 8; h <= 22; h++) {
-    horarios.push(`${h.toString().padStart(2, '0')}:00`);
-    if (h < 22) horarios.push(`${h.toString().padStart(2, '0')}:30`);
-  }
+  // Gerar horários de 08:00 até 22:30
+  const gerarTodosHorarios = () => {
+    const horarios = [];
+    for (let h = 8; h <= 22; h++) {
+      horarios.push(`${h.toString().padStart(2, '0')}:00`);
+      if (h < 22) horarios.push(`${h.toString().padStart(2, '0')}:30`);
+    }
+    return horarios;
+  };
+
+  // Verificar se horário está dentro do expediente do profissional
+  const horarioDentroDoPeriodo = (horario, profissional) => {
+    if (!profissional.horario_inicio || !profissional.horario_fim) {
+      return true; // Se não tem horário definido, mostra todos
+    }
+
+    const [h, m] = horario.split(':').map(Number);
+    const minutos = h * 60 + m;
+
+    const [hInicio, mInicio] = profissional.horario_inicio.split(':').map(Number);
+    const minutosInicio = hInicio * 60 + mInicio;
+
+    const [hFim, mFim] = profissional.horario_fim.split(':').map(Number);
+    const minutosFim = hFim * 60 + mFim;
+
+    return minutos >= minutosInicio && minutos < minutosFim;
+  };
+
+  const todosHorarios = gerarTodosHorarios();
 
   // Verificar se um horário já passou (horário de Brasília)
   const horarioJaPassou = (horario) => {

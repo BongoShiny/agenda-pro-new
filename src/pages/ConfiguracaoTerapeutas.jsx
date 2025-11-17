@@ -41,7 +41,9 @@ export default function ConfiguracaoTerapeutasPage() {
   const [profissionalParaExcluir, setProfissionalParaExcluir] = useState(null);
   const [novoProfissional, setNovoProfissional] = useState({
     nome: "",
-    especialidade: ""
+    especialidade: "",
+    horario_inicio: "08:00",
+    horario_fim: "18:00"
   });
 
   const { data: profissionais = [] } = useQuery({
@@ -67,7 +69,7 @@ export default function ConfiguracaoTerapeutasPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profissionais'] });
       setDialogNovoAberto(false);
-      setNovoProfissional({ nome: "", especialidade: "" });
+      setNovoProfissional({ nome: "", especialidade: "", horario_inicio: "08:00", horario_fim: "18:00" });
     },
   });
 
@@ -132,6 +134,8 @@ export default function ConfiguracaoTerapeutasPage() {
     await criarProfissionalMutation.mutateAsync({
       nome: novoProfissional.nome,
       especialidade: novoProfissional.especialidade || "Terapeuta",
+      horario_inicio: novoProfissional.horario_inicio || "08:00",
+      horario_fim: novoProfissional.horario_fim || "18:00",
       ativo: true
     });
   };
@@ -429,6 +433,26 @@ export default function ConfiguracaoTerapeutasPage() {
                 onChange={(e) => setNovoProfissional(prev => ({ ...prev, especialidade: e.target.value }))}
                 placeholder="Ex: Fisioterapia, Quiropraxia, etc."
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Horário de Atendimento</Label>
+              <div className="flex gap-2 items-center">
+                <Input
+                  type="time"
+                  value={novoProfissional.horario_inicio}
+                  onChange={(e) => setNovoProfissional(prev => ({ ...prev, horario_inicio: e.target.value }))}
+                  className="flex-1"
+                />
+                <span className="text-gray-500">até</span>
+                <Input
+                  type="time"
+                  value={novoProfissional.horario_fim}
+                  onChange={(e) => setNovoProfissional(prev => ({ ...prev, horario_fim: e.target.value }))}
+                  className="flex-1"
+                />
+              </div>
+              <p className="text-xs text-gray-500">Define os horários que aparecem na agenda para este terapeuta</p>
             </div>
           </div>
 
