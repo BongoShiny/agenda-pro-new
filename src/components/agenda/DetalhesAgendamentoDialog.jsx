@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, User, Briefcase, MapPin, Tag, FileText, Ban, Unlock } from "lucide-react";
+import { Calendar, Clock, User, Briefcase, MapPin, Tag, FileText, Ban, Unlock, CheckCircle } from "lucide-react";
 
 const statusLabels = {
   confirmado: { label: "Confirmado", color: "bg-emerald-500" },
@@ -28,12 +28,13 @@ const criarDataPura = (dataString) => {
   return new Date(ano, mes - 1, dia, 12, 0, 0);
 };
 
-export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendamento, onDelete, onEdit, usuarioAtual }) {
+export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendamento, onDelete, onEdit, usuarioAtual, onConfirmar }) {
   if (!agendamento) return null;
 
   const statusInfo = statusLabels[agendamento.status] || statusLabels.agendado;
   const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio" || agendamento.cliente_nome === "FECHADO";
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
+  const podeConfirmar = agendamento.status === "agendado";
 
   const handleDelete = () => {
     console.log("🗑️🗑️🗑️ DELETANDO BLOQUEIO 🗑️🗑️🗑️");
@@ -220,7 +221,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
           </div>
         )}
 
-        <DialogFooter>
+        <DialogFooter className="flex-col sm:flex-row gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Fechar
           </Button>
@@ -232,6 +233,19 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
             >
               <Unlock className="w-4 h-4 mr-2" />
               Desbloquear Horário
+            </Button>
+          )}
+          {!isBloqueio && podeConfirmar && onConfirmar && (
+            <Button 
+              variant="default"
+              onClick={() => {
+                onConfirmar(agendamento);
+                onOpenChange(false);
+              }}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <CheckCircle className="w-4 h-4 mr-2" />
+              Confirmar Agendamento
             </Button>
           )}
           {!isBloqueio && onEdit && (

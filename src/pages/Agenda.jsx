@@ -521,6 +521,35 @@ export default function AgendaPage() {
     }
   };
 
+  const handleConfirmarAgendamento = async (agendamento) => {
+    console.log("✅ CONFIRMANDO AGENDAMENTO:", agendamento.id);
+    
+    try {
+      // Atualizar status para confirmado
+      await atualizarAgendamentoMutation.mutateAsync({
+        id: agendamento.id,
+        dados: { ...agendamento, status: "confirmado", editor_email: usuarioAtual?.email },
+        dadosAntigos: agendamento
+      });
+      
+      // Criar log específico para confirmação
+      await base44.entities.LogAcao.create({
+        tipo: "editou_agendamento",
+        usuario_email: usuarioAtual?.email || "sistema",
+        descricao: `Confirmou agendamento: ${agendamento.cliente_nome} com ${agendamento.profissional_nome} - ${agendamento.data} às ${agendamento.hora_inicio}`,
+        entidade_tipo: "Agendamento",
+        entidade_id: agendamento.id,
+        dados_antigos: JSON.stringify({ status: agendamento.status }),
+        dados_novos: JSON.stringify({ status: "confirmado" })
+      });
+      
+      alert("✅ Agendamento confirmado com sucesso!");
+    } catch (error) {
+      console.error("❌ Erro ao confirmar:", error);
+      alert("❌ Erro ao confirmar agendamento: " + error.message);
+    }
+  };
+
   // FILTRAR AGENDAMENTOS PELA DATA ATUAL
   console.log("🔍🔍🔍 ==================== INICIANDO FILTRO ==================== 🔍🔍🔍");
   console.log("📊 ESTADO DO FILTRO:");
@@ -675,6 +704,7 @@ export default function AgendaPage() {
         agendamento={agendamentoSelecionado}
         onDelete={handleDeletarAgendamento}
         onEdit={handleEditarAgendamento}
+        onConfirmar={handleConfirmarAgendamento}
         usuarioAtual={usuarioAtual}
       />
     </div>
