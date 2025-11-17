@@ -456,7 +456,10 @@ export default function AgendaPage() {
     // Log detalhado para cada agendamento
     const isDataMatch = ag.data === dataFiltro;
     const isUnidadeMatch = !unidadeSelecionada || ag.unidade_id === unidadeSelecionada.id;
-    const isClienteMatch = !filters.cliente || (ag.cliente_nome && ag.cliente_nome.toLowerCase().includes(filters.cliente.toLowerCase()));
+    const isClienteMatch = !filters.cliente || (
+      (ag.cliente_nome && ag.cliente_nome.toLowerCase().includes(filters.cliente.toLowerCase())) ||
+      (ag.cliente_telefone && ag.cliente_telefone.toLowerCase().includes(filters.cliente.toLowerCase()))
+    );
     const isUnidadeFilterMatch = !filters.unidade || ag.unidade_id === filters.unidade;
     const isProfissionalMatch = !filters.profissional || ag.profissional_id === filters.profissional;
     const isServicoMatch = !filters.servico || ag.servico_id === filters.servico;

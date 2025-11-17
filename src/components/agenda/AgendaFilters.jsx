@@ -60,7 +60,7 @@ export default function AgendaFilters({
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
               <Input
-                placeholder="Buscar cliente..."
+                placeholder="Buscar cliente ou telefone..."
                 value={filters.cliente || ""}
                 onChange={(e) => onFilterChange("cliente", e.target.value)}
                 className="pl-10 h-11 border-gray-300 focus:border-blue-500"
