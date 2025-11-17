@@ -585,32 +585,36 @@ export default function AgendaPage() {
 
   const unidadeAtual = unidadeSelecionada || unidades[0];
 
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
-      {/* PAINEL DE DEBUG - REMOVER DEPOIS */}
-      <div className="bg-yellow-100 border-b-2 border-yellow-400 p-3 text-xs font-mono">
-        <div className="max-w-7xl mx-auto grid grid-cols-4 gap-4">
-          <div>
-            <strong>👤 Usuário:</strong> {usuarioAtual?.email || "carregando..."}
-          </div>
-          <div>
-            <strong>🌍 Timezone:</strong> {Intl.DateTimeFormat().resolvedOptions().timeZone}
-          </div>
-          <div>
-            <strong>📅 Data Atual (raw):</strong> {dataAtual.toISOString()}
-          </div>
-          <div>
-            <strong>📅 Data Formatada:</strong> {formatarDataPura(dataAtual)}
-          </div>
-          <div className="col-span-2">
-            <strong>📊 Agendamentos:</strong> Total: {agendamentos.length} | Filtrados: {agendamentosFiltrados.length}
-          </div>
-          <div className="col-span-2">
-            <strong>🔒 Bloqueios:</strong> Total: {agendamentos.filter(a => a.status === "bloqueio" || a.tipo === "bloqueio" || a.cliente_nome === "FECHADO").length} | Visíveis: {agendamentosFiltrados.filter(a => a.status === "bloqueio" || a.tipo === "bloqueio" || a.cliente_nome === "FECHADO").length}
+      {/* PAINEL DE DEBUG - APENAS PARA ADMINISTRADORES */}
+      {isAdmin && (
+        <div className="bg-yellow-100 border-b-2 border-yellow-400 p-3 text-xs font-mono">
+          <div className="max-w-7xl mx-auto grid grid-cols-4 gap-4">
+            <div>
+              <strong>👤 Usuário:</strong> {usuarioAtual?.email || "carregando..."}
+            </div>
+            <div>
+              <strong>🌍 Timezone:</strong> {Intl.DateTimeFormat().resolvedOptions().timeZone}
+            </div>
+            <div>
+              <strong>📅 Data Atual (raw):</strong> {dataAtual.toISOString()}
+            </div>
+            <div>
+              <strong>📅 Data Formatada:</strong> {formatarDataPura(dataAtual)}
+            </div>
+            <div className="col-span-2">
+              <strong>📊 Agendamentos:</strong> Total: {agendamentos.length} | Filtrados: {agendamentosFiltrados.length}
+            </div>
+            <div className="col-span-2">
+              <strong>🔒 Bloqueios:</strong> Total: {agendamentos.filter(a => a.status === "bloqueio" || a.tipo === "bloqueio" || a.cliente_nome === "FECHADO").length} | Visíveis: {agendamentosFiltrados.filter(a => a.status === "bloqueio" || a.tipo === "bloqueio" || a.cliente_nome === "FECHADO").length}
+            </div>
           </div>
         </div>
-      </div>
-      
+      )}
+
       <AgendaHeader
         dataAtual={dataAtual}
         unidades={unidades}
