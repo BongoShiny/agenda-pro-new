@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import AgendamentoCard from "./AgendamentoCard";
 import SlotMenu from "./SlotMenu";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 
 export default function AgendaDiaView({ 
   agendamentos, 
@@ -205,15 +206,23 @@ export default function AgendaDiaView({
                           idx % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200'
                         }`}
                       >
-                        <div className="w-full h-full bg-gray-300 rounded flex items-center justify-center">
-                          <div className="text-center">
-                            <div className="text-[10px] md:text-xs text-gray-600 font-medium">
-                              <span className="md:hidden">BLOQ</span>
-                              <span className="hidden md:block">BLOQUEADO</span>
-                            </div>
-                            <div className="text-[8px] md:text-[10px] text-gray-500 hidden md:block">Fora do horário</div>
-                          </div>
-                        </div>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className="w-full h-full bg-gray-300 rounded flex items-center justify-center md:cursor-default md:pointer-events-none">
+                              <div className="text-center">
+                                <div className="text-[10px] md:text-xs text-gray-600 font-medium">
+                                  <span className="md:hidden">FECH</span>
+                                  <span className="hidden md:block">BLOQUEADO</span>
+                                </div>
+                                <div className="text-[8px] md:text-[10px] text-gray-500 hidden md:block">Fora do horário</div>
+                              </div>
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="md:hidden w-auto p-3">
+                            <div className="text-sm font-semibold text-gray-900 mb-1">⚠️ Horário Bloqueado</div>
+                            <div className="text-xs text-gray-600">Fora do horário de trabalho do profissional</div>
+                          </PopoverContent>
+                        </Popover>
                       </div>
                     );
                   }
@@ -233,15 +242,23 @@ export default function AgendaDiaView({
                       }`}
                     >
                       {!isOcupado && horarioPassou ? (
-                        <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center">
-                          <div className="text-center">
-                            <div className="text-[10px] md:text-xs text-gray-500 font-medium">
-                              <span className="md:hidden">FECH</span>
-                              <span className="hidden md:block">FECHADO</span>
-                            </div>
-                            <div className="text-[8px] md:text-[10px] text-gray-400 hidden md:block">Horário passado</div>
-                          </div>
-                        </div>
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className="w-full h-full bg-gray-200 rounded flex items-center justify-center md:cursor-default md:pointer-events-none">
+                              <div className="text-center">
+                                <div className="text-[10px] md:text-xs text-gray-500 font-medium">
+                                  <span className="md:hidden">FECH</span>
+                                  <span className="hidden md:block">FECHADO</span>
+                                </div>
+                                <div className="text-[8px] md:text-[10px] text-gray-400 hidden md:block">Horário passado</div>
+                              </div>
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="md:hidden w-auto p-3">
+                            <div className="text-sm font-semibold text-gray-900 mb-1">🕐 Horário Indisponível</div>
+                            <div className="text-xs text-gray-600">Este horário já passou</div>
+                          </PopoverContent>
+                        </Popover>
                       ) : !isOcupado ? (
                         <SlotMenu
                           open={isMenuAberto}
