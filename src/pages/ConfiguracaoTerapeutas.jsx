@@ -644,25 +644,10 @@ export default function ConfiguracaoTerapeutasPage() {
       <Dialog open={dialogExcecaoAberto} onOpenChange={setDialogExcecaoAberto}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <DialogTitle>Horários Específicos - {profissionalExcecao?.nome}</DialogTitle>
-                <DialogDescription>
-                  Configure horários diferentes para dias específicos. O horário padrão é {profissionalExcecao?.horario_inicio} - {profissionalExcecao?.horario_fim}
-                </DialogDescription>
-              </div>
-              {usuarioAtual?.role === "admin" && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleBloquearDiaInteiro}
-                  className="bg-red-50 hover:bg-red-100 text-red-700 border-red-300"
-                  disabled={!novaExcecao.data}
-                >
-                  🚫 Bloquear Dia Inteiro
-                </Button>
-              )}
-            </div>
+            <DialogTitle>Horários Específicos - {profissionalExcecao?.nome}</DialogTitle>
+            <DialogDescription>
+              Configure horários diferentes para dias específicos. O horário padrão é {profissionalExcecao?.horario_inicio} - {profissionalExcecao?.horario_fim}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
@@ -736,16 +721,29 @@ export default function ConfiguracaoTerapeutasPage() {
                 />
               </div>
 
-              <Button 
-                onClick={() => {
-                  setNovaExcecao(prev => ({ ...prev, tipo: "folga" }));
-                  handleCriarExcecao();
-                }}
-                disabled={!novaExcecao.data}
-                className="w-full bg-orange-600 hover:bg-orange-700"
-              >
-                📅 Marcar como Folga
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => {
+                    setNovaExcecao(prev => ({ ...prev, tipo: "folga" }));
+                    handleCriarExcecao();
+                  }}
+                  disabled={!novaExcecao.data}
+                  className="flex-1 bg-orange-600 hover:bg-orange-700"
+                >
+                  📅 Marcar como Folga
+                </Button>
+                
+                {usuarioAtual?.role === "admin" && (
+                  <Button
+                    variant="outline"
+                    onClick={handleBloquearDiaInteiro}
+                    className="flex-1 bg-red-50 hover:bg-red-100 text-red-700 border-red-300"
+                    disabled={!novaExcecao.data}
+                  >
+                    🚫 Bloquear Dia Inteiro
+                  </Button>
+                )}
+              </div>
             </div>
 
             {/* Lista de exceções existentes */}
