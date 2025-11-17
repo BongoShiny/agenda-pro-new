@@ -457,6 +457,7 @@ export default function AgendaPage() {
     const isDataMatch = ag.data === dataFiltro;
     const isUnidadeMatch = !unidadeSelecionada || ag.unidade_id === unidadeSelecionada.id;
     const isClienteMatch = !filters.cliente || (ag.cliente_nome && ag.cliente_nome.toLowerCase().includes(filters.cliente.toLowerCase()));
+    const isUnidadeFilterMatch = !filters.unidade || ag.unidade_id === filters.unidade;
     const isProfissionalMatch = !filters.profissional || ag.profissional_id === filters.profissional;
     const isServicoMatch = !filters.servico || ag.servico_id === filters.servico;
     const isStatusMatch = !filters.status || ag.status === filters.status;
@@ -480,6 +481,7 @@ export default function AgendaPage() {
     // Retornar apenas se TODOS os filtros passarem
     if (!isDataMatch) return false;
     if (!isUnidadeMatch) return false;
+    if (!isUnidadeFilterMatch) return false;
     if (!isClienteMatch) return false;
     if (!isProfissionalMatch) return false;
     if (!isServicoMatch) return false;
@@ -544,6 +546,7 @@ export default function AgendaPage() {
           clientes={clientes}
           profissionais={profissionais}
           servicos={servicos}
+          unidades={unidades}
         />
 
         {unidadeAtual && (

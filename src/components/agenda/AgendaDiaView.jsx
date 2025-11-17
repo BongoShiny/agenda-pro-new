@@ -81,7 +81,8 @@ export default function AgendaDiaView({
     const [hFim, mFim] = horaFim.split(':').map(Number);
     const minutosInicio = hInicio * 60 + mInicio;
     const minutosFim = hFim * 60 + mFim;
-    return Math.ceil((minutosFim - minutosInicio) / 30);
+    const slots = Math.ceil((minutosFim - minutosInicio) / 30);
+    return slots * 5; // 5rem por slot (h-20 = 5rem)
   };
 
   const handleSlotClick = (unidadeId, profissionalId, horario) => {
