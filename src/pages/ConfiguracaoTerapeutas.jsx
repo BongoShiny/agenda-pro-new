@@ -152,16 +152,27 @@ export default function ConfiguracaoTerapeutasPage() {
   };
 
   const handleToggleAtivo = async (config) => {
-    await atualizarConfiguracaoMutation.mutateAsync({
-      id: config.id,
-      dados: { ...config, ativo: !config.ativo }
-    });
+    if (!config || !config.id) return;
+    try {
+      await atualizarConfiguracaoMutation.mutateAsync({
+        id: config.id,
+        dados: { ...config, ativo: !config.ativo }
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar configuração:", error);
+      queryClient.invalidateQueries({ queryKey: ['configuracoes'] });
+    }
   };
 
   const handleRemoverDaUnidade = async (profissionalId, unidadeId) => {
     const config = configuracoes.find(c => c.profissional_id === profissionalId && c.unidade_id === unidadeId);
-    if (config) {
-      await deletarConfiguracaoMutation.mutateAsync(config.id);
+    if (config && config.id) {
+      try {
+        await deletarConfiguracaoMutation.mutateAsync(config.id);
+      } catch (error) {
+        console.error("Erro ao remover da unidade:", error);
+        queryClient.invalidateQueries({ queryKey: ['configuracoes'] });
+      }
     }
   };
 
@@ -173,18 +184,30 @@ export default function ConfiguracaoTerapeutasPage() {
   const handleExcluirPermanentemente = async () => {
     if (!profissionalParaExcluir) return;
 
-    // Primeiro, deletar todas as configurações deste profissional em todas as unidades
-    const configsDoProfissional = configuracoes.filter(c => c.profissional_id === profissionalParaExcluir.id);
-    
-    for (const config of configsDoProfissional) {
-      await deletarConfiguracaoMutation.mutateAsync(config.id);
+    try {
+      // Primeiro, deletar todas as configurações deste profissional em todas as unidades
+      const configsDoProfissional = configuracoes.filter(c => c.profissional_id === profissionalParaExcluir.id);
+      
+      for (const config of configsDoProfissional) {
+        if (config && config.id) {
+          try {
+            await deletarConfiguracaoMutation.mutateAsync(config.id);
+          } catch (error) {
+            console.error("Erro ao deletar configuração:", error);
+          }
+        }
+      }
+
+      // Depois, deletar o profissional
+      await deletarProfissionalMutation.mutateAsync(profissionalParaExcluir.id);
+
+      setAlertExcluirAberto(false);
+      setProfissionalParaExcluir(null);
+    } catch (error) {
+      console.error("Erro ao excluir profissional:", error);
+      queryClient.invalidateQueries({ queryKey: ['configuracoes'] });
+      queryClient.invalidateQueries({ queryKey: ['profissionais'] });
     }
-
-    // Depois, deletar o profissional
-    await deletarProfissionalMutation.mutateAsync(profissionalParaExcluir.id);
-
-    setAlertExcluirAberto(false);
-    setProfissionalParaExcluir(null);
   };
 
   const handleDragEnd = async (result, unidadeId) => {
@@ -196,11 +219,17 @@ export default function ConfiguracaoTerapeutasPage() {
     items.splice(result.destination.index, 0, reorderedItem);
 
     for (let i = 0; i < items.length; i++) {
-      if (items[i].ordem !== i) {
-        await atualizarConfiguracaoMutation.mutateAsync({
-          id: items[i].id,
-          dados: { ...items[i], ordem: i }
-        });
+      if (items[i] && items[i].id && items[i].ordem !== i) {
+        try {
+          await atualizarConfiguracaoMutation.mutateAsync({
+            id: items[i].id,
+            dados: { ...items[i], ordem: i }
+          });
+        } catch (error) {
+          console.error("Erro ao reordenar:", error);
+          queryClient.invalidateQueries({ queryKey: ['configuracoes'] });
+          break;
+        }
       }
     }
   };
