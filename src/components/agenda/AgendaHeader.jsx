@@ -99,10 +99,32 @@ export default function AgendaHeader({
       <div className="px-6 py-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <CalendarIcon className="w-6 h-6 text-blue-600" />
-              <h1 className="text-2xl font-bold text-gray-900">Agenda</h1>
-            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <button className="flex items-center gap-2 hover:bg-gray-50 px-3 py-2 rounded-lg transition-colors">
+                  <CalendarIcon className="w-6 h-6 text-blue-600" />
+                  <h1 className="text-2xl font-bold text-gray-900">Agenda</h1>
+                </button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="start">
+                <Calendar
+                  mode="single"
+                  selected={dataAtual}
+                  onSelect={(date) => {
+                    if (date) {
+                      const ano = date.getFullYear();
+                      const mes = date.getMonth();
+                      const dia = date.getDate();
+                      const dataLocal = new Date(ano, mes, dia, 12, 0, 0, 0);
+                      console.log("📅 CALENDÁRIO - Data selecionada:", dataLocal.toString());
+                      onDataChange(dataLocal);
+                    }
+                  }}
+                  locale={ptBR}
+                  defaultMonth={dataAtual}
+                />
+              </PopoverContent>
+            </Popover>
             
             <div className="flex items-center gap-2">
               <Button variant="outline" size="icon" onClick={navegarAnterior}>
