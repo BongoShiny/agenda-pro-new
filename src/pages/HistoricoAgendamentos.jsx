@@ -141,7 +141,14 @@ export default function HistoricoAgendamentosPage() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <span className="font-semibold">{ag.cliente_nome}</span>
+                        <div>
+                          <span className="font-semibold">{ag.cliente_nome}</span>
+                          {ag.cliente_telefone && (
+                            <div className="text-xs text-gray-600 mt-1">
+                              📱 {ag.cliente_telefone}
+                            </div>
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2 text-sm">
