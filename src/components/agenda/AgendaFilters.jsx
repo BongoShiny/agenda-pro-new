@@ -29,7 +29,8 @@ export default function AgendaFilters({
   onFilterChange,
   clientes = [],
   profissionais = [],
-  servicos = []
+  servicos = [],
+  unidades = []
 }) {
   const handleDataChange = (date) => {
     if (date) {
@@ -88,6 +89,21 @@ export default function AgendaFilters({
           </div>
 
           <div>
+            <Label className="text-sm font-semibold text-gray-700 mb-3 block">Unidade</Label>
+            <Select value={filters.unidade || "todos"} onValueChange={(value) => onFilterChange("unidade", value === "todos" ? null : value)}>
+              <SelectTrigger className="h-11 border-gray-300 focus:border-blue-500">
+                <SelectValue placeholder="Todas as unidades" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todas as unidades</SelectItem>
+                {unidades.map(unidade => (
+                  <SelectItem key={unidade.id} value={unidade.id}>{unidade.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
             <Label className="text-sm font-semibold text-gray-700 mb-3 block">Profissional</Label>
             <Select value={filters.profissional || "todos"} onValueChange={(value) => onFilterChange("profissional", value === "todos" ? null : value)}>
               <SelectTrigger className="h-11 border-gray-300 focus:border-blue-500">
@@ -134,7 +150,7 @@ export default function AgendaFilters({
             </Select>
           </div>
 
-          {(filters.cliente || filters.profissional || filters.servico || filters.status || filters.data) && (
+          {(filters.cliente || filters.unidade || filters.profissional || filters.servico || filters.status || filters.data) && (
             <Button
               variant="outline"
               className="w-full h-11 border-gray-300 hover:bg-gray-50"
