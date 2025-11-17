@@ -34,6 +34,15 @@ import {
 export default function ConfiguracaoTerapeutasPage() {
   const queryClient = useQueryClient();
   const [unidadeSelecionada, setUnidadeSelecionada] = useState(null);
+
+  // Carregar usuário atual para verificar se é admin
+  React.useEffect(() => {
+    const carregarUsuario = async () => {
+      const user = await base44.auth.me();
+      setUsuarioAtual(user);
+    };
+    carregarUsuario();
+  }, []);
   const [editandoProfissional, setEditandoProfissional] = useState(null);
   const [dadosEditados, setDadosEditados] = useState({
     nome: "",
@@ -56,8 +65,10 @@ export default function ConfiguracaoTerapeutasPage() {
     data: "",
     horario_inicio: "08:00",
     horario_fim: "18:00",
-    motivo: ""
+    motivo: "",
+    tipo: "horario" // "horario" ou "folga"
   });
+  const [usuarioAtual, setUsuarioAtual] = useState(null);
 
   const { data: profissionais = [] } = useQuery({
     queryKey: ['profissionais'],
@@ -300,12 +311,37 @@ export default function ConfiguracaoTerapeutasPage() {
 
   const handleCriarExcecao = async () => {
     if (!novaExcecao.data || !profissionalExcecao) return;
+    
+    // Se for folga, usar horários 00:00 - 00:00
+    const horarioInicio = novaExcecao.tipo === "folga" ? "00:00" : novaExcecao.horario_inicio;
+    const horarioFim = novaExcecao.tipo === "folga" ? "00:00" : novaExcecao.horario_fim;
+    const motivo = novaExcecao.tipo === "folga" ? "Folga" : novaExcecao.motivo;
+    
     await criarExcecaoMutation.mutateAsync({
       profissional_id: profissionalExcecao.id,
       data: novaExcecao.data,
-      horario_inicio: novaExcecao.horario_inicio,
-      horario_fim: novaExcecao.horario_fim,
-      motivo: novaExcecao.motivo
+      horario_inicio: horarioInicio,
+      horario_fim: horarioFim,
+      motivo: motivo
+    });
+  };
+
+  const handleBloquearDiaInteiro = async () => {
+    if (!novaExcecao.data || !profissionalExcecao) {
+      alert("Por favor, selecione uma data primeiro");
+      return;
+    }
+    
+    if (!confirm(`Tem certeza que deseja bloquear TODO o dia ${novaExcecao.data} para ${profissionalExcecao.nome}?`)) {
+      return;
+    }
+    
+    await criarExcecaoMutation.mutateAsync({
+      profissional_id: profissionalExcecao.id,
+      data: novaExcecao.data,
+      horario_inicio: "00:00",
+      horario_fim: "00:00",
+      motivo: "Dia inteiro bloqueado"
     });
   };
 
@@ -608,10 +644,25 @@ export default function ConfiguracaoTerapeutasPage() {
       <Dialog open={dialogExcecaoAberto} onOpenChange={setDialogExcecaoAberto}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Horários Específicos - {profissionalExcecao?.nome}</DialogTitle>
-            <DialogDescription>
-              Configure horários diferentes para dias específicos. O horário padrão é {profissionalExcecao?.horario_inicio} - {profissionalExcecao?.horario_fim}
-            </DialogDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <DialogTitle>Horários Específicos - {profissionalExcecao?.nome}</DialogTitle>
+                <DialogDescription>
+                  Configure horários diferentes para dias específicos. O horário padrão é {profissionalExcecao?.horario_inicio} - {profissionalExcecao?.horario_fim}
+                </DialogDescription>
+              </div>
+              {usuarioAtual?.role === "admin" && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBloquearDiaInteiro}
+                  className="bg-red-50 hover:bg-red-100 text-red-700 border-red-300"
+                  disabled={!novaExcecao.data}
+                >
+                  🚫 Bloquear Dia Inteiro
+                </Button>
+              )}
+            </div>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
@@ -637,6 +688,7 @@ export default function ConfiguracaoTerapeutasPage() {
                       value={novaExcecao.horario_inicio}
                       onChange={(e) => setNovaExcecao(prev => ({ ...prev, horario_inicio: e.target.value }))}
                       className="flex-1"
+                      disabled={novaExcecao.tipo === "folga"}
                     />
                     <span className="text-gray-500 text-xs">até</span>
                     <Input
@@ -644,6 +696,7 @@ export default function ConfiguracaoTerapeutasPage() {
                       value={novaExcecao.horario_fim}
                       onChange={(e) => setNovaExcecao(prev => ({ ...prev, horario_fim: e.target.value }))}
                       className="flex-1"
+                      disabled={novaExcecao.tipo === "folga"}
                     />
                   </div>
                 </div>
@@ -655,6 +708,7 @@ export default function ConfiguracaoTerapeutasPage() {
                   value={novaExcecao.motivo}
                   onChange={(e) => setNovaExcecao(prev => ({ ...prev, motivo: e.target.value }))}
                   placeholder="Ex: Horário reduzido, Evento especial..."
+                  disabled={novaExcecao.tipo === "folga"}
                 />
               </div>
 
@@ -665,6 +719,32 @@ export default function ConfiguracaoTerapeutasPage() {
               >
                 <Plus className="w-4 h-4 mr-2" />
                 Adicionar Exceção
+              </Button>
+            </div>
+
+            {/* Adicionar Folga */}
+            <div className="p-4 bg-orange-50 rounded-lg border border-orange-200 space-y-3">
+              <Label className="font-semibold">Marcar Folga</Label>
+              <p className="text-xs text-gray-600">Use esta opção para marcar um dia inteiro como folga do terapeuta</p>
+              
+              <div className="space-y-2">
+                <Label className="text-sm">Data da Folga *</Label>
+                <Input
+                  type="date"
+                  value={novaExcecao.data}
+                  onChange={(e) => setNovaExcecao(prev => ({ ...prev, data: e.target.value }))}
+                />
+              </div>
+
+              <Button 
+                onClick={() => {
+                  setNovaExcecao(prev => ({ ...prev, tipo: "folga" }));
+                  handleCriarExcecao();
+                }}
+                disabled={!novaExcecao.data}
+                className="w-full bg-orange-600 hover:bg-orange-700"
+              >
+                📅 Marcar como Folga
               </Button>
             </div>
 
@@ -679,17 +759,27 @@ export default function ConfiguracaoTerapeutasPage() {
                     year: 'numeric'
                   });
                   
+                  const isFolga = excecao.horario_inicio === "00:00" && excecao.horario_fim === "00:00";
+                  
                   return (
-                    <div key={excecao.id} className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg">
-                      <Calendar className="w-5 h-5 text-blue-500" />
+                    <div key={excecao.id} className={`flex items-center gap-3 p-3 border rounded-lg ${
+                      isFolga ? 'bg-orange-50 border-orange-200' : 'bg-white border-gray-200'
+                    }`}>
+                      <Calendar className={`w-5 h-5 ${isFolga ? 'text-orange-500' : 'text-blue-500'}`} />
                       <div className="flex-1">
                         <div className="font-medium text-sm">
                           📅 {dataFormatada}
                         </div>
-                        <div className="text-xs text-gray-600 mt-1">
-                          ⏰ {excecao.horario_inicio} - {excecao.horario_fim}
-                        </div>
-                        {excecao.motivo && (
+                        {isFolga ? (
+                          <div className="text-xs text-orange-700 mt-1 font-semibold">
+                            🏖️ FOLGA
+                          </div>
+                        ) : (
+                          <div className="text-xs text-gray-600 mt-1">
+                            ⏰ {excecao.horario_inicio} - {excecao.horario_fim}
+                          </div>
+                        )}
+                        {excecao.motivo && excecao.motivo !== "Folga" && (
                           <div className="text-xs text-gray-500 mt-1">
                             💬 {excecao.motivo}
                           </div>

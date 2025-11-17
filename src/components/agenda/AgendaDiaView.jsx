@@ -18,12 +18,11 @@ export default function AgendaDiaView({
 }) {
   const [slotMenuAberto, setSlotMenuAberto] = useState(null);
 
-  // Gerar horários de 08:00 até 22:30
+  // Gerar horários de 08:00 até 21:00 (apenas horários cheios)
   const gerarTodosHorarios = () => {
     const horarios = [];
-    for (let h = 8; h <= 22; h++) {
+    for (let h = 8; h <= 21; h++) {
       horarios.push(`${h.toString().padStart(2, '0')}:00`);
-      if (h < 22) horarios.push(`${h.toString().padStart(2, '0')}:30`);
     }
     return horarios;
   };
