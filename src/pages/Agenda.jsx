@@ -221,21 +221,17 @@ export default function AgendaPage() {
         data: dados.data,
         cliente: dados.cliente_nome,
         horario: `${dados.hora_inicio}-${dados.hora_fim}`,
-        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+        timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+        usuario: usuarioAtual?.email
       });
       
-      // Garantir que o email do criador seja salvo
-      const dadosComCriador = {
-        ...dados,
-        created_by: usuarioAtual?.email || dados.created_by
-      };
-      
-      const resultado = await base44.entities.Agendamento.create(dadosComCriador);
+      const resultado = await base44.entities.Agendamento.create(dados);
       
       console.log("✅ SALVO NO BANCO:", {
         id: resultado.id,
         dataRetornada: resultado.data,
-        dataNormalizada: normalizarData(resultado.data)
+        dataNormalizada: normalizarData(resultado.data),
+        created_by: resultado.created_by
       });
       
       return resultado;
