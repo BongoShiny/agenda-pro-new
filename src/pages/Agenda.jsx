@@ -140,6 +140,8 @@ export default function AgendaPage() {
       console.log("👤👤👤 USUÁRIO CARREGADO 👤👤👤");
       console.log("Email:", user.email);
       console.log("Cargo:", user.cargo);
+      console.log("Role:", user.role);
+      console.log("É Admin?:", user.cargo === "administrador" || user.role === "admin");
       console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
       console.log("Data atual:", dataAtual.toString());
       console.log("Data formatada:", formatarDataPura(dataAtual));
@@ -585,7 +587,8 @@ export default function AgendaPage() {
 
   const unidadeAtual = unidadeSelecionada || unidades[0];
 
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
+  // Verificar se é admin - APENAS "administrador" no cargo ou "admin" no role
+  const isAdmin = usuarioAtual?.role === "admin";
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
