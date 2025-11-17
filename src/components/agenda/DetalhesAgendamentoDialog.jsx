@@ -198,12 +198,23 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
             )}
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
-              <div className="flex items-start gap-3">
-                <User className="w-4 h-4 text-blue-600 mt-0.5" />
-                <div>
-                  <div className="text-xs text-blue-600 font-medium">Agendado por</div>
-                  <div className="text-sm text-blue-800">{agendamento.created_by || "Não disponível"}</div>
+              <div className="space-y-2">
+                <div className="flex items-start gap-3">
+                  <User className="w-4 h-4 text-blue-600 mt-0.5" />
+                  <div>
+                    <div className="text-xs text-blue-600 font-medium">Agendado por</div>
+                    <div className="text-sm text-blue-800">{agendamento.created_by || "Não disponível"}</div>
+                  </div>
                 </div>
+                {agendamento.updated_by && agendamento.updated_by !== agendamento.created_by && (
+                  <div className="flex items-start gap-3 pt-2 border-t border-blue-200">
+                    <User className="w-4 h-4 text-blue-600 mt-0.5" />
+                    <div>
+                      <div className="text-xs text-blue-600 font-medium">Última edição por</div>
+                      <div className="text-sm text-blue-800">{agendamento.updated_by}</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
