@@ -54,7 +54,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
+      <DialogContent className="max-w-lg max-h-[90vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span>{isBloqueio ? "Horário Fechado" : "Detalhes do Agendamento"}</span>
