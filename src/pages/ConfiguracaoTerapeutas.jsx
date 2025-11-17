@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Plus, GripVertical, Trash2, Edit2, Check, X, UserPlus, AlertTriangle, UserMinus } from "lucide-react";
+import { ArrowLeft, Plus, GripVertical, Trash2, Edit2, Check, X, UserPlus, AlertTriangle, UserMinus, Calendar } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
@@ -50,6 +50,14 @@ export default function ConfiguracaoTerapeutasPage() {
     horario_inicio: "08:00",
     horario_fim: "18:00"
   });
+  const [dialogExcecaoAberto, setDialogExcecaoAberto] = useState(false);
+  const [profissionalExcecao, setProfissionalExcecao] = useState(null);
+  const [novaExcecao, setNovaExcecao] = useState({
+    data: "",
+    horario_inicio: "08:00",
+    horario_fim: "18:00",
+    motivo: ""
+  });
 
   const { data: profissionais = [] } = useQuery({
     queryKey: ['profissionais'],
@@ -66,6 +74,12 @@ export default function ConfiguracaoTerapeutasPage() {
   const { data: configuracoes = [] } = useQuery({
     queryKey: ['configuracoes'],
     queryFn: () => base44.entities.ConfiguracaoTerapeuta.list("ordem"),
+    initialData: [],
+  });
+
+  const { data: excecoesHorario = [] } = useQuery({
+    queryKey: ['excecoes-horario'],
+    queryFn: () => base44.entities.HorarioExcecao.list("-data"),
     initialData: [],
   });
 
@@ -111,6 +125,23 @@ export default function ConfiguracaoTerapeutasPage() {
     mutationFn: (id) => base44.entities.Profissional.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profissionais'] });
+    },
+  });
+
+  const criarExcecaoMutation = useMutation({
+    mutationFn: (dados) => base44.entities.HorarioExcecao.create(dados),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['excecoes-horario'] });
+      setDialogExcecaoAberto(false);
+      setProfissionalExcecao(null);
+      setNovaExcecao({ data: "", horario_inicio: "08:00", horario_fim: "18:00", motivo: "" });
+    },
+  });
+
+  const deletarExcecaoMutation = useMutation({
+    mutationFn: (id) => base44.entities.HorarioExcecao.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['excecoes-horario'] });
     },
   });
 
@@ -260,6 +291,28 @@ export default function ConfiguracaoTerapeutasPage() {
   const handleCancelarEdicao = () => {
     setEditandoProfissional(null);
     setDadosEditados({ nome: "", especialidade: "", horario_inicio: "", horario_fim: "" });
+  };
+
+  const handleAbrirDialogExcecao = (profissional) => {
+    setProfissionalExcecao(profissional);
+    setDialogExcecaoAberto(true);
+  };
+
+  const handleCriarExcecao = async () => {
+    if (!novaExcecao.data || !profissionalExcecao) return;
+    await criarExcecaoMutation.mutateAsync({
+      profissional_id: profissionalExcecao.id,
+      data: novaExcecao.data,
+      horario_inicio: novaExcecao.horario_inicio,
+      horario_fim: novaExcecao.horario_fim,
+      motivo: novaExcecao.motivo
+    });
+  };
+
+  const getExcecoesDoProfissional = (profissionalId) => {
+    return excecoesHorario
+      .filter(e => e.profissional_id === profissionalId)
+      .sort((a, b) => a.data.localeCompare(b.data));
   };
 
   return (
@@ -412,8 +465,13 @@ export default function ConfiguracaoTerapeutasPage() {
                                               )}
                                             </div>
                                             <div className="text-xs text-gray-400 mt-1">
-                                              Horário: {profissional.horario_inicio || "08:00"} - {profissional.horario_fim || "18:00"}
+                                             Horário padrão: {profissional.horario_inicio || "08:00"} - {profissional.horario_fim || "18:00"}
                                             </div>
+                                            {getExcecoesDoProfissional(profissional.id).length > 0 && (
+                                             <div className="text-xs text-blue-600 mt-1">
+                                               📅 {getExcecoesDoProfissional(profissional.id).length} exceção(ões) configurada(s)
+                                             </div>
+                                            )}
                                           </div>
                                         )}
                                       </div>
@@ -427,6 +485,16 @@ export default function ConfiguracaoTerapeutasPage() {
                                           />
                                         </div>
                                         
+                                        <Button
+                                          variant="ghost"
+                                          size="icon"
+                                          onClick={() => handleAbrirDialogExcecao(profissional)}
+                                          className="hover:bg-blue-50"
+                                          title="Configurar horários específicos"
+                                        >
+                                          <Calendar className="w-4 h-4 text-blue-500" />
+                                        </Button>
+
                                         <Button
                                           variant="ghost"
                                           size="icon"
@@ -531,6 +599,128 @@ export default function ConfiguracaoTerapeutasPage() {
               className="bg-blue-600 hover:bg-blue-700"
             >
               Criar Terapeuta
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para configurar exceções de horário */}
+      <Dialog open={dialogExcecaoAberto} onOpenChange={setDialogExcecaoAberto}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Horários Específicos - {profissionalExcecao?.nome}</DialogTitle>
+            <DialogDescription>
+              Configure horários diferentes para dias específicos. O horário padrão é {profissionalExcecao?.horario_inicio} - {profissionalExcecao?.horario_fim}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-6 py-4">
+            {/* Adicionar nova exceção */}
+            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 space-y-3">
+              <Label className="font-semibold">Adicionar Horário Específico</Label>
+              
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-sm">Data *</Label>
+                  <Input
+                    type="date"
+                    value={novaExcecao.data}
+                    onChange={(e) => setNovaExcecao(prev => ({ ...prev, data: e.target.value }))}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label className="text-sm">Horário de Atendimento</Label>
+                  <div className="flex gap-2 items-center">
+                    <Input
+                      type="time"
+                      value={novaExcecao.horario_inicio}
+                      onChange={(e) => setNovaExcecao(prev => ({ ...prev, horario_inicio: e.target.value }))}
+                      className="flex-1"
+                    />
+                    <span className="text-gray-500 text-xs">até</span>
+                    <Input
+                      type="time"
+                      value={novaExcecao.horario_fim}
+                      onChange={(e) => setNovaExcecao(prev => ({ ...prev, horario_fim: e.target.value }))}
+                      className="flex-1"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm">Motivo (opcional)</Label>
+                <Input
+                  value={novaExcecao.motivo}
+                  onChange={(e) => setNovaExcecao(prev => ({ ...prev, motivo: e.target.value }))}
+                  placeholder="Ex: Horário reduzido, Evento especial..."
+                />
+              </div>
+
+              <Button 
+                onClick={handleCriarExcecao}
+                disabled={!novaExcecao.data}
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Adicionar Exceção
+              </Button>
+            </div>
+
+            {/* Lista de exceções existentes */}
+            {profissionalExcecao && getExcecoesDoProfissional(profissionalExcecao.id).length > 0 && (
+              <div className="space-y-3">
+                <Label className="font-semibold">Exceções Configuradas</Label>
+                {getExcecoesDoProfissional(profissionalExcecao.id).map(excecao => {
+                  const dataFormatada = new Date(excecao.data + 'T12:00:00').toLocaleDateString('pt-BR', { 
+                    day: '2-digit', 
+                    month: '2-digit',
+                    year: 'numeric'
+                  });
+                  
+                  return (
+                    <div key={excecao.id} className="flex items-center gap-3 p-3 bg-white border border-gray-200 rounded-lg">
+                      <Calendar className="w-5 h-5 text-blue-500" />
+                      <div className="flex-1">
+                        <div className="font-medium text-sm">
+                          📅 {dataFormatada}
+                        </div>
+                        <div className="text-xs text-gray-600 mt-1">
+                          ⏰ {excecao.horario_inicio} - {excecao.horario_fim}
+                        </div>
+                        {excecao.motivo && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            💬 {excecao.motivo}
+                          </div>
+                        )}
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deletarExcecaoMutation.mutate(excecao.id)}
+                        className="hover:bg-red-50"
+                      >
+                        <Trash2 className="w-4 h-4 text-red-500" />
+                      </Button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {profissionalExcecao && getExcecoesDoProfissional(profissionalExcecao.id).length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <Calendar className="w-12 h-12 mx-auto mb-3 text-gray-400" />
+                <p className="text-sm">Nenhuma exceção configurada ainda</p>
+                <p className="text-xs mt-1">Use o formulário acima para adicionar horários específicos</p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogExcecaoAberto(false)}>
+              Fechar
             </Button>
           </DialogFooter>
         </DialogContent>
