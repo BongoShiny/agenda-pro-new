@@ -161,12 +161,20 @@ export default function AgendaDiaView({
         <div className="w-20 flex-shrink-0 border-r border-gray-200"></div>
         
         <div className="flex overflow-x-auto">
-          {terapeutasAtivos.map(terapeuta => (
-            <div key={terapeuta.id} className="w-[280px] flex-shrink-0 p-3 border-r border-gray-200 last:border-r-0">
-              <div className="text-sm font-bold text-gray-900 truncate text-center">{terapeuta.nome}</div>
-              <div className="text-xs text-gray-500 truncate text-center mt-1">{terapeuta.especialidade}</div>
-            </div>
-          ))}
+          {terapeutasAtivos.map(terapeuta => {
+            const horarioTerapeuta = getHorarioProfissional(terapeuta);
+            return (
+              <div key={terapeuta.id} className="w-[280px] flex-shrink-0 p-3 border-r border-gray-200 last:border-r-0">
+                <div className="text-sm font-bold text-gray-900 truncate text-center">{terapeuta.nome}</div>
+                <div className="text-xs text-gray-500 truncate text-center mt-1">{terapeuta.especialidade}</div>
+                {horarioTerapeuta.isExcecao && (
+                  <div className="text-[10px] text-blue-600 bg-blue-50 px-2 py-0.5 rounded mt-1 text-center">
+                    📅 {horarioTerapeuta.horario_inicio} - {horarioTerapeuta.horario_fim}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       </div>
 
