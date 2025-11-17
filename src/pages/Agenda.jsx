@@ -255,10 +255,10 @@ export default function AgendaPage() {
         timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
       });
       
-      // Adicionar email de quem está editando
+      // Adicionar email de quem está editando (se não for o criador)
       const dadosComEditor = {
         ...dados,
-        updated_by: usuarioAtual?.email
+        edited_by: usuarioAtual?.email
       };
       
       const resultado = await base44.entities.Agendamento.update(id, dadosComEditor);
