@@ -144,7 +144,7 @@ export default function AgendaDiaView({
       <ScrollArea className="h-[calc(100vh-240px)]">
         <div className="flex">
           <div className="w-20 flex-shrink-0 border-r border-gray-200 bg-gray-50">
-            {horarios.map((horario) => (
+            {todosHorarios.map((horario) => (
               <div
                 key={horario}
                 className="h-20 flex items-start justify-center pt-1 text-xs text-gray-600 font-semibold border-b border-gray-200"
@@ -157,7 +157,24 @@ export default function AgendaDiaView({
           <div className="flex overflow-x-auto">
             {terapeutasAtivos.map(terapeuta => (
               <div key={terapeuta.id} className="w-[280px] flex-shrink-0 border-r border-gray-200 last:border-r-0">
-                {horarios.map((horario, idx) => {
+                {todosHorarios.map((horario, idx) => {
+                  const dentroDoHorario = horarioDentroDoPeriodo(horario, terapeuta);
+                  
+                  if (!dentroDoHorario) {
+                    return (
+                      <div
+                        key={horario}
+                        className={`h-20 border-b border-gray-200 p-1 ${
+                          idx % 2 === 0 ? 'bg-gray-100' : 'bg-gray-200'
+                        }`}
+                      >
+                        <div className="w-full h-full flex items-center justify-center">
+                          <span className="text-xs text-gray-400">-</span>
+                        </div>
+                      </div>
+                    );
+                  }
+
                   const agendamentosSlot = getAgendamentosParaSlot(terapeuta.id, horario);
                   const isOcupado = agendamentosSlot.length > 0;
                   const horarioPassou = horarioJaPassou(horario);
