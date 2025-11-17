@@ -12,6 +12,7 @@ export default function AgendaDiaView({
   onAgendamentoClick, 
   onNovoAgendamento,
   onBloquearHorario,
+  onStatusChange,
   usuarioAtual,
   dataAtual,
   excecoesHorario = []
@@ -327,6 +328,7 @@ export default function AgendaDiaView({
                               <AgendamentoCard
                                 agendamento={agendamento}
                                 onClick={onAgendamentoClick}
+                                onStatusChange={onStatusChange}
                               />
                             </div>
                           );

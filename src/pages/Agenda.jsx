@@ -550,6 +550,43 @@ export default function AgendaPage() {
     }
   };
 
+  const handleMudarStatus = async (agendamento, novoStatus) => {
+    const statusAntigo = agendamento.status;
+    
+    if (statusAntigo === novoStatus) return; // Nenhuma mudança
+    
+    const statusLabelsLog = {
+      confirmado: "Confirmado",
+      agendado: "Agendado",
+      ausencia: "Ausência",
+      cancelado: "Cancelado",
+      concluido: "Concluído"
+    };
+    
+    try {
+      await atualizarAgendamentoMutation.mutateAsync({
+        id: agendamento.id,
+        dados: { ...agendamento, status: novoStatus, editor_email: usuarioAtual?.email },
+        dadosAntigos: agendamento
+      });
+      
+      // Criar log da mudança de status
+      await base44.entities.LogAcao.create({
+        tipo: "editou_agendamento",
+        usuario_email: usuarioAtual?.email || "sistema",
+        descricao: `Alterou status de "${statusLabelsLog[statusAntigo]}" para "${statusLabelsLog[novoStatus]}": ${agendamento.cliente_nome} com ${agendamento.profissional_nome} - ${agendamento.data} às ${agendamento.hora_inicio}`,
+        entidade_tipo: "Agendamento",
+        entidade_id: agendamento.id,
+        dados_antigos: JSON.stringify({ status: statusAntigo }),
+        dados_novos: JSON.stringify({ status: novoStatus })
+      });
+      
+    } catch (error) {
+      console.error("❌ Erro ao mudar status:", error);
+      alert("❌ Erro ao mudar status: " + error.message);
+    }
+  };
+
   // FILTRAR AGENDAMENTOS PELA DATA ATUAL
   console.log("🔍🔍🔍 ==================== INICIANDO FILTRO ==================== 🔍🔍🔍");
   console.log("📊 ESTADO DO FILTRO:");
@@ -679,6 +716,7 @@ export default function AgendaPage() {
             onAgendamentoClick={handleAgendamentoClick}
             onNovoAgendamento={handleNovoAgendamentoSlot}
             onBloquearHorario={handleBloquearHorario}
+            onStatusChange={handleMudarStatus}
             usuarioAtual={usuarioAtual}
             dataAtual={dataAtual}
             excecoesHorario={excecoesHorario}

@@ -1,7 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Clock, XCircle, Ban } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const statusColors = {
   confirmado: "bg-emerald-500",
@@ -30,8 +36,9 @@ const statusLabels = {
   bloqueio: "FECHADO"
 };
 
-export default function AgendamentoCard({ agendamento, onClick }) {
+export default function AgendamentoCard({ agendamento, onClick, onStatusChange }) {
   const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio" || agendamento.cliente_nome === "FECHADO";
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   
   console.log(`🎴 CARD | ${agendamento.cliente_nome} | Data: ${agendamento.data} | ${agendamento.hora_inicio}`);
   
@@ -80,9 +87,68 @@ export default function AgendamentoCard({ agendamento, onClick }) {
         )}
 
         <div className="flex items-center justify-between pt-0.5 md:pt-1">
-          <Badge variant="secondary" className="bg-white/20 text-white border-0 text-[9px] md:text-xs px-1 md:px-2 py-0 md:py-1">
-            {statusLabels[agendamento.status]}
-          </Badge>
+          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
+              <Badge 
+                variant="secondary" 
+                className="bg-white/20 text-white border-0 text-[9px] md:text-xs px-1 md:px-2 py-0 md:py-1 cursor-pointer hover:bg-white/30 transition-all"
+              >
+                {statusLabels[agendamento.status]}
+              </Badge>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()}>
+              <DropdownMenuItem 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onStatusChange) onStatusChange(agendamento, "agendado");
+                  setDropdownOpen(false);
+                }}
+                className={agendamento.status === "agendado" ? "bg-gray-100" : ""}
+              >
+                {agendamento.status === "agendado" && "✓ "}Agendado
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onStatusChange) onStatusChange(agendamento, "confirmado");
+                  setDropdownOpen(false);
+                }}
+                className={agendamento.status === "confirmado" ? "bg-gray-100" : ""}
+              >
+                {agendamento.status === "confirmado" && "✓ "}Confirmado
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onStatusChange) onStatusChange(agendamento, "ausencia");
+                  setDropdownOpen(false);
+                }}
+                className={agendamento.status === "ausencia" ? "bg-gray-100" : ""}
+              >
+                {agendamento.status === "ausencia" && "✓ "}Ausência
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onStatusChange) onStatusChange(agendamento, "cancelado");
+                  setDropdownOpen(false);
+                }}
+                className={agendamento.status === "cancelado" ? "bg-gray-100" : ""}
+              >
+                {agendamento.status === "cancelado" && "✓ "}Cancelado
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onStatusChange) onStatusChange(agendamento, "concluido");
+                  setDropdownOpen(false);
+                }}
+                className={agendamento.status === "concluido" ? "bg-gray-100" : ""}
+              >
+                {agendamento.status === "concluido" && "✓ "}Concluído
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           {agendamento.sala && (
             <span className="text-[9px] md:text-xs opacity-90">Sala {agendamento.sala}</span>
           )}
