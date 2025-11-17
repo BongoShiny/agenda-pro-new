@@ -398,6 +398,20 @@ export default function AgendaPage() {
   };
 
   const handleSalvarAgendamento = async (dados) => {
+    // Verificar se há bloqueio no horário
+    const horarioBloqueado = agendamentos.find(ag => 
+      ag.data === dados.data &&
+      ag.profissional_id === dados.profissional_id &&
+      ag.hora_inicio === dados.hora_inicio &&
+      (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") &&
+      ag.id !== dados.id // Ignorar se estiver editando o próprio registro
+    );
+
+    if (horarioBloqueado) {
+      alert("⚠️ Não é possível agendar nesse horário porque está bloqueado!");
+      return;
+    }
+
     if (dados.id) {
       // Modo edição
       const { id, ...dadosSemId } = dados;
