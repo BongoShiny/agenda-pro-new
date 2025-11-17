@@ -11,7 +11,8 @@ export default function AgendaDiaView({
   onAgendamentoClick, 
   onNovoAgendamento,
   onBloquearHorario,
-  usuarioAtual
+  usuarioAtual,
+  dataAtual
 }) {
   const [slotMenuAberto, setSlotMenuAberto] = useState(null);
 
@@ -20,6 +21,26 @@ export default function AgendaDiaView({
     horarios.push(`${h.toString().padStart(2, '0')}:00`);
     if (h < 22) horarios.push(`${h.toString().padStart(2, '0')}:30`);
   }
+
+  // Verificar se um horário já passou (horário de Brasília)
+  const horarioJaPassou = (horario) => {
+    const agora = new Date();
+    const hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+    const dataAtualComparar = new Date(dataAtual.getFullYear(), dataAtual.getMonth(), dataAtual.getDate());
+    
+    // Se a data selecionada é futura, nenhum horário passou
+    if (dataAtualComparar > hoje) return false;
+    
+    // Se a data selecionada é passada, todos os horários passaram
+    if (dataAtualComparar < hoje) return true;
+    
+    // Se é hoje, verificar horário
+    const [hora, minuto] = horario.split(':').map(Number);
+    const horarioSlot = hora * 60 + minuto;
+    const horarioAgora = agora.getHours() * 60 + agora.getMinutes();
+    
+    return horarioSlot < horarioAgora;
+  };
 
   const terapeutasAtivos = configuracoes
     .filter(config => config.unidade_id === unidadeSelecionada.id && config.ativo)
