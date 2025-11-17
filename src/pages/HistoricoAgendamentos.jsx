@@ -5,7 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Search, Calendar, User, Clock, FileText } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Search, Calendar, User, Clock, FileText, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -45,6 +46,8 @@ const statusLabels = {
 
 export default function HistoricoAgendamentosPage() {
   const [busca, setBusca] = useState("");
+  const [profissionalFiltro, setProfissionalFiltro] = useState("");
+  const [unidadeFiltro, setUnidadeFiltro] = useState("");
 
   const { data: agendamentos = [] } = useQuery({
     queryKey: ['agendamentos-historico'],
@@ -52,16 +55,36 @@ export default function HistoricoAgendamentosPage() {
     initialData: [],
   });
 
+  // Extrair lista única de profissionais e unidades
+  const profissionaisUnicos = [...new Set(agendamentos.map(ag => ag.profissional_nome).filter(Boolean))].sort();
+  const unidadesUnicas = [...new Set(agendamentos.map(ag => ag.unidade_nome).filter(Boolean))].sort();
+
   const agendamentosFiltrados = agendamentos.filter(ag => {
     const buscaLower = busca.toLowerCase();
-    return (
+    
+    // Filtro de busca geral (cliente/telefone/criador)
+    const matchBusca = !busca || (
       ag.cliente_nome?.toLowerCase().includes(buscaLower) ||
       ag.cliente_telefone?.toLowerCase().includes(buscaLower) ||
-      ag.profissional_nome?.toLowerCase().includes(buscaLower) ||
-      ag.criador_email?.toLowerCase().includes(buscaLower) ||
-      ag.unidade_nome?.toLowerCase().includes(buscaLower)
+      ag.criador_email?.toLowerCase().includes(buscaLower)
     );
+    
+    // Filtro de profissional
+    const matchProfissional = !profissionalFiltro || ag.profissional_nome === profissionalFiltro;
+    
+    // Filtro de unidade
+    const matchUnidade = !unidadeFiltro || ag.unidade_nome === unidadeFiltro;
+    
+    return matchBusca && matchProfissional && matchUnidade;
   });
+
+  const limparFiltros = () => {
+    setBusca("");
+    setProfissionalFiltro("");
+    setUnidadeFiltro("");
+  };
+
+  const temFiltrosAtivos = busca || profissionalFiltro || unidadeFiltro;
 
   const formatarDataHora = (dateString) => {
     try {
@@ -94,16 +117,51 @@ export default function HistoricoAgendamentosPage() {
 
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Logs de Agendamentos</CardTitle>
-              <div className="relative w-80">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                <Input
-                  placeholder="Buscar por cliente, profissional, criador..."
-                  value={busca}
-                  onChange={(e) => setBusca(e.target.value)}
-                  className="pl-10"
-                />
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <CardTitle>Logs de Agendamentos</CardTitle>
+                {temFiltrosAtivos && (
+                  <Button variant="outline" size="sm" onClick={limparFiltros}>
+                    <X className="w-4 h-4 mr-2" />
+                    Limpar Filtros
+                  </Button>
+                )}
+              </div>
+              
+              <div className="grid grid-cols-3 gap-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    placeholder="Buscar cliente/telefone/criador..."
+                    value={busca}
+                    onChange={(e) => setBusca(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                
+                <Select value={profissionalFiltro} onValueChange={setProfissionalFiltro}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filtrar por Profissional" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value=" ">Todos os Profissionais</SelectItem>
+                    {profissionaisUnicos.map(prof => (
+                      <SelectItem key={prof} value={prof}>{prof}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={unidadeFiltro} onValueChange={setUnidadeFiltro}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filtrar por Unidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value=" ">Todas as Unidades</SelectItem>
+                    {unidadesUnicas.map(unidade => (
+                      <SelectItem key={unidade} value={unidade}>{unidade}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardHeader>
@@ -182,9 +240,11 @@ export default function HistoricoAgendamentosPage() {
             {agendamentosFiltrados.length === 0 && (
               <div className="text-center py-12 text-gray-500">
                 <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p className="font-medium">Nenhum registro encontrado</p>
+                <p className="font-medium">Não foi possível encontrar a sua busca</p>
                 <p className="text-sm mt-2">
-                  {busca ? "Tente ajustar sua busca" : "Ainda não há agendamentos no sistema"}
+                  {temFiltrosAtivos 
+                    ? "Tente ajustar os filtros ou limpar para ver todos os registros" 
+                    : "Ainda não há agendamentos no sistema"}
                 </p>
               </div>
             )}
