@@ -182,12 +182,13 @@ export default function AgendaDiaView({
   }
 
   return (
-    <div className="flex-1 bg-gray-50 relative">
-      <div className="flex border-b border-gray-200 bg-white sticky top-0 z-10 overflow-x-auto">
-        <div className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200"></div>
+    <div className="flex-1 bg-gray-50 relative flex flex-col">
+      <div className="border-b border-gray-200 bg-white sticky top-0 z-10 overflow-x-auto">
+        <div className="flex min-w-max">
+          <div className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200"></div>
 
-        <div className="flex">
-          {terapeutasAtivos.map(terapeuta => {
+          <div className="flex">
+            {terapeutasAtivos.map(terapeuta => {
             const horarioTerapeuta = getHorarioProfissional(terapeuta);
             return (
               <div key={terapeuta.id} className="w-[160px] md:w-[280px] flex-shrink-0 p-2 md:p-3 border-r border-gray-200 last:border-r-0">
@@ -219,10 +220,11 @@ export default function AgendaDiaView({
               </div>
             );
           })}
+          </div>
         </div>
       </div>
 
-      <div className="h-[calc(100vh-200px)] md:h-[calc(100vh-240px)] overflow-x-auto overflow-y-auto">
+      <div className="flex-1 overflow-x-auto overflow-y-auto">
         <div className="flex min-w-max">
           <div className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200 bg-gray-50 sticky left-0 z-10">
             {todosHorarios.map((horario) => (
