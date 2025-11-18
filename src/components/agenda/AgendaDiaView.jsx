@@ -236,7 +236,7 @@ export default function AgendaDiaView({
             ))}
           </div>
 
-          <div className="flex overflow-x-auto">
+          <div className="flex">
             {terapeutasAtivos.map(terapeuta => (
               <div key={terapeuta.id} className="w-[160px] md:w-[280px] flex-shrink-0 border-r border-gray-200 last:border-r-0">
                 {todosHorarios.map((horario, idx) => {
