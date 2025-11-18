@@ -402,6 +402,28 @@ export default function AgendaPage() {
     
     const dataFormatada = formatarDataPura(dataAtual);
     console.log("📅 DATA DO BLOQUEIO (formatada PURA):", dataFormatada);
+
+    // Verificar se o horário já passou
+    const agora = new Date();
+    const hoje = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate());
+    const dataAtualComparar = new Date(dataAtual.getFullYear(), dataAtual.getMonth(), dataAtual.getDate());
+    
+    // Se a data é passada
+    if (dataAtualComparar < hoje) {
+      alert("⚠️ Não é possível bloquear horários em datas passadas!");
+      return;
+    }
+    
+    // Se é hoje, verificar se o horário já passou
+    if (dataAtualComparar.getTime() === hoje.getTime()) {
+      const [horaInicio] = horarioInicio.split(':').map(Number);
+      const horarioAtual = agora.getHours();
+      
+      if (horaInicio < horarioAtual) {
+        alert("⚠️ Não é possível bloquear horários que já passaram!");
+        return;
+      }
+    }
     
     const unidade = unidades.find(u => u.id === unidadeId);
     const profissional = profissionais.find(p => p.id === profissionalId);
