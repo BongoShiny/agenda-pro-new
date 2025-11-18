@@ -382,7 +382,71 @@ export default function AgendaPage() {
     setDialogNovoAberto(true);
   };
 
-  const handleBloquearHorario = async (unidadeId, profissionalId, horario) => {
+  const handleBloquearHorario = async (unidadeId, profissionalId, horarioInicio, horarioFim) => {
+    // Se foi chamado com apenas 3 parâmetros (modo antigo), usar o comportamento antigo
+    if (arguments.length === 3) {
+      const horario = horarioInicio;
+      horarioFim = undefined;
+      
+      // Comportamento antigo - bloquear apenas 1 slot
+      return handleBloquearHorarioAntigo(unidadeId, profissionalId, horario);
+    }
+    
+    // Novo comportamento - bloquear período de horários
+    console.log("🔒🔒🔒 ==================== INICIANDO BLOQUEIO DE PERÍODO ==================== 🔒🔒🔒");
+    console.log("📊 ESTADO ATUAL:");
+    console.log("  - dataAtual (Date object):", dataAtual.toString());
+    console.log("  - Timezone do navegador:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+    console.log("  - Usuário:", usuarioAtual?.email);
+    console.log("  - Horário início:", horarioInicio);
+    console.log("  - Horário fim:", horarioFim);
+    
+    const dataFormatada = formatarDataPura(dataAtual);
+    console.log("📅 DATA DO BLOQUEIO (formatada PURA):", dataFormatada);
+    
+    const unidade = unidades.find(u => u.id === unidadeId);
+    const profissional = profissionais.find(p => p.id === profissionalId);
+    
+    console.log("👨‍⚕️ PROFISSIONAL:", profissional?.nome, "(ID:", profissionalId, ")");
+    console.log("🏢 UNIDADE:", unidade?.nome, "(ID:", unidadeId, ")");
+    
+    const bloqueio = {
+      cliente_nome: "FECHADO",
+      profissional_id: profissionalId,
+      profissional_nome: profissional?.nome || "",
+      unidade_id: unidadeId,
+      unidade_nome: unidade?.nome || "",
+      servico_nome: "Horário Bloqueado",
+      data: dataFormatada,
+      hora_inicio: horarioInicio,
+      hora_fim: horarioFim,
+      status: "bloqueio",
+      tipo: "bloqueio",
+      observacoes: "Horário fechado para atendimentos"
+    };
+    
+    console.log("📦 OBJETO COMPLETO A SER SALVO:");
+    console.log(JSON.stringify(bloqueio, null, 2));
+    
+    try {
+      console.log("📤 ENVIANDO PARA O BANCO...");
+      const resultado = await criarAgendamentoMutation.mutateAsync(bloqueio);
+      
+      console.log("✅✅✅ BLOQUEIO SALVO NO BANCO ✅✅✅");
+      console.log("🆔 ID retornado:", resultado.id);
+      console.log("🔒🔒🔒 ==================== FIM DO BLOQUEIO ==================== 🔒🔒🔒");
+      
+      alert(`✅ Horário BLOQUEADO com sucesso!\n\n📅 Data: ${dataFormatada}\n⏰ Horário: ${horarioInicio} - ${horarioFim}\n👨‍⚕️ Profissional: ${profissional?.nome}`);
+      
+    } catch (error) {
+      console.error("❌❌❌ ERRO AO BLOQUEAR ❌❌❌");
+      console.error("Detalhes completos:", error);
+      console.error("Stack:", error.stack);
+      alert("❌ Erro ao bloquear horário: " + error.message);
+    }
+  };
+  
+  const handleBloquearHorarioAntigo = async (unidadeId, profissionalId, horario) => {
     console.log("🔒🔒🔒 ==================== INICIANDO BLOQUEIO ==================== 🔒🔒🔒");
     console.log("📊 ESTADO ATUAL:");
     console.log("  - dataAtual (Date object):", dataAtual.toString());

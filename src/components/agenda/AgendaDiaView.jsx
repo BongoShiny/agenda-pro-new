@@ -3,6 +3,16 @@ import AgendamentoCard from "./AgendamentoCard";
 import SlotMenu from "./SlotMenu";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function AgendaDiaView({ 
   agendamentos, 
@@ -18,6 +28,12 @@ export default function AgendaDiaView({
   excecoesHorario = []
 }) {
   const [slotMenuAberto, setSlotMenuAberto] = useState(null);
+  const [dialogBloquearAberto, setDialogBloquearAberto] = useState(false);
+  const [profissionalBloquear, setProfissionalBloquear] = useState(null);
+  const [horariosBloquear, setHorariosBloquear] = useState({
+    hora_inicio: "08:00",
+    hora_fim: "10:00"
+  });
 
   // Gerar horários de 08:00 até 21:00 (apenas horários cheios)
   const gerarTodosHorarios = () => {
@@ -176,7 +192,21 @@ export default function AgendaDiaView({
             const horarioTerapeuta = getHorarioProfissional(terapeuta);
             return (
               <div key={terapeuta.id} className="w-[160px] md:w-[280px] flex-shrink-0 p-2 md:p-3 border-r border-gray-200 last:border-r-0">
-                <div className="text-xs md:text-sm font-bold text-gray-900 truncate text-center">{terapeuta.nome}</div>
+                <div className="flex items-center justify-center gap-1 md:gap-2">
+                  <div className="text-xs md:text-sm font-bold text-gray-900 truncate text-center">{terapeuta.nome}</div>
+                  {isAdmin && (
+                    <button
+                      onClick={() => {
+                        setProfissionalBloquear(terapeuta);
+                        setDialogBloquearAberto(true);
+                      }}
+                      className="text-base md:text-lg hover:scale-110 transition-transform"
+                      title="Bloquear horários"
+                    >
+                      🚫
+                    </button>
+                  )}
+                </div>
                 <div className="text-[10px] md:text-xs text-gray-500 truncate text-center mt-1">{terapeuta.especialidade}</div>
                 {horarioTerapeuta.isFolga ? (
                   <div className="text-[8px] md:text-[10px] text-orange-700 bg-orange-100 px-1 md:px-2 py-0.5 rounded mt-1 text-center font-semibold">
@@ -230,24 +260,24 @@ export default function AgendaDiaView({
                               isFolga ? 'bg-orange-200' : 'bg-gray-300'
                             }`}>
                               <div className="text-center">
-                                {isFolga ? (
-                                  <>
-                                    <div className="text-[10px] md:text-xs text-orange-700 font-bold">
-                                      <span className="md:hidden">🏖️</span>
-                                      <span className="hidden md:block">🏖️ FOLGA</span>
-                                    </div>
-                                    <div className="text-[8px] md:text-[10px] text-orange-600 hidden md:block">Terapeuta de folga</div>
-                                  </>
-                                ) : (
-                                  <>
-                                    <div className="text-[10px] md:text-xs text-gray-600 font-medium">
-                                      <span className="md:hidden">FECH</span>
-                                      <span className="hidden md:block">BLOQUEADO</span>
-                                    </div>
-                                    <div className="text-[8px] md:text-[10px] text-gray-500 hidden md:block">Fora do horário</div>
-                                  </>
-                                )}
-                              </div>
+                                  {isFolga ? (
+                                    <>
+                                      <div className="text-[10px] md:text-xs text-orange-700 font-bold">
+                                        <span className="md:hidden">🏖️</span>
+                                        <span className="hidden md:block">🏖️ FOLGA</span>
+                                      </div>
+                                      <div className="text-[8px] md:text-[10px] text-orange-600 hidden md:block">Terapeuta de folga</div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div className="text-[10px] md:text-xs text-gray-600 font-medium">
+                                        <span className="md:hidden">FECH</span>
+                                        <span className="hidden md:block">BLOQUEADO</span>
+                                      </div>
+                                      <div className="text-[8px] md:text-[10px] text-gray-500 hidden md:block">Fora do horário</div>
+                                    </>
+                                  )}
+                                </div>
                             </button>
                           </PopoverTrigger>
                           <PopoverContent className="md:hidden w-auto p-3">
@@ -342,6 +372,68 @@ export default function AgendaDiaView({
           </div>
         </div>
       </ScrollArea>
+
+      {/* Dialog para bloquear horários específicos */}
+      <Dialog open={dialogBloquearAberto} onOpenChange={setDialogBloquearAberto}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>🚫 Bloquear Horários - {profissionalBloquear?.nome}</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <div className="text-sm text-blue-800">
+                <strong>Data:</strong> {dataAtual.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })}
+              </div>
+              <div className="text-sm text-blue-800 mt-1">
+                <strong>Unidade:</strong> {unidadeSelecionada.nome}
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Horário para Bloquear</Label>
+              <div className="flex gap-2 items-center">
+                <Input
+                  type="time"
+                  value={horariosBloquear.hora_inicio}
+                  onChange={(e) => setHorariosBloquear(prev => ({ ...prev, hora_inicio: e.target.value }))}
+                  className="flex-1"
+                />
+                <span className="text-gray-500">até</span>
+                <Input
+                  type="time"
+                  value={horariosBloquear.hora_fim}
+                  onChange={(e) => setHorariosBloquear(prev => ({ ...prev, hora_fim: e.target.value }))}
+                  className="flex-1"
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogBloquearAberto(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={() => {
+                if (profissionalBloquear) {
+                  onBloquearHorario(
+                    unidadeSelecionada.id,
+                    profissionalBloquear.id,
+                    horariosBloquear.hora_inicio,
+                    horariosBloquear.hora_fim
+                  );
+                  setDialogBloquearAberto(false);
+                  setHorariosBloquear({ hora_inicio: "08:00", hora_fim: "10:00" });
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              🚫 Bloquear Horários
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
