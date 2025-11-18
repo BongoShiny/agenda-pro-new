@@ -37,7 +37,7 @@ export default function AgendaDiaView({
   // Gerar horários de 08:00 até 21:00 (apenas horários cheios)
   const gerarTodosHorarios = () => {
     const horarios = [];
-    for (let h = 8; h <= 21; h++) {
+    for (let h = 8; h <= 22; h++) {
       horarios.push(`${h.toString().padStart(2, '0')}:00`);
     }
     return horarios;
@@ -183,10 +183,10 @@ export default function AgendaDiaView({
 
   return (
     <div className="flex-1 bg-gray-50 relative">
-      <div className="flex border-b border-gray-200 bg-white sticky top-0 z-10">
+      <div className="flex border-b border-gray-200 bg-white sticky top-0 z-10 overflow-x-auto">
         <div className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200"></div>
-        
-        <div className="flex overflow-x-auto">
+
+        <div className="flex">
           {terapeutasAtivos.map(terapeuta => {
             const horarioTerapeuta = getHorarioProfissional(terapeuta);
             return (
