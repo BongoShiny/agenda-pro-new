@@ -217,15 +217,14 @@ export default function AgendaDiaView({
                   </div>
                 )}
               </div>
-            );
-          })}
-          </div>
-        </div>
-      </div>
+              );
+              })}
+              </div>
+              </div>
+              </div>
 
-      <div className="flex-1 overflow-x-auto overflow-y-auto">
-        <div className="flex min-w-max">
-          <div className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200 bg-gray-50 sticky left-0 z-10">
+              <div className="flex-1 flex overflow-hidden">
+              <div className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200 bg-gray-50 overflow-y-auto">
             {todosHorarios.map((horario) => (
               <div
                 key={horario}
