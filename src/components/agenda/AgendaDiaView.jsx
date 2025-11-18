@@ -233,10 +233,11 @@ export default function AgendaDiaView({
                 {horario}
               </div>
             ))}
-          </div>
+            </div>
 
-          <div className="flex">
-            {terapeutasAtivos.map(terapeuta => (
+            <div className="flex-1 overflow-x-auto overflow-y-auto">
+            <div className="flex min-w-max">
+              {terapeutasAtivos.map(terapeuta => (
               <div key={terapeuta.id} className="w-[160px] md:w-[280px] flex-shrink-0 border-r border-gray-200 last:border-r-0">
                 {todosHorarios.map((horario, idx) => {
                   const dentroDoHorario = horarioDentroDoPeriodo(horario, terapeuta);
