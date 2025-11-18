@@ -162,15 +162,28 @@ export default function NovoAgendamentoDialog({
   const handleSubmit = () => {
     console.log("💾 DIALOG - Salvando com data:", formData.data);
     
-    // Verificar se há bloqueio no horário
-    const horarioBloqueado = agendamentos.find(ag => 
-      ag.data === formData.data &&
-      ag.profissional_id === formData.profissional_id &&
-      ag.unidade_id === formData.unidade_id &&
-      ag.hora_inicio === formData.hora_inicio &&
-      (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") &&
-      ag.id !== formData.id
-    );
+    // Verificar se há bloqueio que SOBREPÕE com o horário selecionado
+    const [horaInicioNum, minInicioNum] = formData.hora_inicio.split(':').map(Number);
+    const [horaFimNum, minFimNum] = formData.hora_fim.split(':').map(Number);
+    const inicioMinutos = horaInicioNum * 60 + minInicioNum;
+    const fimMinutos = horaFimNum * 60 + minFimNum;
+    
+    const horarioBloqueado = agendamentos.find(ag => {
+      if (ag.data !== formData.data) return false;
+      if (ag.profissional_id !== formData.profissional_id) return false;
+      if (ag.unidade_id !== formData.unidade_id) return false;
+      if (!(ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO")) return false;
+      if (ag.id === formData.id) return false;
+      
+      // Verificar sobreposição de horários
+      const [agHoraInicio, agMinInicio] = ag.hora_inicio.split(':').map(Number);
+      const [agHoraFim, agMinFim] = ag.hora_fim.split(':').map(Number);
+      const agInicioMinutos = agHoraInicio * 60 + agMinInicio;
+      const agFimMinutos = agHoraFim * 60 + agMinFim;
+      
+      // Verifica se há sobreposição: início antes do fim do bloqueio E fim depois do início do bloqueio
+      return (inicioMinutos < agFimMinutos && fimMinutos > agInicioMinutos);
+    });
 
     if (horarioBloqueado) {
       setErroHorarioBloqueado(true);
