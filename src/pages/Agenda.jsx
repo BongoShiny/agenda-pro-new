@@ -453,12 +453,12 @@ export default function AgendaPage() {
     console.log("  - Timezone do navegador:", Intl.DateTimeFormat().resolvedOptions().timeZone);
     console.log("  - Usuário:", usuarioAtual?.email);
     console.log("  - Cargo:", usuarioAtual?.cargo);
-    
+
     // CRÍTICO: usar formatarDataPura que usa métodos LOCAIS do Date
     const dataFormatada = formatarDataPura(dataAtual);
-    
+
     console.log("📅 DATA DO BLOQUEIO (formatada PURA):", dataFormatada);
-    
+
     // Verificar se já existe algum agendamento (não bloqueio) neste horário
     const agendamentoExistente = agendamentos.find(ag => 
       ag.data === dataFormatada &&
@@ -473,13 +473,14 @@ export default function AgendaPage() {
       alert("⚠️ Não é permitido bloquear este horário pois já está agendado!");
       return;
     }
-    
+
     const unidade = unidades.find(u => u.id === unidadeId);
     const profissional = profissionais.find(p => p.id === profissionalId);
-    
+
     const [hora, minuto] = horario.split(':').map(Number);
-    const horaFim = `${(hora + (minuto === 30 ? 1 : 0)).toString().padStart(2, '0')}:${(minuto === 30 ? '00' : '30')}`;
-    
+    // Corrigir cálculo da hora fim para bloqueio de 1 hora completa
+    const horaFim = `${(hora + 1).toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
+
     console.log("⏰ HORÁRIO:", horario, "até", horaFim);
     console.log("👨‍⚕️ PROFISSIONAL:", profissional?.nome, "(ID:", profissionalId, ")");
     console.log("🏢 UNIDADE:", unidade?.nome, "(ID:", unidadeId, ")");
