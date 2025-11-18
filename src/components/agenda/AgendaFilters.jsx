@@ -43,8 +43,8 @@ export default function AgendaFilters({
   };
 
   return (
-    <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
-      <div className="p-6 border-b border-gray-200">
+    <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full overflow-hidden">
+      <div className="p-6 border-b border-gray-200 flex-shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
             <Filter className="w-5 h-5 text-blue-600" />
@@ -53,7 +53,7 @@ export default function AgendaFilters({
         </div>
       </div>
 
-      <ScrollArea className="flex-1 p-6">
+      <div className="flex-1 overflow-y-auto p-6">
         <div className="space-y-5">
           <div>
             <Label className="text-sm font-semibold text-gray-700 mb-3 block">Cliente</Label>
@@ -161,7 +161,7 @@ export default function AgendaFilters({
             </Button>
           )}
         </div>
-      </ScrollArea>
+      </div>
     </div>
   );
 }
