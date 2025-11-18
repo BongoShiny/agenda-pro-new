@@ -383,13 +383,12 @@ export default function AgendaPage() {
   };
 
   const handleBloquearHorario = async (unidadeId, profissionalId, horarioInicio, horarioFim) => {
-    // Se foi chamado com apenas 3 parâmetros (modo antigo), usar o comportamento antigo
-    if (arguments.length === 3) {
+    // Se horarioFim não foi passado (chamada com 3 parâmetros - bloqueio único)
+    if (typeof horarioFim === 'undefined') {
       const horario = horarioInicio;
-      horarioFim = undefined;
       
       // Comportamento antigo - bloquear apenas 1 slot
-      return handleBloquearHorarioAntigo(unidadeId, profissionalId, horario);
+      return handleBloquearHorarioUnico(unidadeId, profissionalId, horario);
     }
     
     // Novo comportamento - bloquear período de horários
@@ -446,7 +445,7 @@ export default function AgendaPage() {
     }
   };
   
-  const handleBloquearHorarioAntigo = async (unidadeId, profissionalId, horario) => {
+  const handleBloquearHorarioUnico = async (unidadeId, profissionalId, horario) => {
     console.log("🔒🔒🔒 ==================== INICIANDO BLOQUEIO ==================== 🔒🔒🔒");
     console.log("📊 ESTADO ATUAL:");
     console.log("  - dataAtual (Date object):", dataAtual.toString());
