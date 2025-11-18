@@ -141,18 +141,16 @@ export default function HistoricoAgendamentosPage() {
     try {
       const date = new Date(dateString);
       
-      // Formatar diretamente com Intl.DateTimeFormat para Brasília
-      const formatter = new Intl.DateTimeFormat('pt-BR', {
-        timeZone: 'America/Sao_Paulo',
-        day: '2-digit',
-        month: '2-digit',
-        year: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      });
+      // Subtrair 3 horas para converter UTC para Brasília
+      const brasiliaDate = new Date(date.getTime() - (3 * 60 * 60 * 1000));
       
-      return formatter.format(date).replace(',', ' às');
+      const dia = String(brasiliaDate.getDate()).padStart(2, '0');
+      const mes = String(brasiliaDate.getMonth() + 1).padStart(2, '0');
+      const ano = brasiliaDate.getFullYear();
+      const hora = String(brasiliaDate.getHours()).padStart(2, '0');
+      const minuto = String(brasiliaDate.getMinutes()).padStart(2, '0');
+      
+      return `${dia}/${mes}/${ano} às ${hora}:${minuto}`;
     } catch {
       return "-";
     }
