@@ -139,13 +139,15 @@ export default function HistoricoAgendamentosPage() {
 
   const formatarDataHora = (dateString) => {
     try {
-      // Converter para horário de Brasília (UTC-3)
       const date = new Date(dateString);
-      
-      // Obter o horário no timezone de Brasília
-      const brasiliaDate = new Date(date.toLocaleString('en-US', { timeZone: 'America/Sao_Paulo' }));
-      
-      return format(brasiliaDate, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+      return date.toLocaleString('pt-BR', { 
+        timeZone: 'America/Sao_Paulo',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).replace(',', ' às');
     } catch {
       return "-";
     }
