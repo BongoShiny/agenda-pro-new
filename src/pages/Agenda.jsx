@@ -798,6 +798,7 @@ export default function AgendaPage() {
         unidades={unidades}
         servicos={servicos}
         modoEdicao={!!agendamentoInicial?.id}
+        agendamentos={agendamentos}
       />
 
       <DetalhesAgendamentoDialog

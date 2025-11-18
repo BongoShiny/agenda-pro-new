@@ -49,7 +49,8 @@ export default function NovoAgendamentoDialog({
   profissionais = [],
   unidades = [],
   servicos = [],
-  modoEdicao = false
+  modoEdicao = false,
+  agendamentos = []
 }) {
   // unidades já vem filtradas da página principal
   const [formData, setFormData] = useState({
@@ -74,6 +75,7 @@ export default function NovoAgendamentoDialog({
 
   const [clientePopoverAberto, setClientePopoverAberto] = useState(false);
   const [buscaCliente, setBuscaCliente] = useState("");
+  const [erroHorarioBloqueado, setErroHorarioBloqueado] = useState(false);
 
   useEffect(() => {
     if (open) {
@@ -159,6 +161,23 @@ export default function NovoAgendamentoDialog({
 
   const handleSubmit = () => {
     console.log("💾 DIALOG - Salvando com data:", formData.data);
+    
+    // Verificar se há bloqueio no horário
+    const horarioBloqueado = agendamentos.find(ag => 
+      ag.data === formData.data &&
+      ag.profissional_id === formData.profissional_id &&
+      ag.unidade_id === formData.unidade_id &&
+      ag.hora_inicio === formData.hora_inicio &&
+      (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") &&
+      ag.id !== formData.id
+    );
+
+    if (horarioBloqueado) {
+      setErroHorarioBloqueado(true);
+      setTimeout(() => setErroHorarioBloqueado(false), 3000);
+      return;
+    }
+    
     onSave(formData);
     onOpenChange(false);
   };
@@ -373,6 +392,17 @@ export default function NovoAgendamentoDialog({
             />
           </div>
         </div>
+
+        {erroHorarioBloqueado && (
+          <div className="bg-red-100 border-2 border-red-600 rounded-lg p-4 text-center animate-pulse">
+            <div className="text-red-800 font-bold text-lg mb-2">
+              🚫 HORÁRIO BLOQUEADO
+            </div>
+            <div className="text-red-700 text-sm">
+              Este horário está bloqueado e não pode ser agendado
+            </div>
+          </div>
+        )}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
