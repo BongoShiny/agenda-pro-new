@@ -140,14 +140,19 @@ export default function HistoricoAgendamentosPage() {
   const formatarDataHora = (dateString) => {
     try {
       const date = new Date(dateString);
-      return date.toLocaleString('pt-BR', { 
+      
+      // Formatar diretamente com Intl.DateTimeFormat para Brasília
+      const formatter = new Intl.DateTimeFormat('pt-BR', {
         timeZone: 'America/Sao_Paulo',
         day: '2-digit',
         month: '2-digit',
         year: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
-      }).replace(',', ' às');
+        minute: '2-digit',
+        hour12: false
+      });
+      
+      return formatter.format(date).replace(',', ' às');
     } catch {
       return "-";
     }
