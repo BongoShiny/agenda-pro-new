@@ -367,11 +367,11 @@ export default function AgendaDiaView({
                     </div>
                   );
                 })}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
+                </div>
+                ))}
+                </div>
+                </div>
+                </div>
 
       {/* Dialog para bloquear horários específicos */}
       <Dialog open={dialogBloquearAberto} onOpenChange={setDialogBloquearAberto}>
