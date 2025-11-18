@@ -369,10 +369,17 @@ export default function ConfiguracaoTerapeutasPage() {
             </div>
           </div>
 
-          <Button onClick={() => setDialogNovoAberto(true)} className="bg-blue-600 hover:bg-blue-700">
-            <UserPlus className="w-4 h-4 mr-2" />
-            Criar Novo Terapeuta
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setDialogNovoAberto(true)} className="bg-blue-600 hover:bg-blue-700">
+              <UserPlus className="w-4 h-4 mr-2" />
+              Criar Novo Terapeuta
+            </Button>
+            <Link to={createPageUrl("ConfigurarUnidades")}>
+              <Button variant="outline" className="border-blue-600 text-blue-600 hover:bg-blue-50">
+                Configurar Unidades
+              </Button>
+            </Link>
+          </div>
         </div>
 
         <Tabs defaultValue={unidades[0]?.id} onValueChange={setUnidadeSelecionada}>
