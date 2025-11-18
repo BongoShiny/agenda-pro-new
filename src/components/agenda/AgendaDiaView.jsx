@@ -223,13 +223,13 @@ export default function AgendaDiaView({
         </div>
       </div>
 
-      <ScrollArea className="h-[calc(100vh-200px)] md:h-[calc(100vh-240px)]">
-        <div className="flex">
-          <div className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200 bg-gray-50">
+      <div className="h-[calc(100vh-200px)] md:h-[calc(100vh-240px)] overflow-x-auto overflow-y-auto">
+        <div className="flex min-w-max">
+          <div className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200 bg-gray-50 sticky left-0 z-10">
             {todosHorarios.map((horario) => (
               <div
                 key={horario}
-                className="h-16 md:h-20 flex items-start justify-center pt-1 text-[10px] md:text-xs text-gray-600 font-semibold border-b border-gray-200"
+                className="h-16 md:h-20 flex items-start justify-center pt-1 text-[10px] md:text-xs text-gray-600 font-semibold border-b border-gray-200 bg-gray-50"
               >
                 {horario}
               </div>
