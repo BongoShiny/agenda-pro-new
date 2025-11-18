@@ -458,6 +458,19 @@ export default function AgendaPage() {
 
     console.log("📅 DATA DO BLOQUEIO (formatada PURA):", dataFormatada);
 
+    // Verificar se já existe um bloqueio neste exato horário
+    const bloqueioExistente = agendamentos.find(ag => 
+      ag.data === dataFormatada &&
+      ag.profissional_id === profissionalId &&
+      ag.hora_inicio === horario &&
+      (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO")
+    );
+
+    if (bloqueioExistente) {
+      alert("⚠️ Este horário já está bloqueado!");
+      return;
+    }
+
     // Verificar se já existe algum agendamento (não bloqueio) neste horário
     const agendamentoExistente = agendamentos.find(ag => 
       ag.data === dataFormatada &&
