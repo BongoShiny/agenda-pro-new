@@ -23,12 +23,14 @@ export default function ConfigurarUnidadesPage() {
   const [novaUnidade, setNovaUnidade] = useState({
     nome: "",
     endereco: "",
+    link_google_maps: "",
     cor: "#3B82F6",
     ativa: true
   });
   const [dadosEditados, setDadosEditados] = useState({
     nome: "",
     endereco: "",
+    link_google_maps: "",
     cor: "#3B82F6"
   });
 
@@ -72,6 +74,7 @@ export default function ConfigurarUnidadesPage() {
     setDadosEditados({
       nome: unidade.nome,
       endereco: unidade.endereco || "",
+      link_google_maps: unidade.link_google_maps || "",
       cor: unidade.cor || "#3B82F6"
     });
   };
@@ -133,6 +136,14 @@ export default function ConfigurarUnidadesPage() {
                         value={dadosEditados.endereco}
                         onChange={(e) => setDadosEditados(prev => ({ ...prev, endereco: e.target.value }))}
                         placeholder="Endereço completo"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Link do Google Maps</Label>
+                      <Input
+                        value={dadosEditados.link_google_maps}
+                        onChange={(e) => setDadosEditados(prev => ({ ...prev, link_google_maps: e.target.value }))}
+                        placeholder="Cole o link do Google Maps aqui"
                       />
                     </div>
                     <div className="space-y-2">
@@ -230,6 +241,15 @@ export default function ConfigurarUnidadesPage() {
                 value={novaUnidade.endereco}
                 onChange={(e) => setNovaUnidade(prev => ({ ...prev, endereco: e.target.value }))}
                 placeholder="Endereço completo da unidade"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Link do Google Maps</Label>
+              <Input
+                value={novaUnidade.link_google_maps}
+                onChange={(e) => setNovaUnidade(prev => ({ ...prev, link_google_maps: e.target.value }))}
+                placeholder="Cole o link do Google Maps aqui"
               />
             </div>
 
