@@ -63,6 +63,8 @@ export default function ConfiguracaoTerapeutasPage() {
   const [profissionalExcecao, setProfissionalExcecao] = useState(null);
   const [novaExcecao, setNovaExcecao] = useState({
     data: "",
+    data_inicio: "",
+    data_fim: "",
     horario_inicio: "08:00",
     horario_fim: "18:00",
     motivo: "",
@@ -712,22 +714,61 @@ export default function ConfiguracaoTerapeutasPage() {
               <Label className="font-semibold">Marcar Folga</Label>
               <p className="text-xs text-gray-600">Use esta opção para marcar um dia inteiro como folga do terapeuta</p>
               
-              <div className="space-y-2">
-                <Label className="text-sm">Data da Folga *</Label>
-                <Input
-                  type="date"
-                  value={novaExcecao.data}
-                  onChange={(e) => setNovaExcecao(prev => ({ ...prev, data: e.target.value }))}
-                />
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-2">
+                  <Label className="text-sm">Data Início *</Label>
+                  <Input
+                    type="date"
+                    value={novaExcecao.data_inicio}
+                    onChange={(e) => setNovaExcecao(prev => ({ ...prev, data_inicio: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm">Data Fim *</Label>
+                  <Input
+                    type="date"
+                    value={novaExcecao.data_fim}
+                    onChange={(e) => setNovaExcecao(prev => ({ ...prev, data_fim: e.target.value }))}
+                  />
+                </div>
               </div>
 
               <div className="flex gap-2">
                 <Button 
-                  onClick={() => {
-                    setNovaExcecao(prev => ({ ...prev, tipo: "folga" }));
-                    handleCriarExcecao();
+                  onClick={async () => {
+                    if (!novaExcecao.data_inicio || !novaExcecao.data_fim || !profissionalExcecao) return;
+                    
+                    const dataInicio = new Date(novaExcecao.data_inicio + 'T12:00:00');
+                    const dataFim = new Date(novaExcecao.data_fim + 'T12:00:00');
+                    
+                    if (dataInicio > dataFim) {
+                      alert("A data de início deve ser anterior ou igual à data de fim");
+                      return;
+                    }
+                    
+                    // Criar folgas para cada dia no período
+                    const promises = [];
+                    const currentDate = new Date(dataInicio);
+                    
+                    while (currentDate <= dataFim) {
+                      const dataStr = currentDate.toISOString().split('T')[0];
+                      promises.push(
+                        base44.entities.HorarioExcecao.create({
+                          profissional_id: profissionalExcecao.id,
+                          data: dataStr,
+                          horario_inicio: "00:00",
+                          horario_fim: "00:00",
+                          motivo: "Folga"
+                        })
+                      );
+                      currentDate.setDate(currentDate.getDate() + 1);
+                    }
+                    
+                    await Promise.all(promises);
+                    queryClient.invalidateQueries({ queryKey: ['excecoes-horario'] });
+                    setNovaExcecao(prev => ({ ...prev, data_inicio: "", data_fim: "" }));
                   }}
-                  disabled={!novaExcecao.data}
+                  disabled={!novaExcecao.data_inicio || !novaExcecao.data_fim}
                   className="flex-1 bg-orange-600 hover:bg-orange-700"
                 >
                   📅 Marcar como Folga
