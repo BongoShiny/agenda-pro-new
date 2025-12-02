@@ -247,7 +247,7 @@ export default function RelatoriosClientesPage() {
       getValorCelula(ag, "sessoes_feitas")
     ]);
 
-    const csv = [headers, ...linhas].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
+    const csv = [headers, ...linhas].map(row => row.map(cell => `"${cell || ""}"`).join(";")).join("\n");
     const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
