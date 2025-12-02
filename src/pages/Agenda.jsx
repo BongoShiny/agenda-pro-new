@@ -8,6 +8,8 @@ import AgendaFilters from "../components/agenda/AgendaFilters";
 import AgendaDiaView from "../components/agenda/AgendaDiaView";
 import NovoAgendamentoDialog from "../components/agenda/NovoAgendamentoDialog";
 import DetalhesAgendamentoDialog from "../components/agenda/DetalhesAgendamentoDialog";
+import { Button } from "@/components/ui/button";
+import { Filter, X } from "lucide-react";
 
 // ============================================
 // FUNÇÕES UNIVERSAIS DE DATA - USAR EM TODOS OS ARQUIVOS
@@ -130,6 +132,7 @@ export default function AgendaPage() {
   const [filters, setFilters] = useState({});
   const [unidadeSelecionada, setUnidadeSelecionada] = useState(null);
   const [usuarioAtual, setUsuarioAtual] = useState(null);
+  const [filtrosAbertos, setFiltrosAbertos] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -812,19 +815,42 @@ export default function AgendaPage() {
         usuarioAtual={usuarioAtual}
       />
 
-      <div className="flex-1 flex overflow-hidden">
-        {/* Filtros: Desktop sempre visível, Mobile escondido */}
-        <div className="hidden lg:block">
+      <div className="flex-1 flex overflow-hidden relative">
+        {/* Botão para abrir filtros no mobile */}
+        <Button
+          variant="outline"
+          size="sm"
+          className="lg:hidden fixed bottom-4 left-4 z-50 bg-white shadow-lg border-blue-300"
+          onClick={() => setFiltrosAbertos(!filtrosAbertos)}
+        >
+          {filtrosAbertos ? <X className="w-4 h-4 mr-2" /> : <Filter className="w-4 h-4 mr-2" />}
+          {filtrosAbertos ? "Fechar" : "Filtros"}
+        </Button>
+
+        {/* Filtros: Desktop sempre visível, Mobile com toggle */}
+        <div className={`
+          ${filtrosAbertos ? 'block' : 'hidden'} lg:block
+          absolute lg:relative z-40 lg:z-auto
+          h-full
+        `}>
           <AgendaFilters
-                        filters={filters}
-                        onFilterChange={handleFilterChange}
-                        clientes={clientes}
-                        profissionais={profissionais}
-                        servicos={servicos}
-                        unidades={unidades}
-                        agendamentos={agendamentos}
-                      />
+            filters={filters}
+            onFilterChange={handleFilterChange}
+            clientes={clientes}
+            profissionais={profissionais}
+            servicos={servicos}
+            unidades={unidades}
+            agendamentos={agendamentos}
+          />
         </div>
+
+        {/* Overlay para fechar filtros no mobile */}
+        {filtrosAbertos && (
+          <div 
+            className="lg:hidden fixed inset-0 bg-black/30 z-30"
+            onClick={() => setFiltrosAbertos(false)}
+          />
+        )}
 
         {unidadeAtual && (
           <AgendaDiaView
