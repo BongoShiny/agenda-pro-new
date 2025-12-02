@@ -233,6 +233,25 @@ export default function AgendaPage() {
         usuario: usuarioAtual?.email
       });
       
+      // Se cliente não existe no sistema, criar automaticamente
+      if (dados.cliente_nome && !dados.cliente_id) {
+        const clienteExistente = clientes.find(c => 
+          c.nome.toLowerCase() === dados.cliente_nome.toLowerCase()
+        );
+        
+        if (!clienteExistente) {
+          console.log("👤 Criando novo cliente:", dados.cliente_nome);
+          const novoCliente = await base44.entities.Cliente.create({
+            nome: dados.cliente_nome,
+            telefone: dados.cliente_telefone || ""
+          });
+          dados.cliente_id = novoCliente.id;
+          queryClient.invalidateQueries({ queryKey: ['clientes'] });
+        } else {
+          dados.cliente_id = clienteExistente.id;
+        }
+      }
+      
       // Adicionar email do criador no campo customizado
       const dadosComCriador = {
         ...dados,
