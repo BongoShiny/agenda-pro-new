@@ -203,8 +203,7 @@ export default function AgendaDiaView({
         <div className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200 bg-white"></div>
         <div 
           ref={headerScrollRef}
-          onScroll={handleHeaderScroll}
-          className="flex-1 overflow-x-auto scrollbar-thin"
+          className="flex-1 overflow-x-hidden"
         >
           <div className="flex min-w-max">
             {terapeutasAtivos.map(terapeuta => {
