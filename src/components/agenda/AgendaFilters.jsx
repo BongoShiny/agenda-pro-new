@@ -1,14 +1,15 @@
-import React from "react";
+import React, { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
-import { Search, Calendar as CalendarIcon, Filter, X } from "lucide-react";
+import { Search, Calendar as CalendarIcon, Filter, X, History } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import HistoricoClienteDialog from "./HistoricoClienteDialog";
 
 // Mesma lógica em todos os componentes
 const formatarDataPura = (data) => {
@@ -30,8 +31,11 @@ export default function AgendaFilters({
   clientes = [],
   profissionais = [],
   servicos = [],
-  unidades = []
+  unidades = [],
+  agendamentos = []
 }) {
+  const [historicoAberto, setHistoricoAberto] = useState(false);
+
   const handleDataChange = (date) => {
     if (date) {
       const dataFormatada = formatarDataPura(date);
@@ -150,6 +154,16 @@ export default function AgendaFilters({
             </Select>
           </div>
 
+          {filters.cliente && (
+            <Button
+              className="w-full h-11 bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={() => setHistoricoAberto(true)}
+            >
+              <History className="w-4 h-4 mr-2" />
+              Ver Histórico do Cliente
+            </Button>
+          )}
+
           {(filters.cliente || filters.unidade || filters.profissional || filters.servico || filters.status || filters.data) && (
             <Button
               variant="outline"
@@ -162,6 +176,13 @@ export default function AgendaFilters({
           )}
         </div>
       </div>
+
+      <HistoricoClienteDialog
+        open={historicoAberto}
+        onOpenChange={setHistoricoAberto}
+        clienteBusca={filters.cliente}
+        agendamentos={agendamentos}
+      />
     </div>
   );
 }
