@@ -3,6 +3,7 @@ import ConfiguracaoTerapeutas from './pages/ConfiguracaoTerapeutas';
 import GerenciarUsuarios from './pages/GerenciarUsuarios';
 import HistoricoAgendamentos from './pages/HistoricoAgendamentos';
 import ConfigurarUnidades from './pages/ConfigurarUnidades';
+import Administrador from './pages/Administrador';
 
 
 export const PAGES = {
@@ -11,6 +12,7 @@ export const PAGES = {
     "GerenciarUsuarios": GerenciarUsuarios,
     "HistoricoAgendamentos": HistoricoAgendamentos,
     "ConfigurarUnidades": ConfigurarUnidades,
+    "Administrador": Administrador,
 }
 
 export const pagesConfig = {

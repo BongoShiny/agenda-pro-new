@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, Settings, Users, FileText } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, ShieldCheck } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -152,20 +152,11 @@ export default function AgendaHeader({
           </div>
 
           {isAdmin && (
-            <div className="flex items-center gap-2 overflow-x-auto">
-              <Link to={createPageUrl("GerenciarUsuarios")}>
-                <Button variant="outline" size="sm">
-                  <Users className="w-4 h-4" />
-                </Button>
-              </Link>
-              <Link to={createPageUrl("ConfiguracaoTerapeutas")}>
-                <Button variant="outline" size="sm">
-                  <Settings className="w-4 h-4" />
-                </Button>
-              </Link>
-              <Link to={createPageUrl("HistoricoAgendamentos")}>
-                <Button variant="outline" size="sm">
-                  <FileText className="w-4 h-4" />
+            <div className="flex items-center gap-2">
+              <Link to={createPageUrl("Administrador")}>
+                <Button variant="outline" size="sm" className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100">
+                  <ShieldCheck className="w-4 h-4 mr-1" />
+                  Admin
                 </Button>
               </Link>
             </div>
@@ -220,28 +211,12 @@ export default function AgendaHeader({
 
           <div className="flex items-center gap-3">
             {isAdmin && (
-              <>
-                <Link to={createPageUrl("GerenciarUsuarios")}>
-                  <Button variant="outline">
-                    <Users className="w-4 h-4 mr-2" />
-                    Usuários
-                  </Button>
-                </Link>
-
-                <Link to={createPageUrl("ConfiguracaoTerapeutas")}>
-                  <Button variant="outline">
-                    <Settings className="w-4 h-4 mr-2" />
-                    Configurar Terapeutas
-                  </Button>
-                </Link>
-
-                <Link to={createPageUrl("HistoricoAgendamentos")}>
-                  <Button variant="outline">
-                    <FileText className="w-4 h-4 mr-2" />
-                    Histórico
-                  </Button>
-                </Link>
-              </>
+              <Link to={createPageUrl("Administrador")}>
+                <Button variant="outline" className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100">
+                  <ShieldCheck className="w-4 h-4 mr-2" />
+                  Administrador
+                </Button>
+              </Link>
             )}
             
             <Button 
