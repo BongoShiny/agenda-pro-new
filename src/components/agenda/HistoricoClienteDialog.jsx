@@ -45,10 +45,21 @@ export default function HistoricoClienteDialog({
       if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
       
       const buscaLower = clienteBusca.toLowerCase();
-      return (
+      const matchCliente = (
         ag.cliente_nome?.toLowerCase().includes(buscaLower) ||
         ag.cliente_telefone?.toLowerCase().includes(buscaLower)
       );
+      
+      if (!matchCliente) return false;
+      
+      // Aplicar filtros adicionais se estiverem ativos
+      if (filtroUnidade && ag.unidade_id !== filtroUnidade) return false;
+      if (filtroProfissional && ag.profissional_id !== filtroProfissional) return false;
+      if (filtroServico && ag.servico_id !== filtroServico) return false;
+      if (filtroStatus && ag.status !== filtroStatus) return false;
+      if (filtroData && ag.data !== filtroData) return false;
+      
+      return true;
     })
     .sort((a, b) => {
       // Ordenar por data mais recente
