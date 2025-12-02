@@ -4,6 +4,7 @@ import GerenciarUsuarios from './pages/GerenciarUsuarios';
 import HistoricoAgendamentos from './pages/HistoricoAgendamentos';
 import ConfigurarUnidades from './pages/ConfigurarUnidades';
 import Administrador from './pages/Administrador';
+import RelatoriosClientes from './pages/RelatoriosClientes';
 
 
 export const PAGES = {
@@ -13,6 +14,7 @@ export const PAGES = {
     "HistoricoAgendamentos": HistoricoAgendamentos,
     "ConfigurarUnidades": ConfigurarUnidades,
     "Administrador": Administrador,
+    "RelatoriosClientes": RelatoriosClientes,
 }
 
 export const pagesConfig = {
