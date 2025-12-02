@@ -816,13 +816,14 @@ export default function AgendaPage() {
         {/* Filtros: Desktop sempre visível, Mobile escondido */}
         <div className="hidden lg:block">
           <AgendaFilters
-            filters={filters}
-            onFilterChange={handleFilterChange}
-            clientes={clientes}
-            profissionais={profissionais}
-            servicos={servicos}
-            unidades={unidades}
-          />
+                        filters={filters}
+                        onFilterChange={handleFilterChange}
+                        clientes={clientes}
+                        profissionais={profissionais}
+                        servicos={servicos}
+                        unidades={unidades}
+                        agendamentos={agendamentos}
+                      />
         </div>
 
         {unidadeAtual && (
