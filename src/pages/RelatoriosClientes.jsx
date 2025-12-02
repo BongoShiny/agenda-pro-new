@@ -138,7 +138,7 @@ export default function RelatoriosClientesPage() {
   };
 
   const exportarCSV = () => {
-    const headers = ["Cliente", "Telefone", "Profissional", "Serviço", "Unidade", "Data", "Horário", "Status"];
+    const headers = ["Cliente", "Telefone", "Profissional", "Serviço", "Unidade", "Data", "Horário", "Status", "Equipamento"];
     const linhas = agendamentosFiltrados.map(ag => [
       ag.cliente_nome || "",
       ag.cliente_telefone || "",
@@ -147,7 +147,8 @@ export default function RelatoriosClientesPage() {
       ag.unidade_nome || "",
       ag.data || "",
       `${ag.hora_inicio || ""} - ${ag.hora_fim || ""}`,
-      statusLabels[ag.status]?.label || ag.status || ""
+      statusLabels[ag.status]?.label || ag.status || "",
+      ag.equipamento || ""
     ]);
 
     const csv = [headers, ...linhas].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
@@ -294,12 +295,13 @@ export default function RelatoriosClientesPage() {
                       Status <SortIcon campo="status" />
                     </button>
                   </th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-700">Equipamento</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {agendamentosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
                       Nenhum agendamento encontrado
                     </td>
                   </tr>
@@ -320,6 +322,7 @@ export default function RelatoriosClientesPage() {
                           {statusLabels[ag.status]?.label || ag.status}
                         </span>
                       </td>
+                      <td className="px-4 py-3 text-gray-600">{ag.equipamento || "-"}</td>
                     </tr>
                   ))
                 )}

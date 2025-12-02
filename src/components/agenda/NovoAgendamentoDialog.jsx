@@ -388,11 +388,20 @@ export default function NovoAgendamentoDialog({
 
           <div className="space-y-2">
             <Label>Equipamento</Label>
-            <Input
-              value={formData.equipamento}
-              onChange={(e) => setFormData(prev => ({ ...prev, equipamento: e.target.value }))}
-              placeholder="Equipamento necessário"
-            />
+            <Select value={formData.equipamento || ""} onValueChange={(value) => setFormData(prev => ({ ...prev, equipamento: value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o equipamento..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="AVULSA">AVULSA</SelectItem>
+                <SelectItem value="FUNCIONÁRIO">FUNCIONÁRIO</SelectItem>
+                <SelectItem value="PACOTE">PACOTE</SelectItem>
+                <SelectItem value="PACOTE DE OUTRO CLIENTE">PACOTE DE OUTRO CLIENTE</SelectItem>
+                <SelectItem value="PRIMEIRA SESSÃO DO PACOTE">PRIMEIRA SESSÃO DO PACOTE</SelectItem>
+                <SelectItem value="ÚLTIMA SESSÃO DO PACOTE">ÚLTIMA SESSÃO DO PACOTE</SelectItem>
+                <SelectItem value="VOUCHER">VOUCHER</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="col-span-2 space-y-2">
