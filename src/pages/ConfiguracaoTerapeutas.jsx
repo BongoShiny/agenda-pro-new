@@ -180,32 +180,69 @@ export default function ConfiguracaoTerapeutasPage() {
   const handleCriarNovoProfissional = async () => {
     if (!novoProfissional.nome) return;
     
-    await criarProfissionalMutation.mutateAsync({
+    const resultado = await criarProfissionalMutation.mutateAsync({
       nome: novoProfissional.nome,
       especialidade: novoProfissional.especialidade || "Terapeuta",
       horario_inicio: novoProfissional.horario_inicio || "08:00",
       horario_fim: novoProfissional.horario_fim || "18:00",
       ativo: true
     });
+
+    // Registrar log
+    await base44.entities.LogAcao.create({
+      tipo: "criou_terapeuta",
+      usuario_email: usuarioAtual?.email || "sistema",
+      descricao: `Criou terapeuta: ${novoProfissional.nome}`,
+      entidade_tipo: "Profissional",
+      entidade_id: resultado.id,
+      dados_novos: JSON.stringify(resultado)
+    });
   };
 
   const handleAdicionarTerapeuta = async (unidadeId, profissionalId) => {
     const configs = getConfiguracoesUnidade(unidadeId);
     const ordem = configs.length;
+    const profissional = profissionais.find(p => p.id === profissionalId);
+    const unidade = unidades.find(u => u.id === unidadeId);
+    
     await criarConfiguracaoMutation.mutateAsync({
       unidade_id: unidadeId,
       profissional_id: profissionalId,
       ordem,
       ativo: true
     });
+
+    // Registrar log
+    await base44.entities.LogAcao.create({
+      tipo: "editou_terapeuta",
+      usuario_email: usuarioAtual?.email || "sistema",
+      descricao: `Adicionou terapeuta ${profissional?.nome} à unidade ${unidade?.nome}`,
+      entidade_tipo: "ConfiguracaoTerapeuta",
+      dados_novos: JSON.stringify({ profissional: profissional?.nome, unidade: unidade?.nome })
+    });
   };
 
   const handleToggleAtivo = async (config) => {
     if (!config || !config.id) return;
     try {
+      const profissional = profissionais.find(p => p.id === config.profissional_id);
+      const unidade = unidades.find(u => u.id === config.unidade_id);
+      const novoStatus = !config.ativo;
+      
       await atualizarConfiguracaoMutation.mutateAsync({
         id: config.id,
-        dados: { ...config, ativo: !config.ativo }
+        dados: { ...config, ativo: novoStatus }
+      });
+
+      // Registrar log
+      await base44.entities.LogAcao.create({
+        tipo: "editou_terapeuta",
+        usuario_email: usuarioAtual?.email || "sistema",
+        descricao: `${novoStatus ? 'Ativou' : 'Desativou'} terapeuta ${profissional?.nome} na unidade ${unidade?.nome}`,
+        entidade_tipo: "ConfiguracaoTerapeuta",
+        entidade_id: config.id,
+        dados_antigos: JSON.stringify({ ativo: config.ativo }),
+        dados_novos: JSON.stringify({ ativo: novoStatus })
       });
     } catch (error) {
       console.error("Erro ao atualizar configuração:", error);
@@ -217,7 +254,19 @@ export default function ConfiguracaoTerapeutasPage() {
     const config = configuracoes.find(c => c.profissional_id === profissionalId && c.unidade_id === unidadeId);
     if (config && config.id) {
       try {
+        const profissional = profissionais.find(p => p.id === profissionalId);
+        const unidade = unidades.find(u => u.id === unidadeId);
+        
         await deletarConfiguracaoMutation.mutateAsync(config.id);
+
+        // Registrar log
+        await base44.entities.LogAcao.create({
+          tipo: "editou_terapeuta",
+          usuario_email: usuarioAtual?.email || "sistema",
+          descricao: `Removeu terapeuta ${profissional?.nome} da unidade ${unidade?.nome}`,
+          entidade_tipo: "ConfiguracaoTerapeuta",
+          dados_antigos: JSON.stringify({ profissional: profissional?.nome, unidade: unidade?.nome })
+        });
       } catch (error) {
         console.error("Erro ao remover da unidade:", error);
         queryClient.invalidateQueries({ queryKey: ['configuracoes'] });
@@ -236,6 +285,7 @@ export default function ConfiguracaoTerapeutasPage() {
     try {
       // Primeiro, deletar todas as configurações deste profissional em todas as unidades
       const configsDoProfissional = configuracoes.filter(c => c.profissional_id === profissionalParaExcluir.id);
+      const unidadesRemovidas = configsDoProfissional.map(c => unidades.find(u => u.id === c.unidade_id)?.nome).filter(Boolean);
       
       for (const config of configsDoProfissional) {
         if (config && config.id) {
@@ -249,6 +299,20 @@ export default function ConfiguracaoTerapeutasPage() {
 
       // Depois, deletar o profissional
       await deletarProfissionalMutation.mutateAsync(profissionalParaExcluir.id);
+
+      // Registrar log
+      await base44.entities.LogAcao.create({
+        tipo: "excluiu_terapeuta",
+        usuario_email: usuarioAtual?.email || "sistema",
+        descricao: `Excluiu permanentemente o terapeuta: ${profissionalParaExcluir.nome}`,
+        entidade_tipo: "Profissional",
+        entidade_id: profissionalParaExcluir.id,
+        dados_antigos: JSON.stringify({ 
+          nome: profissionalParaExcluir.nome, 
+          especialidade: profissionalParaExcluir.especialidade,
+          unidades: unidadesRemovidas
+        })
+      });
 
       setAlertExcluirAberto(false);
       setProfissionalParaExcluir(null);
@@ -295,9 +359,27 @@ export default function ConfiguracaoTerapeutasPage() {
 
   const handleSalvarProfissional = async (profissionalId) => {
     const profissional = profissionais.find(p => p.id === profissionalId);
+    const dadosAntigos = {
+      nome: profissional.nome,
+      especialidade: profissional.especialidade,
+      horario_inicio: profissional.horario_inicio,
+      horario_fim: profissional.horario_fim
+    };
+    
     await atualizarProfissionalMutation.mutateAsync({
       id: profissionalId,
       dados: { ...profissional, ...dadosEditados }
+    });
+
+    // Registrar log
+    await base44.entities.LogAcao.create({
+      tipo: "editou_terapeuta",
+      usuario_email: usuarioAtual?.email || "sistema",
+      descricao: `Editou dados do terapeuta: ${dadosEditados.nome || profissional.nome}`,
+      entidade_tipo: "Profissional",
+      entidade_id: profissionalId,
+      dados_antigos: JSON.stringify(dadosAntigos),
+      dados_novos: JSON.stringify(dadosEditados)
     });
   };
 
@@ -319,12 +401,22 @@ export default function ConfiguracaoTerapeutasPage() {
     const horarioFim = novaExcecao.tipo === "folga" ? "00:00" : novaExcecao.horario_fim;
     const motivo = novaExcecao.tipo === "folga" ? "Folga" : novaExcecao.motivo;
     
-    await criarExcecaoMutation.mutateAsync({
+    const resultado = await criarExcecaoMutation.mutateAsync({
       profissional_id: profissionalExcecao.id,
       data: novaExcecao.data,
       horario_inicio: horarioInicio,
       horario_fim: horarioFim,
       motivo: motivo
+    });
+
+    // Registrar log
+    await base44.entities.LogAcao.create({
+      tipo: "criou_excecao_horario",
+      usuario_email: usuarioAtual?.email || "sistema",
+      descricao: `Criou exceção de horário para ${profissionalExcecao.nome}: ${novaExcecao.data} (${horarioInicio}-${horarioFim})`,
+      entidade_tipo: "HorarioExcecao",
+      entidade_id: resultado.id,
+      dados_novos: JSON.stringify({ profissional: profissionalExcecao.nome, data: novaExcecao.data, horario_inicio: horarioInicio, horario_fim: horarioFim, motivo })
     });
   };
 
@@ -771,6 +863,16 @@ export default function ConfiguracaoTerapeutasPage() {
                   }
                   
                   await Promise.all(promises);
+                  
+                  // Registrar log
+                  await base44.entities.LogAcao.create({
+                    tipo: "criou_excecao_horario",
+                    usuario_email: usuarioAtual?.email || "sistema",
+                    descricao: `Marcou folga para ${profissionalExcecao.nome}: ${novaExcecao.data_inicio} até ${novaExcecao.data_fim}`,
+                    entidade_tipo: "HorarioExcecao",
+                    dados_novos: JSON.stringify({ profissional: profissionalExcecao.nome, data_inicio: novaExcecao.data_inicio, data_fim: novaExcecao.data_fim, tipo: "Folga" })
+                  });
+                  
                   queryClient.invalidateQueries({ queryKey: ['excecoes-horario'] });
                   setNovaExcecao(prev => ({ ...prev, data_inicio: "", data_fim: "" }));
                 }}
@@ -819,13 +921,24 @@ export default function ConfiguracaoTerapeutasPage() {
                         )}
                       </div>
                       <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deletarExcecaoMutation.mutate(excecao.id)}
-                        className="hover:bg-red-50"
-                      >
-                        <Trash2 className="w-4 h-4 text-red-500" />
-                      </Button>
+                                                            variant="ghost"
+                                                            size="icon"
+                                                            onClick={async () => {
+                                                              await deletarExcecaoMutation.mutateAsync(excecao.id);
+                                                              // Registrar log
+                                                              await base44.entities.LogAcao.create({
+                                                                tipo: "excluiu_excecao_horario",
+                                                                usuario_email: usuarioAtual?.email || "sistema",
+                                                                descricao: `Excluiu exceção de horário de ${profissionalExcecao?.nome}: ${excecao.data}`,
+                                                                entidade_tipo: "HorarioExcecao",
+                                                                entidade_id: excecao.id,
+                                                                dados_antigos: JSON.stringify(excecao)
+                                                              });
+                                                            }}
+                                                            className="hover:bg-red-50"
+                                                          >
+                                                            <Trash2 className="w-4 h-4 text-red-500" />
+                                                          </Button>
                     </div>
                   );
                 })}
