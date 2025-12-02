@@ -33,6 +33,22 @@ export default function AgendaDiaView({
     hora_inicio: "08:00",
     hora_fim: "10:00"
   });
+  
+  const headerScrollRef = React.useRef(null);
+  const bodyScrollRef = React.useRef(null);
+  
+  // Sincronizar scroll horizontal entre header e body
+  const handleHeaderScroll = (e) => {
+    if (bodyScrollRef.current) {
+      bodyScrollRef.current.scrollLeft = e.target.scrollLeft;
+    }
+  };
+  
+  const handleBodyScroll = (e) => {
+    if (headerScrollRef.current) {
+      headerScrollRef.current.scrollLeft = e.target.scrollLeft;
+    }
+  };
 
   // Gerar horários de 08:00 até 21:00 (apenas horários cheios)
   const gerarTodosHorarios = () => {
