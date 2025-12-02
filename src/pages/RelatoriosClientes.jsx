@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Link, useNavigate } from "react-router-dom";
@@ -12,8 +12,12 @@ import {
   FileSpreadsheet,
   ArrowUpDown,
   ChevronUp,
-  ChevronDown
+  ChevronDown,
+  Edit,
+  Eye,
+  Save
 } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -34,7 +38,10 @@ export default function RelatoriosClientesPage() {
   const [filtroUnidade, setFiltroUnidade] = useState("todos");
   const [filtroServico, setFiltroServico] = useState("todos");
   const [filtroEquipamento, setFiltroEquipamento] = useState("todos");
+  const [modoEditor, setModoEditor] = useState(false);
+  const [dadosEditados, setDadosEditados] = useState({});
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const carregarUsuario = async () => {
@@ -157,18 +164,55 @@ export default function RelatoriosClientesPage() {
     concluido: { label: "Concluído", cor: "bg-blue-100 text-blue-800" },
   };
 
+  const atualizarAgendamentoMutation = useMutation({
+    mutationFn: async ({ id, dados }) => {
+      return await base44.entities.Agendamento.update(id, dados);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agendamentos-relatorio'] });
+    },
+  });
+
+  const handleEditarCelula = (agendamentoId, campo, valor) => {
+    setDadosEditados(prev => ({
+      ...prev,
+      [agendamentoId]: {
+        ...prev[agendamentoId],
+        [campo]: valor
+      }
+    }));
+  };
+
+  const salvarAlteracoes = async () => {
+    const promises = Object.entries(dadosEditados).map(([id, dados]) => {
+      return atualizarAgendamentoMutation.mutateAsync({ id, dados });
+    });
+    
+    await Promise.all(promises);
+    setDadosEditados({});
+    setModoEditor(false);
+    alert("✅ Alterações salvas com sucesso!");
+  };
+
+  const getValorCelula = (ag, campo) => {
+    if (dadosEditados[ag.id]?.[campo] !== undefined) {
+      return dadosEditados[ag.id][campo];
+    }
+    return ag[campo] || "";
+  };
+
   const exportarCSV = () => {
     const headers = ["Cliente", "Telefone", "Profissional", "Serviço", "Unidade", "Data", "Horário", "Status", "Equipamento"];
     const linhas = agendamentosFiltrados.map(ag => [
-      ag.cliente_nome || "",
-      ag.cliente_telefone || "",
-      ag.profissional_nome || "",
-      ag.servico_nome || "",
-      ag.unidade_nome || "",
-      ag.data || "",
+      getValorCelula(ag, "cliente_nome"),
+      getValorCelula(ag, "cliente_telefone"),
+      getValorCelula(ag, "profissional_nome"),
+      getValorCelula(ag, "servico_nome"),
+      getValorCelula(ag, "unidade_nome"),
+      ag.data ? format(new Date(ag.data + "T12:00:00"), "dd/MM/yyyy", { locale: ptBR }) : "",
       `${ag.hora_inicio || ""} - ${ag.hora_fim || ""}`,
       statusLabels[ag.status]?.label || ag.status || "",
-      ag.equipamento || ""
+      getValorCelula(ag, "equipamento")
     ]);
 
     const csv = [headers, ...linhas].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
@@ -213,10 +257,42 @@ export default function RelatoriosClientesPage() {
               <p className="text-sm text-gray-500">{agendamentosFiltrados.length} agendamentos encontrados</p>
             </div>
           </div>
-          <Button onClick={exportarCSV} className="bg-green-600 hover:bg-green-700">
-            <Download className="w-4 h-4 mr-2" />
-            Exportar CSV
-          </Button>
+          <div className="flex items-center gap-2">
+            {modoEditor ? (
+              <>
+                <Button 
+                  onClick={salvarAlteracoes} 
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={Object.keys(dadosEditados).length === 0}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  Salvar
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setModoEditor(false);
+                    setDadosEditados({});
+                  }}
+                >
+                  <Eye className="w-4 h-4 mr-2" />
+                  Modo Visual
+                </Button>
+              </>
+            ) : (
+              <Button 
+                variant="outline" 
+                onClick={() => setModoEditor(true)}
+              >
+                <Edit className="w-4 h-4 mr-2" />
+                Modo Editor
+              </Button>
+            )}
+            <Button onClick={exportarCSV} className="bg-green-600 hover:bg-green-700">
+              <Download className="w-4 h-4 mr-2" />
+              Exportar CSV
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -352,21 +428,95 @@ export default function RelatoriosClientesPage() {
                 ) : (
                   agendamentosFiltrados.map((ag, idx) => (
                     <tr key={ag.id} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
-                      <td className="px-4 py-3 font-medium text-gray-900">{ag.cliente_nome}</td>
-                      <td className="px-4 py-3 text-gray-600">{ag.cliente_telefone || "-"}</td>
-                      <td className="px-4 py-3 text-gray-600">{ag.profissional_nome}</td>
-                      <td className="px-4 py-3 text-gray-600">{ag.servico_nome || "-"}</td>
-                      <td className="px-4 py-3 text-gray-600">{ag.unidade_nome}</td>
+                      <td className="px-4 py-3 font-medium text-gray-900">
+                        {modoEditor ? (
+                          <Input
+                            value={getValorCelula(ag, "cliente_nome")}
+                            onChange={(e) => handleEditarCelula(ag.id, "cliente_nome", e.target.value)}
+                            className="h-8 text-sm"
+                          />
+                        ) : ag.cliente_nome}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {modoEditor ? (
+                          <Input
+                            value={getValorCelula(ag, "cliente_telefone")}
+                            onChange={(e) => handleEditarCelula(ag.id, "cliente_telefone", e.target.value)}
+                            className="h-8 text-sm"
+                          />
+                        ) : ag.cliente_telefone || "-"}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {modoEditor ? (
+                          <Input
+                            value={getValorCelula(ag, "profissional_nome")}
+                            onChange={(e) => handleEditarCelula(ag.id, "profissional_nome", e.target.value)}
+                            className="h-8 text-sm"
+                          />
+                        ) : ag.profissional_nome}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {modoEditor ? (
+                          <Input
+                            value={getValorCelula(ag, "servico_nome")}
+                            onChange={(e) => handleEditarCelula(ag.id, "servico_nome", e.target.value)}
+                            className="h-8 text-sm"
+                          />
+                        ) : ag.servico_nome || "-"}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {modoEditor ? (
+                          <Input
+                            value={getValorCelula(ag, "unidade_nome")}
+                            onChange={(e) => handleEditarCelula(ag.id, "unidade_nome", e.target.value)}
+                            className="h-8 text-sm"
+                          />
+                        ) : ag.unidade_nome}
+                      </td>
                       <td className="px-4 py-3 text-gray-600">
                         {ag.data ? format(new Date(ag.data + "T12:00:00"), "dd/MM/yyyy", { locale: ptBR }) : "-"}
                       </td>
                       <td className="px-4 py-3 text-gray-600">{ag.hora_inicio} - {ag.hora_fim}</td>
                       <td className="px-4 py-3">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusLabels[ag.status]?.cor || "bg-gray-100 text-gray-800"}`}>
-                          {statusLabels[ag.status]?.label || ag.status}
-                        </span>
+                        {modoEditor ? (
+                          <Select 
+                            value={getValorCelula(ag, "status") || ag.status} 
+                            onValueChange={(value) => handleEditarCelula(ag.id, "status", value)}
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="agendado">Agendado</SelectItem>
+                              <SelectItem value="confirmado">Confirmado</SelectItem>
+                              <SelectItem value="ausencia">Ausência</SelectItem>
+                              <SelectItem value="cancelado">Cancelado</SelectItem>
+                              <SelectItem value="concluido">Concluído</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusLabels[ag.status]?.cor || "bg-gray-100 text-gray-800"}`}>
+                            {statusLabels[ag.status]?.label || ag.status}
+                          </span>
+                        )}
                       </td>
-                      <td className="px-4 py-3 text-gray-600">{ag.equipamento || "-"}</td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {modoEditor ? (
+                          <Select 
+                            value={getValorCelula(ag, "equipamento") || ""} 
+                            onValueChange={(value) => handleEditarCelula(ag.id, "equipamento", value)}
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="-" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {equipamentoOpcoes.map(eq => (
+                                <SelectItem key={eq} value={eq}>{eq}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        ) : ag.equipamento || "-"}
+                      </td>
                     </tr>
                   ))
                 )}
