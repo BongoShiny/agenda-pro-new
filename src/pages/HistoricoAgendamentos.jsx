@@ -75,7 +75,18 @@ const tipoAcaoColors = {
   desbloqueou_horario: "bg-teal-100 text-teal-800",
   criou_terapeuta: "bg-purple-100 text-purple-800",
   editou_terapeuta: "bg-indigo-100 text-indigo-800",
-  excluiu_terapeuta: "bg-red-100 text-red-800"
+  excluiu_terapeuta: "bg-red-100 text-red-800",
+  editou_usuario: "bg-cyan-100 text-cyan-800",
+  acessou_relatorios: "bg-gray-100 text-gray-800",
+  exportou_planilha: "bg-green-100 text-green-800",
+  ativou_modo_editor: "bg-yellow-100 text-yellow-800",
+  editou_dados_relatorio: "bg-amber-100 text-amber-800",
+  alterou_configuracao: "bg-violet-100 text-violet-800",
+  criou_unidade: "bg-lime-100 text-lime-800",
+  editou_unidade: "bg-sky-100 text-sky-800",
+  excluiu_unidade: "bg-rose-100 text-rose-800",
+  criou_excecao_horario: "bg-fuchsia-100 text-fuchsia-800",
+  excluiu_excecao_horario: "bg-stone-100 text-stone-800"
 };
 
 export default function HistoricoAgendamentosPage() {
