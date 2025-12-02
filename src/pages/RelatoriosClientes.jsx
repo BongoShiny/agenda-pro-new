@@ -231,7 +231,7 @@ export default function RelatoriosClientesPage() {
       dados_novos: JSON.stringify({ total_registros: agendamentosFiltrados.length, filtros: { busca, filtroStatus, filtroProfissional, filtroUnidade, filtroServico, filtroEquipamento } })
     });
 
-    const headers = ["Cliente", "Telefone", "Profissional", "Serviço", "Unidade", "Data", "Horário", "Status", "Equipamento"];
+    const headers = ["Cliente", "Telefone", "Profissional", "Serviço", "Unidade", "Data", "Horário", "Status", "Equipamento", "Cliente Pacote?", "Quantas Sessões", "Sessões Feitas"];
     const linhas = agendamentosFiltrados.map(ag => [
       getValorCelula(ag, "cliente_nome"),
       getValorCelula(ag, "cliente_telefone"),
@@ -241,7 +241,10 @@ export default function RelatoriosClientesPage() {
       ag.data ? format(new Date(ag.data + "T12:00:00"), "dd/MM/yyyy", { locale: ptBR }) : "",
       `${ag.hora_inicio || ""} - ${ag.hora_fim || ""}`,
       statusLabels[ag.status]?.label || ag.status || "",
-      getValorCelula(ag, "equipamento")
+      getValorCelula(ag, "equipamento"),
+      getValorCelula(ag, "cliente_pacote"),
+      getValorCelula(ag, "quantas_sessoes"),
+      getValorCelula(ag, "sessoes_feitas")
     ]);
 
     const csv = [headers, ...linhas].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
@@ -454,12 +457,15 @@ export default function RelatoriosClientesPage() {
                     </button>
                   </th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">Equipamento</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-700">Cliente Pacote?</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-700">Quantas Sessões</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-700">Sessões Feitas</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
                 {agendamentosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan={9} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={12} className="px-4 py-8 text-center text-gray-500">
                       Nenhum agendamento encontrado
                     </td>
                   </tr>
@@ -554,6 +560,44 @@ export default function RelatoriosClientesPage() {
                             </SelectContent>
                           </Select>
                         ) : ag.equipamento || "-"}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {modoEditor ? (
+                          <Select 
+                            value={getValorCelula(ag, "cliente_pacote") || ""} 
+                            onValueChange={(value) => handleEditarCelula(ag.id, "cliente_pacote", value)}
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="-" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Sim">Sim</SelectItem>
+                              <SelectItem value="Não">Não</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : ag.cliente_pacote || "-"}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {modoEditor ? (
+                          <Input
+                            type="number"
+                            value={getValorCelula(ag, "quantas_sessoes") || ""}
+                            onChange={(e) => handleEditarCelula(ag.id, "quantas_sessoes", e.target.value ? parseInt(e.target.value) : null)}
+                            className="h-8 text-sm w-20"
+                            placeholder="-"
+                          />
+                        ) : ag.quantas_sessoes || "-"}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {modoEditor ? (
+                          <Input
+                            type="number"
+                            value={getValorCelula(ag, "sessoes_feitas") || ""}
+                            onChange={(e) => handleEditarCelula(ag.id, "sessoes_feitas", e.target.value ? parseInt(e.target.value) : null)}
+                            className="h-8 text-sm w-20"
+                            placeholder="-"
+                          />
+                        ) : ag.sessoes_feitas || "-"}
                       </td>
                     </tr>
                   ))
