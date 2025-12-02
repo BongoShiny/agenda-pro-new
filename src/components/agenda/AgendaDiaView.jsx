@@ -197,68 +197,81 @@ export default function AgendaDiaView({
     );
   }
 
-  return (
-    <div className="flex-1 bg-gray-50 relative flex flex-col overflow-hidden">
-      <div className="border-b border-gray-200 bg-white sticky top-0 z-10 flex">
-        <div className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200 bg-white"></div>
-        <div 
-          ref={headerScrollRef}
-          className="flex-1 overflow-x-hidden"
-        >
-          <div className="flex min-w-max">
-            {terapeutasAtivos.map(terapeuta => {
-              const horarioTerapeuta = getHorarioProfissional(terapeuta);
-              return (
-                <div key={terapeuta.id} className="w-[160px] md:w-[280px] flex-shrink-0 p-2 md:p-3 border-r border-gray-200 last:border-r-0">
-                  <div className="flex items-center justify-center gap-1 md:gap-2">
-                    <div className="text-xs md:text-sm font-bold text-gray-900 truncate text-center">{terapeuta.nome}</div>
-                    {isAdmin && (
-                      <button
-                        onClick={() => {
-                          setProfissionalBloquear(terapeuta);
-                          setDialogBloquearAberto(true);
-                        }}
-                        className="text-base md:text-lg hover:scale-110 transition-transform"
-                        title="Bloquear horários"
-                      >
-                        🚫
-                      </button>
-                    )}
-                  </div>
-                  <div className="text-[10px] md:text-xs text-gray-500 truncate text-center mt-1">{terapeuta.especialidade}</div>
-                  {horarioTerapeuta.isFolga ? (
-                    <div className="text-[8px] md:text-[10px] text-orange-700 bg-orange-100 px-1 md:px-2 py-0.5 rounded mt-1 text-center font-semibold">
-                      🏖️ FOLGA
-                    </div>
-                  ) : horarioTerapeuta.isExcecao && (
-                    <div className="text-[8px] md:text-[10px] text-blue-600 bg-blue-50 px-1 md:px-2 py-0.5 rounded mt-1 text-center">
-                      📅 {horarioTerapeuta.horario_inicio} - {horarioTerapeuta.horario_fim}
-                    </div>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      </div>
+  const horariosScrollRef = React.useRef(null);
 
-      <div className="flex-1 flex overflow-hidden">
-        <div className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200 bg-gray-50 overflow-y-auto">
-          {todosHorarios.map((horario) => (
-            <div
-              key={horario}
-              className="h-16 md:h-20 flex items-start justify-center pt-1 text-[10px] md:text-xs text-gray-600 font-semibold border-b border-gray-200 bg-gray-50"
+      const handleBodyScrollSync = (e) => {
+        handleBodyScroll(e);
+        // Sincronizar scroll vertical da coluna de horários
+        if (horariosScrollRef.current) {
+          horariosScrollRef.current.scrollTop = e.target.scrollTop;
+        }
+      };
+
+      return (
+        <div className="flex-1 bg-gray-50 relative flex flex-col overflow-hidden">
+          <div className="border-b border-gray-200 bg-white sticky top-0 z-10 flex">
+            <div className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200 bg-white"></div>
+            <div 
+              ref={headerScrollRef}
+              className="flex-1 overflow-x-hidden"
             >
-              {horario}
+              <div className="flex min-w-max">
+                {terapeutasAtivos.map(terapeuta => {
+                  const horarioTerapeuta = getHorarioProfissional(terapeuta);
+                  return (
+                    <div key={terapeuta.id} className="w-[160px] md:w-[280px] flex-shrink-0 p-2 md:p-3 border-r border-gray-200 last:border-r-0">
+                      <div className="flex items-center justify-center gap-1 md:gap-2">
+                        <div className="text-xs md:text-sm font-bold text-gray-900 truncate text-center">{terapeuta.nome}</div>
+                        {isAdmin && (
+                          <button
+                            onClick={() => {
+                              setProfissionalBloquear(terapeuta);
+                              setDialogBloquearAberto(true);
+                            }}
+                            className="text-base md:text-lg hover:scale-110 transition-transform"
+                            title="Bloquear horários"
+                          >
+                            🚫
+                          </button>
+                        )}
+                      </div>
+                      <div className="text-[10px] md:text-xs text-gray-500 truncate text-center mt-1">{terapeuta.especialidade}</div>
+                      {horarioTerapeuta.isFolga ? (
+                        <div className="text-[8px] md:text-[10px] text-orange-700 bg-orange-100 px-1 md:px-2 py-0.5 rounded mt-1 text-center font-semibold">
+                          🏖️ FOLGA
+                        </div>
+                      ) : horarioTerapeuta.isExcecao && (
+                        <div className="text-[8px] md:text-[10px] text-blue-600 bg-blue-50 px-1 md:px-2 py-0.5 rounded mt-1 text-center">
+                          📅 {horarioTerapeuta.horario_inicio} - {horarioTerapeuta.horario_fim}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
-          ))}
-        </div>
+          </div>
 
-        <div 
-          ref={bodyScrollRef}
-          onScroll={handleBodyScroll}
-          className="flex-1 overflow-x-auto overflow-y-auto"
-        >
+          <div className="flex-1 flex overflow-hidden">
+            <div 
+              ref={horariosScrollRef}
+              className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200 bg-gray-50 overflow-hidden"
+            >
+              {todosHorarios.map((horario) => (
+                <div
+                  key={horario}
+                  className="h-16 md:h-20 flex items-start justify-center pt-1 text-[10px] md:text-xs text-gray-600 font-semibold border-b border-gray-200 bg-gray-50"
+                >
+                  {horario}
+                </div>
+              ))}
+            </div>
+
+            <div 
+              ref={bodyScrollRef}
+              onScroll={handleBodyScrollSync}
+              className="flex-1 overflow-x-auto overflow-y-auto"
+            >
           <div className="flex min-w-max">
             {terapeutasAtivos.map(terapeuta => (
               <div key={terapeuta.id} className="w-[160px] md:w-[280px] flex-shrink-0 border-r border-gray-200 last:border-r-0">
