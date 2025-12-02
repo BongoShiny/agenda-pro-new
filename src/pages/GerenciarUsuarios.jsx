@@ -60,23 +60,60 @@ export default function GerenciarUsuariosPage() {
   });
 
   const handleAtualizarCargo = async (usuario, novoCargo) => {
+    const cargoAntigo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "funcionario");
     await atualizarUsuarioMutation.mutateAsync({
       id: usuario.id,
       dados: { cargo: novoCargo }
     });
+    
+    // Registrar no log
+    await base44.entities.LogAcao.create({
+      tipo: "editou_usuario",
+      usuario_email: usuarioAtual?.email,
+      descricao: `Alterou cargo de ${usuario.full_name} (${usuario.email}) de "${cargoAntigo}" para "${novoCargo}"`,
+      entidade_tipo: "Usuario",
+      entidade_id: usuario.id,
+      dados_antigos: JSON.stringify({ cargo: cargoAntigo }),
+      dados_novos: JSON.stringify({ cargo: novoCargo })
+    });
   };
 
   const handleToggleAtivo = async (usuario) => {
+    const novoStatus = !usuario.ativo;
     await atualizarUsuarioMutation.mutateAsync({
       id: usuario.id,
-      dados: { ativo: !usuario.ativo }
+      dados: { ativo: novoStatus }
+    });
+    
+    // Registrar no log
+    await base44.entities.LogAcao.create({
+      tipo: "editou_usuario",
+      usuario_email: usuarioAtual?.email,
+      descricao: `${novoStatus ? "Ativou" : "Desativou"} usuário ${usuario.full_name} (${usuario.email})`,
+      entidade_tipo: "Usuario",
+      entidade_id: usuario.id,
+      dados_antigos: JSON.stringify({ ativo: usuario.ativo }),
+      dados_novos: JSON.stringify({ ativo: novoStatus })
     });
   };
 
   const handleAtualizarUnidades = async (usuario, unidadesIds) => {
+    const unidadesAntigas = usuario.unidades_acesso || [];
     await atualizarUsuarioMutation.mutateAsync({
       id: usuario.id,
       dados: { unidades_acesso: unidadesIds }
+    });
+    
+    // Registrar no log
+    const nomesUnidadesNovas = unidadesIds.map(id => unidades.find(u => u.id === id)?.nome).filter(Boolean);
+    await base44.entities.LogAcao.create({
+      tipo: "editou_usuario",
+      usuario_email: usuarioAtual?.email,
+      descricao: `Alterou unidades de acesso de ${usuario.full_name} (${usuario.email}) para: ${nomesUnidadesNovas.join(", ") || "Nenhuma"}`,
+      entidade_tipo: "Usuario",
+      entidade_id: usuario.id,
+      dados_antigos: JSON.stringify({ unidades_acesso: unidadesAntigas }),
+      dados_novos: JSON.stringify({ unidades_acesso: unidadesIds })
     });
   };
 
