@@ -78,6 +78,22 @@ export default function RelatoriosClientesPage() {
     initialData: [],
   });
 
+  const { data: servicos = [] } = useQuery({
+    queryKey: ['servicos-relatorio'],
+    queryFn: () => base44.entities.Servico.list("nome"),
+    initialData: [],
+  });
+
+  const equipamentoOpcoes = [
+    "AVULSA",
+    "FUNCIONÁRIO", 
+    "PACOTE",
+    "PACOTE DE OUTRO CLIENTE",
+    "PRIMEIRA SESSÃO DO PACOTE",
+    "ÚLTIMA SESSÃO DO PACOTE",
+    "VOUCHER"
+  ];
+
   // Filtrar agendamentos (excluir bloqueios)
   const agendamentosFiltrados = agendamentos
     .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
