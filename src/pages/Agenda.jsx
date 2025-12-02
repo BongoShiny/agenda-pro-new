@@ -133,6 +133,7 @@ export default function AgendaPage() {
   const [unidadeSelecionada, setUnidadeSelecionada] = useState(null);
   const [usuarioAtual, setUsuarioAtual] = useState(null);
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
+  const [mostrarFiltros, setMostrarFiltros] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -816,41 +817,39 @@ export default function AgendaPage() {
       />
 
       <div className="flex-1 flex overflow-hidden relative">
-        {/* Botão para abrir filtros no mobile */}
-        <Button
-          variant="outline"
-          size="sm"
-          className="lg:hidden fixed bottom-4 left-4 z-50 bg-white shadow-lg border-blue-300"
-          onClick={() => setFiltrosAbertos(!filtrosAbertos)}
-        >
-          {filtrosAbertos ? <X className="w-4 h-4 mr-2" /> : <Filter className="w-4 h-4 mr-2" />}
-          {filtrosAbertos ? "Fechar" : "Filtros"}
-        </Button>
+                {/* Botão para abrir filtros */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="fixed bottom-4 left-4 z-50 bg-white shadow-lg border-blue-300"
+                  onClick={() => setMostrarFiltros(!mostrarFiltros)}
+                >
+                  {mostrarFiltros ? <X className="w-4 h-4 mr-2" /> : <Filter className="w-4 h-4 mr-2" />}
+                  {mostrarFiltros ? "Fechar" : "Filtros"}
+                </Button>
 
-        {/* Filtros: Desktop sempre visível, Mobile com toggle */}
-        <div className={`
-          ${filtrosAbertos ? 'block' : 'hidden'} lg:block
-          absolute lg:relative z-40 lg:z-auto
-          h-full
-        `}>
-          <AgendaFilters
-            filters={filters}
-            onFilterChange={handleFilterChange}
-            clientes={clientes}
-            profissionais={profissionais}
-            servicos={servicos}
-            unidades={unidades}
-            agendamentos={agendamentos}
-          />
-        </div>
+                {/* Filtros: Aparece apenas quando clicado */}
+                {mostrarFiltros && (
+                  <div className="absolute z-40 h-full">
+                    <AgendaFilters
+                      filters={filters}
+                      onFilterChange={handleFilterChange}
+                      clientes={clientes}
+                      profissionais={profissionais}
+                      servicos={servicos}
+                      unidades={unidades}
+                      agendamentos={agendamentos}
+                    />
+                  </div>
+                )}
 
-        {/* Overlay para fechar filtros no mobile */}
-        {filtrosAbertos && (
-          <div 
-            className="lg:hidden fixed inset-0 bg-black/30 z-30"
-            onClick={() => setFiltrosAbertos(false)}
-          />
-        )}
+                {/* Overlay para fechar filtros */}
+                {mostrarFiltros && (
+                  <div 
+                    className="fixed inset-0 bg-black/30 z-30"
+                    onClick={() => setMostrarFiltros(false)}
+                  />
+                )}
 
         {unidadeAtual && (
           <AgendaDiaView
