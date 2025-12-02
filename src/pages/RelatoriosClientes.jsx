@@ -32,6 +32,8 @@ export default function RelatoriosClientesPage() {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroProfissional, setFiltroProfissional] = useState("todos");
   const [filtroUnidade, setFiltroUnidade] = useState("todos");
+  const [filtroServico, setFiltroServico] = useState("todos");
+  const [filtroEquipamento, setFiltroEquipamento] = useState("todos");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -87,7 +89,9 @@ export default function RelatoriosClientesPage() {
       const matchStatus = filtroStatus === "todos" || ag.status === filtroStatus;
       const matchProfissional = filtroProfissional === "todos" || ag.profissional_id === filtroProfissional;
       const matchUnidade = filtroUnidade === "todos" || ag.unidade_id === filtroUnidade;
-      return matchBusca && matchStatus && matchProfissional && matchUnidade;
+      const matchServico = filtroServico === "todos" || ag.servico_id === filtroServico;
+      const matchEquipamento = filtroEquipamento === "todos" || ag.equipamento === filtroEquipamento;
+      return matchBusca && matchStatus && matchProfissional && matchUnidade && matchServico && matchEquipamento;
     })
     .sort((a, b) => {
       let valorA, valorB;
@@ -203,8 +207,8 @@ export default function RelatoriosClientesPage() {
       <div className="max-w-7xl mx-auto p-6">
         {/* Filtros */}
         <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-            <div className="md:col-span-2">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            <div className="md:col-span-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <Input
@@ -215,6 +219,8 @@ export default function RelatoriosClientesPage() {
                 />
               </div>
             </div>
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
             <Select value={filtroStatus} onValueChange={setFiltroStatus}>
               <SelectTrigger>
                 <SelectValue placeholder="Status" />
@@ -247,6 +253,28 @@ export default function RelatoriosClientesPage() {
                 <SelectItem value="todos">Todas as unidades</SelectItem>
                 {unidades.map(u => (
                   <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filtroServico} onValueChange={setFiltroServico}>
+              <SelectTrigger>
+                <SelectValue placeholder="Serviço" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os serviços</SelectItem>
+                {servicos.map(s => (
+                  <SelectItem key={s.id} value={s.id}>{s.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filtroEquipamento} onValueChange={setFiltroEquipamento}>
+              <SelectTrigger>
+                <SelectValue placeholder="Equipamento" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos equipamentos</SelectItem>
+                {equipamentoOpcoes.map(eq => (
+                  <SelectItem key={eq} value={eq}>{eq}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
