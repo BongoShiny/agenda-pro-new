@@ -46,15 +46,26 @@ const statusLabels = {
 };
 
 const tipoAcaoLabels = {
-  criou_agendamento: "Criou Agendamento",
-  editou_agendamento: "Editou Agendamento",
-  excluiu_agendamento: "Excluiu Agendamento",
-  bloqueou_horario: "Bloqueou Horário",
-  desbloqueou_horario: "Desbloqueou Horário",
-  criou_terapeuta: "Criou Terapeuta",
-  editou_terapeuta: "Editou Terapeuta",
-  excluiu_terapeuta: "Excluiu Terapeuta"
-};
+    criou_agendamento: "Criou Agendamento",
+    editou_agendamento: "Editou Agendamento",
+    excluiu_agendamento: "Excluiu Agendamento",
+    bloqueou_horario: "Bloqueou Horário",
+    desbloqueou_horario: "Desbloqueou Horário",
+    criou_terapeuta: "Criou Terapeuta",
+    editou_terapeuta: "Editou Terapeuta",
+    excluiu_terapeuta: "Excluiu Terapeuta",
+    editou_usuario: "Editou Usuário",
+    acessou_relatorios: "Acessou Relatórios",
+    exportou_planilha: "Exportou Planilha",
+    ativou_modo_editor: "Ativou Modo Editor",
+    editou_dados_relatorio: "Editou Dados no Relatório",
+    alterou_configuracao: "Alterou Configuração",
+    criou_unidade: "Criou Unidade",
+    editou_unidade: "Editou Unidade",
+    excluiu_unidade: "Excluiu Unidade",
+    criou_excecao_horario: "Criou Exceção de Horário",
+    excluiu_excecao_horario: "Excluiu Exceção de Horário"
+  };
 
 const tipoAcaoColors = {
   criou_agendamento: "bg-green-100 text-green-800",

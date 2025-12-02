@@ -50,6 +50,14 @@ export default function RelatoriosClientesPage() {
         const isAdmin = user?.cargo === "administrador" || user?.role === "admin";
         if (!isAdmin) {
           navigate(createPageUrl("Agenda"));
+        } else {
+          // Registrar acesso aos relatórios
+          await base44.entities.LogAcao.create({
+            tipo: "acessou_relatorios",
+            usuario_email: user.email,
+            descricao: `Acessou a página de Relatórios/Planilha`,
+            entidade_tipo: "Relatorio"
+          });
         }
       } catch (error) {
         navigate(createPageUrl("Agenda"));
@@ -183,11 +191,24 @@ export default function RelatoriosClientesPage() {
   };
 
   const salvarAlteracoes = async () => {
-    const promises = Object.entries(dadosEditados).map(([id, dados]) => {
-      return atualizarAgendamentoMutation.mutateAsync({ id, dados });
-    });
+    const alteracoes = Object.entries(dadosEditados);
     
-    await Promise.all(promises);
+    for (const [id, dados] of alteracoes) {
+      const agendamentoOriginal = agendamentos.find(a => a.id === id);
+      await atualizarAgendamentoMutation.mutateAsync({ id, dados });
+      
+      // Registrar cada alteração no log
+      await base44.entities.LogAcao.create({
+        tipo: "editou_dados_relatorio",
+        usuario_email: usuarioAtual?.email,
+        descricao: `Editou dados no relatório: ${agendamentoOriginal?.cliente_nome || 'Cliente'} - Campos alterados: ${Object.keys(dados).join(', ')}`,
+        entidade_tipo: "Agendamento",
+        entidade_id: id,
+        dados_antigos: JSON.stringify(agendamentoOriginal),
+        dados_novos: JSON.stringify(dados)
+      });
+    }
+    
     setDadosEditados({});
     setModoEditor(false);
     alert("✅ Alterações salvas com sucesso!");
@@ -200,7 +221,16 @@ export default function RelatoriosClientesPage() {
     return ag[campo] || "";
   };
 
-  const exportarCSV = () => {
+  const exportarCSV = async () => {
+    // Registrar exportação no log
+    await base44.entities.LogAcao.create({
+      tipo: "exportou_planilha",
+      usuario_email: usuarioAtual?.email,
+      descricao: `Exportou planilha CSV com ${agendamentosFiltrados.length} registros`,
+      entidade_tipo: "Relatorio",
+      dados_novos: JSON.stringify({ total_registros: agendamentosFiltrados.length, filtros: { busca, filtroStatus, filtroProfissional, filtroUnidade, filtroServico, filtroEquipamento } })
+    });
+
     const headers = ["Cliente", "Telefone", "Profissional", "Serviço", "Unidade", "Data", "Horário", "Status", "Equipamento"];
     const linhas = agendamentosFiltrados.map(ag => [
       getValorCelula(ag, "cliente_nome"),
@@ -281,7 +311,16 @@ export default function RelatoriosClientesPage() {
             ) : (
               <Button 
                 variant="outline" 
-                onClick={() => setModoEditor(true)}
+                onClick={async () => {
+                  setModoEditor(true);
+                  // Registrar ativação do modo editor
+                  await base44.entities.LogAcao.create({
+                    tipo: "ativou_modo_editor",
+                    usuario_email: usuarioAtual?.email,
+                    descricao: `Ativou o modo editor na página de Relatórios`,
+                    entidade_tipo: "Relatorio"
+                  });
+                }}
               >
                 <Edit className="w-4 h-4 mr-2" />
                 Modo Editor
