@@ -29,11 +29,16 @@ export default function HistoricoClienteDialog({
   open, 
   onOpenChange, 
   clienteBusca,
-  agendamentos = []
+  agendamentos = [],
+  filtroUnidade = null,
+  filtroProfissional = null,
+  filtroServico = null,
+  filtroStatus = null,
+  filtroData = null
 }) {
   const [sessaoSelecionada, setSessaoSelecionada] = useState(null);
 
-  // Filtrar agendamentos pelo cliente/telefone
+  // Filtrar agendamentos pelo cliente/telefone E pelos outros filtros ativos
   const agendamentosCliente = agendamentos
     .filter(ag => {
       if (!clienteBusca) return false;

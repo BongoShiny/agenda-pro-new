@@ -60,17 +60,17 @@ export default function AgendaFilters({
       <div className="flex-1 overflow-y-auto p-6">
         <div className="space-y-5">
           <div>
-            <Label className="text-sm font-semibold text-gray-700 mb-3 block">Cliente</Label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder="Buscar cliente ou telefone..."
-                value={filters.cliente || ""}
-                onChange={(e) => onFilterChange("cliente", e.target.value)}
-                className="pl-10 h-11 border-gray-300 focus:border-blue-500"
-              />
-            </div>
-          </div>
+                        <Label className="text-sm font-semibold text-gray-700 mb-3 block">Cliente ou Telefone</Label>
+                        <div className="relative">
+                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                          <Input
+                            placeholder="Buscar cliente ou telefone..."
+                            value={filters.cliente || ""}
+                            onChange={(e) => onFilterChange("cliente", e.target.value)}
+                            className="pl-10 h-11 border-gray-300 focus:border-blue-500"
+                          />
+                        </div>
+                      </div>
 
           <div>
             <Label className="text-sm font-semibold text-gray-700 mb-3 block">Data</Label>
@@ -178,11 +178,16 @@ export default function AgendaFilters({
       </div>
 
       <HistoricoClienteDialog
-        open={historicoAberto}
-        onOpenChange={setHistoricoAberto}
-        clienteBusca={filters.cliente}
-        agendamentos={agendamentos}
-      />
+                open={historicoAberto}
+                onOpenChange={setHistoricoAberto}
+                clienteBusca={filters.cliente}
+                agendamentos={agendamentos}
+                filtroUnidade={filters.unidade}
+                filtroProfissional={filters.profissional}
+                filtroServico={filters.servico}
+                filtroStatus={filters.status}
+                filtroData={filters.data}
+              />
     </div>
   );
 }
