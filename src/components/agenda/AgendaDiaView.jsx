@@ -27,15 +27,16 @@ export default function AgendaDiaView({
   excecoesHorario = []
 }) {
   const [slotMenuAberto, setSlotMenuAberto] = useState(null);
-  const [dialogBloquearAberto, setDialogBloquearAberto] = useState(false);
-  const [profissionalBloquear, setProfissionalBloquear] = useState(null);
-  const [horariosBloquear, setHorariosBloquear] = useState({
-    hora_inicio: "08:00",
-    hora_fim: "10:00"
-  });
-  
-  const headerScrollRef = React.useRef(null);
-  const bodyScrollRef = React.useRef(null);
+      const [dialogBloquearAberto, setDialogBloquearAberto] = useState(false);
+      const [profissionalBloquear, setProfissionalBloquear] = useState(null);
+      const [horariosBloquear, setHorariosBloquear] = useState({
+        hora_inicio: "08:00",
+        hora_fim: "10:00"
+      });
+
+      const headerScrollRef = React.useRef(null);
+      const bodyScrollRef = React.useRef(null);
+      const horariosScrollRef = React.useRef(null);
   
   // Sincronizar scroll horizontal entre header e body
   const handleHeaderScroll = (e) => {
@@ -45,10 +46,17 @@ export default function AgendaDiaView({
   };
   
   const handleBodyScroll = (e) => {
-    if (headerScrollRef.current) {
-      headerScrollRef.current.scrollLeft = e.target.scrollLeft;
-    }
-  };
+        if (headerScrollRef.current) {
+          headerScrollRef.current.scrollLeft = e.target.scrollLeft;
+        }
+      };
+
+      const handleBodyScrollSync = (e) => {
+        handleBodyScroll(e);
+        if (horariosScrollRef.current) {
+          horariosScrollRef.current.scrollTop = e.target.scrollTop;
+        }
+      };
 
   // Gerar horários de 08:00 até 21:00 (apenas horários cheios)
   const gerarTodosHorarios = () => {
@@ -197,17 +205,7 @@ export default function AgendaDiaView({
     );
   }
 
-  const horariosScrollRef = React.useRef(null);
-
-      const handleBodyScrollSync = (e) => {
-        handleBodyScroll(e);
-        // Sincronizar scroll vertical da coluna de horários
-        if (horariosScrollRef.current) {
-          horariosScrollRef.current.scrollTop = e.target.scrollTop;
-        }
-      };
-
-      return (
+  return (
         <div className="flex-1 bg-gray-50 relative flex flex-col overflow-hidden">
           <div className="border-b border-gray-200 bg-white sticky top-0 z-10 flex">
             <div className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200 bg-white"></div>
