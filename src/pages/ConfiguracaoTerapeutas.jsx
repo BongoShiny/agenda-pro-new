@@ -600,9 +600,21 @@ export default function ConfiguracaoTerapeutasPage() {
                                             <div className="flex items-center gap-2 mt-1">
                                               <span className="text-sm text-gray-500">{profissional.especialidade}</span>
                                               {unidadesDoProfissional.length > 1 && (
-                                                <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0-5 rounded">
-                                                  Em {unidadesDoProfissional.length} unidades
-                                                </span>
+                                                <Popover>
+                                                  <PopoverTrigger asChild>
+                                                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded cursor-pointer hover:bg-blue-200">
+                                                      Em {unidadesDoProfissional.length} unidades
+                                                    </span>
+                                                  </PopoverTrigger>
+                                                  <PopoverContent className="w-auto p-3">
+                                                    <div className="text-sm font-semibold mb-2">Unidades:</div>
+                                                    <ul className="space-y-1">
+                                                      {unidadesDoProfissional.map(u => (
+                                                        <li key={u.id} className="text-sm text-gray-700">• {u.nome}</li>
+                                                      ))}
+                                                    </ul>
+                                                  </PopoverContent>
+                                                </Popover>
                                               )}
                                             </div>
                                             <div className="text-xs text-gray-400 mt-1">
