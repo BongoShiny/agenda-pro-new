@@ -152,14 +152,31 @@ export default function AgendaDiaView({
     .filter(Boolean);
 
   const getAgendamentosParaSlot = (profissionalId, horario) => {
-    const profissional = profissionais.find(p => p.id === profissionalId);
+    // Retornar agendamentos que INICIAM neste horário OU
+    // que COBREM este horário e é o primeiro slot coberto (para renderizar o card)
+    const [hSlot] = horario.split(':').map(Number);
+    const minutosSlot = hSlot * 60;
     
-    // Retornar apenas agendamentos que INICIAM neste horário
-    const agendamentosSlot = agendamentos.filter(ag => 
-      ag.unidade_id === unidadeSelecionada.id &&
-      ag.profissional_id === profissionalId && 
-      ag.hora_inicio === horario
-    );
+    const agendamentosSlot = agendamentos.filter(ag => {
+      if (ag.unidade_id !== unidadeSelecionada.id || ag.profissional_id !== profissionalId) return false;
+      
+      // Se inicia neste horário exato, incluir
+      if (ag.hora_inicio === horario) return true;
+      
+      // Verificar se o agendamento começa em um horário não-cheio e este é o primeiro slot que cobre
+      const [hInicio, mInicio] = ag.hora_inicio.split(':').map(Number);
+      const minutosInicio = hInicio * 60 + mInicio;
+      
+      // Se o agendamento começa em horário "quebrado" (não cheio, ex: 14:30)
+      // e este slot é o primeiro slot cheio que cobre ele
+      if (mInicio > 0) {
+        // O primeiro slot cheio que cobre seria o horário arredondado para baixo
+        const primeiroSlotCheio = hInicio;
+        if (hSlot === primeiroSlotCheio) return true;
+      }
+      
+      return false;
+    });
     
     return agendamentosSlot;
   };
