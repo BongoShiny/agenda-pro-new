@@ -111,20 +111,22 @@ export default function RelatoriosClientesPage() {
   ];
 
   // Filtrar agendamentos (excluir bloqueios)
-  const agendamentosFiltrados = agendamentos
-    .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
-    .filter(ag => {
-      const matchBusca = !busca || 
-        ag.cliente_nome?.toLowerCase().includes(busca.toLowerCase()) ||
-        ag.cliente_telefone?.toLowerCase().includes(busca.toLowerCase()) ||
-        ag.profissional_nome?.toLowerCase().includes(busca.toLowerCase());
-      const matchStatus = filtroStatus === "todos" || ag.status === filtroStatus;
-      const matchProfissional = filtroProfissional === "todos" || ag.profissional_id === filtroProfissional;
-      const matchUnidade = filtroUnidade === "todos" || ag.unidade_id === filtroUnidade;
-      const matchServico = filtroServico === "todos" || ag.servico_id === filtroServico;
-      const matchEquipamento = filtroEquipamento === "todos" || ag.equipamento === filtroEquipamento;
-      return matchBusca && matchStatus && matchProfissional && matchUnidade && matchServico && matchEquipamento;
-    })
+      const agendamentosFiltrados = agendamentos
+        .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
+        .filter(ag => {
+          const matchBusca = !busca || 
+            ag.cliente_nome?.toLowerCase().includes(busca.toLowerCase()) ||
+            ag.cliente_telefone?.toLowerCase().includes(busca.toLowerCase()) ||
+            ag.profissional_nome?.toLowerCase().includes(busca.toLowerCase());
+          const matchStatus = filtroStatus === "todos" || ag.status === filtroStatus;
+          const matchProfissional = filtroProfissional === "todos" || ag.profissional_id === filtroProfissional;
+          const matchUnidade = filtroUnidade === "todos" || ag.unidade_id === filtroUnidade;
+          const matchServico = filtroServico === "todos" || ag.servico_id === filtroServico;
+          const matchEquipamento = filtroEquipamento === "todos" || ag.equipamento === filtroEquipamento;
+          // Filtro por aba de unidade
+          const matchUnidadeTab = unidadeTab === "todas" || ag.unidade_id === unidadeTab;
+          return matchBusca && matchStatus && matchProfissional && matchUnidade && matchServico && matchEquipamento && matchUnidadeTab;
+        })
     .sort((a, b) => {
       let valorA, valorB;
       
