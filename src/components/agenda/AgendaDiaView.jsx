@@ -184,8 +184,11 @@ export default function AgendaDiaView({
     const [hFim, mFim] = horaFim.split(':').map(Number);
     const minutosInicio = hInicio * 60 + mInicio;
     const minutosFim = hFim * 60 + mFim;
-    const slots = Math.ceil((minutosFim - minutosInicio) / 30);
-    return slots * 5; // 5rem por slot (h-20 = 5rem)
+    const diferencaMinutos = minutosFim - minutosInicio;
+    // Cada slot de 1 hora = 4rem (mobile) ou 5rem (desktop)
+    // Como usamos h-16 md:h-20, vamos usar 4rem como base
+    const horas = diferencaMinutos / 60;
+    return horas * 4; // 4rem por hora
   };
 
   const handleSlotClick = (unidadeId, profissionalId, horario) => {
@@ -386,8 +389,8 @@ export default function AgendaDiaView({
                           return (
                             <div
                               key={agendamento.id}
-                              style={{ height: `${duracao * 0.8}rem` }}
-                              className="absolute inset-x-0.5 md:inset-x-1 z-10"
+                              style={{ height: `${duracao}rem` }}
+                              className="absolute inset-x-0.5 md:inset-x-1 z-10 top-0"
                             >
                               <AgendamentoCard
                                 agendamento={agendamento}
