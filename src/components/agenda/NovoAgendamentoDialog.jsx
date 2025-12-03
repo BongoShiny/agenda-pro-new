@@ -375,15 +375,15 @@ export default function NovoAgendamentoDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Status do Paciente *</Label>
+            <Label>Status do Paciente</Label>
             <Select value={formData.status_paciente || ""} onValueChange={(value) => setFormData(prev => ({ ...prev, status_paciente: value }))}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione..." />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value={null}>-</SelectItem>
                 <SelectItem value="paciente_novo">Paciente Novo</SelectItem>
-                <SelectItem value="primeira_sessao">1ª Sessão do Pacote</SelectItem>
-                <SelectItem value="ultima_sessao">Última Sessão do Pacote</SelectItem>
+                <SelectItem value="ultima_sessao">Última Sessão</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -434,7 +434,7 @@ export default function NovoAgendamentoDialog({
           </Button>
           <Button 
             onClick={handleSubmit}
-            disabled={!formData.cliente_nome || !formData.profissional_nome || !formData.unidade_id || !formData.status_paciente}
+            disabled={!formData.cliente_nome || !formData.profissional_nome || !formData.unidade_id}
             className="bg-blue-600 hover:bg-blue-700"
           >
             {modoEdicao ? "Salvar Alterações" : "Salvar Agendamento"}
