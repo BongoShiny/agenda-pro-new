@@ -902,7 +902,41 @@ export default function ConfiguracaoTerapeutasPage() {
             {/* Lista de exceções existentes */}
             {profissionalExcecao && getExcecoesDoProfissional(profissionalExcecao.id).length > 0 && (
               <div className="space-y-3">
-                <Label className="font-semibold">Exceções Configuradas</Label>
+                <div className="flex items-center justify-between">
+                  <Label className="font-semibold">Exceções Configuradas</Label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={async () => {
+                      const excecoes = getExcecoesDoProfissional(profissionalExcecao.id);
+                      if (excecoes.length === 0) return;
+                      
+                      if (!confirm(`Tem certeza que deseja remover TODAS as ${excecoes.length} exceções/folgas de ${profissionalExcecao.nome}?`)) {
+                        return;
+                      }
+                      
+                      // Deletar todas as exceções
+                      for (const excecao of excecoes) {
+                        await deletarExcecaoMutation.mutateAsync(excecao.id);
+                      }
+                      
+                      // Registrar log
+                      await base44.entities.LogAcao.create({
+                        tipo: "excluiu_excecao_horario",
+                        usuario_email: usuarioAtual?.email || "sistema",
+                        descricao: `Removeu TODAS as ${excecoes.length} exceções/folgas de ${profissionalExcecao.nome}`,
+                        entidade_tipo: "HorarioExcecao",
+                        dados_antigos: JSON.stringify({ quantidade: excecoes.length, profissional: profissionalExcecao.nome })
+                      });
+                      
+                      alert(`✅ ${excecoes.length} exceções removidas com sucesso!`);
+                    }}
+                    className="text-red-600 border-red-300 hover:bg-red-50"
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Remover Todas
+                  </Button>
+                </div>
                 {getExcecoesDoProfissional(profissionalExcecao.id).map(excecao => {
                   const dataFormatada = new Date(excecao.data + 'T12:00:00').toLocaleDateString('pt-BR', { 
                     day: '2-digit', 
