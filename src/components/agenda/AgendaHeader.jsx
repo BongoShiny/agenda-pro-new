@@ -123,6 +123,10 @@ export default function AgendaHeader({
                   selected={dataAtual}
                   onSelect={(date) => {
                     if (date) {
+                      if (date.getDay() === 0) {
+                        alert("Domingos não estão disponíveis na agenda.");
+                        return;
+                      }
                       const ano = date.getFullYear();
                       const mes = date.getMonth();
                       const dia = date.getDate();
@@ -132,6 +136,7 @@ export default function AgendaHeader({
                   }}
                   locale={ptBR}
                   defaultMonth={dataAtual}
+                  disabled={(date) => date.getDay() === 0}
                 />
               </PopoverContent>
             </Popover>
@@ -189,6 +194,10 @@ export default function AgendaHeader({
                   selected={dataAtual}
                   onSelect={(date) => {
                     if (date) {
+                      if (date.getDay() === 0) {
+                        alert("Domingos não estão disponíveis na agenda.");
+                        return;
+                      }
                       const ano = date.getFullYear();
                       const mes = date.getMonth();
                       const dia = date.getDate();
@@ -198,6 +207,7 @@ export default function AgendaHeader({
                   }}
                   locale={ptBR}
                   defaultMonth={dataAtual}
+                  disabled={(date) => date.getDay() === 0}
                 />
               </PopoverContent>
             </Popover>
