@@ -422,23 +422,18 @@ export default function AgendaDiaView({
                       ) : (
                         agendamentosSlot.map(agendamento => {
                           const duracaoHoras = calcularDuracaoSlots(agendamento.hora_inicio, agendamento.hora_fim);
+                          // h-16 = 4rem = 64px, h-20 = 5rem = 80px
+                          // Usar CSS calc com variáveis para responsividade
+                          const alturaStyle = {
+                            '--duracao-horas': duracaoHoras,
+                            height: `calc(${duracaoHoras} * 4rem)`, // mobile default
+                          };
 
                           return (
                             <div
                               key={agendamento.id}
-                              style={{ 
-                                height: `calc(${duracaoHoras} * (4rem))`,
-                              }}
-                              className="absolute inset-x-0.5 md:inset-x-1 z-10 top-0 md:[height:calc(var(--duracao)*5rem)]"
-                              // @ts-ignore
-                              // eslint-disable-next-line
-                              ref={(el) => {
-                                if (el) {
-                                  // Aplicar altura responsiva via JS
-                                  const isMobile = window.innerWidth < 768;
-                                  el.style.height = `calc(${duracaoHoras} * ${isMobile ? '4rem' : '5rem'})`;
-                                }
-                              }}
+                              style={alturaStyle}
+                              className="absolute inset-x-0.5 md:inset-x-1 z-10 top-0 md:!h-[calc(var(--duracao-horas)*5rem)]"
                             >
                               <AgendamentoCard
                                 agendamento={agendamento}
