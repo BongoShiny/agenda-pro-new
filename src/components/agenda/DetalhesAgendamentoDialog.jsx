@@ -43,6 +43,17 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
     console.log("⏰ Horário:", agendamento.hora_inicio, "-", agendamento.hora_fim);
     console.log("👨‍⚕️ Profissional:", agendamento.profissional_nome);
     console.log("🏢 Unidade:", agendamento.unidade_nome);
+    
+    if (isBloqueio) {
+      const confirmacao = window.confirm(
+        `Desbloquear horário?\n\n` +
+        `Profissional: ${agendamento.profissional_nome}\n` +
+        `Horário: ${agendamento.hora_inicio} - ${agendamento.hora_fim}\n\n` +
+        `Isso irá liberar todos os slots deste bloqueio.`
+      );
+      if (!confirmacao) return;
+    }
+    
     onDelete(agendamento.id);
   };
 
