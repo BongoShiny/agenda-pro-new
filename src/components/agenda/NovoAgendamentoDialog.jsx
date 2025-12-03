@@ -353,6 +353,8 @@ export default function NovoAgendamentoDialog({
                 <SelectItem value="ausencia">Ausência</SelectItem>
                 <SelectItem value="cancelado">Cancelado</SelectItem>
                 <SelectItem value="concluido">Concluído</SelectItem>
+                <SelectItem value="ultima_sessao">Última Sessão</SelectItem>
+                <SelectItem value="paciente_novo">Paciente Novo</SelectItem>
               </SelectContent>
             </Select>
           </div>
