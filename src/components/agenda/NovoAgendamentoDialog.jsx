@@ -70,7 +70,8 @@ export default function NovoAgendamentoDialog({
     tipo: "consulta",
     observacoes: "",
     sala: "",
-    equipamento: ""
+    equipamento: "",
+    status_paciente: ""
   });
 
   const [clientePopoverAberto, setClientePopoverAberto] = useState(false);
@@ -97,7 +98,8 @@ export default function NovoAgendamentoDialog({
         tipo: agendamentoInicial.tipo || "consulta",
         observacoes: agendamentoInicial.observacoes || "",
         sala: agendamentoInicial.sala || "",
-        equipamento: agendamentoInicial.equipamento || ""
+        equipamento: agendamentoInicial.equipamento || "",
+        status_paciente: agendamentoInicial.status_paciente || ""
       };
       
       console.log("📝 DIALOG ABERTO | Modo:", modoEdicao ? "EDIÇÃO" : "NOVO", "| Data:", dados.data);
@@ -353,8 +355,6 @@ export default function NovoAgendamentoDialog({
                 <SelectItem value="ausencia">Ausência</SelectItem>
                 <SelectItem value="cancelado">Cancelado</SelectItem>
                 <SelectItem value="concluido">Concluído</SelectItem>
-                <SelectItem value="ultima_sessao">Última Sessão</SelectItem>
-                <SelectItem value="paciente_novo">Paciente Novo</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -375,12 +375,17 @@ export default function NovoAgendamentoDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Sala</Label>
-            <Input
-              value={formData.sala}
-              onChange={(e) => setFormData(prev => ({ ...prev, sala: e.target.value }))}
-              placeholder="Ex: Sala 1"
-            />
+            <Label>Status do Paciente *</Label>
+            <Select value={formData.status_paciente || ""} onValueChange={(value) => setFormData(prev => ({ ...prev, status_paciente: value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="paciente_novo">Paciente Novo</SelectItem>
+                <SelectItem value="primeira_sessao">1ª Sessão do Pacote</SelectItem>
+                <SelectItem value="ultima_sessao">Última Sessão do Pacote</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">
@@ -429,7 +434,7 @@ export default function NovoAgendamentoDialog({
           </Button>
           <Button 
             onClick={handleSubmit}
-            disabled={!formData.cliente_nome || !formData.profissional_nome || !formData.unidade_id}
+            disabled={!formData.cliente_nome || !formData.profissional_nome || !formData.unidade_id || !formData.status_paciente}
             className="bg-blue-600 hover:bg-blue-700"
           >
             {modoEdicao ? "Salvar Alterações" : "Salvar Agendamento"}
