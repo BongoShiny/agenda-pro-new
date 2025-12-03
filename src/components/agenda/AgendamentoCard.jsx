@@ -80,81 +80,81 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange }
           {agendamento.tipo && agendamento.tipo !== "bloqueio" && (
             <div className="capitalize">{agendamento.tipo.replace(/_/g, ' ')}</div>
           )}
+          
+          {/* Status dropdown integrado */}
+          <div className="pt-1" onClick={(e) => e.stopPropagation()}>
+            <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDropdownOpen(!dropdownOpen);
+                  }}
+                  className="bg-white/20 text-white border-0 text-[9px] md:text-xs px-1.5 md:px-2 py-0.5 md:py-1 cursor-pointer hover:bg-white/30 transition-all flex items-center gap-1 rounded"
+                >
+                  {statusLabels[agendamento.status]}
+                  <ChevronDown className="w-3 h-3" />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()} className="z-50">
+                <DropdownMenuItem 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onStatusChange) onStatusChange(agendamento, "agendado");
+                    setDropdownOpen(false);
+                  }}
+                  className={agendamento.status === "agendado" ? "bg-gray-100" : ""}
+                >
+                  {agendamento.status === "agendado" && "✓ "}Agendado
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onStatusChange) onStatusChange(agendamento, "confirmado");
+                    setDropdownOpen(false);
+                  }}
+                  className={agendamento.status === "confirmado" ? "bg-gray-100" : ""}
+                >
+                  {agendamento.status === "confirmado" && "✓ "}Confirmado
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onStatusChange) onStatusChange(agendamento, "ausencia");
+                    setDropdownOpen(false);
+                  }}
+                  className={agendamento.status === "ausencia" ? "bg-gray-100" : ""}
+                >
+                  {agendamento.status === "ausencia" && "✓ "}Ausência
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onStatusChange) onStatusChange(agendamento, "cancelado");
+                    setDropdownOpen(false);
+                  }}
+                  className={agendamento.status === "cancelado" ? "bg-gray-100" : ""}
+                >
+                  {agendamento.status === "cancelado" && "✓ "}Cancelado
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onStatusChange) onStatusChange(agendamento, "concluido");
+                    setDropdownOpen(false);
+                  }}
+                  className={agendamento.status === "concluido" ? "bg-gray-100" : ""}
+                >
+                  {agendamento.status === "concluido" && "✓ "}Concluído
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
         </div>
-
-
-
-        <div className="flex items-center justify-between pt-0.5 md:pt-1" onClick={(e) => e.stopPropagation()}>
-          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-            <DropdownMenuTrigger asChild>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDropdownOpen(!dropdownOpen);
-                }}
-                className="bg-white/20 text-white border-0 text-[9px] md:text-xs px-1 md:px-2 py-0.5 md:py-1 cursor-pointer hover:bg-white/30 transition-all flex items-center gap-1 rounded"
-              >
-                {statusLabels[agendamento.status]}
-                <ChevronDown className="w-3 h-3" />
-              </button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()} className="z-50">
-              <DropdownMenuItem 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onStatusChange) onStatusChange(agendamento, "agendado");
-                  setDropdownOpen(false);
-                }}
-                className={agendamento.status === "agendado" ? "bg-gray-100" : ""}
-              >
-                {agendamento.status === "agendado" && "✓ "}Agendado
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onStatusChange) onStatusChange(agendamento, "confirmado");
-                  setDropdownOpen(false);
-                }}
-                className={agendamento.status === "confirmado" ? "bg-gray-100" : ""}
-              >
-                {agendamento.status === "confirmado" && "✓ "}Confirmado
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onStatusChange) onStatusChange(agendamento, "ausencia");
-                  setDropdownOpen(false);
-                }}
-                className={agendamento.status === "ausencia" ? "bg-gray-100" : ""}
-              >
-                {agendamento.status === "ausencia" && "✓ "}Ausência
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onStatusChange) onStatusChange(agendamento, "cancelado");
-                  setDropdownOpen(false);
-                }}
-                className={agendamento.status === "cancelado" ? "bg-gray-100" : ""}
-              >
-                {agendamento.status === "cancelado" && "✓ "}Cancelado
-              </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onStatusChange) onStatusChange(agendamento, "concluido");
-                  setDropdownOpen(false);
-                }}
-                className={agendamento.status === "concluido" ? "bg-gray-100" : ""}
-              >
-                {agendamento.status === "concluido" && "✓ "}Concluído
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          {agendamento.sala && (
-            <span className="text-[9px] md:text-xs opacity-90">Sala {agendamento.sala}</span>
-          )}
-        </div>
+        
+        {agendamento.sala && (
+          <div className="text-[9px] md:text-xs opacity-90">Sala {agendamento.sala}</div>
+        )}
       </div>
     </Card>
   );
