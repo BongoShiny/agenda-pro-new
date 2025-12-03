@@ -165,11 +165,12 @@ export default function AgendaDiaView({
   };
 
   // Verificar se um slot está coberto por um agendamento (para não mostrar slot vazio)
-  const slotEstaCoberto = (profissionalId, horario) => {
+  // Retorna o agendamento que cobre o slot, ou null
+  const getAgendamentoQueCobreSlot = (profissionalId, horario) => {
     const [hSlot] = horario.split(':').map(Number);
     const minutosSlot = hSlot * 60;
     
-    return agendamentos.some(ag => {
+    return agendamentos.find(ag => {
       if (ag.unidade_id !== unidadeSelecionada.id || ag.profissional_id !== profissionalId) return false;
       
       const [hInicio] = ag.hora_inicio.split(':').map(Number);
@@ -179,7 +180,7 @@ export default function AgendaDiaView({
       
       // Slot está coberto se está entre início (exclusive do primeiro) e fim do agendamento
       return minutosSlot > minutosInicio && minutosSlot < minutosFim;
-    });
+    }) || null;
   };
 
   const calcularDuracaoSlots = (horaInicio, horaFim) => {
