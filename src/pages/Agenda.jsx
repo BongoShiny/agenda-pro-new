@@ -674,9 +674,9 @@ export default function AgendaPage() {
 
   const handleMudarStatus = async (agendamento, novoStatus) => {
     const statusAntigo = agendamento.status;
-    
+
     if (statusAntigo === novoStatus) return; // Nenhuma mudança
-    
+
     const statusLabelsLog = {
       confirmado: "Confirmado",
       agendado: "Agendado",
@@ -684,14 +684,14 @@ export default function AgendaPage() {
       cancelado: "Cancelado",
       concluido: "Concluído"
     };
-    
+
     try {
       await atualizarAgendamentoMutation.mutateAsync({
         id: agendamento.id,
         dados: { ...agendamento, status: novoStatus, editor_email: usuarioAtual?.email },
         dadosAntigos: agendamento
       });
-      
+
       // Criar log da mudança de status
       await base44.entities.LogAcao.create({
         tipo: "editou_agendamento",
@@ -702,10 +702,45 @@ export default function AgendaPage() {
         dados_antigos: JSON.stringify({ status: statusAntigo }),
         dados_novos: JSON.stringify({ status: novoStatus })
       });
-      
+
     } catch (error) {
       console.error("❌ Erro ao mudar status:", error);
       alert("❌ Erro ao mudar status: " + error.message);
+    }
+  };
+
+  const handleMudarStatusPaciente = async (agendamento, novoStatusPaciente) => {
+    const statusAntigo = agendamento.status_paciente;
+
+    if (statusAntigo === novoStatusPaciente) return;
+
+    const statusPacienteLabels = {
+      "": "-",
+      "paciente_novo": "Paciente Novo",
+      "primeira_sessao": "1ª Sessão",
+      "ultima_sessao": "Última Sessão"
+    };
+
+    try {
+      await atualizarAgendamentoMutation.mutateAsync({
+        id: agendamento.id,
+        dados: { ...agendamento, status_paciente: novoStatusPaciente, editor_email: usuarioAtual?.email },
+        dadosAntigos: agendamento
+      });
+
+      await base44.entities.LogAcao.create({
+        tipo: "editou_agendamento",
+        usuario_email: usuarioAtual?.email || "sistema",
+        descricao: `Alterou status do paciente de "${statusPacienteLabels[statusAntigo] || '-'}" para "${statusPacienteLabels[novoStatusPaciente]}": ${agendamento.cliente_nome}`,
+        entidade_tipo: "Agendamento",
+        entidade_id: agendamento.id,
+        dados_antigos: JSON.stringify({ status_paciente: statusAntigo }),
+        dados_novos: JSON.stringify({ status_paciente: novoStatusPaciente })
+      });
+
+    } catch (error) {
+      console.error("❌ Erro ao mudar status do paciente:", error);
+      alert("❌ Erro ao mudar status do paciente: " + error.message);
     }
   };
 
@@ -861,6 +896,7 @@ export default function AgendaPage() {
             onNovoAgendamento={handleNovoAgendamentoSlot}
             onBloquearHorario={handleBloquearHorario}
             onStatusChange={handleMudarStatus}
+            onStatusPacienteChange={handleMudarStatusPaciente}
             usuarioAtual={usuarioAtual}
             dataAtual={dataAtual}
             excecoesHorario={excecoesHorario}
