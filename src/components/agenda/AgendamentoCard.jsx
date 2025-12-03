@@ -15,7 +15,9 @@ const statusColors = {
   ausencia: "bg-fuchsia-600",
   cancelado: "bg-red-500",
   concluido: "bg-blue-500",
-  bloqueio: "bg-red-600"
+  bloqueio: "bg-red-600",
+  ultima_sessao: "bg-red-600",
+  paciente_novo: "bg-pink-500"
 };
 
 const statusIcons = {
@@ -24,7 +26,9 @@ const statusIcons = {
   ausencia: XCircle,
   cancelado: XCircle,
   concluido: CheckCircle,
-  bloqueio: Ban
+  bloqueio: Ban,
+  ultima_sessao: Clock,
+  paciente_novo: Clock
 };
 
 const statusLabels = {
@@ -33,7 +37,9 @@ const statusLabels = {
   ausencia: "Ausência",
   cancelado: "Cancelado",
   concluido: "Concluído",
-  bloqueio: "FECHADO"
+  bloqueio: "FECHADO",
+  ultima_sessao: "Última Sessão",
+  paciente_novo: "Paciente Novo"
 };
 
 export default function AgendamentoCard({ agendamento, onClick, onStatusChange }) {
@@ -146,6 +152,26 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange }
                   className={agendamento.status === "concluido" ? "bg-gray-100" : ""}
                 >
                   {agendamento.status === "concluido" && "✓ "}Concluído
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onStatusChange) onStatusChange(agendamento, "ultima_sessao");
+                    setDropdownOpen(false);
+                  }}
+                  className={agendamento.status === "ultima_sessao" ? "bg-gray-100" : ""}
+                >
+                  {agendamento.status === "ultima_sessao" && "✓ "}Última Sessão
+                </DropdownMenuItem>
+                <DropdownMenuItem 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (onStatusChange) onStatusChange(agendamento, "paciente_novo");
+                    setDropdownOpen(false);
+                  }}
+                  className={agendamento.status === "paciente_novo" ? "bg-gray-100" : ""}
+                >
+                  {agendamento.status === "paciente_novo" && "✓ "}Paciente Novo
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
