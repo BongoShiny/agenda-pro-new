@@ -39,15 +39,13 @@ const statusLabels = {
 const statusPacienteLabels = {
   "": "-",
   "ultima_sessao": "Última Sessão",
-  "paciente_novo": "Paciente Novo",
-  "primeira_sessao": "1ª Sessão"
+  "paciente_novo": "Paciente Novo"
 };
 
 const statusPacienteColors = {
   "": null,
-  "paciente_novo": "bg-pink-500",
-  "primeira_sessao": "bg-purple-500",
-  "ultima_sessao": "bg-red-600"
+  "paciente_novo": "#ec4899",
+  "ultima_sessao": "#dc2626"
 };
 
 export default function AgendamentoCard({ agendamento, onClick, onStatusChange, onStatusPacienteChange }) {
@@ -75,23 +73,11 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
   const StatusIcon = statusIcons[agendamento.status] || Clock;
   const bgColorStatus = statusColors[agendamento.status] || "bg-gray-500";
   const bgColorPaciente = statusPacienteColors[agendamento.status_paciente];
-  const hasDualColor = bgColorPaciente && agendamento.status_paciente;
 
   return (
     <Card
-      className={`text-white p-1.5 md:p-2 cursor-pointer hover:shadow-lg transition-all duration-200 border-0 rounded-lg h-full flex flex-col overflow-hidden relative ${!hasDualColor ? bgColorStatus : ''}`}
+      className={`${bgColorStatus} text-white p-1.5 md:p-2 cursor-pointer hover:shadow-lg transition-all duration-200 border-0 rounded-lg h-full flex flex-col overflow-hidden relative`}
       onClick={() => onClick(agendamento)}
-      style={hasDualColor ? {
-        background: `linear-gradient(to right, var(--color-left) 50%, var(--color-right) 50%)`,
-        '--color-left': bgColorStatus === 'bg-emerald-500' ? '#10b981' : 
-                        bgColorStatus === 'bg-amber-400' ? '#fbbf24' : 
-                        bgColorStatus === 'bg-fuchsia-600' ? '#c026d3' : 
-                        bgColorStatus === 'bg-red-500' ? '#ef4444' : 
-                        bgColorStatus === 'bg-blue-500' ? '#3b82f6' : '#6b7280',
-        '--color-right': bgColorPaciente === 'bg-pink-500' ? '#ec4899' :
-                         bgColorPaciente === 'bg-purple-500' ? '#a855f7' :
-                         bgColorPaciente === 'bg-red-600' ? '#dc2626' : '#6b7280'
-      } : {}}
     >
       <div className="flex flex-col h-full">
         {/* Header com nome e hora */}
@@ -190,7 +176,8 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
                   e.stopPropagation();
                   setDropdownPacienteOpen(!dropdownPacienteOpen);
                 }}
-                className="bg-white/20 text-white border-0 text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 cursor-pointer hover:bg-white/30 transition-all flex items-center gap-0.5 rounded"
+                className="text-white border-0 text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 cursor-pointer hover:opacity-80 transition-all flex items-center gap-0.5 rounded"
+                style={{ backgroundColor: bgColorPaciente || 'rgba(255,255,255,0.2)' }}
               >
                 {statusPacienteLabels[agendamento.status_paciente] || "-"}
                 <ChevronDown className="w-2.5 h-2.5" />
@@ -217,16 +204,7 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
               >
                 {agendamento.status_paciente === "paciente_novo" && "✓ "}Paciente Novo
               </DropdownMenuItem>
-              <DropdownMenuItem 
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (onStatusPacienteChange) onStatusPacienteChange(agendamento, "primeira_sessao");
-                  setDropdownPacienteOpen(false);
-                }}
-                className={agendamento.status_paciente === "primeira_sessao" ? "bg-gray-100" : ""}
-              >
-                {agendamento.status_paciente === "primeira_sessao" && "✓ "}1ª Sessão
-              </DropdownMenuItem>
+
               <DropdownMenuItem 
                 onClick={(e) => {
                   e.stopPropagation();
