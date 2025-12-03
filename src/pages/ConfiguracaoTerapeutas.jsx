@@ -505,7 +505,10 @@ export default function ConfiguracaoTerapeutasPage() {
                       <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                         <Label className="text-sm font-semibold mb-2 block">Adicionar Terapeuta Existente</Label>
                         <div className="flex gap-2">
-                          <Select onValueChange={(value) => handleAdicionarTerapeuta(unidade.id, value)}>
+                          <Select 
+                            key={`select-${unidade.id}-${configs.length}`}
+                            onValueChange={(value) => handleAdicionarTerapeuta(unidade.id, value)}
+                          >
                             <SelectTrigger className="bg-white">
                               <SelectValue placeholder="Selecione um terapeuta" />
                             </SelectTrigger>
