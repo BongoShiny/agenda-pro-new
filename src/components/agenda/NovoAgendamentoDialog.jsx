@@ -288,7 +288,7 @@ export default function NovoAgendamentoDialog({
                 <SelectValue placeholder="Selecione o serviço" />
               </SelectTrigger>
               <SelectContent>
-                {servicos.map(servico => (
+                {servicos.filter(s => s.ativo !== false).map(servico => (
                   <SelectItem key={servico.id} value={servico.id}>{servico.nome}</SelectItem>
                 ))}
               </SelectContent>
