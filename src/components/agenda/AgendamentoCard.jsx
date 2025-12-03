@@ -43,6 +43,13 @@ const statusPacienteLabels = {
   "primeira_sessao": "1ª Sessão"
 };
 
+const statusPacienteColors = {
+  "": null,
+  "paciente_novo": "bg-pink-500",
+  "primeira_sessao": "bg-purple-500",
+  "ultima_sessao": "bg-red-600"
+};
+
 export default function AgendamentoCard({ agendamento, onClick, onStatusChange, onStatusPacienteChange }) {
   const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio" || agendamento.cliente_nome === "FECHADO";
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -66,12 +73,25 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
   }
 
   const StatusIcon = statusIcons[agendamento.status] || Clock;
-  const bgColor = statusColors[agendamento.status] || "bg-gray-500";
+  const bgColorStatus = statusColors[agendamento.status] || "bg-gray-500";
+  const bgColorPaciente = statusPacienteColors[agendamento.status_paciente];
+  const hasDualColor = bgColorPaciente && agendamento.status_paciente;
 
   return (
     <Card
-      className={`${bgColor} text-white p-1.5 md:p-2 cursor-pointer hover:shadow-lg transition-all duration-200 border-0 rounded-lg h-full flex flex-col`}
+      className={`text-white p-1.5 md:p-2 cursor-pointer hover:shadow-lg transition-all duration-200 border-0 rounded-lg h-full flex flex-col overflow-hidden relative ${!hasDualColor ? bgColorStatus : ''}`}
       onClick={() => onClick(agendamento)}
+      style={hasDualColor ? {
+        background: `linear-gradient(to right, var(--color-left) 50%, var(--color-right) 50%)`,
+        '--color-left': bgColorStatus === 'bg-emerald-500' ? '#10b981' : 
+                        bgColorStatus === 'bg-amber-400' ? '#fbbf24' : 
+                        bgColorStatus === 'bg-fuchsia-600' ? '#c026d3' : 
+                        bgColorStatus === 'bg-red-500' ? '#ef4444' : 
+                        bgColorStatus === 'bg-blue-500' ? '#3b82f6' : '#6b7280',
+        '--color-right': bgColorPaciente === 'bg-pink-500' ? '#ec4899' :
+                         bgColorPaciente === 'bg-purple-500' ? '#a855f7' :
+                         bgColorPaciente === 'bg-red-600' ? '#dc2626' : '#6b7280'
+      } : {}}
     >
       <div className="flex flex-col h-full">
         {/* Header com nome e hora */}
