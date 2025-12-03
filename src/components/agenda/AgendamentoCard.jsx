@@ -180,7 +180,6 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange }
             </DropdownMenu>
           </div>
         </div>
-      </div>
-    </Card>
+      </Card>
   );
 }
