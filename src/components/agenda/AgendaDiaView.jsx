@@ -352,21 +352,32 @@ export default function AgendaDiaView({
 
                   const agendamentosSlot = getAgendamentosParaSlot(terapeuta.id, horario);
                   const isOcupado = agendamentosSlot.length > 0;
-                  const estaCoberto = slotEstaCoberto(terapeuta.id, horario);
+                  const agendamentoQueCobreSlot = getAgendamentoQueCobreSlot(terapeuta.id, horario);
                   const horarioPassou = horarioJaPassou(horario);
                   const isMenuAberto = slotMenuAberto?.unidadeId === unidadeSelecionada.id && 
                                     slotMenuAberto?.profissionalId === terapeuta.id && 
                                     slotMenuAberto?.horario === horario;
 
-                  // Se o slot está coberto por um agendamento de múltiplas horas, não renderizar nada
-                  if (estaCoberto) {
+                  // Se o slot está coberto por um agendamento de múltiplas horas
+                  // Mostrar slot clicável se for bloqueio (para poder desbloquear)
+                  if (agendamentoQueCobreSlot) {
+                    const isBloqueio = agendamentoQueCobreSlot.status === "bloqueio" || 
+                                       agendamentoQueCobreSlot.tipo === "bloqueio" || 
+                                       agendamentoQueCobreSlot.cliente_nome === "FECHADO";
+                    
                     return (
                       <div
                         key={horario}
                         className={`h-16 md:h-20 border-b border-gray-200 ${
                           idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
                         }`}
-                      />
+                      >
+                        {/* Área clicável transparente para acessar o bloqueio */}
+                        <button
+                          className="w-full h-full cursor-pointer"
+                          onClick={() => onAgendamentoClick(agendamentoQueCobreSlot)}
+                        />
+                      </div>
                     );
                   }
 
