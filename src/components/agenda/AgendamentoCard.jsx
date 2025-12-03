@@ -83,7 +83,7 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange }
         </div>
 
         {agendamento.observacoes && (
-          <div className="text-[9px] md:text-xs opacity-90 italic">{agendamento.observacoes}</div>
+          <div className="text-[9px] md:text-xs opacity-90 italic line-clamp-2 overflow-hidden">{agendamento.observacoes}</div>
         )}
 
         <div className="flex items-center justify-between pt-0.5 md:pt-1" onClick={(e) => e.stopPropagation()}>
