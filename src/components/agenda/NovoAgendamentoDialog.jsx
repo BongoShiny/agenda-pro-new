@@ -283,16 +283,11 @@ export default function NovoAgendamentoDialog({
 
           <div className="space-y-2">
             <Label>Serviço *</Label>
-            <Select value={formData.servico_id} onValueChange={handleServicoChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o serviço" />
-              </SelectTrigger>
-              <SelectContent>
-                {servicos.filter(s => s.ativo !== false).map(servico => (
-                  <SelectItem key={servico.id} value={servico.id}>{servico.nome}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <Input
+              value={formData.servico_nome}
+              onChange={(e) => setFormData(prev => ({ ...prev, servico_nome: e.target.value, servico_id: "" }))}
+              placeholder="Digite o serviço (ex: Liberação Miofascial)"
+            />
           </div>
 
           <div className="space-y-2">
