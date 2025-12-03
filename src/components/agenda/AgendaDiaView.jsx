@@ -22,6 +22,7 @@ export default function AgendaDiaView({
   onNovoAgendamento,
   onBloquearHorario,
   onStatusChange,
+  onStatusPacienteChange,
   usuarioAtual,
   dataAtual,
   excecoesHorario = []
@@ -439,6 +440,7 @@ export default function AgendaDiaView({
                                 agendamento={agendamento}
                                 onClick={onAgendamentoClick}
                                 onStatusChange={onStatusChange}
+                                onStatusPacienteChange={onStatusPacienteChange}
                               />
                             </div>
                           );
