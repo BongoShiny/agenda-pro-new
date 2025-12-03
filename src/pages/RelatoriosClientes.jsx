@@ -342,8 +342,18 @@ export default function RelatoriosClientesPage() {
       </div>
 
       <div className="max-w-7xl mx-auto p-6">
-        {/* Filtros */}
-        <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
+                    {/* Tabs por Unidade */}
+                    <Tabs value={unidadeTab} onValueChange={setUnidadeTab} className="mb-4">
+                      <TabsList className="flex-wrap h-auto">
+                        <TabsTrigger value="todas">Todas as Unidades</TabsTrigger>
+                        {unidades.map(u => (
+                          <TabsTrigger key={u.id} value={u.id}>{u.nome}</TabsTrigger>
+                        ))}
+                      </TabsList>
+                    </Tabs>
+
+                    {/* Filtros */}
+                    <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <div className="md:col-span-4">
               <div className="relative">
