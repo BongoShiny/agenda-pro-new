@@ -12,6 +12,7 @@ import { ArrowLeft, Plus, GripVertical, Trash2, Edit2, Check, X, UserPlus, Alert
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Dialog,
   DialogContent,
