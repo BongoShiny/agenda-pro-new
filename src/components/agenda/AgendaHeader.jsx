@@ -51,7 +51,12 @@ export default function AgendaHeader({
     console.log("Data atual (antes):", dataAtual.toString());
     
     // Usar subDays do date-fns (mantém hora local)
-    const novaData = subDays(dataAtual, 1);
+    let novaData = subDays(dataAtual, 1);
+    
+    // Pular domingo (0 = domingo)
+    if (novaData.getDay() === 0) {
+      novaData = subDays(novaData, 1);
+    }
     
     console.log("Nova data (depois):", novaData.toString());
     console.log("Data formatada:", formatarDataPura(novaData));
@@ -65,7 +70,12 @@ export default function AgendaHeader({
     console.log("Data atual (antes):", dataAtual.toString());
     
     // Usar addDays do date-fns (mantém hora local)
-    const novaData = addDays(dataAtual, 1);
+    let novaData = addDays(dataAtual, 1);
+    
+    // Pular domingo (0 = domingo)
+    if (novaData.getDay() === 0) {
+      novaData = addDays(novaData, 1);
+    }
     
     console.log("Nova data (depois):", novaData.toString());
     console.log("Data formatada:", formatarDataPura(novaData));
