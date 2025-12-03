@@ -165,10 +165,9 @@ export default function ConfiguracaoTerapeutasPage() {
   };
 
   const getProfissionaisDisponiveis = (unidadeId) => {
-    // Mostrar apenas terapeutas que NÃO estão na unidade atual
-    const configsUnidade = getConfiguracoesUnidade(unidadeId);
-    const idsNaUnidadeAtual = configsUnidade.map(c => c.profissional_id);
-    return profissionais.filter(p => !idsNaUnidadeAtual.includes(p.id));
+    // Mostrar apenas terapeutas que NÃO estão em NENHUMA unidade
+    const idsJaVinculados = configuracoes.map(c => c.profissional_id);
+    return profissionais.filter(p => !idsJaVinculados.includes(p.id));
   };
 
   const getUnidadesDoProfissional = (profissionalId) => {
