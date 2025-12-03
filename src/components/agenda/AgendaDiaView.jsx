@@ -187,10 +187,10 @@ export default function AgendaDiaView({
     const minutosInicio = hInicio * 60 + mInicio;
     const minutosFim = hFim * 60 + mFim;
     const diferencaMinutos = minutosFim - minutosInicio;
-    // Cada slot de 1 hora = 4rem (mobile) ou 5rem (desktop)
-    // Como usamos h-16 md:h-20, vamos usar 4rem como base
+    // Cada slot de 1 hora = 64px (h-16) no mobile ou 80px (h-20) no desktop
+    // Retornamos em pixels para maior precisão
     const horas = diferencaMinutos / 60;
-    return horas * 4; // 4rem por hora
+    return horas; // Retorna número de horas
   };
 
   // Calcular posição top baseada no horário de início do agendamento vs horário do slot
