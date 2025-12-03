@@ -191,6 +191,17 @@ export default function AgendaDiaView({
     return horas * 4; // 4rem por hora
   };
 
+  // Calcular posição top baseada no horário de início do agendamento vs horário do slot
+  const calcularPosicaoTop = (horaInicioAgendamento, horaSlot) => {
+    const [hAgendamento, mAgendamento] = horaInicioAgendamento.split(':').map(Number);
+    const [hSlot, mSlot] = horaSlot.split(':').map(Number);
+    const minutosAgendamento = hAgendamento * 60 + mAgendamento;
+    const minutosSlot = hSlot * 60 + mSlot;
+    const diferencaMinutos = minutosAgendamento - minutosSlot;
+    // Converter diferença em rem (4rem por hora)
+    return (diferencaMinutos / 60) * 4;
+  };
+
   const handleSlotClick = (unidadeId, profissionalId, horario) => {
     setSlotMenuAberto({ unidadeId, profissionalId, horario });
   };
