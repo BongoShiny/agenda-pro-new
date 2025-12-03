@@ -357,7 +357,7 @@ export default function AgendaDiaView({
                                     slotMenuAberto?.horario === horario;
 
                   // Se o slot está coberto por um agendamento de múltiplas horas
-                  // Mostrar slot clicável se for bloqueio (para poder desbloquear)
+                  // Renderizar área clicável com fundo do bloqueio
                   if (agendamentoQueCobreSlot) {
                     const isBloqueio = agendamentoQueCobreSlot.status === "bloqueio" || 
                                        agendamentoQueCobreSlot.tipo === "bloqueio" || 
@@ -367,10 +367,10 @@ export default function AgendaDiaView({
                       <div
                         key={horario}
                         className={`h-16 md:h-20 border-b border-gray-200 ${
-                          idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
+                          isBloqueio ? 'bg-red-600' : (idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50')
                         }`}
                       >
-                        {/* Área clicável transparente para acessar o bloqueio */}
+                        {/* Área clicável para acessar o agendamento/bloqueio */}
                         <button
                           className="w-full h-full cursor-pointer"
                           onClick={() => onAgendamentoClick(agendamentoQueCobreSlot)}
