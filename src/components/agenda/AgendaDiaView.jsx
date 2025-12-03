@@ -154,29 +154,32 @@ export default function AgendaDiaView({
   const getAgendamentosParaSlot = (profissionalId, horario) => {
     const profissional = profissionais.find(p => p.id === profissionalId);
     
+    // Retornar apenas agendamentos que INICIAM neste horário
     const agendamentosSlot = agendamentos.filter(ag => 
       ag.unidade_id === unidadeSelecionada.id &&
       ag.profissional_id === profissionalId && 
       ag.hora_inicio === horario
     );
     
-    // Log detalhado de cada slot
-    if (agendamentosSlot.length > 0) {
-      agendamentosSlot.forEach(ag => {
-        const isBloqueio = ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO";
-        console.log(`📍 SLOT ${horario}:`, {
-          cliente: ag.cliente_nome,
-          data: ag.data,
-          profissional: profissional?.nome,
-          unidade: unidadeSelecionada.nome,
-          isBloqueio: isBloqueio,
-          status: ag.status,
-          tipo: ag.tipo
-        });
-      });
-    }
-    
     return agendamentosSlot;
+  };
+
+  // Verificar se um slot está coberto por um agendamento (para não mostrar slot vazio)
+  const slotEstaCoberto = (profissionalId, horario) => {
+    const [hSlot] = horario.split(':').map(Number);
+    const minutosSlot = hSlot * 60;
+    
+    return agendamentos.some(ag => {
+      if (ag.unidade_id !== unidadeSelecionada.id || ag.profissional_id !== profissionalId) return false;
+      
+      const [hInicio] = ag.hora_inicio.split(':').map(Number);
+      const [hFim] = ag.hora_fim.split(':').map(Number);
+      const minutosInicio = hInicio * 60;
+      const minutosFim = hFim * 60;
+      
+      // Slot está coberto se está entre início (exclusive do primeiro) e fim do agendamento
+      return minutosSlot > minutosInicio && minutosSlot < minutosFim;
+    });
   };
 
   const calcularDuracaoSlots = (horaInicio, horaFim) => {
