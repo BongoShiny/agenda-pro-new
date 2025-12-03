@@ -40,6 +40,7 @@ export default function RelatoriosClientesPage() {
   const [filtroEquipamento, setFiltroEquipamento] = useState("todos");
   const [modoEditor, setModoEditor] = useState(false);
   const [dadosEditados, setDadosEditados] = useState({});
+  const [unidadeTab, setUnidadeTab] = useState("todas");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
