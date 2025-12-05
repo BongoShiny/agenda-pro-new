@@ -540,6 +540,7 @@ export default function RelatoriosFinanceirosPage() {
             <TabsTrigger value="profissional">Por Profissional</TabsTrigger>
             <TabsTrigger value="unidade">Por Unidade</TabsTrigger>
             <TabsTrigger value="detalhado">Detalhado</TabsTrigger>
+            <TabsTrigger value="por-vendedor">Por Vendedor</TabsTrigger>
           </TabsList>
 
           <TabsContent value="profissional">
