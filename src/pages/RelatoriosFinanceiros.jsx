@@ -6,7 +6,17 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Download, DollarSign, TrendingUp, TrendingDown, Calendar, Edit3, Save } from "lucide-react";
+import { ArrowLeft, Download, DollarSign, TrendingUp, TrendingDown, Calendar, Edit3, Save, UserPlus } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns";
@@ -39,6 +49,16 @@ export default function RelatoriosFinanceirosPage() {
   const [profissionalFiltro, setProfissionalFiltro] = useState("todos");
   const [modoEditor, setModoEditor] = useState(false);
   const [dadosEditados, setDadosEditados] = useState({});
+  const [dialogVendedorAberto, setDialogVendedorAberto] = useState(false);
+  const [novoVendedor, setNovoVendedor] = useState({
+    nome: "",
+    email: "",
+    telefone: "",
+    cpf: "",
+    comissao_percentual: 0,
+    ativo: true,
+    observacoes: ""
+  });
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -84,6 +104,12 @@ export default function RelatoriosFinanceirosPage() {
   const { data: profissionais = [] } = useQuery({
     queryKey: ['profissionais-financeiro'],
     queryFn: () => base44.entities.Profissional.list("nome"),
+    initialData: [],
+  });
+
+  const { data: vendedores = [] } = useQuery({
+    queryKey: ['vendedores'],
+    queryFn: () => base44.entities.Vendedor.list("nome"),
     initialData: [],
   });
 
@@ -208,6 +234,36 @@ export default function RelatoriosFinanceirosPage() {
     },
   });
 
+  const criarVendedorMutation = useMutation({
+    mutationFn: async (dados) => {
+      const resultado = await base44.entities.Vendedor.create(dados);
+      
+      await base44.entities.LogAcao.create({
+        tipo: "criou_terapeuta",
+        usuario_email: usuarioAtual?.email || "sistema",
+        descricao: `Criou novo vendedor: ${dados.nome}`,
+        entidade_tipo: "Vendedor",
+        entidade_id: resultado.id,
+        dados_novos: JSON.stringify(resultado)
+      });
+      
+      return resultado;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vendedores'] });
+      setDialogVendedorAberto(false);
+      setNovoVendedor({
+        nome: "",
+        email: "",
+        telefone: "",
+        cpf: "",
+        comissao_percentual: 0,
+        ativo: true,
+        observacoes: ""
+      });
+    },
+  });
+
   const handleAtivarModoEditor = async () => {
     if (!modoEditor) {
       await base44.entities.LogAcao.create({
@@ -262,6 +318,21 @@ export default function RelatoriosFinanceirosPage() {
     } catch (error) {
       console.error("Erro ao salvar:", error);
       alert("Erro ao salvar alterações: " + error.message);
+    }
+  };
+
+  const handleCriarVendedor = async () => {
+    if (!novoVendedor.nome) {
+      alert("Por favor, preencha o nome do vendedor");
+      return;
+    }
+
+    try {
+      await criarVendedorMutation.mutateAsync(novoVendedor);
+      alert("✅ Vendedor criado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao criar vendedor:", error);
+      alert("Erro ao criar vendedor: " + error.message);
     }
   };
 
@@ -349,6 +420,10 @@ export default function RelatoriosFinanceirosPage() {
             </div>
           </div>
           <div className="flex gap-2">
+            <Button onClick={() => setDialogVendedorAberto(true)} variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50">
+              <UserPlus className="w-4 h-4 mr-2" />
+              Criar Vendedor
+            </Button>
             <Button onClick={exportarCSV} className="bg-emerald-600 hover:bg-emerald-700">
               <Download className="w-4 h-4 mr-2" />
               Exportar CSV
@@ -654,6 +729,93 @@ export default function RelatoriosFinanceirosPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Dialog Criar Vendedor */}
+      <Dialog open={dialogVendedorAberto} onOpenChange={setDialogVendedorAberto}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Criar Novo Vendedor</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nome *</Label>
+              <Input
+                value={novoVendedor.nome}
+                onChange={(e) => setNovoVendedor(prev => ({ ...prev, nome: e.target.value }))}
+                placeholder="Nome completo do vendedor"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>E-mail</Label>
+              <Input
+                type="email"
+                value={novoVendedor.email}
+                onChange={(e) => setNovoVendedor(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="email@exemplo.com"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Telefone</Label>
+              <Input
+                value={novoVendedor.telefone}
+                onChange={(e) => setNovoVendedor(prev => ({ ...prev, telefone: e.target.value }))}
+                placeholder="(00) 00000-0000"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>CPF</Label>
+              <Input
+                value={novoVendedor.cpf}
+                onChange={(e) => setNovoVendedor(prev => ({ ...prev, cpf: e.target.value }))}
+                placeholder="000.000.000-00"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Comissão (%)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={novoVendedor.comissao_percentual}
+                onChange={(e) => setNovoVendedor(prev => ({ ...prev, comissao_percentual: parseFloat(e.target.value) || 0 }))}
+                placeholder="0.00"
+              />
+            </div>
+
+            <div className="flex items-center justify-between">
+              <Label>Vendedor Ativo</Label>
+              <Switch
+                checked={novoVendedor.ativo}
+                onCheckedChange={(checked) => setNovoVendedor(prev => ({ ...prev, ativo: checked }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Observações</Label>
+              <Textarea
+                value={novoVendedor.observacoes}
+                onChange={(e) => setNovoVendedor(prev => ({ ...prev, observacoes: e.target.value }))}
+                placeholder="Informações adicionais sobre o vendedor"
+                rows={3}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogVendedorAberto(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleCriarVendedor} className="bg-blue-600 hover:bg-blue-700">
+              <UserPlus className="w-4 h-4 mr-2" />
+              Criar Vendedor
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
