@@ -439,60 +439,55 @@ export default function RelatoriosFinanceirosPage() {
       </div>
 
       <div className="max-w-7xl mx-auto p-6 space-y-6">
-        {/* Filtros */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Filtros</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Período</label>
-                <Select value={periodo} onValueChange={setPeriodo}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dia">Hoje</SelectItem>
-                    <SelectItem value="semana">Esta Semana</SelectItem>
-                    <SelectItem value="mes">Este Mês</SelectItem>
-                    <SelectItem value="ano">Este Ano</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Unidade</label>
-                <Select value={unidadeFiltro} onValueChange={setUnidadeFiltro}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todas">Todas as Unidades</SelectItem>
-                    {unidadesFiltradas.map(u => (
-                      <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Profissional</label>
-                <Select value={profissionalFiltro} onValueChange={setProfissionalFiltro}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="todos">Todos os Profissionais</SelectItem>
-                    {profissionais.map(p => (
-                      <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+        {/* Filtros no Header */}
+        <div className="bg-white rounded-lg border border-gray-200 p-4">
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Período</label>
+              <Select value={periodo} onValueChange={setPeriodo}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="dia">Hoje</SelectItem>
+                  <SelectItem value="semana">Esta Semana</SelectItem>
+                  <SelectItem value="mes">Este Mês</SelectItem>
+                  <SelectItem value="ano">Este Ano</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </CardContent>
-        </Card>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Unidade</label>
+              <Select value={unidadeFiltro} onValueChange={setUnidadeFiltro}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todas">Todas as Unidades</SelectItem>
+                  {unidadesFiltradas.map(u => (
+                    <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Profissional</label>
+              <Select value={profissionalFiltro} onValueChange={setProfissionalFiltro}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os Profissionais</SelectItem>
+                  {profissionais.map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
 
         {/* Cards de Resumo */}
         <div className="grid grid-cols-3 gap-6">
@@ -738,70 +733,150 @@ export default function RelatoriosFinanceirosPage() {
           {/* Aba Por Vendedor */}
           <TabsContent value="por-vendedor" className="space-y-6">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <CardTitle>Relatório por Vendedor</CardTitle>
+                <div className="flex gap-2">
+                  {modoEditor ? (
+                    <>
+                      <Button onClick={() => { setModoEditor(false); setDadosEditados({}); }} variant="outline">
+                        Cancelar
+                      </Button>
+                      <Button onClick={handleSalvarEdicoes} className="bg-emerald-600 hover:bg-emerald-700">
+                        <Save className="w-4 h-4 mr-2" />
+                        Salvar Alterações
+                      </Button>
+                    </>
+                  ) : (
+                    <Button onClick={handleAtivarModoEditor} variant="outline">
+                      <Edit3 className="w-4 h-4 mr-2" />
+                      Modo Editor
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Vendedor</TableHead>
-                      <TableHead className="text-right">Total de Agendamentos</TableHead>
-                      <TableHead className="text-right">Valor Combinado</TableHead>
-                      <TableHead className="text-right">Valor Pago</TableHead>
-                      <TableHead className="text-right">Valor Pendente</TableHead>
-                      <TableHead className="text-right">Comissão Estimada</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {vendedores.filter(v => v.ativo).map(vendedor => {
-                      const agendamentosVendedor = agendamentosFiltrados.filter(ag => 
-                        ag.vendedor_id === vendedor.id
-                      );
-                      
-                      const totalCombinado = agendamentosVendedor.reduce((acc, ag) => 
-                        acc + (ag.valor_combinado || 0), 0
-                      );
-                      const totalPago = agendamentosVendedor.reduce((acc, ag) => 
-                        acc + (ag.valor_pago || 0), 0
-                      );
-                      const totalPendente = agendamentosVendedor.reduce((acc, ag) => 
-                        acc + (ag.falta_quanto || 0), 0
-                      );
-                      const comissaoEstimada = totalPago * (vendedor.comissao_percentual / 100);
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Data</TableHead>
+                        <TableHead>Cliente</TableHead>
+                        <TableHead>Profissional</TableHead>
+                        <TableHead>Vendedor</TableHead>
+                        <TableHead className="text-right">Valor Combinado</TableHead>
+                        <TableHead className="text-right">Valor Pago</TableHead>
+                        <TableHead className="text-right">Falta</TableHead>
+                        <TableHead>Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {agendamentosFiltrados.map((ag) => {
+                        const valorCombinado = dadosEditados[ag.id]?.valor_combinado !== undefined 
+                          ? dadosEditados[ag.id].valor_combinado 
+                          : ag.valor_combinado;
+                        const valorPago = dadosEditados[ag.id]?.valor_pago !== undefined 
+                          ? dadosEditados[ag.id].valor_pago 
+                          : ag.valor_pago;
+                        const faltaQuanto = dadosEditados[ag.id]?.falta_quanto !== undefined 
+                          ? dadosEditados[ag.id].falta_quanto 
+                          : ag.falta_quanto;
+                        const vendedorId = dadosEditados[ag.id]?.vendedor_id !== undefined
+                          ? dadosEditados[ag.id].vendedor_id
+                          : ag.vendedor_id;
+                        
+                        return (
+                          <TableRow key={ag.id} className={dadosEditados[ag.id] ? "bg-yellow-50" : ""}>
+                            <TableCell>
+                              {ag.data ? format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                            </TableCell>
+                            <TableCell className="font-medium">{ag.cliente_nome}</TableCell>
+                            <TableCell>{ag.profissional_nome}</TableCell>
+                            <TableCell>
+                              {modoEditor ? (
+                                <Select 
+                                  value={vendedorId || ""} 
+                                  onValueChange={(value) => {
+                                    const vendedor = vendedores.find(v => v.id === value);
+                                    setDadosEditados(prev => ({
+                                      ...prev,
+                                      [ag.id]: {
+                                        ...prev[ag.id],
+                                        vendedor_id: value,
+                                        vendedor_nome: vendedor?.nome || ""
+                                      }
+                                    }));
+                                  }}
+                                >
+                                  <SelectTrigger className="w-40">
+                                    <SelectValue placeholder="Sem vendedor" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value={null}>Sem vendedor</SelectItem>
+                                    {vendedores.filter(v => v.ativo).map(v => (
+                                      <SelectItem key={v.id} value={v.id}>{v.nome}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              ) : (
+                                <span className="text-sm">{ag.vendedor_nome || "-"}</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              {modoEditor ? (
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={valorCombinado || ""}
+                                  onChange={(e) => handleCampoChange(ag.id, "valor_combinado", e.target.value)}
+                                  className="w-28 text-right"
+                                />
+                              ) : (
+                                formatarMoeda(valorCombinado)
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right text-emerald-600 font-semibold">
+                              {modoEditor ? (
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={valorPago || ""}
+                                  onChange={(e) => handleCampoChange(ag.id, "valor_pago", e.target.value)}
+                                  className="w-28 text-right"
+                                />
+                              ) : (
+                                formatarMoeda(valorPago)
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right text-orange-600">
+                              {modoEditor ? (
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={faltaQuanto || ""}
+                                  onChange={(e) => handleCampoChange(ag.id, "falta_quanto", e.target.value)}
+                                  className="w-28 text-right"
+                                />
+                              ) : (
+                                formatarMoeda(faltaQuanto)
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-xs px-2 py-1 rounded-full bg-gray-100">
+                                {ag.status}
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </div>
 
-                      if (agendamentosVendedor.length === 0) return null;
-
-                      return (
-                        <TableRow key={vendedor.id}>
-                          <TableCell className="font-medium">{vendedor.nome}</TableCell>
-                          <TableCell className="text-right">{agendamentosVendedor.length}</TableCell>
-                          <TableCell className="text-right">
-                            R$ {totalCombinado.toFixed(2)}
-                          </TableCell>
-                          <TableCell className="text-right text-green-600 font-semibold">
-                            R$ {totalPago.toFixed(2)}
-                          </TableCell>
-                          <TableCell className="text-right text-orange-600">
-                            R$ {totalPendente.toFixed(2)}
-                          </TableCell>
-                          <TableCell className="text-right text-blue-600 font-semibold">
-                            R$ {comissaoEstimada.toFixed(2)}
-                            <span className="text-xs text-gray-500 ml-1">
-                              ({vendedor.comissao_percentual}%)
-                            </span>
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-
-                {vendedores.filter(v => v.ativo).every(vendedor => 
-                  agendamentosFiltrados.filter(ag => ag.vendedor_id === vendedor.id).length === 0
-                ) && (
-                  <div className="text-center py-8 text-gray-500">
-                    <p>Nenhum agendamento associado a vendedores no período selecionado</p>
+                {agendamentosFiltrados.length === 0 && (
+                  <div className="text-center py-12 text-gray-500">
+                    <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                    <p className="font-medium">Nenhum agendamento encontrado</p>
+                    <p className="text-sm mt-2">Tente ajustar os filtros para ver os dados</p>
                   </div>
                 )}
               </CardContent>
