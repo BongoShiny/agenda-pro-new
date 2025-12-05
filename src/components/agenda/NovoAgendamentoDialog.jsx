@@ -409,16 +409,6 @@ export default function NovoAgendamentoDialog({
             </Select>
           </div>
 
-          <div className="col-span-2 space-y-2">
-            <Label>Observações</Label>
-            <Textarea
-              value={formData.observacoes}
-              onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
-              placeholder="Observações adicionais"
-              rows={3}
-            />
-          </div>
-
           <div className="space-y-2">
             <Label>Valor Combinado</Label>
             <Input
@@ -458,6 +448,16 @@ export default function NovoAgendamentoDialog({
                 ...prev, 
                 falta_quanto: e.target.value ? parseFloat(e.target.value) : null 
               }))}
+            />
+          </div>
+
+          <div className="col-span-2 space-y-2">
+            <Label>Observações</Label>
+            <Textarea
+              value={formData.observacoes}
+              onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
+              placeholder="Observações adicionais"
+              rows={3}
             />
           </div>
         </div>
