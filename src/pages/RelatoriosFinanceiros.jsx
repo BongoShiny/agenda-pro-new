@@ -56,6 +56,9 @@ export default function RelatoriosFinanceirosPage() {
     telefone: "",
     cpf: "",
     comissao_percentual: 0,
+    valor_combinado_total: 0,
+    valor_recebido_total: 0,
+    a_receber_total: 0,
     ativo: true,
     observacoes: ""
   });
@@ -264,6 +267,9 @@ export default function RelatoriosFinanceirosPage() {
         telefone: "",
         cpf: "",
         comissao_percentual: 0,
+        valor_combinado_total: 0,
+        valor_recebido_total: 0,
+        a_receber_total: 0,
         ativo: true,
         observacoes: ""
       });
@@ -575,7 +581,7 @@ export default function RelatoriosFinanceirosPage() {
           <TabsContent value="profissional">
             <Card>
               <CardHeader>
-                <CardTitle>Faturamento por Profissional</CardTitle>
+                <CardTitle>Atendimentos por Profissional</CardTitle>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -583,23 +589,13 @@ export default function RelatoriosFinanceirosPage() {
                     <TableRow>
                       <TableHead>Profissional</TableHead>
                       <TableHead className="text-right">Atendimentos</TableHead>
-                      <TableHead className="text-right">Valor Combinado</TableHead>
-                      <TableHead className="text-right">Valor Recebido</TableHead>
-                      <TableHead className="text-right">A Receber</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {listaProfissionais.map((prof, idx) => (
                       <TableRow key={idx}>
                         <TableCell className="font-medium">{prof.nome}</TableCell>
-                        <TableCell className="text-right">{prof.quantidade}</TableCell>
-                        <TableCell className="text-right">{formatarMoeda(prof.totalCombinado)}</TableCell>
-                        <TableCell className="text-right text-emerald-600 font-semibold">
-                          {formatarMoeda(prof.totalPago)}
-                        </TableCell>
-                        <TableCell className="text-right text-orange-600">
-                          {formatarMoeda(prof.totalAReceber)}
-                        </TableCell>
+                        <TableCell className="text-right text-lg font-semibold">{prof.quantidade}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -819,27 +815,17 @@ export default function RelatoriosFinanceirosPage() {
                       const agendamentosVendedor = agendamentosFiltrados.filter(ag => 
                         ag.vendedor_id === vendedor.id
                       );
-                      
-                      const totalCombinado = agendamentosVendedor.reduce((acc, ag) => 
-                        acc + (ag.valor_combinado || 0), 0
-                      );
-                      const totalPago = agendamentosVendedor.reduce((acc, ag) => 
-                        acc + (ag.valor_pago || 0), 0
-                      );
-                      const totalAReceber = agendamentosVendedor.reduce((acc, ag) => 
-                        acc + (ag.falta_quanto || 0), 0
-                      );
 
                       return (
                         <TableRow key={vendedor.id}>
                           <TableCell className="font-medium">{vendedor.nome}</TableCell>
                           <TableCell className="text-right">{agendamentosVendedor.length}</TableCell>
-                          <TableCell className="text-right">{formatarMoeda(totalCombinado)}</TableCell>
+                          <TableCell className="text-right">{formatarMoeda(vendedor.valor_combinado_total || 0)}</TableCell>
                           <TableCell className="text-right text-emerald-600 font-semibold">
-                            {formatarMoeda(totalPago)}
+                            {formatarMoeda(vendedor.valor_recebido_total || 0)}
                           </TableCell>
                           <TableCell className="text-right text-orange-600">
-                            {formatarMoeda(totalAReceber)}
+                            {formatarMoeda(vendedor.a_receber_total || 0)}
                           </TableCell>
                           <TableCell className="text-right">
                             <Button
@@ -928,6 +914,39 @@ export default function RelatoriosFinanceirosPage() {
                 value={novoVendedor.comissao_percentual}
                 onChange={(e) => setNovoVendedor(prev => ({ ...prev, comissao_percentual: parseFloat(e.target.value) || 0 }))}
                 placeholder="0.00"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Valor Combinado</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={novoVendedor.valor_combinado_total}
+                onChange={(e) => setNovoVendedor(prev => ({ ...prev, valor_combinado_total: parseFloat(e.target.value) || 0 }))}
+                placeholder="R$ 0,00"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Valor Recebido</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={novoVendedor.valor_recebido_total}
+                onChange={(e) => setNovoVendedor(prev => ({ ...prev, valor_recebido_total: parseFloat(e.target.value) || 0 }))}
+                placeholder="R$ 0,00"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>A Receber</Label>
+              <Input
+                type="number"
+                step="0.01"
+                value={novoVendedor.a_receber_total}
+                onChange={(e) => setNovoVendedor(prev => ({ ...prev, a_receber_total: parseFloat(e.target.value) || 0 }))}
+                placeholder="R$ 0,00"
               />
             </div>
 
