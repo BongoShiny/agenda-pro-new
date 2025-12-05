@@ -205,7 +205,10 @@ export default function AgendaPage() {
   });
 
   // Filtrar unidades baseado no acesso do usuário
-  const unidades = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin"
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
+  const isGerencia = usuarioAtual?.cargo === "gerencia_unidades";
+  
+  const unidades = isAdmin
     ? todasUnidades
     : todasUnidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
 
@@ -810,8 +813,8 @@ export default function AgendaPage() {
 
   const unidadeAtual = unidadeSelecionada || unidades[0];
 
-  // Verificar se é admin - APENAS "administrador" no cargo ou "admin" no role
-  const isAdmin = usuarioAtual?.role === "admin";
+  // Verificar se é admin ou gerência - ambos têm permissões administrativas
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">

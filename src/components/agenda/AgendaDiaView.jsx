@@ -209,7 +209,7 @@ export default function AgendaDiaView({
     setSlotMenuAberto({ unidadeId, profissionalId, horario });
   };
 
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
 
   if (terapeutasAtivos.length === 0) {
     return (

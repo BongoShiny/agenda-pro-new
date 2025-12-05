@@ -102,7 +102,7 @@ export default function AgendaHeader({
     onDataChange(hoje);
   };
 
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
 
   return (
     <div className="bg-white border-b border-gray-200">

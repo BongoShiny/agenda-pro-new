@@ -190,9 +190,15 @@ export default function GerenciarUsuariosPage() {
                     <TableRow key={usuario.id}>
                       <TableCell>
                         <div className="flex items-center gap-2">
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            cargo === "administrador" ? "bg-blue-100" : 
+                            cargo === "gerencia_unidades" ? "bg-purple-100" : 
+                            "bg-gray-100"
+                          }`}>
                             {cargo === "administrador" ? (
                               <Shield className="w-4 h-4 text-blue-600" />
+                            ) : cargo === "gerencia_unidades" ? (
+                              <Building2 className="w-4 h-4 text-purple-600" />
                             ) : (
                               <User className="w-4 h-4 text-gray-600" />
                             )}
@@ -229,6 +235,12 @@ export default function GerenciarUsuariosPage() {
                                 Superior
                               </div>
                             </SelectItem>
+                            <SelectItem value="gerencia_unidades">
+                              <div className="flex items-center gap-2">
+                                <Building2 className="w-3 h-3" />
+                                Gerência de Unidades
+                              </div>
+                            </SelectItem>
                             <SelectItem value="funcionario">
                               <div className="flex items-center gap-2">
                                 <User className="w-3 h-3" />
@@ -244,6 +256,64 @@ export default function GerenciarUsuariosPage() {
                           <Badge variant="secondary" className="bg-blue-100 text-blue-700">
                             Todas as unidades
                           </Badge>
+                        ) : cargo === "gerencia_unidades" ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="sm" className="text-left justify-start">
+                                {usuario.unidades_acesso?.length > 0 ? (
+                                  <>
+                                    {usuario.unidades_acesso.map(uid => {
+                                      const unidade = unidades.find(u => u.id === uid);
+                                      return unidade?.nome;
+                                    }).filter(Boolean).join(", ") || "Selecionar unidades"}
+                                  </>
+                                ) : (
+                                  <span className="text-gray-400">Nenhuma unidade</span>
+                                )}
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-64" align="start">
+                              <div className="space-y-3">
+                                <Label className="text-sm font-semibold">Unidades Permitidas</Label>
+                                <div className="space-y-2">
+                                  <div className="flex items-center space-x-2 pb-2 border-b">
+                                    <Checkbox
+                                      id={`${usuario.id}-todas`}
+                                      checked={usuario.unidades_acesso?.length === unidades.length && unidades.length > 0}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          handleAtualizarUnidades(usuario, unidades.map(u => u.id));
+                                        } else {
+                                          handleAtualizarUnidades(usuario, []);
+                                        }
+                                      }}
+                                    />
+                                    <label
+                                      htmlFor={`${usuario.id}-todas`}
+                                      className="text-sm cursor-pointer flex-1 font-semibold"
+                                    >
+                                      Todas as unidades
+                                    </label>
+                                  </div>
+                                  {unidades.map(unidade => (
+                                    <div key={unidade.id} className="flex items-center space-x-2">
+                                      <Checkbox
+                                        id={`${usuario.id}-${unidade.id}`}
+                                        checked={usuario.unidades_acesso?.includes(unidade.id)}
+                                        onCheckedChange={() => handleToggleUnidade(usuario, unidade.id)}
+                                      />
+                                      <label
+                                        htmlFor={`${usuario.id}-${unidade.id}`}
+                                        className="text-sm cursor-pointer flex-1"
+                                      >
+                                        {unidade.nome}
+                                      </label>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
                         ) : (
                           <Popover>
                             <PopoverTrigger asChild>
@@ -319,8 +389,8 @@ export default function GerenciarUsuariosPage() {
                       </TableCell>
 
                       <TableCell>
-                        <Badge variant={cargo === "administrador" ? "default" : "secondary"}>
-                          {cargo === "administrador" ? "Superior" : "Funcionário"}
+                        <Badge variant={cargo === "administrador" ? "default" : cargo === "gerencia_unidades" ? "default" : "secondary"} className={cargo === "gerencia_unidades" ? "bg-purple-600" : ""}>
+                          {cargo === "administrador" ? "Superior" : cargo === "gerencia_unidades" ? "Gerência" : "Funcionário"}
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -344,7 +414,7 @@ export default function GerenciarUsuariosPage() {
             <CardTitle>Diferenças entre Cargos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-2 gap-6">
+            <div className="grid md:grid-cols-3 gap-6">
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2 mb-3">
                   <Shield className="w-5 h-5 text-blue-600" />
@@ -356,6 +426,20 @@ export default function GerenciarUsuariosPage() {
                   <li>• Pode gerenciar usuários e terapeutas</li>
                   <li>• Pode editar agenda mesmo bloqueada</li>
                   <li>• Acesso completo ao sistema</li>
+                </ul>
+              </div>
+
+              <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <Building2 className="w-5 h-5 text-purple-600" />
+                  <h3 className="font-semibold text-purple-900">Gerência de Unidades</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-purple-800">
+                  <li>• Pode bloquear e desbloquear a agenda</li>
+                  <li>• Acesso às unidades permitidas</li>
+                  <li>• Pode gerenciar usuários e terapeutas</li>
+                  <li>• Pode editar agenda mesmo bloqueada</li>
+                  <li>• Permissões de superior nas unidades</li>
                 </ul>
               </div>
 

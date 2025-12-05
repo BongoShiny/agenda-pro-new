@@ -16,8 +16,8 @@ export default function AdministradorPage() {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
         
-        // Se não for admin, redireciona para agenda
-        const isAdmin = user?.cargo === "administrador" || user?.role === "admin";
+        // Se não for admin ou gerência, redireciona para agenda
+        const isAdmin = user?.cargo === "administrador" || user?.role === "admin" || user?.cargo === "gerencia_unidades";
         if (!isAdmin) {
           navigate(createPageUrl("Agenda"));
         }
@@ -39,7 +39,7 @@ export default function AdministradorPage() {
     );
   }
 
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
 
   if (!isAdmin) {
     return null;
