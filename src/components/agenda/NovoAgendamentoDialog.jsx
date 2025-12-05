@@ -99,7 +99,10 @@ export default function NovoAgendamentoDialog({
         observacoes: agendamentoInicial.observacoes || "",
         sala: agendamentoInicial.sala || "",
         equipamento: agendamentoInicial.equipamento || "",
-        status_paciente: agendamentoInicial.status_paciente || ""
+        status_paciente: agendamentoInicial.status_paciente || "",
+        valor_combinado: agendamentoInicial.valor_combinado || null,
+        valor_pago: agendamentoInicial.valor_pago || null,
+        falta_quanto: agendamentoInicial.falta_quanto || null
       };
       
       console.log("📝 DIALOG ABERTO | Modo:", modoEdicao ? "EDIÇÃO" : "NOVO", "| Data:", dados.data);
@@ -413,6 +416,48 @@ export default function NovoAgendamentoDialog({
               onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
               placeholder="Observações adicionais"
               rows={3}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Valor Combinado</Label>
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="R$ 0,00"
+              value={formData.valor_combinado || ""}
+              onChange={(e) => setFormData(prev => ({ 
+                ...prev, 
+                valor_combinado: e.target.value ? parseFloat(e.target.value) : null 
+              }))}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Valor Pago</Label>
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="R$ 0,00"
+              value={formData.valor_pago || ""}
+              onChange={(e) => setFormData(prev => ({ 
+                ...prev, 
+                valor_pago: e.target.value ? parseFloat(e.target.value) : null 
+              }))}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Falta Quanto</Label>
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="R$ 0,00"
+              value={formData.falta_quanto || ""}
+              onChange={(e) => setFormData(prev => ({ 
+                ...prev, 
+                falta_quanto: e.target.value ? parseFloat(e.target.value) : null 
+              }))}
             />
           </div>
         </div>
