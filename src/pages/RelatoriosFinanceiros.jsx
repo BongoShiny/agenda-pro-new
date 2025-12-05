@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Download, DollarSign, TrendingUp, TrendingDown, Calendar, Edit3, Save, UserPlus } from "lucide-react";
+import { ArrowLeft, Download, DollarSign, TrendingUp, TrendingDown, Calendar, Edit3, Save, UserPlus, Trash2 } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -270,6 +270,24 @@ export default function RelatoriosFinanceirosPage() {
     },
   });
 
+  const deletarVendedorMutation = useMutation({
+    mutationFn: async (vendedor) => {
+      await base44.entities.Vendedor.delete(vendedor.id);
+      
+      await base44.entities.LogAcao.create({
+        tipo: "excluiu_terapeuta",
+        usuario_email: usuarioAtual?.email || "sistema",
+        descricao: `Excluiu vendedor: ${vendedor.nome}`,
+        entidade_tipo: "Vendedor",
+        entidade_id: vendedor.id,
+        dados_antigos: JSON.stringify(vendedor)
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['vendedores'] });
+    },
+  });
+
   const handleAtivarModoEditor = async () => {
     if (!modoEditor) {
       await base44.entities.LogAcao.create({
@@ -339,6 +357,22 @@ export default function RelatoriosFinanceirosPage() {
     } catch (error) {
       console.error("Erro ao criar vendedor:", error);
       alert("Erro ao criar vendedor: " + error.message);
+    }
+  };
+
+  const handleExcluirVendedor = async (vendedor) => {
+    const confirmacao = window.confirm(
+      `Tem certeza que deseja excluir o vendedor "${vendedor.nome}"?\n\nEsta ação não pode ser desfeita.`
+    );
+
+    if (!confirmacao) return;
+
+    try {
+      await deletarVendedorMutation.mutateAsync(vendedor);
+      alert("✅ Vendedor excluído com sucesso!");
+    } catch (error) {
+      console.error("Erro ao excluir vendedor:", error);
+      alert("Erro ao excluir vendedor: " + error.message);
     }
   };
 
@@ -777,6 +811,7 @@ export default function RelatoriosFinanceirosPage() {
                       <TableHead className="text-right">Valor Combinado</TableHead>
                       <TableHead className="text-right">Valor Recebido</TableHead>
                       <TableHead className="text-right">A Receber</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -805,6 +840,16 @@ export default function RelatoriosFinanceirosPage() {
                           </TableCell>
                           <TableCell className="text-right text-orange-600">
                             {formatarMoeda(totalAReceber)}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleExcluirVendedor(vendedor)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       );
