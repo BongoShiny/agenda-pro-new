@@ -113,6 +113,12 @@ export default function RelatoriosFinanceirosPage() {
     initialData: [],
   });
 
+  const { data: usuarios = [] } = useQuery({
+    queryKey: ['usuarios-vendedores'],
+    queryFn: () => base44.entities.User.list("full_name"),
+    initialData: [],
+  });
+
   // Filtrar unidades baseado no acesso do usuário
   const unidadesFiltradas = (usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin")
     ? unidades
@@ -749,12 +755,18 @@ export default function RelatoriosFinanceirosPage() {
 
             <div className="space-y-2">
               <Label>E-mail</Label>
-              <Input
-                type="email"
-                value={novoVendedor.email}
-                onChange={(e) => setNovoVendedor(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="email@exemplo.com"
-              />
+              <Select value={novoVendedor.email} onValueChange={(value) => setNovoVendedor(prev => ({ ...prev, email: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione um usuário" />
+                </SelectTrigger>
+                <SelectContent>
+                  {usuarios.map(usuario => (
+                    <SelectItem key={usuario.id} value={usuario.email}>
+                      {usuario.full_name} ({usuario.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="space-y-2">
