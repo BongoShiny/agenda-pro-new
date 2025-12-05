@@ -68,7 +68,7 @@ export default function AdministradorPage() {
       </div>
 
       <div className="max-w-4xl mx-auto p-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {isAdmin && (
             <Link to={createPageUrl("GerenciarUsuarios")} className="block">
             <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer h-full">
@@ -114,6 +114,16 @@ export default function AdministradorPage() {
             </div>
           </Link>
           )}
+
+          <Link to={createPageUrl("RelatoriosFinanceiros")} className="block">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer h-full">
+              <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">
+                <DollarSign className="w-6 h-6 text-emerald-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Relatórios Financeiros</h3>
+              <p className="text-sm text-gray-500">Faturamento, pagamentos e valores a receber por período</p>
+            </div>
+          </Link>
         </div>
 
         <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">

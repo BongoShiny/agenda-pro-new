@@ -5,6 +5,7 @@ import HistoricoAgendamentos from './pages/HistoricoAgendamentos';
 import ConfigurarUnidades from './pages/ConfigurarUnidades';
 import Administrador from './pages/Administrador';
 import RelatoriosClientes from './pages/RelatoriosClientes';
+import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
 
 
 export const PAGES = {
@@ -15,6 +16,7 @@ export const PAGES = {
     "ConfigurarUnidades": ConfigurarUnidades,
     "Administrador": Administrador,
     "RelatoriosClientes": RelatoriosClientes,
+    "RelatoriosFinanceiros": RelatoriosFinanceiros,
 }
 
 export const pagesConfig = {
