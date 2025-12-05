@@ -205,10 +205,7 @@ export default function AgendaPage() {
   });
 
   // Filtrar unidades baseado no acesso do usuário
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
-  const isGerencia = usuarioAtual?.cargo === "gerencia_unidades";
-  
-  const unidades = isAdmin
+  const unidades = (usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin")
     ? todasUnidades
     : todasUnidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
 
