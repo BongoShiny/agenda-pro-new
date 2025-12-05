@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Download, DollarSign, TrendingUp, TrendingDown, Calendar } from "lucide-react";
+import { ArrowLeft, Download, DollarSign, TrendingUp, TrendingDown, Calendar, Edit3, Save } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns";
@@ -36,7 +37,10 @@ export default function RelatoriosFinanceirosPage() {
   const [periodo, setPeriodo] = useState("mes");
   const [unidadeFiltro, setUnidadeFiltro] = useState("todas");
   const [profissionalFiltro, setProfissionalFiltro] = useState("todos");
+  const [modoEditor, setModoEditor] = useState(false);
+  const [dadosEditados, setDadosEditados] = useState({});
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const carregarUsuario = async () => {
@@ -183,6 +187,84 @@ export default function RelatoriosFinanceirosPage() {
 
   const listaUnidades = Object.values(faturamentoPorUnidade).sort((a, b) => b.totalPago - a.totalPago);
 
+  const atualizarAgendamentoMutation = useMutation({
+    mutationFn: async ({ id, dados, dadosAntigos }) => {
+      const resultado = await base44.entities.Agendamento.update(id, dados);
+      
+      await base44.entities.LogAcao.create({
+        tipo: "editou_dados_relatorio",
+        usuario_email: usuarioAtual?.email || "sistema",
+        descricao: `Editou dados financeiros no relatório: ${dadosAntigos.cliente_nome}`,
+        entidade_tipo: "Agendamento",
+        entidade_id: id,
+        dados_antigos: JSON.stringify(dadosAntigos),
+        dados_novos: JSON.stringify(resultado)
+      });
+      
+      return resultado;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agendamentos-financeiro'] });
+    },
+  });
+
+  const handleAtivarModoEditor = async () => {
+    if (!modoEditor) {
+      await base44.entities.LogAcao.create({
+        tipo: "ativou_modo_editor",
+        usuario_email: usuarioAtual?.email,
+        descricao: "Ativou o modo editor nos relatórios financeiros",
+        entidade_tipo: "RelatorioFinanceiro"
+      });
+    }
+    setModoEditor(!modoEditor);
+    setDadosEditados({});
+  };
+
+  const handleCampoChange = (agendamentoId, campo, valor) => {
+    setDadosEditados(prev => ({
+      ...prev,
+      [agendamentoId]: {
+        ...prev[agendamentoId],
+        [campo]: valor ? parseFloat(valor) : null
+      }
+    }));
+  };
+
+  const handleSalvarEdicoes = async () => {
+    const idsEditados = Object.keys(dadosEditados);
+    
+    if (idsEditados.length === 0) {
+      alert("Nenhuma alteração foi feita");
+      return;
+    }
+
+    try {
+      for (const id of idsEditados) {
+        const agendamento = agendamentos.find(a => a.id === id);
+        const dadosNovos = dadosEditados[id];
+        
+        await atualizarAgendamentoMutation.mutateAsync({
+          id,
+          dados: dadosNovos,
+          dadosAntigos: {
+            cliente_nome: agendamento.cliente_nome,
+            valor_combinado: agendamento.valor_combinado,
+            valor_pago: agendamento.valor_pago,
+            falta_quanto: agendamento.falta_quanto
+          }
+        });
+      }
+      
+      alert(`✅ ${idsEditados.length} registro(s) atualizado(s) com sucesso!`);
+      setModoEditor(false);
+      setDadosEditados({});
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      alert("Erro ao salvar alterações: " + error.message);
+    }
+  };
+
   const exportarCSV = async () => {
     // Registrar exportação no log
     await base44.entities.LogAcao.create({
@@ -266,10 +348,12 @@ export default function RelatoriosFinanceirosPage() {
               <p className="text-sm text-gray-500">{periodoLabels[periodo]} - {agendamentosFiltrados.length} agendamentos</p>
             </div>
           </div>
-          <Button onClick={exportarCSV} className="bg-emerald-600 hover:bg-emerald-700">
-            <Download className="w-4 h-4 mr-2" />
-            Exportar CSV
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={exportarCSV} className="bg-emerald-600 hover:bg-emerald-700">
+              <Download className="w-4 h-4 mr-2" />
+              Exportar CSV
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -451,8 +535,26 @@ export default function RelatoriosFinanceirosPage() {
 
           <TabsContent value="detalhado">
             <Card>
-              <CardHeader>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <CardTitle>Detalhamento Completo</CardTitle>
+                <div className="flex gap-2">
+                  {modoEditor ? (
+                    <>
+                      <Button onClick={() => { setModoEditor(false); setDadosEditados({}); }} variant="outline">
+                        Cancelar
+                      </Button>
+                      <Button onClick={handleSalvarEdicoes} className="bg-emerald-600 hover:bg-emerald-700">
+                        <Save className="w-4 h-4 mr-2" />
+                        Salvar Alterações
+                      </Button>
+                    </>
+                  ) : (
+                    <Button onClick={handleAtivarModoEditor} variant="outline">
+                      <Edit3 className="w-4 h-4 mr-2" />
+                      Modo Editor
+                    </Button>
+                  )}
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="overflow-x-auto">
@@ -470,28 +572,72 @@ export default function RelatoriosFinanceirosPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {agendamentosFiltrados.map((ag) => (
-                        <TableRow key={ag.id}>
-                          <TableCell>
-                            {ag.data ? format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR }) : "-"}
-                          </TableCell>
-                          <TableCell className="font-medium">{ag.cliente_nome}</TableCell>
-                          <TableCell>{ag.profissional_nome}</TableCell>
-                          <TableCell className="text-sm text-gray-600">{ag.unidade_nome}</TableCell>
-                          <TableCell className="text-right">{formatarMoeda(ag.valor_combinado)}</TableCell>
-                          <TableCell className="text-right text-emerald-600 font-semibold">
-                            {formatarMoeda(ag.valor_pago)}
-                          </TableCell>
-                          <TableCell className="text-right text-orange-600">
-                            {formatarMoeda(ag.falta_quanto)}
-                          </TableCell>
-                          <TableCell>
-                            <span className="text-xs px-2 py-1 rounded-full bg-gray-100">
-                              {ag.status}
-                            </span>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {agendamentosFiltrados.map((ag) => {
+                        const valorCombinado = dadosEditados[ag.id]?.valor_combinado !== undefined 
+                          ? dadosEditados[ag.id].valor_combinado 
+                          : ag.valor_combinado;
+                        const valorPago = dadosEditados[ag.id]?.valor_pago !== undefined 
+                          ? dadosEditados[ag.id].valor_pago 
+                          : ag.valor_pago;
+                        const faltaQuanto = dadosEditados[ag.id]?.falta_quanto !== undefined 
+                          ? dadosEditados[ag.id].falta_quanto 
+                          : ag.falta_quanto;
+                        
+                        return (
+                          <TableRow key={ag.id} className={dadosEditados[ag.id] ? "bg-yellow-50" : ""}>
+                            <TableCell>
+                              {ag.data ? format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                            </TableCell>
+                            <TableCell className="font-medium">{ag.cliente_nome}</TableCell>
+                            <TableCell>{ag.profissional_nome}</TableCell>
+                            <TableCell className="text-sm text-gray-600">{ag.unidade_nome}</TableCell>
+                            <TableCell className="text-right">
+                              {modoEditor ? (
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={valorCombinado || ""}
+                                  onChange={(e) => handleCampoChange(ag.id, "valor_combinado", e.target.value)}
+                                  className="w-28 text-right"
+                                />
+                              ) : (
+                                formatarMoeda(valorCombinado)
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right text-emerald-600 font-semibold">
+                              {modoEditor ? (
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={valorPago || ""}
+                                  onChange={(e) => handleCampoChange(ag.id, "valor_pago", e.target.value)}
+                                  className="w-28 text-right"
+                                />
+                              ) : (
+                                formatarMoeda(valorPago)
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right text-orange-600">
+                              {modoEditor ? (
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={faltaQuanto || ""}
+                                  onChange={(e) => handleCampoChange(ag.id, "falta_quanto", e.target.value)}
+                                  className="w-28 text-right"
+                                />
+                              ) : (
+                                formatarMoeda(faltaQuanto)
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-xs px-2 py-1 rounded-full bg-gray-100">
+                                {ag.status}
+                              </span>
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
