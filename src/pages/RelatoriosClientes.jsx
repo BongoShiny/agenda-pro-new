@@ -49,7 +49,7 @@ export default function RelatoriosClientesPage() {
       try {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
-        const isAdmin = user?.cargo === "administrador" || user?.role === "admin";
+        const isAdmin = user?.cargo === "administrador" || user?.role === "admin" || user?.cargo === "gerencia_unidades";
         if (!isAdmin) {
           navigate(createPageUrl("Agenda"));
         } else {
