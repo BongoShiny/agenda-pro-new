@@ -226,7 +226,7 @@ export default function GerenciarUsuariosPage() {
                             <SelectItem value="administrador">
                               <div className="flex items-center gap-2">
                                 <Shield className="w-3 h-3" />
-                                Administrador
+                                Superior
                               </div>
                             </SelectItem>
                             <SelectItem value="funcionario">
@@ -320,7 +320,7 @@ export default function GerenciarUsuariosPage() {
 
                       <TableCell>
                         <Badge variant={cargo === "administrador" ? "default" : "secondary"}>
-                          {cargo === "administrador" ? "Admin" : "Funcionário"}
+                          {cargo === "administrador" ? "Superior" : "Funcionário"}
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -348,7 +348,7 @@ export default function GerenciarUsuariosPage() {
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2 mb-3">
                   <Shield className="w-5 h-5 text-blue-600" />
-                  <h3 className="font-semibold text-blue-900">Administrador</h3>
+                  <h3 className="font-semibold text-blue-900">Superior</h3>
                 </div>
                 <ul className="space-y-2 text-sm text-blue-800">
                   <li>• Pode bloquear e desbloquear a agenda</li>

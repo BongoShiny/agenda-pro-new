@@ -171,7 +171,7 @@ export default function AgendaHeader({
               <Link to={createPageUrl("Administrador")}>
                 <Button variant="outline" size="sm" className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100">
                   <ShieldCheck className="w-4 h-4 mr-1" />
-                  Admin
+                  Superior
                 </Button>
               </Link>
             </div>
@@ -234,7 +234,7 @@ export default function AgendaHeader({
               <Link to={createPageUrl("Administrador")}>
                 <Button variant="outline" className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100">
                   <ShieldCheck className="w-4 h-4 mr-2" />
-                  Administrador
+                  Superior
                 </Button>
               </Link>
             )}

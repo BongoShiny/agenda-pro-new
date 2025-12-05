@@ -59,8 +59,8 @@ export default function AdministradorPage() {
               <ShieldCheck className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Área do Administrador</h1>
-              <p className="text-sm text-gray-500">Acesso restrito a administradores</p>
+              <h1 className="text-2xl font-bold text-gray-900">Área dos Superiores</h1>
+              <p className="text-sm text-gray-500">Acesso restrito a superiores</p>
             </div>
           </div>
         </div>
@@ -115,7 +115,7 @@ export default function AdministradorPage() {
             <div>
               <h4 className="font-medium text-yellow-800">Área Restrita</h4>
               <p className="text-sm text-yellow-700 mt-1">
-                Apenas administradores têm acesso a esta área. As alterações feitas aqui afetam todo o sistema.
+                Apenas superiores têm acesso a esta área. As alterações feitas aqui afetam todo o sistema.
               </p>
             </div>
           </div>
