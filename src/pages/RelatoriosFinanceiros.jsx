@@ -641,7 +641,7 @@ export default function RelatoriosFinanceirosPage() {
                         <TableHead>Data</TableHead>
                         <TableHead>Cliente</TableHead>
                         <TableHead>Profissional</TableHead>
-                        <TableHead>Unidade</TableHead>
+                        <TableHead>Vendedor</TableHead>
                         <TableHead className="text-right">Valor Combinado</TableHead>
                         <TableHead className="text-right">Valor Pago</TableHead>
                         <TableHead className="text-right">Falta</TableHead>
@@ -659,6 +659,9 @@ export default function RelatoriosFinanceirosPage() {
                         const faltaQuanto = dadosEditados[ag.id]?.falta_quanto !== undefined 
                           ? dadosEditados[ag.id].falta_quanto 
                           : ag.falta_quanto;
+                        const vendedorId = dadosEditados[ag.id]?.vendedor_id !== undefined
+                          ? dadosEditados[ag.id].vendedor_id
+                          : ag.vendedor_id;
                         
                         return (
                           <TableRow key={ag.id} className={dadosEditados[ag.id] ? "bg-yellow-50" : ""}>
@@ -667,7 +670,36 @@ export default function RelatoriosFinanceirosPage() {
                             </TableCell>
                             <TableCell className="font-medium">{ag.cliente_nome}</TableCell>
                             <TableCell>{ag.profissional_nome}</TableCell>
-                            <TableCell className="text-sm text-gray-600">{ag.unidade_nome}</TableCell>
+                            <TableCell>
+                              {modoEditor ? (
+                                <Select 
+                                  value={vendedorId || ""} 
+                                  onValueChange={(value) => {
+                                    const vendedor = vendedores.find(v => v.id === value);
+                                    setDadosEditados(prev => ({
+                                      ...prev,
+                                      [ag.id]: {
+                                        ...prev[ag.id],
+                                        vendedor_id: value,
+                                        vendedor_nome: vendedor?.nome || ""
+                                      }
+                                    }));
+                                  }}
+                                >
+                                  <SelectTrigger className="w-40">
+                                    <SelectValue placeholder="Sem vendedor" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value={null}>Sem vendedor</SelectItem>
+                                    {vendedores.filter(v => v.ativo).map(v => (
+                                      <SelectItem key={v.id} value={v.id}>{v.nome}</SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                              ) : (
+                                <span className="text-sm">{ag.vendedor_nome || "-"}</span>
+                              )}
+                            </TableCell>
                             <TableCell className="text-right">
                               {modoEditor ? (
                                 <Input
