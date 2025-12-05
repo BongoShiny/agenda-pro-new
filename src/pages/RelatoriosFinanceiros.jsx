@@ -763,152 +763,59 @@ export default function RelatoriosFinanceirosPage() {
           </TabsContent>
 
           {/* Aba Por Vendedor */}
-          <TabsContent value="por-vendedor" className="space-y-6">
+          <TabsContent value="por-vendedor">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                <CardTitle>Relatório por Vendedor</CardTitle>
-                <div className="flex gap-2">
-                  {modoEditor ? (
-                    <>
-                      <Button onClick={() => { setModoEditor(false); setDadosEditados({}); }} variant="outline">
-                        Cancelar
-                      </Button>
-                      <Button onClick={handleSalvarEdicoes} className="bg-emerald-600 hover:bg-emerald-700">
-                        <Save className="w-4 h-4 mr-2" />
-                        Salvar Alterações
-                      </Button>
-                    </>
-                  ) : (
-                    <Button onClick={handleAtivarModoEditor} variant="outline">
-                      <Edit3 className="w-4 h-4 mr-2" />
-                      Modo Editor
-                    </Button>
-                  )}
-                </div>
+              <CardHeader>
+                <CardTitle>Faturamento por Vendedor</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Data</TableHead>
-                        <TableHead>Cliente</TableHead>
-                        <TableHead>Profissional</TableHead>
-                        <TableHead>Vendedor</TableHead>
-                        <TableHead className="text-right">Valor Combinado</TableHead>
-                        <TableHead className="text-right">Valor Pago</TableHead>
-                        <TableHead className="text-right">Falta</TableHead>
-                        <TableHead>Status</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {agendamentosFiltrados.map((ag) => {
-                        const valorCombinado = dadosEditados[ag.id]?.valor_combinado !== undefined 
-                          ? dadosEditados[ag.id].valor_combinado 
-                          : ag.valor_combinado;
-                        const valorPago = dadosEditados[ag.id]?.valor_pago !== undefined 
-                          ? dadosEditados[ag.id].valor_pago 
-                          : ag.valor_pago;
-                        const faltaQuanto = dadosEditados[ag.id]?.falta_quanto !== undefined 
-                          ? dadosEditados[ag.id].falta_quanto 
-                          : ag.falta_quanto;
-                        const vendedorId = dadosEditados[ag.id]?.vendedor_id !== undefined
-                          ? dadosEditados[ag.id].vendedor_id
-                          : ag.vendedor_id;
-                        
-                        return (
-                          <TableRow key={ag.id} className={dadosEditados[ag.id] ? "bg-yellow-50" : ""}>
-                            <TableCell>
-                              {ag.data ? format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR }) : "-"}
-                            </TableCell>
-                            <TableCell className="font-medium">{ag.cliente_nome}</TableCell>
-                            <TableCell>{ag.profissional_nome}</TableCell>
-                            <TableCell>
-                              {modoEditor ? (
-                                <Select 
-                                  value={vendedorId || ""} 
-                                  onValueChange={(value) => {
-                                    const vendedor = vendedores.find(v => v.id === value);
-                                    setDadosEditados(prev => ({
-                                      ...prev,
-                                      [ag.id]: {
-                                        ...prev[ag.id],
-                                        vendedor_id: value,
-                                        vendedor_nome: vendedor?.nome || ""
-                                      }
-                                    }));
-                                  }}
-                                >
-                                  <SelectTrigger className="w-40">
-                                    <SelectValue placeholder="Sem vendedor" />
-                                  </SelectTrigger>
-                                  <SelectContent>
-                                    <SelectItem value={null}>Sem vendedor</SelectItem>
-                                    {vendedores.filter(v => v.ativo).map(v => (
-                                      <SelectItem key={v.id} value={v.id}>{v.nome}</SelectItem>
-                                    ))}
-                                  </SelectContent>
-                                </Select>
-                              ) : (
-                                <span className="text-sm">{ag.vendedor_nome || "-"}</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {modoEditor ? (
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  value={valorCombinado || ""}
-                                  onChange={(e) => handleCampoChange(ag.id, "valor_combinado", e.target.value)}
-                                  className="w-28 text-right"
-                                />
-                              ) : (
-                                formatarMoeda(valorCombinado)
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right text-emerald-600 font-semibold">
-                              {modoEditor ? (
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  value={valorPago || ""}
-                                  onChange={(e) => handleCampoChange(ag.id, "valor_pago", e.target.value)}
-                                  className="w-28 text-right"
-                                />
-                              ) : (
-                                formatarMoeda(valorPago)
-                              )}
-                            </TableCell>
-                            <TableCell className="text-right text-orange-600">
-                              {modoEditor ? (
-                                <Input
-                                  type="number"
-                                  step="0.01"
-                                  value={faltaQuanto || ""}
-                                  onChange={(e) => handleCampoChange(ag.id, "falta_quanto", e.target.value)}
-                                  className="w-28 text-right"
-                                />
-                              ) : (
-                                formatarMoeda(faltaQuanto)
-                              )}
-                            </TableCell>
-                            <TableCell>
-                              <span className="text-xs px-2 py-1 rounded-full bg-gray-100">
-                                {ag.status}
-                              </span>
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Vendedor</TableHead>
+                      <TableHead className="text-right">Atendimentos</TableHead>
+                      <TableHead className="text-right">Valor Combinado</TableHead>
+                      <TableHead className="text-right">Valor Recebido</TableHead>
+                      <TableHead className="text-right">A Receber</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {vendedores.filter(v => v.ativo).map(vendedor => {
+                      const agendamentosVendedor = agendamentosFiltrados.filter(ag => 
+                        ag.vendedor_id === vendedor.id
+                      );
+                      
+                      const totalCombinado = agendamentosVendedor.reduce((acc, ag) => 
+                        acc + (ag.valor_combinado || 0), 0
+                      );
+                      const totalPago = agendamentosVendedor.reduce((acc, ag) => 
+                        acc + (ag.valor_pago || 0), 0
+                      );
+                      const totalAReceber = agendamentosVendedor.reduce((acc, ag) => 
+                        acc + (ag.falta_quanto || 0), 0
+                      );
 
-                {agendamentosFiltrados.length === 0 && (
+                      return (
+                        <TableRow key={vendedor.id}>
+                          <TableCell className="font-medium">{vendedor.nome}</TableCell>
+                          <TableCell className="text-right">{agendamentosVendedor.length}</TableCell>
+                          <TableCell className="text-right">{formatarMoeda(totalCombinado)}</TableCell>
+                          <TableCell className="text-right text-emerald-600 font-semibold">
+                            {formatarMoeda(totalPago)}
+                          </TableCell>
+                          <TableCell className="text-right text-orange-600">
+                            {formatarMoeda(totalAReceber)}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+
+                {vendedores.filter(v => v.ativo).length === 0 && (
                   <div className="text-center py-12 text-gray-500">
-                    <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                    <p className="font-medium">Nenhum agendamento encontrado</p>
-                    <p className="text-sm mt-2">Tente ajustar os filtros para ver os dados</p>
+                    <p className="font-medium">Nenhum vendedor cadastrado</p>
+                    <p className="text-sm mt-2">Crie vendedores para visualizar o relatório</p>
                   </div>
                 )}
               </CardContent>
