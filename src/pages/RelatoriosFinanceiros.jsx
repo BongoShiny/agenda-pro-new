@@ -733,6 +733,79 @@ export default function RelatoriosFinanceirosPage() {
               </CardContent>
             </Card>
           </TabsContent>
+
+          {/* Aba Por Vendedor */}
+          <TabsContent value="por-vendedor" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Relatório por Vendedor</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Vendedor</TableHead>
+                      <TableHead className="text-right">Total de Agendamentos</TableHead>
+                      <TableHead className="text-right">Valor Combinado</TableHead>
+                      <TableHead className="text-right">Valor Pago</TableHead>
+                      <TableHead className="text-right">Valor Pendente</TableHead>
+                      <TableHead className="text-right">Comissão Estimada</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {vendedores.filter(v => v.ativo).map(vendedor => {
+                      const agendamentosVendedor = agendamentosFiltrados.filter(ag => 
+                        ag.vendedor_id === vendedor.id
+                      );
+                      
+                      const totalCombinado = agendamentosVendedor.reduce((acc, ag) => 
+                        acc + (ag.valor_combinado || 0), 0
+                      );
+                      const totalPago = agendamentosVendedor.reduce((acc, ag) => 
+                        acc + (ag.valor_pago || 0), 0
+                      );
+                      const totalPendente = agendamentosVendedor.reduce((acc, ag) => 
+                        acc + (ag.falta_quanto || 0), 0
+                      );
+                      const comissaoEstimada = totalPago * (vendedor.comissao_percentual / 100);
+
+                      if (agendamentosVendedor.length === 0) return null;
+
+                      return (
+                        <TableRow key={vendedor.id}>
+                          <TableCell className="font-medium">{vendedor.nome}</TableCell>
+                          <TableCell className="text-right">{agendamentosVendedor.length}</TableCell>
+                          <TableCell className="text-right">
+                            R$ {totalCombinado.toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-right text-green-600 font-semibold">
+                            R$ {totalPago.toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-right text-orange-600">
+                            R$ {totalPendente.toFixed(2)}
+                          </TableCell>
+                          <TableCell className="text-right text-blue-600 font-semibold">
+                            R$ {comissaoEstimada.toFixed(2)}
+                            <span className="text-xs text-gray-500 ml-1">
+                              ({vendedor.comissao_percentual}%)
+                            </span>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+
+                {vendedores.filter(v => v.ativo).every(vendedor => 
+                  agendamentosFiltrados.filter(ag => ag.vendedor_id === vendedor.id).length === 0
+                ) && (
+                  <div className="text-center py-8 text-gray-500">
+                    <p>Nenhum agendamento associado a vendedores no período selecionado</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
 
