@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, UserPlus, Shield, User, Mail, Building2, AlertCircle } from "lucide-react";
+import { ArrowLeft, UserPlus, Shield, User, Mail, Building2, AlertCircle, FileSpreadsheet } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -193,12 +193,15 @@ export default function GerenciarUsuariosPage() {
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                             cargo === "administrador" ? "bg-blue-100" : 
                             cargo === "gerencia_unidades" ? "bg-purple-100" : 
+                            cargo === "financeiro" ? "bg-green-100" :
                             "bg-gray-100"
                           }`}>
                             {cargo === "administrador" ? (
                               <Shield className="w-4 h-4 text-blue-600" />
                             ) : cargo === "gerencia_unidades" ? (
                               <Building2 className="w-4 h-4 text-purple-600" />
+                            ) : cargo === "financeiro" ? (
+                              <FileSpreadsheet className="w-4 h-4 text-green-600" />
                             ) : (
                               <User className="w-4 h-4 text-gray-600" />
                             )}
@@ -241,6 +244,12 @@ export default function GerenciarUsuariosPage() {
                                 Gerência de Unidades
                               </div>
                             </SelectItem>
+                            <SelectItem value="financeiro">
+                              <div className="flex items-center gap-2">
+                                <FileSpreadsheet className="w-3 h-3" />
+                                Financeiro
+                              </div>
+                            </SelectItem>
                             <SelectItem value="funcionario">
                               <div className="flex items-center gap-2">
                                 <User className="w-3 h-3" />
@@ -252,11 +261,11 @@ export default function GerenciarUsuariosPage() {
                       </TableCell>
 
                       <TableCell>
-                        {cargo === "administrador" ? (
-                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                            Todas as unidades
-                          </Badge>
-                        ) : cargo === "gerencia_unidades" ? (
+                       {cargo === "administrador" ? (
+                         <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                           Todas as unidades
+                         </Badge>
+                       ) : cargo === "gerencia_unidades" || cargo === "financeiro" ? (
                           <Popover>
                             <PopoverTrigger asChild>
                               <Button variant="outline" size="sm" className="text-left justify-start">
@@ -389,8 +398,8 @@ export default function GerenciarUsuariosPage() {
                       </TableCell>
 
                       <TableCell>
-                        <Badge variant={cargo === "administrador" ? "default" : cargo === "gerencia_unidades" ? "default" : "secondary"} className={cargo === "gerencia_unidades" ? "bg-purple-600" : ""}>
-                          {cargo === "administrador" ? "Superior" : cargo === "gerencia_unidades" ? "Gerência" : "Funcionário"}
+                        <Badge variant={cargo === "administrador" || cargo === "gerencia_unidades" || cargo === "financeiro" ? "default" : "secondary"} className={cargo === "gerencia_unidades" ? "bg-purple-600" : cargo === "financeiro" ? "bg-green-600" : ""}>
+                          {cargo === "administrador" ? "Superior" : cargo === "gerencia_unidades" ? "Gerência" : cargo === "financeiro" ? "Financeiro" : "Funcionário"}
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -414,7 +423,7 @@ export default function GerenciarUsuariosPage() {
             <CardTitle>Diferenças entre Cargos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-4 gap-6">
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2 mb-3">
                   <Shield className="w-5 h-5 text-blue-600" />
@@ -440,6 +449,20 @@ export default function GerenciarUsuariosPage() {
                   <li>• Pode gerenciar usuários e terapeutas</li>
                   <li>• Pode editar agenda mesmo bloqueada</li>
                   <li>• Permissões de superior nas unidades</li>
+                </ul>
+              </div>
+
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <FileSpreadsheet className="w-5 h-5 text-green-600" />
+                  <h3 className="font-semibold text-green-900">Financeiro</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-green-800">
+                  <li>• Acesso ao botão Superior</li>
+                  <li>• Pode ver apenas o Histórico</li>
+                  <li>• Acesso às unidades permitidas</li>
+                  <li>• Não pode editar agendamentos</li>
+                  <li>• Apenas visualização de dados</li>
                 </ul>
               </div>
 

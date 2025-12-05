@@ -16,8 +16,8 @@ export default function AdministradorPage() {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
         
-        // Se não for admin ou gerência, redireciona para agenda
-        const isAdmin = user?.cargo === "administrador" || user?.role === "admin" || user?.cargo === "gerencia_unidades";
+        // Se não for admin, gerência ou financeiro, redireciona para agenda
+        const isAdmin = user?.cargo === "administrador" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro";
         if (!isAdmin) {
           navigate(createPageUrl("Agenda"));
         }
@@ -40,8 +40,9 @@ export default function AdministradorPage() {
   }
 
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
+  const isFinanceiro = usuarioAtual?.cargo === "financeiro";
 
-  if (!isAdmin) {
+  if (!isAdmin && !isFinanceiro) {
     return null;
   }
 
@@ -60,7 +61,7 @@ export default function AdministradorPage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Área dos Superiores</h1>
-              <p className="text-sm text-gray-500">Acesso restrito a superiores</p>
+              <p className="text-sm text-gray-500">{isFinanceiro ? "Acesso ao histórico" : "Acesso restrito a superiores"}</p>
             </div>
           </div>
         </div>
@@ -68,7 +69,8 @@ export default function AdministradorPage() {
 
       <div className="max-w-4xl mx-auto p-6">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link to={createPageUrl("GerenciarUsuarios")} className="block">
+          {isAdmin && (
+            <Link to={createPageUrl("GerenciarUsuarios")} className="block">
             <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer h-full">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
                 <Users className="w-6 h-6 text-blue-600" />
@@ -77,7 +79,9 @@ export default function AdministradorPage() {
               <p className="text-sm text-gray-500">Gerenciar usuários, cargos e permissões de acesso às unidades</p>
             </div>
           </Link>
+          )}
 
+          {isAdmin && (
           <Link to={createPageUrl("ConfiguracaoTerapeutas")} className="block">
             <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-green-300 transition-all cursor-pointer h-full">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
@@ -87,6 +91,7 @@ export default function AdministradorPage() {
               <p className="text-sm text-gray-500">Gerenciar terapeutas, horários e configurações de atendimento</p>
             </div>
           </Link>
+          )}
 
           <Link to={createPageUrl("HistoricoAgendamentos")} className="block">
             <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-purple-300 transition-all cursor-pointer h-full">
@@ -98,6 +103,7 @@ export default function AdministradorPage() {
             </div>
           </Link>
 
+          {isAdmin && (
           <Link to={createPageUrl("RelatoriosClientes")} className="block">
             <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer h-full">
               <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">
@@ -107,6 +113,7 @@ export default function AdministradorPage() {
               <p className="text-sm text-gray-500">Visualizar e exportar todos os clientes e agendamentos em formato de planilha</p>
             </div>
           </Link>
+          )}
         </div>
 
         <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
@@ -115,7 +122,9 @@ export default function AdministradorPage() {
             <div>
               <h4 className="font-medium text-yellow-800">Área Restrita</h4>
               <p className="text-sm text-yellow-700 mt-1">
-                Apenas superiores têm acesso a esta área. As alterações feitas aqui afetam todo o sistema.
+                {isFinanceiro 
+                  ? "Você tem acesso apenas ao Histórico de agendamentos e ações do sistema."
+                  : "Apenas superiores têm acesso a esta área. As alterações feitas aqui afetam todo o sistema."}
               </p>
             </div>
           </div>
