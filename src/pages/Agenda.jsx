@@ -113,7 +113,12 @@ export default function AgendaPage() {
     const ano = agora.getFullYear();
     const mes = agora.getMonth();
     const dia = agora.getDate();
-    const dataLocal = new Date(ano, mes, dia, 12, 0, 0, 0);
+    let dataLocal = new Date(ano, mes, dia, 12, 0, 0, 0);
+    
+    // Se for domingo (0), avançar para segunda (1)
+    if (dataLocal.getDay() === 0) {
+      dataLocal = addDays(dataLocal, 1);
+    }
     
     console.log("🚀🚀🚀 INICIALIZANDO PÁGINA 🚀🚀🚀");
     console.log("Data agora (raw):", agora.toString());
