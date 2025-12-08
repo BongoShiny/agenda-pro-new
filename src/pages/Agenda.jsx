@@ -8,8 +8,9 @@ import AgendaFilters from "../components/agenda/AgendaFilters";
 import AgendaDiaView from "../components/agenda/AgendaDiaView";
 import NovoAgendamentoDialog from "../components/agenda/NovoAgendamentoDialog";
 import DetalhesAgendamentoDialog from "../components/agenda/DetalhesAgendamentoDialog";
+import MenuConta from "../components/agenda/MenuConta";
 import { Button } from "@/components/ui/button";
-import { Filter, X } from "lucide-react";
+import { Filter, X, User } from "lucide-react";
 
 // ============================================
 // FUNÇÕES UNIVERSAIS DE DATA - USAR EM TODOS OS ARQUIVOS
@@ -139,6 +140,7 @@ export default function AgendaPage() {
   const [usuarioAtual, setUsuarioAtual] = useState(null);
   const [filtrosAbertos, setFiltrosAbertos] = useState(false);
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
+  const [menuContaAberto, setMenuContaAberto] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -154,9 +156,99 @@ export default function AgendaPage() {
       console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
       console.log("Data atual:", dataAtual.toString());
       console.log("Data formatada:", formatarDataPura(dataAtual));
+
+      // Gerenciar sessão única
+      await gerenciarSessaoUnica(user);
     };
     carregarUsuario();
   }, []);
+
+  // Função para gerenciar sessão única
+  const gerenciarSessaoUnica = async (user) => {
+    try {
+      // Gerar ID único para esta sessão
+      let sessaoId = localStorage.getItem('sessao_id');
+      if (!sessaoId) {
+        sessaoId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+        localStorage.setItem('sessao_id', sessaoId);
+      }
+
+      // Obter informações do dispositivo
+      const dispositivo = `${navigator.userAgent.includes('Mobile') ? '📱 Mobile' : '💻 Desktop'} - ${
+        navigator.userAgent.includes('Chrome') ? 'Chrome' : 
+        navigator.userAgent.includes('Firefox') ? 'Firefox' : 
+        navigator.userAgent.includes('Safari') ? 'Safari' : 
+        'Outro Navegador'
+      }`;
+
+      // Buscar sessões ativas do usuário
+      const sessoesAtivas = await base44.entities.SessaoAtiva.filter({ 
+        usuario_email: user.email 
+      });
+
+      // Se existir outra sessão ativa, deletá-la
+      for (const sessao of sessoesAtivas) {
+        if (sessao.sessao_id !== sessaoId) {
+          await base44.entities.SessaoAtiva.delete(sessao.id);
+          console.log("🔒 Sessão anterior encerrada:", sessao.sessao_id);
+        }
+      }
+
+      // Criar nova sessão ativa
+      await base44.entities.SessaoAtiva.create({
+        usuario_email: user.email,
+        sessao_id: sessaoId,
+        dispositivo: dispositivo,
+        ultima_atividade: new Date().toISOString()
+      });
+
+      // Registrar dispositivo conectado
+      await base44.entities.DispositivoConectado.create({
+        usuario_email: user.email,
+        dispositivo: dispositivo,
+        data_login: new Date().toISOString(),
+        sessao_ativa: true
+      });
+
+      // Registrar login no log
+      await base44.entities.LogAcao.create({
+        tipo: "login",
+        usuario_email: user.email,
+        descricao: `Login realizado em ${dispositivo}`,
+        entidade_tipo: "Usuario"
+      });
+
+      // Verificar periodicamente se a sessão ainda é válida
+      const verificarSessao = setInterval(async () => {
+        try {
+          const sessoesAtuais = await base44.entities.SessaoAtiva.filter({ 
+            usuario_email: user.email,
+            sessao_id: sessaoId
+          });
+
+          // Se não encontrar a sessão, significa que foi desconectada
+          if (sessoesAtuais.length === 0) {
+            console.log("⚠️ Sessão desconectada em outro dispositivo");
+            clearInterval(verificarSessao);
+            alert("Sua conta foi acessada em outro dispositivo. Você será desconectado.");
+            base44.auth.logout();
+          } else {
+            // Atualizar última atividade
+            await base44.entities.SessaoAtiva.update(sessoesAtuais[0].id, {
+              ultima_atividade: new Date().toISOString()
+            });
+          }
+        } catch (error) {
+          console.error("Erro ao verificar sessão:", error);
+        }
+      }, 10000); // Verificar a cada 10 segundos
+
+      // Limpar intervalo quando componente desmontar
+      return () => clearInterval(verificarSessao);
+    } catch (error) {
+      console.error("Erro ao gerenciar sessão:", error);
+    }
+  };
 
   const { data: agendamentos = [], refetch: refetchAgendamentos } = useQuery({
     queryKey: ['agendamentos'],
@@ -911,6 +1003,17 @@ export default function AgendaPage() {
                   {mostrarFiltros ? "Fechar" : "Filtros"}
                 </Button>
 
+                {/* Botão para abrir menu de conta */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="fixed bottom-4 right-4 z-50 bg-white shadow-lg border-gray-300"
+                  onClick={() => setMenuContaAberto(!menuContaAberto)}
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Conta
+                </Button>
+
                 {/* Filtros: Aparece apenas quando clicado */}
                 {mostrarFiltros && (
                   <div className="absolute z-40 h-full">
@@ -974,6 +1077,22 @@ export default function AgendaPage() {
         onConfirmar={handleConfirmarAgendamento}
         usuarioAtual={usuarioAtual}
       />
-    </div>
-  );
-}
+
+      {/* Menu de Conta */}
+      {menuContaAberto && usuarioAtual && (
+        <>
+          {/* Overlay */}
+          <div 
+            className="fixed inset-0 bg-black/30 z-40"
+            onClick={() => setMenuContaAberto(false)}
+          />
+          {/* Menu */}
+          <MenuConta 
+            usuarioAtual={usuarioAtual}
+            onClose={() => setMenuContaAberto(false)}
+          />
+        </>
+      )}
+      </div>
+      );
+      }
