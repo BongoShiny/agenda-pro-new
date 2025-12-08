@@ -85,9 +85,15 @@ export default function GerenciarUsuariosPage() {
       }
     }
     
+    // Se mudou para "superior", garantir que tem role admin
+    const dadosAtualizacao = { cargo: novoCargo };
+    if (novoCargo === "superior") {
+      dadosAtualizacao.role = "admin";
+    }
+    
     await atualizarUsuarioMutation.mutateAsync({
       id: usuario.id,
-      dados: { cargo: novoCargo }
+      dados: dadosAtualizacao
     });
     
     // Registrar no log
