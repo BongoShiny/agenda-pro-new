@@ -39,7 +39,7 @@ export default function AdministradorPage() {
     );
   }
 
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
   const isFinanceiro = usuarioAtual?.cargo === "financeiro";
 
   if (!isAdmin && !isFinanceiro) {

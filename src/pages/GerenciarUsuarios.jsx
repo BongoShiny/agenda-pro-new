@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, UserPlus, Shield, User, Mail, Building2, AlertCircle, FileSpreadsheet } from "lucide-react";
+import { ArrowLeft, UserPlus, Shield, User, Mail, Building2, AlertCircle, FileSpreadsheet, DollarSign } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -32,8 +32,8 @@ export default function GerenciarUsuariosPage() {
       const user = await base44.auth.me();
       setUsuarioAtual(user);
       
-      // Redirecionar se não for admin
-      if (user.cargo !== "administrador" && user.role !== "admin") {
+      // Redirecionar se não for admin ou superior
+      if (user.cargo !== "administrador" && user.cargo !== "superior" && user.role !== "admin") {
         window.location.href = createPageUrl("Agenda");
       }
     };
@@ -52,6 +52,12 @@ export default function GerenciarUsuariosPage() {
     initialData: [],
   });
 
+  const { data: vendedores = [] } = useQuery({
+    queryKey: ['vendedores'],
+    queryFn: () => base44.entities.Vendedor.list("nome"),
+    initialData: [],
+  });
+
   const atualizarUsuarioMutation = useMutation({
     mutationFn: ({ id, dados }) => base44.entities.User.update(id, dados),
     onSuccess: () => {
@@ -61,6 +67,24 @@ export default function GerenciarUsuariosPage() {
 
   const handleAtualizarCargo = async (usuario, novoCargo) => {
     const cargoAntigo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "funcionario");
+    
+    // Se mudou para "vendedor", criar registro automaticamente
+    if (novoCargo === "vendedor" && cargoAntigo !== "vendedor") {
+      const vendedorExistente = vendedores.find(v => v.email === usuario.email);
+      if (!vendedorExistente) {
+        await base44.entities.Vendedor.create({
+          nome: usuario.full_name,
+          email: usuario.email,
+          ativo: true,
+          comissao_percentual: 0,
+          valor_combinado_total: 0,
+          valor_recebido_total: 0,
+          a_receber_total: 0
+        });
+        queryClient.invalidateQueries({ queryKey: ['vendedores'] });
+      }
+    }
+    
     await atualizarUsuarioMutation.mutateAsync({
       id: usuario.id,
       dados: { cargo: novoCargo }
@@ -191,17 +215,20 @@ export default function GerenciarUsuariosPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            cargo === "administrador" ? "bg-blue-100" : 
+                            cargo === "administrador" || cargo === "superior" ? "bg-blue-100" : 
                             cargo === "gerencia_unidades" ? "bg-purple-100" : 
                             cargo === "financeiro" ? "bg-green-100" :
+                            cargo === "vendedor" ? "bg-orange-100" :
                             "bg-gray-100"
                           }`}>
-                            {cargo === "administrador" ? (
+                            {cargo === "administrador" || cargo === "superior" ? (
                               <Shield className="w-4 h-4 text-blue-600" />
                             ) : cargo === "gerencia_unidades" ? (
                               <Building2 className="w-4 h-4 text-purple-600" />
                             ) : cargo === "financeiro" ? (
                               <FileSpreadsheet className="w-4 h-4 text-green-600" />
+                            ) : cargo === "vendedor" ? (
+                              <DollarSign className="w-4 h-4 text-orange-600" />
                             ) : (
                               <User className="w-4 h-4 text-gray-600" />
                             )}
@@ -226,46 +253,66 @@ export default function GerenciarUsuariosPage() {
                         <Select
                           value={cargo}
                           onValueChange={(value) => handleAtualizarCargo(usuario, value)}
-                          disabled={isCurrentUser}
+                          disabled={isCurrentUser || (usuarioAtual?.cargo === "superior" && (cargo === "administrador" || cargo === "superior"))}
                         >
                           <SelectTrigger className="w-40">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="administrador">
-                              <div className="flex items-center gap-2">
-                                <Shield className="w-3 h-3" />
-                                Superior
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="gerencia_unidades">
-                              <div className="flex items-center gap-2">
-                                <Building2 className="w-3 h-3" />
-                                Gerência de Unidades
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="financeiro">
-                              <div className="flex items-center gap-2">
-                                <FileSpreadsheet className="w-3 h-3" />
-                                Financeiro
-                              </div>
-                            </SelectItem>
-                            <SelectItem value="funcionario">
-                              <div className="flex items-center gap-2">
-                                <User className="w-3 h-3" />
-                                Funcionário
-                              </div>
-                            </SelectItem>
+                            {(usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin") && (
+                              <>
+                                <SelectItem value="administrador">
+                                  <div className="flex items-center gap-2">
+                                    <Shield className="w-3 h-3" />
+                                    Administrador
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="superior">
+                                  <div className="flex items-center gap-2">
+                                    <Shield className="w-3 h-3" />
+                                    Superior
+                                  </div>
+                                </SelectItem>
+                              </>
+                            )}
+                            {(usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin") && (
+                              <>
+                                <SelectItem value="gerencia_unidades">
+                                  <div className="flex items-center gap-2">
+                                    <Building2 className="w-3 h-3" />
+                                    Gerência de Unidades
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="financeiro">
+                                  <div className="flex items-center gap-2">
+                                    <FileSpreadsheet className="w-3 h-3" />
+                                    Financeiro
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="vendedor">
+                                  <div className="flex items-center gap-2">
+                                    <DollarSign className="w-3 h-3" />
+                                    Vendedor
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="funcionario">
+                                  <div className="flex items-center gap-2">
+                                    <User className="w-3 h-3" />
+                                    Funcionário
+                                  </div>
+                                </SelectItem>
+                              </>
+                            )}
                           </SelectContent>
                         </Select>
                       </TableCell>
 
                       <TableCell>
-                       {cargo === "administrador" ? (
+                       {cargo === "administrador" || cargo === "superior" ? (
                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">
                            Todas as unidades
                          </Badge>
-                       ) : cargo === "gerencia_unidades" || cargo === "financeiro" ? (
+                       ) : cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" ? (
                           <Popover>
                             <PopoverTrigger asChild>
                               <Button variant="outline" size="sm" className="text-left justify-start">
@@ -398,8 +445,21 @@ export default function GerenciarUsuariosPage() {
                       </TableCell>
 
                       <TableCell>
-                        <Badge variant={cargo === "administrador" || cargo === "gerencia_unidades" || cargo === "financeiro" ? "default" : "secondary"} className={cargo === "gerencia_unidades" ? "bg-purple-600" : cargo === "financeiro" ? "bg-green-600" : ""}>
-                          {cargo === "administrador" ? "Superior" : cargo === "gerencia_unidades" ? "Gerência" : cargo === "financeiro" ? "Financeiro" : "Funcionário"}
+                        <Badge 
+                          variant={cargo === "administrador" || cargo === "superior" || cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" ? "default" : "secondary"} 
+                          className={
+                            cargo === "gerencia_unidades" ? "bg-purple-600" : 
+                            cargo === "financeiro" ? "bg-green-600" : 
+                            cargo === "vendedor" ? "bg-orange-600" :
+                            cargo === "superior" ? "bg-blue-500" : ""
+                          }
+                        >
+                          {cargo === "administrador" ? "Admin" : 
+                           cargo === "superior" ? "Superior" : 
+                           cargo === "gerencia_unidades" ? "Gerência" : 
+                           cargo === "financeiro" ? "Financeiro" : 
+                           cargo === "vendedor" ? "Vendedor" :
+                           "Funcionário"}
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -423,18 +483,32 @@ export default function GerenciarUsuariosPage() {
             <CardTitle>Diferenças entre Cargos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-4 gap-6">
+            <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-6">
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2 mb-3">
                   <Shield className="w-5 h-5 text-blue-600" />
                   <h3 className="font-semibold text-blue-900">Superior</h3>
                 </div>
                 <ul className="space-y-2 text-sm text-blue-800">
-                  <li>• Pode bloquear e desbloquear a agenda</li>
+                  <li>• Pode gerenciar usuários</li>
+                  <li>• Pode trocar cargos (exceto Admin/Superior)</li>
                   <li>• Acesso a todas as unidades</li>
-                  <li>• Pode gerenciar usuários e terapeutas</li>
-                  <li>• Pode editar agenda mesmo bloqueada</li>
+                  <li>• Pode bloquear/desbloquear agenda</li>
                   <li>• Acesso completo ao sistema</li>
+                </ul>
+              </div>
+
+              <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <DollarSign className="w-5 h-5 text-orange-600" />
+                  <h3 className="font-semibold text-orange-900">Vendedor</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-orange-800">
+                  <li>• Aparece automaticamente em relatórios</li>
+                  <li>• Pode criar agendamentos</li>
+                  <li>• Acesso às unidades permitidas</li>
+                  <li>• Comissões rastreadas</li>
+                  <li>• Visível na aba "Por Vendedor"</li>
                 </ul>
               </div>
 

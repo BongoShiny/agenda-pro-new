@@ -77,7 +77,7 @@ export default function RelatoriosFinanceirosPage() {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
         
-        const hasAccess = user?.cargo === "administrador" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro";
+        const hasAccess = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro";
         if (!hasAccess) {
           navigate(createPageUrl("Agenda"));
         } else {
@@ -129,7 +129,7 @@ export default function RelatoriosFinanceirosPage() {
   });
 
   // Filtrar unidades baseado no acesso do usuário
-  const unidadesFiltradas = (usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin")
+  const unidadesFiltradas = (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin")
     ? unidades
     : unidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
 
