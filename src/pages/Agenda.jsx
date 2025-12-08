@@ -191,6 +191,43 @@ export default function AgendaPage() {
         console.log("Não foi possível obter IP:", error);
       }
 
+      // Buscar e limpar dispositivos duplicados do mesmo IP+dispositivo
+      const todosDispositivos = await base44.entities.DispositivoConectado.filter({ 
+        usuario_email: user.email,
+        dispositivo: dispositivo,
+        ip: ip
+      });
+
+      if (todosDispositivos.length > 1) {
+        // Ordenar por data_login (mais recente primeiro)
+        const ordenados = todosDispositivos.sort((a, b) => 
+          new Date(b.data_login) - new Date(a.data_login)
+        );
+
+        // Manter apenas o mais recente, deletar os outros
+        for (let i = 1; i < ordenados.length; i++) {
+          await base44.entities.DispositivoConectado.delete(ordenados[i].id);
+        }
+      }
+
+      // Buscar todas as sessões ativas do usuário
+      const todasSessoes = await base44.entities.SessaoAtiva.filter({ 
+        usuario_email: user.email,
+        dispositivo: dispositivo,
+        ip: ip
+      });
+
+      if (todasSessoes.length > 1) {
+        // Manter apenas a mais recente, deletar as outras
+        const ordenadas = todasSessoes.sort((a, b) => 
+          new Date(b.ultima_atividade) - new Date(a.ultima_atividade)
+        );
+
+        for (let i = 1; i < ordenadas.length; i++) {
+          await base44.entities.SessaoAtiva.delete(ordenadas[i].id);
+        }
+      }
+
       // Buscar sessões ativas do usuário
       const sessoesAtivas = await base44.entities.SessaoAtiva.filter({ 
         usuario_email: user.email 
@@ -208,7 +245,7 @@ export default function AgendaPage() {
           ultima_atividade: new Date().toISOString()
         });
 
-        // Atualizar dispositivo conectado se existir
+        // Buscar dispositivo conectado correspondente (deve haver apenas 1 agora)
         const dispositivosConectados = await base44.entities.DispositivoConectado.filter({ 
           usuario_email: user.email,
           dispositivo: dispositivo,
@@ -217,8 +254,18 @@ export default function AgendaPage() {
         });
 
         if (dispositivosConectados.length > 0) {
+          // Atualizar apenas o primeiro (já limpamos duplicados acima)
           await base44.entities.DispositivoConectado.update(dispositivosConectados[0].id, {
             data_login: new Date().toISOString()
+          });
+        } else {
+          // Se não existe, criar um novo
+          await base44.entities.DispositivoConectado.create({
+            usuario_email: user.email,
+            dispositivo: dispositivo,
+            ip: ip,
+            data_login: new Date().toISOString(),
+            sessao_ativa: true
           });
         }
       } else {
