@@ -498,20 +498,6 @@ export default function GerenciarUsuariosPage() {
                 </ul>
               </div>
 
-              <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-                <div className="flex items-center gap-2 mb-3">
-                  <DollarSign className="w-5 h-5 text-orange-600" />
-                  <h3 className="font-semibold text-orange-900">Vendedor</h3>
-                </div>
-                <ul className="space-y-2 text-sm text-orange-800">
-                  <li>• Aparece automaticamente em relatórios</li>
-                  <li>• Pode criar agendamentos</li>
-                  <li>• Acesso às unidades permitidas</li>
-                  <li>• Comissões rastreadas</li>
-                  <li>• Visível na aba "Por Vendedor"</li>
-                </ul>
-              </div>
-
               <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
                 <div className="flex items-center gap-2 mb-3">
                   <Building2 className="w-5 h-5 text-purple-600" />
@@ -537,6 +523,20 @@ export default function GerenciarUsuariosPage() {
                   <li>• Acesso às unidades permitidas</li>
                   <li>• Não pode editar agendamentos</li>
                   <li>• Apenas visualização de dados</li>
+                </ul>
+              </div>
+
+              <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <DollarSign className="w-5 h-5 text-orange-600" />
+                  <h3 className="font-semibold text-orange-900">Vendedor</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-orange-800">
+                  <li>• Aparece automaticamente em relatórios</li>
+                  <li>• Pode criar e editar agendamentos</li>
+                  <li>• Não pode bloquear a agenda</li>
+                  <li>• Acesso às unidades permitidas</li>
+                  <li>• Visível na aba "Por Vendedor"</li>
                 </ul>
               </div>
 
