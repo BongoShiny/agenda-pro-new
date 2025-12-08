@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Settings, FileText, ShieldCheck, ArrowLeft, FileSpreadsheet, DollarSign } from "lucide-react";
+import { Users, Settings, FileText, ShieldCheck, ArrowLeft, FileSpreadsheet, DollarSign, Package, ShoppingCart } from "lucide-react";
 
 export default function AdministradorPage() {
   const [usuarioAtual, setUsuarioAtual] = useState(null);
@@ -124,7 +124,29 @@ export default function AdministradorPage() {
               <p className="text-sm text-gray-500">Faturamento, pagamentos e valores a receber por período</p>
             </div>
           </Link>
-        </div>
+
+          {isAdmin && (
+          <Link to={createPageUrl("GerenciarPacotes")} className="block">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-purple-300 transition-all cursor-pointer h-full">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                <Package className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Gerenciar Pacotes</h3>
+              <p className="text-sm text-gray-500">Criar e gerenciar pacotes de serviços para venda</p>
+            </div>
+          </Link>
+          )}
+
+          <Link to={createPageUrl("VenderPacotes")} className="block">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-purple-300 transition-all cursor-pointer h-full">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                <ShoppingCart className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Vender Pacotes</h3>
+              <p className="text-sm text-gray-500">Vender pacotes para clientes e controlar sessões restantes</p>
+            </div>
+          </Link>
+          </div>
 
         <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
           <div className="flex items-start gap-3">
