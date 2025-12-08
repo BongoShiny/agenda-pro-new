@@ -186,7 +186,34 @@ export default function AgendaPage() {
         usuario_email: user.email 
       });
 
-      // Se existir outra sessão ativa, deletá-la
+      // Verificar limite de 3 dispositivos ativos
+      const dispositivosAtivos = await base44.entities.DispositivoConectado.filter({ 
+        usuario_email: user.email,
+        sessao_ativa: true
+      });
+
+      if (dispositivosAtivos.length >= 3) {
+        // Se já tem 3 dispositivos, remover o mais antigo
+        const maisAntigo = dispositivosAtivos.sort((a, b) => 
+          new Date(a.data_login) - new Date(b.data_login)
+        )[0];
+        
+        if (maisAntigo) {
+          await base44.entities.DispositivoConectado.update(maisAntigo.id, {
+            sessao_ativa: false
+          });
+
+          // Remover sessão ativa correspondente
+          const sessaoAntiga = await base44.entities.SessaoAtiva.filter({
+            usuario_email: user.email
+          });
+          if (sessaoAntiga.length > 0) {
+            await base44.entities.SessaoAtiva.delete(sessaoAntiga[0].id);
+          }
+        }
+      }
+
+      // Se existir outra sessão ativa com mesmo ID, deletá-la
       for (const sessao of sessoesAtivas) {
         if (sessao.sessao_id !== sessaoId) {
           await base44.entities.SessaoAtiva.delete(sessao.id);

@@ -1,14 +1,19 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { User, LogOut, Monitor, Shield, Building2, FileSpreadsheet, DollarSign, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { User, LogOut, Monitor, Shield, Building2, FileSpreadsheet, DollarSign, X, Trash2, Phone, Edit3, Save } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function MenuConta({ usuarioAtual, onClose }) {
   const [showDispositivos, setShowDispositivos] = useState(false);
+  const [editandoTelefone, setEditandoTelefone] = useState(false);
+  const [telefone, setTelefone] = useState(usuarioAtual?.telefone_verificacao || "");
+  const queryClient = useQueryClient();
 
   const { data: dispositivos = [] } = useQuery({
     queryKey: ['dispositivos-conectados', usuarioAtual?.email],
@@ -27,6 +32,61 @@ export default function MenuConta({ usuarioAtual, onClose }) {
   }`;
 
   const sessaoAtualId = localStorage.getItem('sessao_id');
+
+  const atualizarTelefoneMutation = useMutation({
+    mutationFn: (novoTelefone) => base44.auth.updateMe({ telefone_verificacao: novoTelefone }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user'] });
+      setEditandoTelefone(false);
+      alert("✅ Telefone atualizado com sucesso!");
+    },
+  });
+
+  const removerDispositivoMutation = useMutation({
+    mutationFn: async (dispositivoId) => {
+      await base44.entities.DispositivoConectado.delete(dispositivoId);
+      
+      // Registrar no log
+      await base44.entities.LogAcao.create({
+        tipo: "editou_usuario",
+        usuario_email: usuarioAtual?.email,
+        descricao: `Removeu dispositivo conectado`,
+        entidade_tipo: "Usuario"
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['dispositivos-conectados'] });
+    },
+  });
+
+  const handleSalvarTelefone = async () => {
+    if (!telefone) {
+      alert("Por favor, insira um telefone válido");
+      return;
+    }
+    await atualizarTelefoneMutation.mutateAsync(telefone);
+  };
+
+  const handleRemoverDispositivo = async (dispositivoId, isAtual) => {
+    if (isAtual) {
+      alert("⚠️ Você não pode remover o dispositivo atual");
+      return;
+    }
+
+    const confirmacao = window.confirm(
+      "Tem certeza que deseja remover este dispositivo?\n\nEsta ação não pode ser desfeita."
+    );
+
+    if (!confirmacao) return;
+
+    try {
+      await removerDispositivoMutation.mutateAsync(dispositivoId);
+      alert("✅ Dispositivo removido com sucesso!");
+    } catch (error) {
+      console.error("Erro ao remover dispositivo:", error);
+      alert("❌ Erro ao remover dispositivo: " + error.message);
+    }
+  };
 
   const handleLogout = async () => {
     // Registrar logout no log
@@ -99,6 +159,50 @@ export default function MenuConta({ usuarioAtual, onClose }) {
           </Badge>
         </div>
 
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="text-xs font-medium text-gray-500 uppercase">Telefone de Verificação</label>
+            {!editandoTelefone ? (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setEditandoTelefone(true)}
+                className="h-6 text-xs"
+              >
+                <Edit3 className="w-3 h-3 mr-1" />
+                Editar
+              </Button>
+            ) : (
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={handleSalvarTelefone}
+                className="h-6 text-xs text-green-600"
+              >
+                <Save className="w-3 h-3 mr-1" />
+                Salvar
+              </Button>
+            )}
+          </div>
+          {editandoTelefone ? (
+            <Input
+              type="tel"
+              value={telefone}
+              onChange={(e) => setTelefone(e.target.value)}
+              placeholder="(00) 00000-0000"
+              className="text-sm"
+            />
+          ) : (
+            <div className="flex items-center gap-2 text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-lg">
+              <Phone className="w-4 h-4 text-gray-500" />
+              {usuarioAtual?.telefone_verificacao || "Não cadastrado"}
+            </div>
+          )}
+          <p className="text-xs text-gray-500 mt-1">
+            Para recuperação de senha e segurança da conta
+          </p>
+        </div>
+
         {!showDispositivos ? (
           <Button 
             variant="outline" 
@@ -123,60 +227,88 @@ export default function MenuConta({ usuarioAtual, onClose }) {
             </div>
             
             <div className="space-y-2 max-h-60 overflow-y-auto">
-              {/* Dispositivo Atual - Sempre em primeiro */}
-              <div className="p-3 rounded-lg border-2 bg-blue-50 border-blue-400">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start gap-2 flex-1">
-                    <Monitor className="w-4 h-4 mt-0.5 text-blue-600" />
-                    <div className="flex-1">
-                      <div className="text-sm font-medium text-gray-900">{dispositivoAtual}</div>
-                      <div className="text-xs text-blue-600 font-medium mt-1">
-                        Este dispositivo (agora)
-                      </div>
-                    </div>
-                  </div>
-                  <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-400">
-                    Conectado
-                  </Badge>
+              {/* Alerta de limite de dispositivos */}
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mb-2">
+                <div className="text-xs text-yellow-800">
+                  <strong>Limite:</strong> {dispositivos.filter(d => d.sessao_ativa).length}/3 dispositivos ativos
                 </div>
               </div>
 
-              {/* Outros dispositivos */}
+              {/* Dispositivo Atual - Sempre em primeiro */}
               {dispositivos
-                .filter(disp => disp.dispositivo !== dispositivoAtual || !disp.sessao_ativa)
+                .filter(disp => disp.dispositivo === dispositivoAtual && disp.sessao_ativa)
+                .slice(0, 1)
                 .map(disp => (
-                  <div 
-                    key={disp.id} 
-                    className={`p-3 rounded-lg border ${disp.sessao_ativa ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}
-                  >
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-start gap-2 flex-1">
-                        <Monitor className={`w-4 h-4 mt-0.5 ${disp.sessao_ativa ? 'text-green-600' : 'text-gray-400'}`} />
-                        <div className="flex-1">
-                          <div className="text-sm font-medium text-gray-900">{disp.dispositivo}</div>
+                  <div key={disp.id} className="p-3 rounded-lg border-2 bg-blue-50 border-blue-400">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex items-start gap-2 flex-1 min-w-0">
+                        <Monitor className="w-4 h-4 mt-0.5 text-blue-600 flex-shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-gray-900 truncate">{dispositivoAtual}</div>
                           {disp.ip && (
-                            <div className="text-xs text-gray-500 mt-1">IP: {disp.ip}</div>
+                            <div className="text-xs text-gray-600 mt-1">🌐 IP: {disp.ip}</div>
                           )}
-                          {disp.localizacao && (
-                            <div className="text-xs text-gray-500">📍 {disp.localizacao}</div>
-                          )}
-                          <div className="text-xs text-gray-500 mt-1">
-                            {disp.data_login ? format(new Date(disp.data_login), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : "Data desconhecida"}
+                          <div className="text-xs text-blue-600 font-medium mt-1">
+                            Este dispositivo (agora)
                           </div>
                         </div>
                       </div>
-                      {disp.sessao_ativa ? (
-                        <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
-                          Ativo
-                        </Badge>
-                      ) : (
-                        <Badge variant="outline" className="text-xs bg-gray-100 text-gray-600 border-gray-300">
-                          Inativo
-                        </Badge>
-                      )}
+                      <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-400 flex-shrink-0">
+                        Conectado
+                      </Badge>
                     </div>
                   </div>
                 ))}
+
+              {/* Outros dispositivos */}
+              {dispositivos
+                .filter(disp => !(disp.dispositivo === dispositivoAtual && disp.sessao_ativa))
+                .map(disp => {
+                  const isAtual = disp.dispositivo === dispositivoAtual && disp.sessao_ativa;
+                  return (
+                    <div 
+                      key={disp.id} 
+                      className={`p-3 rounded-lg border ${disp.sessao_ativa ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}
+                    >
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="flex items-start gap-2 flex-1 min-w-0">
+                          <Monitor className={`w-4 h-4 mt-0.5 flex-shrink-0 ${disp.sessao_ativa ? 'text-green-600' : 'text-gray-400'}`} />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-medium text-gray-900 truncate">{disp.dispositivo}</div>
+                            {disp.ip && (
+                              <div className="text-xs text-gray-500 mt-1">🌐 IP: {disp.ip}</div>
+                            )}
+                            {disp.localizacao && (
+                              <div className="text-xs text-gray-500">📍 {disp.localizacao}</div>
+                            )}
+                            <div className="text-xs text-gray-500 mt-1">
+                              {disp.data_login ? format(new Date(disp.data_login), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : "Data desconhecida"}
+                            </div>
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-1 flex-shrink-0">
+                          {disp.sessao_ativa ? (
+                            <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
+                              Ativo
+                            </Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-xs bg-gray-100 text-gray-600 border-gray-300">
+                              Inativo
+                            </Badge>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRemoverDispositivo(disp.id, isAtual)}
+                            className="h-6 text-xs text-red-600 hover:text-red-700 hover:bg-red-50 p-1"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
             </div>
           </div>
         )}
@@ -191,7 +323,7 @@ export default function MenuConta({ usuarioAtual, onClose }) {
         </Button>
 
         <div className="text-xs text-gray-500 text-center pt-2 border-t border-gray-200">
-          Por segurança, apenas 1 dispositivo pode estar conectado por vez
+          Máximo de 3 dispositivos conectados por conta
         </div>
       </div>
     </div>
