@@ -674,8 +674,7 @@ export default function RelatoriosFinanceirosPage() {
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Filtros no Header */}
         <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <h3 className="text-sm font-semibold text-gray-700 mb-3">Filtros Avançados</h3>
-          <div className="grid grid-cols-3 gap-4 mb-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Período</label>
               <Select value={periodo} onValueChange={setPeriodo}>
@@ -719,75 +718,6 @@ export default function RelatoriosFinanceirosPage() {
                   ))}
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Status do Paciente</label>
-              <Select value={statusPacienteFiltro} onValueChange={setStatusPacienteFiltro}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
-                  <SelectItem value={null}>Sem Status</SelectItem>
-                  <SelectItem value="paciente_novo">Paciente Novo</SelectItem>
-                  <SelectItem value="primeira_sessao">Primeira Sessão</SelectItem>
-                  <SelectItem value="ultima_sessao">Última Sessão</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Tipo de Serviço</label>
-              <Select value={tipoFiltro} onValueChange={setTipoFiltro}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os Tipos</SelectItem>
-                  <SelectItem value="consulta">Consulta</SelectItem>
-                  <SelectItem value="liberacao_miofascial">Liberação Miofascial</SelectItem>
-                  <SelectItem value="pacote">Pacote</SelectItem>
-                  <SelectItem value="avaliacao">Avaliação</SelectItem>
-                  <SelectItem value="avulsa">Avulsa</SelectItem>
-                  <SelectItem value="funcionario">Funcionário</SelectItem>
-                  <SelectItem value="voucher">Voucher</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Data Criação (Início)</label>
-              <Input
-                type="date"
-                value={dataInicioFiltro}
-                onChange={(e) => setDataInicioFiltro(e.target.value)}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Data Criação (Fim)</label>
-              <Input
-                type="date"
-                value={dataFimFiltro}
-                onChange={(e) => setDataFimFiltro(e.target.value)}
-              />
-            </div>
-
-            <div className="flex items-end">
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setProfissionalFiltro("todos");
-                  setStatusPacienteFiltro("todos");
-                  setTipoFiltro("todos");
-                  setDataInicioFiltro("");
-                  setDataFimFiltro("");
-                }}
-                className="w-full"
-              >
-                Limpar Filtros
-              </Button>
             </div>
           </div>
         </div>
