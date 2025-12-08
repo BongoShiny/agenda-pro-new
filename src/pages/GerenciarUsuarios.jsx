@@ -90,8 +90,9 @@ export default function GerenciarUsuariosPage() {
 
   const atualizarUsuarioMutation = useMutation({
     mutationFn: ({ id, dados }) => base44.entities.User.update(id, dados),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+      await queryClient.refetchQueries({ queryKey: ['usuarios'] });
     },
   });
 
@@ -192,39 +193,39 @@ export default function GerenciarUsuariosPage() {
   };
 
   const handleSalvarNome = async (usuario) => {
-    if (novoNome.trim() === "") {
+    const nomeFormatado = novoNome.trim();
+    
+    if (nomeFormatado === "") {
       alert("O nome não pode estar vazio");
       return;
     }
 
     try {
+      // Salvar o nome exatamente como digitado (com maiúsculas, minúsculas e espaços)
       await atualizarUsuarioMutation.mutateAsync({
         id: usuario.id,
-        dados: { full_name: novoNome.trim() }
+        dados: { full_name: nomeFormatado }
       });
 
       // Registrar no log
       await base44.entities.LogAcao.create({
         tipo: "editou_usuario",
         usuario_email: usuarioAtual?.email,
-        descricao: `Alterou nome de "${usuario.full_name}" para "${novoNome.trim()}" (${usuario.email})`,
+        descricao: `Alterou nome de "${usuario.full_name}" para "${nomeFormatado}" (${usuario.email})`,
         entidade_tipo: "Usuario",
         entidade_id: usuario.id,
         dados_antigos: JSON.stringify({ full_name: usuario.full_name }),
-        dados_novos: JSON.stringify({ full_name: novoNome.trim() })
+        dados_novos: JSON.stringify({ full_name: nomeFormatado })
       });
 
-      setEditandoNome(null);
-      setNovoNome("");
-
-      // Recarregar dados dos usuários para refletir a mudança
-      await queryClient.invalidateQueries({ queryKey: ['usuarios'] });
-      
       // Se for o próprio usuário, recarregar usuário atual
       if (usuario.id === usuarioAtual.id) {
         const userAtualizado = await base44.auth.me();
         setUsuarioAtual(userAtualizado);
       }
+
+      setEditandoNome(null);
+      setNovoNome("");
 
       alert("✅ Nome atualizado com sucesso!");
     } catch (error) {
