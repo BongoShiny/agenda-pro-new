@@ -391,6 +391,12 @@ export default function NovoAgendamentoDialog({
                 <SelectItem value="liberacao_miofascial">Liberação Miofascial</SelectItem>
                 <SelectItem value="pacote">Pacote</SelectItem>
                 <SelectItem value="avaliacao">Avaliação</SelectItem>
+                <SelectItem value="avulsa">Avulsa</SelectItem>
+                <SelectItem value="funcionario">Funcionário</SelectItem>
+                <SelectItem value="pacote_outro_cliente">Pacote de Outro Cliente</SelectItem>
+                <SelectItem value="primeira_sessao_pacote">Primeira Sessão do Pacote</SelectItem>
+                <SelectItem value="ultima_sessao_pacote">Última Sessão do Pacote</SelectItem>
+                <SelectItem value="voucher">Voucher</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -427,24 +433,6 @@ export default function NovoAgendamentoDialog({
                 {vendedores.filter(v => v.ativo).map(v => (
                   <SelectItem key={v.id} value={v.id}>{v.nome}</SelectItem>
                 ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Equipamento</Label>
-            <Select value={formData.equipamento || ""} onValueChange={(value) => setFormData(prev => ({ ...prev, equipamento: value }))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione o equipamento..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="AVULSA">AVULSA</SelectItem>
-                <SelectItem value="FUNCIONÁRIO">FUNCIONÁRIO</SelectItem>
-                <SelectItem value="PACOTE">PACOTE</SelectItem>
-                <SelectItem value="PACOTE DE OUTRO CLIENTE">PACOTE DE OUTRO CLIENTE</SelectItem>
-                <SelectItem value="PRIMEIRA SESSÃO DO PACOTE">PRIMEIRA SESSÃO DO PACOTE</SelectItem>
-                <SelectItem value="ÚLTIMA SESSÃO DO PACOTE">ÚLTIMA SESSÃO DO PACOTE</SelectItem>
-                <SelectItem value="VOUCHER">VOUCHER</SelectItem>
               </SelectContent>
             </Select>
           </div>
