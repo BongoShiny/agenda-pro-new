@@ -93,7 +93,12 @@ export default function AgendaHeader({
     const ano = agora.getFullYear();
     const mes = agora.getMonth();
     const dia = agora.getDate();
-    const hoje = new Date(ano, mes, dia, 12, 0, 0, 0);
+    let hoje = new Date(ano, mes, dia, 12, 0, 0, 0);
+    
+    // Se hoje for domingo, ir para segunda
+    if (hoje.getDay() === 0) {
+      hoje = addDays(hoje, 1);
+    }
     
     console.log("Hoje (depois):", hoje.toString());
     console.log("Data formatada:", formatarDataPura(hoje));
