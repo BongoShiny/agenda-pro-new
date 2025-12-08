@@ -50,6 +50,7 @@ export default function RelatoriosFinanceirosPage() {
   const [modoEditor, setModoEditor] = useState(false);
   const [dadosEditados, setDadosEditados] = useState({});
   const [dialogVendedorAberto, setDialogVendedorAberto] = useState(false);
+  const [pesquisaDetalhado, setPesquisaDetalhado] = useState("");
   const [novoVendedor, setNovoVendedor] = useState({
     nome: "",
     email: "",
@@ -642,25 +643,35 @@ export default function RelatoriosFinanceirosPage() {
 
           <TabsContent value="detalhado">
             <Card>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0">
-                <CardTitle>Detalhamento Completo</CardTitle>
-                <div className="flex gap-2">
-                  {modoEditor ? (
-                    <>
-                      <Button onClick={() => { setModoEditor(false); setDadosEditados({}); }} variant="outline">
-                        Cancelar
+              <CardHeader className="space-y-4">
+                <div className="flex flex-row items-center justify-between">
+                  <CardTitle>Detalhamento Completo</CardTitle>
+                  <div className="flex gap-2">
+                    {modoEditor ? (
+                      <>
+                        <Button onClick={() => { setModoEditor(false); setDadosEditados({}); }} variant="outline">
+                          Cancelar
+                        </Button>
+                        <Button onClick={handleSalvarEdicoes} className="bg-emerald-600 hover:bg-emerald-700">
+                          <Save className="w-4 h-4 mr-2" />
+                          Salvar Alterações
+                        </Button>
+                      </>
+                    ) : (
+                      <Button onClick={handleAtivarModoEditor} variant="outline">
+                        <Edit3 className="w-4 h-4 mr-2" />
+                        Modo Editor
                       </Button>
-                      <Button onClick={handleSalvarEdicoes} className="bg-emerald-600 hover:bg-emerald-700">
-                        <Save className="w-4 h-4 mr-2" />
-                        Salvar Alterações
-                      </Button>
-                    </>
-                  ) : (
-                    <Button onClick={handleAtivarModoEditor} variant="outline">
-                      <Edit3 className="w-4 h-4 mr-2" />
-                      Modo Editor
-                    </Button>
-                  )}
+                    )}
+                  </div>
+                </div>
+                <div className="w-full">
+                  <Input
+                    placeholder="Pesquisar por profissional, vendedor, valor combinado, valor pago ou falta..."
+                    value={pesquisaDetalhado}
+                    onChange={(e) => setPesquisaDetalhado(e.target.value)}
+                    className="max-w-xl"
+                  />
                 </div>
               </CardHeader>
               <CardContent>
@@ -676,10 +687,21 @@ export default function RelatoriosFinanceirosPage() {
                         <TableHead className="text-right">Valor Pago</TableHead>
                         <TableHead className="text-right">Falta</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Criado em</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {agendamentosFiltrados.map((ag) => {
+                      {agendamentosFiltrados.filter(ag => {
+                        if (!pesquisaDetalhado) return true;
+                        const termo = pesquisaDetalhado.toLowerCase();
+                        return (
+                          ag.profissional_nome?.toLowerCase().includes(termo) ||
+                          ag.vendedor_nome?.toLowerCase().includes(termo) ||
+                          String(ag.valor_combinado || 0).includes(termo) ||
+                          String(ag.valor_pago || 0).includes(termo) ||
+                          String(ag.falta_quanto || 0).includes(termo)
+                        );
+                      }).map((ag) => {
                         const valorCombinado = dadosEditados[ag.id]?.valor_combinado !== undefined 
                           ? dadosEditados[ag.id].valor_combinado 
                           : ag.valor_combinado;
@@ -774,18 +796,38 @@ export default function RelatoriosFinanceirosPage() {
                                 {ag.status}
                               </span>
                             </TableCell>
-                          </TableRow>
-                        );
-                      })}
-                    </TableBody>
-                  </Table>
-                </div>
+                            <TableCell>
+                              <div className="text-xs text-gray-600">
+                                {ag.created_date ? (
+                                  <>
+                                    <div>{format(new Date(ag.created_date), "dd/MM/yyyy", { locale: ptBR })}</div>
+                                    <div className="text-gray-500">{format(new Date(ag.created_date), "HH:mm", { locale: ptBR })}</div>
+                                  </>
+                                ) : "-"}
+                              </div>
+                            </TableCell>
+                            </TableRow>
+                            );
+                            })}
+                            </TableBody>
+                            </Table>
+                            </div>
 
-                {agendamentosFiltrados.length === 0 && (
+                {agendamentosFiltrados.filter(ag => {
+                  if (!pesquisaDetalhado) return true;
+                  const termo = pesquisaDetalhado.toLowerCase();
+                  return (
+                    ag.profissional_nome?.toLowerCase().includes(termo) ||
+                    ag.vendedor_nome?.toLowerCase().includes(termo) ||
+                    String(ag.valor_combinado || 0).includes(termo) ||
+                    String(ag.valor_pago || 0).includes(termo) ||
+                    String(ag.falta_quanto || 0).includes(termo)
+                  );
+                }).length === 0 && (
                   <div className="text-center py-12 text-gray-500">
                     <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                     <p className="font-medium">Nenhum agendamento encontrado</p>
-                    <p className="text-sm mt-2">Tente ajustar os filtros para ver os dados</p>
+                    <p className="text-sm mt-2">Tente ajustar os filtros ou a pesquisa para ver os dados</p>
                   </div>
                 )}
               </CardContent>
