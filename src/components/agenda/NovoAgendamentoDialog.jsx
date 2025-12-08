@@ -114,7 +114,8 @@ export default function NovoAgendamentoDialog({
         falta_quanto: agendamentoInicial.falta_quanto || null,
         vendedor_id: agendamentoInicial.vendedor_id || "",
         vendedor_nome: agendamentoInicial.vendedor_nome || "",
-        comprovante_url: agendamentoInicial.comprovante_url || ""
+        comprovante_url: agendamentoInicial.comprovante_url || "",
+        comprovante_url_2: agendamentoInicial.comprovante_url_2 || ""
       };
       
       console.log("📝 DIALOG ABERTO | Modo:", modoEdicao ? "EDIÇÃO" : "NOVO", "| Data:", dados.data);
@@ -176,7 +177,7 @@ export default function NovoAgendamentoDialog({
     }
   };
 
-  const handleUploadComprovante = async (e) => {
+  const handleUploadComprovante = async (e, numero) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -189,17 +190,17 @@ export default function NovoAgendamentoDialog({
     setUploading(true);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setFormData(prev => ({ ...prev, comprovante_url: file_url }));
+      if (numero === 1) {
+        setFormData(prev => ({ ...prev, comprovante_url: file_url }));
+      } else {
+        setFormData(prev => ({ ...prev, comprovante_url_2: file_url }));
+      }
     } catch (error) {
       console.error('Erro ao fazer upload:', error);
       alert('Erro ao fazer upload do comprovante: ' + error.message);
     } finally {
       setUploading(false);
     }
-  };
-
-  const handleRemoverComprovante = () => {
-    setFormData(prev => ({ ...prev, comprovante_url: "" }));
   };
 
   const handleSubmit = () => {
@@ -494,48 +495,97 @@ export default function NovoAgendamentoDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Anexar Comprovante</Label>
-            {formData.comprovante_url ? (
-              <div className="space-y-2">
-                <div className="relative border rounded-lg overflow-hidden">
-                  <img 
-                    src={formData.comprovante_url} 
-                    alt="Comprovante" 
-                    className="w-full h-32 object-cover"
-                  />
-                  <Button
-                    type="button"
-                    variant="destructive"
-                    size="icon"
-                    className="absolute top-2 right-2 h-6 w-6"
-                    onClick={handleRemoverComprovante}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-                <a 
-                  href={formData.comprovante_url} 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="text-xs text-blue-600 hover:underline"
-                >
-                  Ver comprovante completo
-                </a>
-              </div>
-            ) : (
-              <div className="relative">
-                <Input
-                  type="file"
-                  accept="image/*"
-                  onChange={handleUploadComprovante}
-                  disabled={uploading}
-                  className="cursor-pointer"
-                />
-                {uploading && (
-                  <div className="absolute inset-0 flex items-center justify-center bg-white/80">
-                    <span className="text-sm text-gray-600">Enviando...</span>
+            <Label>Anexar Comprovantes (até 2)</Label>
+            <div className="grid grid-cols-2 gap-3">
+              {/* Comprovante 1 */}
+              <div>
+                <Label className="text-xs text-gray-500">Comprovante 1</Label>
+                {formData.comprovante_url ? (
+                  <div className="space-y-2">
+                    <div className="relative border rounded-lg overflow-hidden">
+                      <img 
+                        src={formData.comprovante_url} 
+                        alt="Comprovante 1" 
+                        className="w-full h-24 object-cover"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-1 right-1 h-5 w-5"
+                        onClick={() => setFormData(prev => ({ ...prev, comprovante_url: "" }))}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <a 
+                      href={formData.comprovante_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline block"
+                    >
+                      Ver completo
+                    </a>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleUploadComprovante(e, 1)}
+                      disabled={uploading}
+                      className="cursor-pointer text-xs"
+                    />
                   </div>
                 )}
+              </div>
+
+              {/* Comprovante 2 */}
+              <div>
+                <Label className="text-xs text-gray-500">Comprovante 2</Label>
+                {formData.comprovante_url_2 ? (
+                  <div className="space-y-2">
+                    <div className="relative border rounded-lg overflow-hidden">
+                      <img 
+                        src={formData.comprovante_url_2} 
+                        alt="Comprovante 2" 
+                        className="w-full h-24 object-cover"
+                      />
+                      <Button
+                        type="button"
+                        variant="destructive"
+                        size="icon"
+                        className="absolute top-1 right-1 h-5 w-5"
+                        onClick={() => setFormData(prev => ({ ...prev, comprovante_url_2: "" }))}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                    <a 
+                      href={formData.comprovante_url_2} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-xs text-blue-600 hover:underline block"
+                    >
+                      Ver completo
+                    </a>
+                  </div>
+                ) : (
+                  <div className="relative">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => handleUploadComprovante(e, 2)}
+                      disabled={uploading}
+                      className="cursor-pointer text-xs"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            {uploading && (
+              <div className="text-xs text-gray-600 text-center">
+                Enviando comprovante...
               </div>
             )}
           </div>

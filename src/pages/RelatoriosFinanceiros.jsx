@@ -268,7 +268,7 @@ export default function RelatoriosFinanceirosPage() {
       const resultado = await base44.entities.Vendedor.create(dados);
       
       await base44.entities.LogAcao.create({
-        tipo: "criou_terapeuta",
+        tipo: "criou_vendedor",
         usuario_email: usuarioAtual?.email || "sistema",
         descricao: `Criou novo vendedor: ${dados.nome}`,
         entidade_tipo: "Vendedor",
@@ -301,7 +301,7 @@ export default function RelatoriosFinanceirosPage() {
       await base44.entities.Vendedor.delete(vendedor.id);
       
       await base44.entities.LogAcao.create({
-        tipo: "excluiu_terapeuta",
+        tipo: "excluiu_vendedor",
         usuario_email: usuarioAtual?.email || "sistema",
         descricao: `Excluiu vendedor: ${vendedor.nome}`,
         entidade_tipo: "Vendedor",
@@ -448,9 +448,9 @@ export default function RelatoriosFinanceirosPage() {
     const listaProfMes = Object.values(faturamentoPorProfMes).sort((a, b) => b.quantidade - a.quantidade);
 
     await base44.entities.LogAcao.create({
-      tipo: "exportou_planilha",
+      tipo: "gerou_relatorio_pdf",
       usuario_email: usuarioAtual?.email,
-      descricao: `Exportou relatório financeiro em PDF - Mês: ${format(new Date(ano, mes - 1), "MMMM/yyyy", { locale: ptBR })}, ${agendamentosMes.length} registros`,
+      descricao: `Gerou relatório financeiro em PDF - Mês: ${format(new Date(ano, mes - 1), "MMMM/yyyy", { locale: ptBR })}, ${agendamentosMes.length} registros`,
       entidade_tipo: "RelatorioFinanceiro"
     });
 
@@ -504,6 +504,7 @@ export default function RelatoriosFinanceirosPage() {
             <thead>
               <tr>
                 <th>Data</th>
+                <th>Número</th>
                 <th>Cliente</th>
                 <th>Profissional</th>
                 <th>Unidade</th>
@@ -519,6 +520,7 @@ export default function RelatoriosFinanceirosPage() {
               ${agendamentosMes.map(ag => `
                 <tr>
                   <td>${ag.data ? format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR }) : "-"}</td>
+                  <td>${ag.cliente_telefone || "-"}</td>
                   <td>${ag.cliente_nome || "-"}</td>
                   <td>${ag.profissional_nome || "-"}</td>
                   <td>${ag.unidade_nome || "-"}</td>
@@ -531,7 +533,7 @@ export default function RelatoriosFinanceirosPage() {
                 </tr>
               `).join('')}
               <tr class="total">
-                <td colspan="6"><strong>TOTAIS GERAIS</strong></td>
+                <td colspan="7"><strong>TOTAIS GERAIS</strong></td>
                 <td class="text-right"><strong>${formatarMoeda(totalCombinadoMes)}</strong></td>
                 <td class="text-right"><strong>${formatarMoeda(totalPagoMes)}</strong></td>
                 <td class="text-right"><strong>${formatarMoeda(totalAReceberMes)}</strong></td>
@@ -602,9 +604,9 @@ export default function RelatoriosFinanceirosPage() {
     const listaVendedores = Object.values(agendamentosPorVendedor);
 
     await base44.entities.LogAcao.create({
-      tipo: "exportou_planilha",
+      tipo: "gerou_relatorio_pdf",
       usuario_email: usuarioAtual?.email,
-      descricao: `Exportou relatório de vendedores em PDF - Mês: ${format(new Date(ano, mes - 1), "MMMM/yyyy", { locale: ptBR })}, ${agendamentosMesVendedor.length} registros`,
+      descricao: `Gerou relatório de vendedores em PDF - Mês: ${format(new Date(ano, mes - 1), "MMMM/yyyy", { locale: ptBR })}, ${agendamentosMesVendedor.length} registros`,
       entidade_tipo: "RelatorioFinanceiro"
     });
 
@@ -659,6 +661,7 @@ export default function RelatoriosFinanceirosPage() {
                   <thead>
                     <tr>
                       <th>Data Agend.</th>
+                      <th>Número</th>
                       <th>Cliente</th>
                       <th>Profissional</th>
                       <th class="text-right">Vlr. Combinado</th>
@@ -674,6 +677,7 @@ export default function RelatoriosFinanceirosPage() {
                       .map(ag => `
                         <tr>
                           <td>${ag.data ? format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR }) : "-"}</td>
+                          <td>${ag.cliente_telefone || "-"}</td>
                           <td>${ag.cliente_nome || "-"}</td>
                           <td>${ag.profissional_nome || "-"}</td>
                           <td class="text-right">${formatarMoeda(ag.valor_combinado)}</td>
@@ -684,7 +688,7 @@ export default function RelatoriosFinanceirosPage() {
                         </tr>
                     `).join('')}
                     <tr class="total">
-                      <td colspan="3"><strong>TOTAL - ${vendedor.nome}</strong></td>
+                      <td colspan="4"><strong>TOTAL - ${vendedor.nome}</strong></td>
                       <td class="text-right"><strong>${formatarMoeda(totalCombinado)}</strong></td>
                       <td class="text-right"><strong>${formatarMoeda(totalPago)}</strong></td>
                       <td class="text-right"><strong>${formatarMoeda(totalAReceber)}</strong></td>
@@ -716,9 +720,9 @@ export default function RelatoriosFinanceirosPage() {
   const exportarCSV = async () => {
     // Registrar exportação no log
     await base44.entities.LogAcao.create({
-      tipo: "exportou_planilha",
+      tipo: "gerou_relatorio_csv",
       usuario_email: usuarioAtual?.email,
-      descricao: `Exportou relatório financeiro - Período: ${periodo}, ${agendamentosFiltrados.length} registros`,
+      descricao: `Gerou relatório financeiro CSV - Período: ${periodo}, ${agendamentosFiltrados.length} registros`,
       entidade_tipo: "RelatorioFinanceiro",
       dados_novos: JSON.stringify({ 
         periodo, 
@@ -1014,6 +1018,7 @@ export default function RelatoriosFinanceirosPage() {
                     <TableHeader>
                       <TableRow>
                         <TableHead>Data</TableHead>
+                        <TableHead>Número</TableHead>
                         <TableHead>Cliente</TableHead>
                         <TableHead>Profissional</TableHead>
                         <TableHead>Vendedor</TableHead>
@@ -1055,6 +1060,7 @@ export default function RelatoriosFinanceirosPage() {
                             <TableCell>
                               {ag.data ? format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR }) : "-"}
                             </TableCell>
+                            <TableCell className="text-sm">{ag.cliente_telefone || "-"}</TableCell>
                             <TableCell className="font-medium">{ag.cliente_nome}</TableCell>
                             <TableCell>{ag.profissional_nome}</TableCell>
                             <TableCell>
@@ -1142,19 +1148,33 @@ export default function RelatoriosFinanceirosPage() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              {ag.comprovante_url ? (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => setComprovanteVisualizacao(ag.comprovante_url)}
-                                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                >
-                                  <Eye className="w-4 h-4 mr-1" />
-                                  Ver
-                                </Button>
-                              ) : (
-                                <span className="text-xs text-gray-400">-</span>
-                              )}
+                              <div className="flex gap-1">
+                                {ag.comprovante_url && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setComprovanteVisualizacao(ag.comprovante_url)}
+                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-xs"
+                                  >
+                                    <Eye className="w-3 h-3 mr-1" />
+                                    1
+                                  </Button>
+                                )}
+                                {ag.comprovante_url_2 && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => setComprovanteVisualizacao(ag.comprovante_url_2)}
+                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-xs"
+                                  >
+                                    <Eye className="w-3 h-3 mr-1" />
+                                    2
+                                  </Button>
+                                )}
+                                {!ag.comprovante_url && !ag.comprovante_url_2 && (
+                                  <span className="text-xs text-gray-400">-</span>
+                                )}
+                              </div>
                             </TableCell>
                             </TableRow>
                             );
