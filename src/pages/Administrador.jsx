@@ -17,7 +17,7 @@ export default function AdministradorPage() {
         setUsuarioAtual(user);
         
         // Se não for admin, gerência ou financeiro, redireciona para agenda
-        const isAdmin = user?.cargo === "administrador" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro";
+        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro";
         if (!isAdmin) {
           navigate(createPageUrl("Agenda"));
         }
