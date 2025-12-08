@@ -48,11 +48,9 @@ export default function RelatoriosFinanceirosPage() {
   const [periodo, setPeriodo] = useState("mes");
   const [unidadeFiltro, setUnidadeFiltro] = useState("todas");
   const [profissionalFiltro, setProfissionalFiltro] = useState("todos");
-  const [statusPacienteFiltro, setStatusPacienteFiltro] = useState("todos");
-  const [tipoFiltro, setTipoFiltro] = useState("todos");
-  const [dataInicioFiltro, setDataInicioFiltro] = useState("");
-  const [dataFimFiltro, setDataFimFiltro] = useState("");
   const [modoEditor, setModoEditor] = useState(false);
+  const [dialogExportarPDF, setDialogExportarPDF] = useState(false);
+  const [mesSelecionadoPDF, setMesSelecionadoPDF] = useState("");
   const [dadosEditados, setDadosEditados] = useState({});
   const [dialogVendedorAberto, setDialogVendedorAberto] = useState(false);
   const [pesquisaDetalhado, setPesquisaDetalhado] = useState("");
@@ -179,22 +177,6 @@ export default function RelatoriosFinanceirosPage() {
       // Filtro de profissional
       if (profissionalFiltro !== "todos" && ag.profissional_id !== profissionalFiltro) return false;
 
-      // Filtro de status do paciente
-      if (statusPacienteFiltro !== "todos" && ag.status_paciente !== statusPacienteFiltro) return false;
-
-      // Filtro de tipo
-      if (tipoFiltro !== "todos" && ag.tipo !== tipoFiltro) return false;
-
-      // Filtro de data de criação
-      if (dataInicioFiltro && ag.created_date) {
-        const dataCriacao = ag.created_date.split('T')[0];
-        if (dataCriacao < dataInicioFiltro) return false;
-      }
-      if (dataFimFiltro && ag.created_date) {
-        const dataCriacao = ag.created_date.split('T')[0];
-        if (dataCriacao > dataFimFiltro) return false;
-      }
-
       return true;
     });
 
@@ -245,41 +227,19 @@ export default function RelatoriosFinanceirosPage() {
 
   const listaUnidades = Object.values(faturamentoPorUnidade).sort((a, b) => b.totalPago - a.totalPago);
 
-  // Dados para gráficos
-  const dadosFaturamentoMensal = React.useMemo(() => {
-    const meses = {};
-    agendamentosFiltrados.forEach(ag => {
-      if (ag.data) {
-        const mesAno = format(criarDataPura(ag.data), "MM/yyyy", { locale: ptBR });
-        if (!meses[mesAno]) {
-          meses[mesAno] = { mes: mesAno, faturamento: 0, recebido: 0, aReceber: 0 };
+  // Gerar lista de meses disponíveis
+  const mesesDisponiveis = React.useMemo(() => {
+    const meses = new Set();
+    agendamentos
+      .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
+      .forEach(ag => {
+        if (ag.data) {
+          const mesAno = format(criarDataPura(ag.data), "yyyy-MM", { locale: ptBR });
+          meses.add(mesAno);
         }
-        meses[mesAno].faturamento += ag.valor_combinado || 0;
-        meses[mesAno].recebido += ag.valor_pago || 0;
-        meses[mesAno].aReceber += ag.falta_quanto || 0;
-      }
-    });
-    return Object.values(meses).sort((a, b) => {
-      const [mesA, anoA] = a.mes.split('/');
-      const [mesB, anoB] = b.mes.split('/');
-      return new Date(anoA, mesA - 1) - new Date(anoB, mesB - 1);
-    });
-  }, [agendamentosFiltrados]);
-
-  const dadosDesempenhoProfissional = React.useMemo(() => {
-    return listaProfissionais.slice(0, 10).map(prof => ({
-      nome: prof.nome.length > 20 ? prof.nome.substring(0, 20) + "..." : prof.nome,
-      atendimentos: prof.quantidade,
-      recebido: prof.totalPago
-    }));
-  }, [listaProfissionais]);
-
-  const dadosDistribuicaoPagamentos = React.useMemo(() => {
-    return [
-      { name: "Recebido", value: totalPago, color: "#10b981" },
-      { name: "A Receber", value: totalAReceber, color: "#f97316" }
-    ];
-  }, [totalPago, totalAReceber]);
+      });
+    return Array.from(meses).sort().reverse();
+  }, [agendamentos]);
 
   const atualizarAgendamentoMutation = useMutation({
     mutationFn: async ({ id, dados, dadosAntigos }) => {
@@ -442,108 +402,165 @@ export default function RelatoriosFinanceirosPage() {
   };
 
   const exportarPDF = async () => {
+    if (!mesSelecionadoPDF) {
+      alert("Por favor, selecione um mês para o relatório");
+      return;
+    }
+
+    // Filtrar agendamentos do mês selecionado
+    const [ano, mes] = mesSelecionadoPDF.split('-');
+    const agendamentosMes = agendamentos
+      .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
+      .filter(ag => {
+        if (!ag.data) return false;
+        const dataAg = ag.data.substring(0, 7); // YYYY-MM
+        return dataAg === mesSelecionadoPDF;
+      });
+
+    // Calcular totais do mês
+    const totalCombinadoMes = agendamentosMes.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
+    const totalPagoMes = agendamentosMes.reduce((sum, ag) => sum + (ag.valor_pago || 0), 0);
+    const totalAReceberMes = agendamentosMes.reduce((sum, ag) => sum + (ag.falta_quanto || 0), 0);
+
+    // Agrupar por profissional
+    const faturamentoPorProfMes = agendamentosMes.reduce((acc, ag) => {
+      const prof = ag.profissional_nome || "Sem Profissional";
+      if (!acc[prof]) {
+        acc[prof] = { nome: prof, totalCombinado: 0, totalPago: 0, totalAReceber: 0, quantidade: 0 };
+      }
+      acc[prof].totalCombinado += ag.valor_combinado || 0;
+      acc[prof].totalPago += ag.valor_pago || 0;
+      acc[prof].totalAReceber += ag.falta_quanto || 0;
+      acc[prof].quantidade += 1;
+      return acc;
+    }, {});
+
+    const listaProfMes = Object.values(faturamentoPorProfMes).sort((a, b) => b.quantidade - a.quantidade);
+
     await base44.entities.LogAcao.create({
       tipo: "exportou_planilha",
       usuario_email: usuarioAtual?.email,
-      descricao: `Exportou relatório financeiro em PDF - Período: ${periodo}, ${agendamentosFiltrados.length} registros`,
+      descricao: `Exportou relatório financeiro em PDF - Mês: ${format(new Date(ano, mes - 1), "MMMM/yyyy", { locale: ptBR })}, ${agendamentosMes.length} registros`,
       entidade_tipo: "RelatorioFinanceiro"
     });
 
     const printWindow = window.open('', '_blank');
+    const mesNome = format(new Date(ano, mes - 1), "MMMM 'de' yyyy", { locale: ptBR });
+    
     const html = `
       <!DOCTYPE html>
       <html>
         <head>
-          <title>Relatório Financeiro</title>
+          <title>Relatório Financeiro - ${mesNome}</title>
           <style>
-            body { font-family: Arial, sans-serif; padding: 20px; }
-            h1 { color: #059669; }
-            h2 { color: #374151; margin-top: 30px; }
-            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-            th, td { border: 1px solid #d1d5db; padding: 8px; text-align: left; }
+            body { font-family: Arial, sans-serif; padding: 20px; font-size: 12px; }
+            h1 { color: #059669; margin-bottom: 5px; }
+            h2 { color: #374151; margin-top: 25px; margin-bottom: 10px; font-size: 16px; }
+            table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+            th, td { border: 1px solid #d1d5db; padding: 6px 8px; text-align: left; font-size: 11px; }
             th { background-color: #f3f4f6; font-weight: bold; }
-            .summary { display: flex; gap: 20px; margin: 20px 0; }
-            .summary-card { flex: 1; padding: 15px; border: 1px solid #d1d5db; border-radius: 8px; }
+            .summary { display: flex; gap: 15px; margin: 15px 0; }
+            .summary-card { flex: 1; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; text-align: center; }
             .total { font-weight: bold; background-color: #f9fafb; }
+            .text-right { text-align: right; }
+            .highlight { background-color: #fef3c7; }
             @media print {
               button { display: none; }
             }
           </style>
         </head>
         <body>
-          <h1>Relatório Financeiro</h1>
-          <p><strong>Período:</strong> ${periodoLabels[periodo]}</p>
-          <p><strong>Data do Relatório:</strong> ${format(new Date(), "dd/MM/yyyy HH:mm", { locale: ptBR })}</p>
+          <h1>Relatório Financeiro Detalhado</h1>
+          <p><strong>Período:</strong> ${mesNome}</p>
+          <p><strong>Data de Emissão:</strong> ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
           
           <div class="summary">
             <div class="summary-card">
-              <p style="margin: 0; color: #6b7280;">Valor Combinado Total</p>
-              <h2 style="margin: 10px 0 0 0; color: #3b82f6;">${formatarMoeda(totalCombinado)}</h2>
+              <p style="margin: 0; color: #6b7280; font-size: 11px;">Valor Combinado Total</p>
+              <h2 style="margin: 8px 0 0 0; color: #3b82f6; font-size: 20px;">${formatarMoeda(totalCombinadoMes)}</h2>
             </div>
             <div class="summary-card">
-              <p style="margin: 0; color: #6b7280;">Total Recebido</p>
-              <h2 style="margin: 10px 0 0 0; color: #10b981;">${formatarMoeda(totalPago)}</h2>
+              <p style="margin: 0; color: #6b7280; font-size: 11px;">Total Recebido</p>
+              <h2 style="margin: 8px 0 0 0; color: #10b981; font-size: 20px;">${formatarMoeda(totalPagoMes)}</h2>
             </div>
             <div class="summary-card">
-              <p style="margin: 0; color: #6b7280;">Total a Receber</p>
-              <h2 style="margin: 10px 0 0 0; color: #f97316;">${formatarMoeda(totalAReceber)}</h2>
+              <p style="margin: 0; color: #6b7280; font-size: 11px;">Total a Receber</p>
+              <h2 style="margin: 8px 0 0 0; color: #f97316; font-size: 20px;">${formatarMoeda(totalAReceberMes)}</h2>
             </div>
           </div>
 
-          <h2>Detalhamento dos Agendamentos</h2>
+          <h2>📋 Detalhamento Completo dos Agendamentos</h2>
           <table>
             <thead>
               <tr>
                 <th>Data</th>
                 <th>Cliente</th>
                 <th>Profissional</th>
-                <th>Valor Combinado</th>
-                <th>Valor Pago</th>
-                <th>Falta</th>
+                <th>Unidade</th>
+                <th>Serviço</th>
+                <th>Vendedor</th>
+                <th class="text-right">Vlr. Combinado</th>
+                <th class="text-right">Vlr. Pago</th>
+                <th class="text-right">Falta</th>
+                <th>Status</th>
               </tr>
             </thead>
             <tbody>
-              ${agendamentosFiltrados.map(ag => `
+              ${agendamentosMes.map(ag => `
                 <tr>
                   <td>${ag.data ? format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR }) : "-"}</td>
                   <td>${ag.cliente_nome || "-"}</td>
                   <td>${ag.profissional_nome || "-"}</td>
-                  <td>${formatarMoeda(ag.valor_combinado)}</td>
-                  <td>${formatarMoeda(ag.valor_pago)}</td>
-                  <td>${formatarMoeda(ag.falta_quanto)}</td>
+                  <td>${ag.unidade_nome || "-"}</td>
+                  <td>${ag.servico_nome || "-"}</td>
+                  <td>${ag.vendedor_nome || "-"}</td>
+                  <td class="text-right">${formatarMoeda(ag.valor_combinado)}</td>
+                  <td class="text-right" style="color: #10b981; font-weight: 600;">${formatarMoeda(ag.valor_pago)}</td>
+                  <td class="text-right" style="color: #f97316;">${formatarMoeda(ag.falta_quanto)}</td>
+                  <td>${ag.status || "-"}</td>
                 </tr>
               `).join('')}
               <tr class="total">
-                <td colspan="3"><strong>TOTAIS</strong></td>
-                <td><strong>${formatarMoeda(totalCombinado)}</strong></td>
-                <td><strong>${formatarMoeda(totalPago)}</strong></td>
-                <td><strong>${formatarMoeda(totalAReceber)}</strong></td>
+                <td colspan="6"><strong>TOTAIS GERAIS</strong></td>
+                <td class="text-right"><strong>${formatarMoeda(totalCombinadoMes)}</strong></td>
+                <td class="text-right"><strong>${formatarMoeda(totalPagoMes)}</strong></td>
+                <td class="text-right"><strong>${formatarMoeda(totalAReceberMes)}</strong></td>
+                <td></td>
               </tr>
             </tbody>
           </table>
 
-          <h2>Faturamento por Profissional</h2>
+          <h2>👨‍⚕️ Atendimentos por Terapeuta</h2>
           <table>
             <thead>
               <tr>
-                <th>Profissional</th>
-                <th>Atendimentos</th>
-                <th>Total Recebido</th>
+                <th>Terapeuta</th>
+                <th class="text-right">Quantidade de Atendimentos</th>
+                <th class="text-right">Valor Combinado</th>
+                <th class="text-right">Valor Recebido</th>
+                <th class="text-right">A Receber</th>
               </tr>
             </thead>
             <tbody>
-              ${listaProfissionais.map(prof => `
+              ${listaProfMes.map(prof => `
                 <tr>
-                  <td>${prof.nome}</td>
-                  <td>${prof.quantidade}</td>
-                  <td>${formatarMoeda(prof.totalPago)}</td>
+                  <td><strong>${prof.nome}</strong></td>
+                  <td class="text-right highlight"><strong>${prof.quantidade}</strong></td>
+                  <td class="text-right">${formatarMoeda(prof.totalCombinado)}</td>
+                  <td class="text-right" style="color: #10b981; font-weight: 600;">${formatarMoeda(prof.totalPago)}</td>
+                  <td class="text-right" style="color: #f97316;">${formatarMoeda(prof.totalAReceber)}</td>
                 </tr>
               `).join('')}
             </tbody>
           </table>
 
-          <button onclick="window.print()" style="margin-top: 30px; padding: 10px 20px; background: #059669; color: white; border: none; border-radius: 5px; cursor: pointer;">
-            Imprimir / Salvar como PDF
+          <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #d1d5db; text-align: center; color: #6b7280;">
+            <p style="margin: 5px 0;">Relatório gerado automaticamente pelo sistema</p>
+            <p style="margin: 5px 0; font-size: 10px;">Total de ${agendamentosMes.length} agendamentos no período</p>
+          </div>
+
+          <button onclick="window.print()" style="margin-top: 30px; padding: 12px 24px; background: #059669; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold;">
+            🖨️ Imprimir / Salvar como PDF
           </button>
         </body>
       </html>
@@ -551,6 +568,7 @@ export default function RelatoriosFinanceirosPage() {
     
     printWindow.document.write(html);
     printWindow.document.close();
+    setDialogExportarPDF(false);
   };
 
   const exportarCSV = async () => {
@@ -641,7 +659,7 @@ export default function RelatoriosFinanceirosPage() {
               <UserPlus className="w-4 h-4 mr-2" />
               Criar Vendedor
             </Button>
-            <Button onClick={exportarPDF} variant="outline" className="border-red-300 text-red-700 hover:bg-red-50">
+            <Button onClick={() => setDialogExportarPDF(true)} variant="outline" className="border-red-300 text-red-700 hover:bg-red-50">
               <FileText className="w-4 h-4 mr-2" />
               Exportar PDF
             </Button>
@@ -813,88 +831,6 @@ export default function RelatoriosFinanceirosPage() {
             </CardContent>
           </Card>
         </div>
-
-        {/* Gráficos Interativos */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="w-5 h-5 text-purple-600" />
-              Análises Visuais
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {/* Faturamento Mensal */}
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">Faturamento Mensal</h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <LineChart data={dadosFaturamentoMensal}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="mes" style={{ fontSize: '12px' }} />
-                    <YAxis style={{ fontSize: '12px' }} />
-                    <Tooltip formatter={(value) => formatarMoeda(value)} />
-                    <Legend />
-                    <Line type="monotone" dataKey="faturamento" name="Faturamento" stroke="#3b82f6" strokeWidth={2} />
-                    <Line type="monotone" dataKey="recebido" name="Recebido" stroke="#10b981" strokeWidth={2} />
-                    <Line type="monotone" dataKey="aReceber" name="A Receber" stroke="#f97316" strokeWidth={2} />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Desempenho por Profissional */}
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">Top 10 Profissionais (Recebido)</h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={dadosDesempenhoProfissional} layout="horizontal">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" style={{ fontSize: '12px' }} />
-                    <YAxis dataKey="nome" type="category" width={100} style={{ fontSize: '11px' }} />
-                    <Tooltip formatter={(value) => formatarMoeda(value)} />
-                    <Bar dataKey="recebido" name="Valor Recebido" fill="#10b981" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Distribuição de Pagamentos */}
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">Distribuição de Pagamentos</h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <PieChart>
-                    <Pie
-                      data={dadosDistribuicaoPagamentos}
-                      cx="50%"
-                      cy="50%"
-                      labelLine={false}
-                      label={(entry) => `${entry.name}: ${formatarMoeda(entry.value)}`}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      dataKey="value"
-                    >
-                      {dadosDistribuicaoPagamentos.map((entry, index) => (
-                        <Cell key={`cell-${index}`} fill={entry.color} />
-                      ))}
-                    </Pie>
-                    <Tooltip formatter={(value) => formatarMoeda(value)} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-
-              {/* Atendimentos por Profissional */}
-              <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-3">Top 10 Profissionais (Atendimentos)</h3>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={dadosDesempenhoProfissional}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="nome" angle={-45} textAnchor="end" height={80} style={{ fontSize: '10px' }} />
-                    <YAxis style={{ fontSize: '12px' }} />
-                    <Tooltip />
-                    <Bar dataKey="atendimentos" name="Atendimentos" fill="#8b5cf6" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Tabelas por Profissional e Unidade */}
         <Tabs defaultValue="profissional" className="w-full">
@@ -1271,6 +1207,50 @@ export default function RelatoriosFinanceirosPage() {
                 Abrir em Nova Aba
               </Button>
             </a>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Exportar PDF */}
+      <Dialog open={dialogExportarPDF} onOpenChange={setDialogExportarPDF}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Exportar Relatório em PDF</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Selecione o Mês do Relatório *</Label>
+              <Select value={mesSelecionadoPDF} onValueChange={setMesSelecionadoPDF}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Escolha um mês..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {mesesDisponiveis.map(mes => {
+                    const [ano, mesNum] = mes.split('-');
+                    const mesNome = format(new Date(ano, mesNum - 1), "MMMM 'de' yyyy", { locale: ptBR });
+                    return (
+                      <SelectItem key={mes} value={mes}>
+                        {mesNome}
+                      </SelectItem>
+                    );
+                  })}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500 mt-2">
+                O relatório incluirá todos os agendamentos, detalhamento completo e estatísticas por terapeuta do mês selecionado.
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogExportarPDF(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={exportarPDF} className="bg-red-600 hover:bg-red-700">
+              <FileText className="w-4 h-4 mr-2" />
+              Gerar PDF
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
