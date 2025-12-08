@@ -13,7 +13,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Calendar as CalendarIcon, Search } from "lucide-react";
+import { Calendar as CalendarIcon, Search, Upload, X } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
@@ -79,6 +79,7 @@ export default function NovoAgendamentoDialog({
   const [clientePopoverAberto, setClientePopoverAberto] = useState(false);
   const [buscaCliente, setBuscaCliente] = useState("");
   const [erroHorarioBloqueado, setErroHorarioBloqueado] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const { data: vendedores = [] } = useQuery({
     queryKey: ['vendedores'],
@@ -112,7 +113,8 @@ export default function NovoAgendamentoDialog({
         valor_pago: agendamentoInicial.valor_pago || null,
         falta_quanto: agendamentoInicial.falta_quanto || null,
         vendedor_id: agendamentoInicial.vendedor_id || "",
-        vendedor_nome: agendamentoInicial.vendedor_nome || ""
+        vendedor_nome: agendamentoInicial.vendedor_nome || "",
+        comprovante_url: agendamentoInicial.comprovante_url || ""
       };
       
       console.log("📝 DIALOG ABERTO | Modo:", modoEdicao ? "EDIÇÃO" : "NOVO", "| Data:", dados.data);
@@ -172,6 +174,32 @@ export default function NovoAgendamentoDialog({
       console.log("📅 DIALOG - Data selecionada:", dataFormatada, "| Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
       setFormData(prev => ({ ...prev, data: dataFormatada }));
     }
+  };
+
+  const handleUploadComprovante = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo (apenas imagens)
+    if (!file.type.startsWith('image/')) {
+      alert('Por favor, selecione apenas arquivos de imagem');
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setFormData(prev => ({ ...prev, comprovante_url: file_url }));
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error);
+      alert('Erro ao fazer upload do comprovante: ' + error.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoverComprovante = () => {
+    setFormData(prev => ({ ...prev, comprovante_url: "" }));
   };
 
   const handleSubmit = () => {
@@ -463,6 +491,53 @@ export default function NovoAgendamentoDialog({
                 valor_pago: e.target.value ? parseFloat(e.target.value) : null 
               }))}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Anexar Comprovante</Label>
+            {formData.comprovante_url ? (
+              <div className="space-y-2">
+                <div className="relative border rounded-lg overflow-hidden">
+                  <img 
+                    src={formData.comprovante_url} 
+                    alt="Comprovante" 
+                    className="w-full h-32 object-cover"
+                  />
+                  <Button
+                    type="button"
+                    variant="destructive"
+                    size="icon"
+                    className="absolute top-2 right-2 h-6 w-6"
+                    onClick={handleRemoverComprovante}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+                <a 
+                  href={formData.comprovante_url} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-xs text-blue-600 hover:underline"
+                >
+                  Ver comprovante completo
+                </a>
+              </div>
+            ) : (
+              <div className="relative">
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={handleUploadComprovante}
+                  disabled={uploading}
+                  className="cursor-pointer"
+                />
+                {uploading && (
+                  <div className="absolute inset-0 flex items-center justify-center bg-white/80">
+                    <span className="text-sm text-gray-600">Enviando...</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div className="col-span-2 space-y-2">
