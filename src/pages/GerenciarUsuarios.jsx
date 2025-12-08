@@ -214,13 +214,19 @@ export default function GerenciarUsuariosPage() {
         dados_novos: JSON.stringify({ full_name: novoNome.trim() })
       });
 
-      // Se for o próprio usuário, recarregar a página para atualizar o contexto
-      if (usuario.id === usuarioAtual.id) {
-        window.location.reload();
-      }
-
       setEditandoNome(null);
       setNovoNome("");
+
+      // Recarregar dados dos usuários para refletir a mudança
+      await queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+      
+      // Se for o próprio usuário, recarregar usuário atual
+      if (usuario.id === usuarioAtual.id) {
+        const userAtualizado = await base44.auth.me();
+        setUsuarioAtual(userAtualizado);
+      }
+
+      alert("✅ Nome atualizado com sucesso!");
     } catch (error) {
       console.error("Erro ao salvar nome:", error);
       alert("Erro ao salvar nome: " + error.message);
@@ -322,7 +328,15 @@ export default function GerenciarUsuariosPage() {
                                   value={novoNome}
                                   onChange={(e) => setNovoNome(e.target.value)}
                                   className="h-8 text-sm"
+                                  placeholder="Nome completo"
                                   autoFocus
+                                  onKeyDown={(e) => {
+                                    if (e.key === 'Enter') {
+                                      handleSalvarNome(usuario);
+                                    } else if (e.key === 'Escape') {
+                                      handleCancelarEdicao();
+                                    }
+                                  }}
                                 />
                                 <Button
                                   size="sm"
