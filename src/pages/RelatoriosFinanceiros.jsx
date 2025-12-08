@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Download, DollarSign, TrendingUp, TrendingDown, Calendar, Edit3, Save, UserPlus, Trash2 } from "lucide-react";
+import { ArrowLeft, Download, DollarSign, TrendingUp, TrendingDown, Calendar, Edit3, Save, UserPlus, Trash2, FileImage, Eye } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -51,6 +51,7 @@ export default function RelatoriosFinanceirosPage() {
   const [dadosEditados, setDadosEditados] = useState({});
   const [dialogVendedorAberto, setDialogVendedorAberto] = useState(false);
   const [pesquisaDetalhado, setPesquisaDetalhado] = useState("");
+  const [comprovanteVisualizacao, setComprovanteVisualizacao] = useState(null);
   const [novoVendedor, setNovoVendedor] = useState({
     nome: "",
     email: "",
@@ -688,6 +689,7 @@ export default function RelatoriosFinanceirosPage() {
                         <TableHead className="text-right">Falta</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Criado em</TableHead>
+                        <TableHead>Comprovante</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -806,6 +808,21 @@ export default function RelatoriosFinanceirosPage() {
                                 ) : "-"}
                               </div>
                             </TableCell>
+                            <TableCell>
+                              {ag.comprovante_url ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setComprovanteVisualizacao(ag.comprovante_url)}
+                                  className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
+                                >
+                                  <Eye className="w-4 h-4 mr-1" />
+                                  Ver
+                                </Button>
+                              ) : (
+                                <span className="text-xs text-gray-400">-</span>
+                              )}
+                            </TableCell>
                             </TableRow>
                             );
                             })}
@@ -900,6 +917,38 @@ export default function RelatoriosFinanceirosPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Dialog Visualizar Comprovante */}
+      <Dialog open={!!comprovanteVisualizacao} onOpenChange={() => setComprovanteVisualizacao(null)}>
+        <DialogContent className="max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Comprovante de Pagamento</DialogTitle>
+          </DialogHeader>
+          <div className="flex items-center justify-center p-4">
+            {comprovanteVisualizacao && (
+              <img 
+                src={comprovanteVisualizacao} 
+                alt="Comprovante" 
+                className="max-w-full max-h-[70vh] object-contain rounded-lg"
+              />
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setComprovanteVisualizacao(null)}>
+              Fechar
+            </Button>
+            <a 
+              href={comprovanteVisualizacao} 
+              target="_blank" 
+              rel="noopener noreferrer"
+            >
+              <Button className="bg-blue-600 hover:bg-blue-700">
+                Abrir em Nova Aba
+              </Button>
+            </a>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Dialog Criar Vendedor */}
       <Dialog open={dialogVendedorAberto} onOpenChange={setDialogVendedorAberto}>
