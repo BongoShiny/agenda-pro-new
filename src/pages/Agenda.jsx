@@ -221,11 +221,22 @@ export default function AgendaPage() {
         }
       }
 
+      // Obter IP do usuário (usando API pública)
+      let ip = "Não disponível";
+      try {
+        const ipResponse = await fetch('https://api.ipify.org?format=json');
+        const ipData = await ipResponse.json();
+        ip = ipData.ip;
+      } catch (error) {
+        console.log("Não foi possível obter IP:", error);
+      }
+
       // Criar nova sessão ativa
       await base44.entities.SessaoAtiva.create({
         usuario_email: user.email,
         sessao_id: sessaoId,
         dispositivo: dispositivo,
+        ip: ip,
         ultima_atividade: new Date().toISOString()
       });
 
@@ -233,6 +244,7 @@ export default function AgendaPage() {
       await base44.entities.DispositivoConectado.create({
         usuario_email: user.email,
         dispositivo: dispositivo,
+        ip: ip,
         data_login: new Date().toISOString(),
         sessao_ativa: true
       });

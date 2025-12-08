@@ -34,11 +34,18 @@ export default function MenuConta({ usuarioAtual, onClose }) {
   const sessaoAtualId = localStorage.getItem('sessao_id');
 
   const atualizarTelefoneMutation = useMutation({
-    mutationFn: (novoTelefone) => base44.auth.updateMe({ telefone_verificacao: novoTelefone }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user'] });
+    mutationFn: async (novoTelefone) => {
+      await base44.auth.updateMe({ telefone_verificacao: novoTelefone });
+      return novoTelefone;
+    },
+    onSuccess: (novoTelefone) => {
+      // Atualizar estado local imediatamente
+      if (usuarioAtual) {
+        usuarioAtual.telefone_verificacao = novoTelefone;
+      }
       setEditandoTelefone(false);
       alert("✅ Telefone atualizado com sucesso!");
+      window.location.reload(); // Recarregar para garantir atualização
     },
   });
 
