@@ -32,6 +32,18 @@ export default function GerenciarUsuariosPage() {
       const user = await base44.auth.me();
       setUsuarioAtual(user);
       
+      // Se o usuário tem cargo superior mas não tem role admin, atualizar
+      if (user.cargo === "superior" && user.role !== "admin") {
+        try {
+          await base44.entities.User.update(user.id, { role: "admin" });
+          // Recarregar a página para aplicar as mudanças
+          window.location.reload();
+          return;
+        } catch (error) {
+          console.error("Erro ao atualizar role:", error);
+        }
+      }
+      
       // Redirecionar se não for admin ou superior
       if (user.cargo !== "administrador" && user.cargo !== "superior" && user.role !== "admin") {
         window.location.href = createPageUrl("Agenda");
@@ -42,8 +54,24 @@ export default function GerenciarUsuariosPage() {
 
   const { data: usuarios = [] } = useQuery({
     queryKey: ['usuarios'],
-    queryFn: () => base44.entities.User.list("full_name"),
+    queryFn: async () => {
+      const users = await base44.entities.User.list("full_name");
+      
+      // Garantir que todos os usuários com cargo "superior" tenham role="admin"
+      for (const u of users) {
+        if (u.cargo === "superior" && u.role !== "admin") {
+          try {
+            await base44.entities.User.update(u.id, { role: "admin" });
+          } catch (error) {
+            console.error(`Erro ao atualizar role do usuário ${u.email}:`, error);
+          }
+        }
+      }
+      
+      return base44.entities.User.list("full_name");
+    },
     initialData: [],
+    enabled: !!usuarioAtual,
   });
 
   const { data: unidades = [] } = useQuery({
