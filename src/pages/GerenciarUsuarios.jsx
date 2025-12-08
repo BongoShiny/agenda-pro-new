@@ -197,24 +197,34 @@ export default function GerenciarUsuariosPage() {
       return;
     }
 
-    await atualizarUsuarioMutation.mutateAsync({
-      id: usuario.id,
-      dados: { full_name: novoNome.trim() }
-    });
+    try {
+      await atualizarUsuarioMutation.mutateAsync({
+        id: usuario.id,
+        dados: { full_name: novoNome.trim() }
+      });
 
-    // Registrar no log
-    await base44.entities.LogAcao.create({
-      tipo: "editou_usuario",
-      usuario_email: usuarioAtual?.email,
-      descricao: `Alterou nome de "${usuario.full_name}" para "${novoNome.trim()}" (${usuario.email})`,
-      entidade_tipo: "Usuario",
-      entidade_id: usuario.id,
-      dados_antigos: JSON.stringify({ full_name: usuario.full_name }),
-      dados_novos: JSON.stringify({ full_name: novoNome.trim() })
-    });
+      // Registrar no log
+      await base44.entities.LogAcao.create({
+        tipo: "editou_usuario",
+        usuario_email: usuarioAtual?.email,
+        descricao: `Alterou nome de "${usuario.full_name}" para "${novoNome.trim()}" (${usuario.email})`,
+        entidade_tipo: "Usuario",
+        entidade_id: usuario.id,
+        dados_antigos: JSON.stringify({ full_name: usuario.full_name }),
+        dados_novos: JSON.stringify({ full_name: novoNome.trim() })
+      });
 
-    setEditandoNome(null);
-    setNovoNome("");
+      // Se for o próprio usuário, recarregar a página para atualizar o contexto
+      if (usuario.id === usuarioAtual.id) {
+        window.location.reload();
+      }
+
+      setEditandoNome(null);
+      setNovoNome("");
+    } catch (error) {
+      console.error("Erro ao salvar nome:", error);
+      alert("Erro ao salvar nome: " + error.message);
+    }
   };
 
   const handleCancelarEdicao = () => {
