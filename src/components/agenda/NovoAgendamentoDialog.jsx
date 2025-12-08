@@ -206,7 +206,15 @@ export default function NovoAgendamentoDialog({
       return;
     }
     
-    onSave(formData);
+    // Calcular automaticamente falta_quanto
+    const valorCombinado = formData.valor_combinado || 0;
+    const valorPago = formData.valor_pago || 0;
+    const dadosComCalculo = {
+      ...formData,
+      falta_quanto: valorCombinado - valorPago
+    };
+    
+    onSave(dadosComCalculo);
     onOpenChange(false);
   };
 
@@ -465,20 +473,6 @@ export default function NovoAgendamentoDialog({
               onChange={(e) => setFormData(prev => ({ 
                 ...prev, 
                 valor_pago: e.target.value ? parseFloat(e.target.value) : null 
-              }))}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Falta Quanto</Label>
-            <Input
-              type="number"
-              step="0.01"
-              placeholder="R$ 0,00"
-              value={formData.falta_quanto || ""}
-              onChange={(e) => setFormData(prev => ({ 
-                ...prev, 
-                falta_quanto: e.target.value ? parseFloat(e.target.value) : null 
               }))}
             />
           </div>
