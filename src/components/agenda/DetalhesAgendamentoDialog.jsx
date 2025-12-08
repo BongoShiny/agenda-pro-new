@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, User, Briefcase, MapPin, Tag, FileText, Ban, Unlock, CheckCircle } from "lucide-react";
+import { Calendar, Clock, User, Briefcase, MapPin, Tag, FileText, Ban, Unlock, CheckCircle, FileImage } from "lucide-react";
 
 const statusLabels = {
   confirmado: { label: "Confirmado", color: "bg-emerald-500" },
@@ -205,6 +205,39 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
                 <div>
                   <div className="text-sm text-gray-500">Observações</div>
                   <div className="text-gray-700">{agendamento.observacoes}</div>
+                </div>
+              </div>
+            )}
+
+            {(agendamento.comprovante_url || agendamento.comprovante_url_2) && (
+              <div className="flex items-start gap-3">
+                <FileImage className="w-5 h-5 text-gray-500 mt-0.5" />
+                <div>
+                  <div className="text-sm text-gray-500">Comprovantes de Pagamento</div>
+                  <div className="flex gap-2 mt-1">
+                    {agendamento.comprovante_url && (
+                      <a 
+                        href={agendamento.comprovante_url} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-blue-600 hover:underline text-sm"
+                      >
+                        <FileImage className="w-4 h-4" />
+                        Comprovante 1
+                      </a>
+                    )}
+                    {agendamento.comprovante_url_2 && (
+                      <a 
+                        href={agendamento.comprovante_url_2} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-1 text-blue-600 hover:underline text-sm"
+                      >
+                        <FileImage className="w-4 h-4" />
+                        Comprovante 2
+                      </a>
+                    )}
+                  </div>
                 </div>
               </div>
             )}
