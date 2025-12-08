@@ -536,9 +536,6 @@ export default function RelatoriosFinanceirosPage() {
               <tr>
                 <th>Terapeuta</th>
                 <th class="text-right">Quantidade de Atendimentos</th>
-                <th class="text-right">Valor Combinado</th>
-                <th class="text-right">Valor Recebido</th>
-                <th class="text-right">A Receber</th>
               </tr>
             </thead>
             <tbody>
@@ -546,9 +543,6 @@ export default function RelatoriosFinanceirosPage() {
                 <tr>
                   <td><strong>${prof.nome}</strong></td>
                   <td class="text-right highlight"><strong>${prof.quantidade}</strong></td>
-                  <td class="text-right">${formatarMoeda(prof.totalCombinado)}</td>
-                  <td class="text-right" style="color: #10b981; font-weight: 600;">${formatarMoeda(prof.totalPago)}</td>
-                  <td class="text-right" style="color: #f97316;">${formatarMoeda(prof.totalAReceber)}</td>
                 </tr>
               `).join('')}
             </tbody>
