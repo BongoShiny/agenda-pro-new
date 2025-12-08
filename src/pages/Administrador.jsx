@@ -39,10 +39,11 @@ export default function AdministradorPage() {
     );
   }
 
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
+  const isGerencia = usuarioAtual?.cargo === "gerencia_unidades";
   const isFinanceiro = usuarioAtual?.cargo === "financeiro";
 
-  if (!isAdmin && !isFinanceiro) {
+  if (!isAdmin && !isGerencia && !isFinanceiro) {
     return null;
   }
 
@@ -69,7 +70,7 @@ export default function AdministradorPage() {
 
       <div className="max-w-4xl mx-auto p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {isAdmin && (
+          {(isAdmin || isGerencia) && (
             <Link to={createPageUrl("GerenciarUsuarios")} className="block">
             <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer h-full">
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
@@ -81,7 +82,7 @@ export default function AdministradorPage() {
           </Link>
           )}
 
-          {isAdmin && (
+          {(isAdmin || isGerencia) && (
           <Link to={createPageUrl("ConfiguracaoTerapeutas")} className="block">
             <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-green-300 transition-all cursor-pointer h-full">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
