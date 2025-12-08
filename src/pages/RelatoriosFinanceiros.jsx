@@ -816,16 +816,20 @@ export default function RelatoriosFinanceirosPage() {
                         ag.vendedor_id === vendedor.id
                       );
 
+                      const totalCombinado = agendamentosVendedor.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
+                      const totalRecebido = agendamentosVendedor.reduce((sum, ag) => sum + (ag.valor_pago || 0), 0);
+                      const totalAReceber = totalCombinado - totalRecebido;
+
                       return (
                         <TableRow key={vendedor.id}>
                           <TableCell className="font-medium">{vendedor.nome}</TableCell>
                           <TableCell className="text-right">{agendamentosVendedor.length}</TableCell>
-                          <TableCell className="text-right">{formatarMoeda(vendedor.valor_combinado_total || 0)}</TableCell>
+                          <TableCell className="text-right">{formatarMoeda(totalCombinado)}</TableCell>
                           <TableCell className="text-right text-emerald-600 font-semibold">
-                            {formatarMoeda(vendedor.valor_recebido_total || 0)}
+                            {formatarMoeda(totalRecebido)}
                           </TableCell>
                           <TableCell className="text-right text-orange-600">
-                            {formatarMoeda(vendedor.a_receber_total || 0)}
+                            {formatarMoeda(totalAReceber)}
                           </TableCell>
                           <TableCell className="text-right">
                             <Button
