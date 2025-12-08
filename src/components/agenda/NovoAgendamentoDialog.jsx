@@ -23,6 +23,8 @@ import {
   CommandInput,
   CommandItem,
 } from "@/components/ui/command";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 
 // Mesma lógica de data em todos os componentes
 const formatarDataPura = (data) => {
@@ -78,6 +80,12 @@ export default function NovoAgendamentoDialog({
   const [buscaCliente, setBuscaCliente] = useState("");
   const [erroHorarioBloqueado, setErroHorarioBloqueado] = useState(false);
 
+  const { data: vendedores = [] } = useQuery({
+    queryKey: ['vendedores'],
+    queryFn: () => base44.entities.Vendedor.list("nome"),
+    initialData: [],
+  });
+
   useEffect(() => {
     if (open) {
       const dados = {
@@ -102,7 +110,9 @@ export default function NovoAgendamentoDialog({
         status_paciente: agendamentoInicial.status_paciente || "",
         valor_combinado: agendamentoInicial.valor_combinado || null,
         valor_pago: agendamentoInicial.valor_pago || null,
-        falta_quanto: agendamentoInicial.falta_quanto || null
+        falta_quanto: agendamentoInicial.falta_quanto || null,
+        vendedor_id: agendamentoInicial.vendedor_id || "",
+        vendedor_nome: agendamentoInicial.vendedor_nome || ""
       };
       
       console.log("📝 DIALOG ABERTO | Modo:", modoEdicao ? "EDIÇÃO" : "NOVO", "| Data:", dados.data);
@@ -387,6 +397,28 @@ export default function NovoAgendamentoDialog({
                 <SelectItem value={null}>-</SelectItem>
                 <SelectItem value="paciente_novo">Paciente Novo</SelectItem>
                 <SelectItem value="ultima_sessao">Última Sessão</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Vendedor</Label>
+            <Select value={formData.vendedor_id || ""} onValueChange={(value) => {
+              const vendedor = vendedores.find(v => v.id === value);
+              setFormData(prev => ({ 
+                ...prev, 
+                vendedor_id: value,
+                vendedor_nome: vendedor?.nome || ""
+              }));
+            }}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione o vendedor..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>Sem vendedor</SelectItem>
+                {vendedores.filter(v => v.ativo).map(v => (
+                  <SelectItem key={v.id} value={v.id}>{v.nome}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
