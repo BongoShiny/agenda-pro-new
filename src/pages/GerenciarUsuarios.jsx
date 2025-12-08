@@ -259,7 +259,7 @@ export default function GerenciarUsuariosPage() {
                         <Select
                           value={cargo}
                           onValueChange={(value) => handleAtualizarCargo(usuario, value)}
-                          disabled={isCurrentUser || (usuarioAtual?.cargo === "superior" && (cargo === "administrador" || cargo === "superior"))}
+                          disabled={isCurrentUser}
                         >
                           <SelectTrigger className="w-40">
                             <SelectValue />

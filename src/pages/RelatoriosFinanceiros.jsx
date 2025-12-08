@@ -77,7 +77,8 @@ export default function RelatoriosFinanceirosPage() {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
         
-        const hasAccess = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro";
+        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin";
+        const hasAccess = isAdmin || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro";
         if (!hasAccess) {
           navigate(createPageUrl("Agenda"));
         } else {
@@ -129,9 +130,8 @@ export default function RelatoriosFinanceirosPage() {
   });
 
   // Filtrar unidades baseado no acesso do usuário
-  const unidadesFiltradas = (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin")
-    ? unidades
-    : unidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
+  const unidadesFiltradas = isAdmin ? unidades : unidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
 
   // Calcular data inicial e final baseado no período
   const calcularPeriodo = () => {
@@ -801,10 +801,12 @@ export default function RelatoriosFinanceirosPage() {
             </div>
           </div>
           <div className="flex gap-2">
-            <Button onClick={() => setDialogVendedorAberto(true)} variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50">
-              <UserPlus className="w-4 h-4 mr-2" />
-              Criar Vendedor
-            </Button>
+            {isAdmin && (
+              <Button onClick={() => setDialogVendedorAberto(true)} variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50">
+                <UserPlus className="w-4 h-4 mr-2" />
+                Criar Vendedor
+              </Button>
+            )}
             <Button onClick={() => setDialogExportarPDF(true)} variant="outline" className="border-red-300 text-red-700 hover:bg-red-50">
               <FileText className="w-4 h-4 mr-2" />
               Exportar PDF
@@ -984,24 +986,26 @@ export default function RelatoriosFinanceirosPage() {
               <CardHeader className="space-y-4">
                 <div className="flex flex-row items-center justify-between">
                   <CardTitle>Detalhamento Completo</CardTitle>
-                  <div className="flex gap-2">
-                    {modoEditor ? (
-                      <>
-                        <Button onClick={() => { setModoEditor(false); setDadosEditados({}); }} variant="outline">
-                          Cancelar
+                  {isAdmin && (
+                    <div className="flex gap-2">
+                      {modoEditor ? (
+                        <>
+                          <Button onClick={() => { setModoEditor(false); setDadosEditados({}); }} variant="outline">
+                            Cancelar
+                          </Button>
+                          <Button onClick={handleSalvarEdicoes} className="bg-emerald-600 hover:bg-emerald-700">
+                            <Save className="w-4 h-4 mr-2" />
+                            Salvar Alterações
+                          </Button>
+                        </>
+                      ) : (
+                        <Button onClick={handleAtivarModoEditor} variant="outline">
+                          <Edit3 className="w-4 h-4 mr-2" />
+                          Modo Editor
                         </Button>
-                        <Button onClick={handleSalvarEdicoes} className="bg-emerald-600 hover:bg-emerald-700">
-                          <Save className="w-4 h-4 mr-2" />
-                          Salvar Alterações
-                        </Button>
-                      </>
-                    ) : (
-                      <Button onClick={handleAtivarModoEditor} variant="outline">
-                        <Edit3 className="w-4 h-4 mr-2" />
-                        Modo Editor
-                      </Button>
-                    )}
-                  </div>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="w-full">
                   <Input
