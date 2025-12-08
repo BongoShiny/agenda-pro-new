@@ -5,14 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, LogOut, Monitor, Shield, Building2, FileSpreadsheet, DollarSign, X, Trash2, Phone, Edit3, Save } from "lucide-react";
+import { User, LogOut, Monitor, Shield, Building2, FileSpreadsheet, DollarSign, X, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function MenuConta({ usuarioAtual, onClose }) {
   const [showDispositivos, setShowDispositivos] = useState(false);
-  const [editandoTelefone, setEditandoTelefone] = useState(false);
-  const [telefone, setTelefone] = useState(usuarioAtual?.telefone_verificacao || "");
   const queryClient = useQueryClient();
 
   const { data: dispositivos = [] } = useQuery({
@@ -51,14 +49,6 @@ export default function MenuConta({ usuarioAtual, onClose }) {
       queryClient.invalidateQueries({ queryKey: ['dispositivos-conectados'] });
     },
   });
-
-  const handleSalvarTelefone = async () => {
-    if (!telefone) {
-      alert("Por favor, insira um telefone válido");
-      return;
-    }
-    await atualizarTelefoneMutation.mutateAsync(telefone);
-  };
 
   const handleRemoverDispositivo = async (dispositivoId, isAtual) => {
     if (isAtual) {
@@ -110,8 +100,8 @@ export default function MenuConta({ usuarioAtual, onClose }) {
   };
 
   const cargoLabels = {
-    administrador: { label: "Administrador", icon: Shield, color: "bg-blue-600" },
-    superior: { label: "Superior", icon: Shield, color: "bg-blue-500" },
+    administrador: { label: "Superior", icon: Shield, color: "bg-red-600" },
+    superior: { label: "Superior", icon: Shield, color: "bg-red-600" },
     gerencia_unidades: { label: "Gerência de Unidades", icon: Building2, color: "bg-purple-600" },
     financeiro: { label: "Financeiro", icon: FileSpreadsheet, color: "bg-green-600" },
     vendedor: { label: "Vendedor", icon: DollarSign, color: "bg-orange-600" },
@@ -150,50 +140,6 @@ export default function MenuConta({ usuarioAtual, onClose }) {
             <CargoIcon className="w-3 h-3 mr-1" />
             {cargoInfo.label}
           </Badge>
-        </div>
-
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="text-xs font-medium text-gray-500 uppercase">Telefone de Verificação</label>
-            {!editandoTelefone ? (
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={() => setEditandoTelefone(true)}
-                className="h-6 text-xs"
-              >
-                <Edit3 className="w-3 h-3 mr-1" />
-                Editar
-              </Button>
-            ) : (
-              <Button 
-                variant="ghost" 
-                size="sm"
-                onClick={handleSalvarTelefone}
-                className="h-6 text-xs text-green-600"
-              >
-                <Save className="w-3 h-3 mr-1" />
-                Salvar
-              </Button>
-            )}
-          </div>
-          {editandoTelefone ? (
-            <Input
-              type="tel"
-              value={telefone}
-              onChange={(e) => setTelefone(e.target.value)}
-              placeholder="(00) 00000-0000"
-              className="text-sm"
-            />
-          ) : (
-            <div className="flex items-center gap-2 text-sm text-gray-700 bg-gray-50 px-3 py-2 rounded-lg">
-              <Phone className="w-4 h-4 text-gray-500" />
-              {usuarioAtual?.telefone_verificacao || "Não cadastrado"}
-            </div>
-          )}
-          <p className="text-xs text-gray-500 mt-1">
-            Para recuperação de senha e segurança da conta
-          </p>
         </div>
 
         {!showDispositivos ? (
