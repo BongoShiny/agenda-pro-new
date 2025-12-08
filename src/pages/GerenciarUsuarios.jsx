@@ -259,21 +259,13 @@ export default function GerenciarUsuariosPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {(usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin") && (
-                              <>
-                                <SelectItem value="administrador">
-                                  <div className="flex items-center gap-2">
-                                    <Shield className="w-3 h-3" />
-                                    Administrador
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="superior">
-                                  <div className="flex items-center gap-2">
-                                    <Shield className="w-3 h-3" />
-                                    Superior
-                                  </div>
-                                </SelectItem>
-                              </>
+                            {(usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin") && (
+                              <SelectItem value="superior">
+                                <div className="flex items-center gap-2">
+                                  <Shield className="w-3 h-3" />
+                                  Superior
+                                </div>
+                              </SelectItem>
                             )}
                             {(usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin") && (
                               <>
@@ -454,12 +446,11 @@ export default function GerenciarUsuariosPage() {
                             cargo === "superior" ? "bg-blue-500" : ""
                           }
                         >
-                          {cargo === "administrador" ? "Admin" : 
-                           cargo === "superior" ? "Superior" : 
-                           cargo === "gerencia_unidades" ? "Gerência" : 
-                           cargo === "financeiro" ? "Financeiro" : 
-                           cargo === "vendedor" ? "Vendedor" :
-                           "Funcionário"}
+                          {cargo === "administrador" || cargo === "superior" ? "Superior" : 
+                          cargo === "gerencia_unidades" ? "Gerência" : 
+                          cargo === "financeiro" ? "Financeiro" : 
+                          cargo === "vendedor" ? "Vendedor" :
+                          "Funcionário"}
                         </Badge>
                       </TableCell>
                     </TableRow>
