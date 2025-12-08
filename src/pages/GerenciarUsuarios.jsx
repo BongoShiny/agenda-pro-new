@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, UserPlus, Shield, User, Mail, Building2, AlertCircle, FileSpreadsheet, DollarSign } from "lucide-react";
+import { ArrowLeft, UserPlus, Shield, User, Mail, Building2, AlertCircle, FileSpreadsheet, DollarSign, Check, X, Pencil } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Alert, AlertDescription } from "@/components/ui/alert";
@@ -25,6 +25,8 @@ import {
 
 export default function GerenciarUsuariosPage() {
   const [usuarioAtual, setUsuarioAtual] = useState(null);
+  const [editandoNome, setEditandoNome] = useState(null);
+  const [novoNome, setNovoNome] = useState("");
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -184,6 +186,42 @@ export default function GerenciarUsuariosPage() {
     await handleAtualizarUnidades(usuario, novasUnidades);
   };
 
+  const handleEditarNome = (usuario) => {
+    setEditandoNome(usuario.id);
+    setNovoNome(usuario.full_name);
+  };
+
+  const handleSalvarNome = async (usuario) => {
+    if (novoNome.trim() === "") {
+      alert("O nome não pode estar vazio");
+      return;
+    }
+
+    await atualizarUsuarioMutation.mutateAsync({
+      id: usuario.id,
+      dados: { full_name: novoNome.trim() }
+    });
+
+    // Registrar no log
+    await base44.entities.LogAcao.create({
+      tipo: "editou_usuario",
+      usuario_email: usuarioAtual?.email,
+      descricao: `Alterou nome de "${usuario.full_name}" para "${novoNome.trim()}" (${usuario.email})`,
+      entidade_tipo: "Usuario",
+      entidade_id: usuario.id,
+      dados_antigos: JSON.stringify({ full_name: usuario.full_name }),
+      dados_novos: JSON.stringify({ full_name: novoNome.trim() })
+    });
+
+    setEditandoNome(null);
+    setNovoNome("");
+  };
+
+  const handleCancelarEdicao = () => {
+    setEditandoNome(null);
+    setNovoNome("");
+  };
+
   if (!usuarioAtual) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -267,10 +305,49 @@ export default function GerenciarUsuariosPage() {
                               <User className="w-4 h-4 text-gray-600" />
                             )}
                           </div>
-                          <div>
-                            <div className="font-medium">{usuario.full_name}</div>
-                            {isCurrentUser && (
-                              <Badge variant="secondary" className="text-xs">Você</Badge>
+                          <div className="flex-1">
+                            {editandoNome === usuario.id ? (
+                              <div className="flex items-center gap-2">
+                                <Input
+                                  value={novoNome}
+                                  onChange={(e) => setNovoNome(e.target.value)}
+                                  className="h-8 text-sm"
+                                  autoFocus
+                                />
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleSalvarNome(usuario)}
+                                  className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                                >
+                                  <Check className="w-4 h-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={handleCancelarEdicao}
+                                  className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <X className="w-4 h-4" />
+                                </Button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <div className="font-medium">{usuario.full_name}</div>
+                                {(usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin") && (
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    onClick={() => handleEditarNome(usuario)}
+                                    className="h-6 w-6 p-0 text-gray-400 hover:text-blue-600"
+                                  >
+                                    <Pencil className="w-3 h-3" />
+                                  </Button>
+                                )}
+                              </div>
+                            )}
+                            {isCurrentUser && !editandoNome && (
+                              <Badge variant="secondary" className="text-xs mt-1">Você</Badge>
                             )}
                           </div>
                         </div>
