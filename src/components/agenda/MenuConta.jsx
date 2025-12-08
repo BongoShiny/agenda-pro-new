@@ -108,7 +108,7 @@ export default function MenuConta({ usuarioAtual, onClose }) {
     funcionario: { label: "Funcionário", icon: User, color: "bg-gray-600" }
   };
 
-  const cargo = usuarioAtual?.cargo || "funcionario";
+  const cargo = usuarioAtual?.cargo || (usuarioAtual?.role === "admin" ? "administrador" : "funcionario");
   const cargoInfo = cargoLabels[cargo] || cargoLabels.funcionario;
   const CargoIcon = cargoInfo.icon;
 
