@@ -51,6 +51,7 @@ export default function RelatoriosFinanceirosPage() {
   const [modoEditor, setModoEditor] = useState(false);
   const [dialogExportarPDF, setDialogExportarPDF] = useState(false);
   const [mesSelecionadoPDF, setMesSelecionadoPDF] = useState("");
+  const [tipoRelatorioPDF, setTipoRelatorioPDF] = useState("financeiro");
   const [dadosEditados, setDadosEditados] = useState({});
   const [dialogVendedorAberto, setDialogVendedorAberto] = useState(false);
   const [pesquisaDetalhado, setPesquisaDetalhado] = useState("");
@@ -407,8 +408,17 @@ export default function RelatoriosFinanceirosPage() {
       return;
     }
 
-    // Filtrar agendamentos do mês selecionado
     const [ano, mes] = mesSelecionadoPDF.split('-');
+
+    if (tipoRelatorioPDF === "financeiro") {
+      await exportarPDFFinanceiro(ano, mes);
+    } else if (tipoRelatorioPDF === "vendedor") {
+      await exportarPDFVendedor(ano, mes);
+    }
+  };
+
+  const exportarPDFFinanceiro = async (ano, mes) => {
+    // Filtrar agendamentos do mês selecionado
     const agendamentosMes = agendamentos
       .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
       .filter(ag => {
@@ -554,6 +564,144 @@ export default function RelatoriosFinanceirosPage() {
           </div>
 
           <button onclick="window.print()" style="margin-top: 30px; padding: 12px 24px; background: #059669; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold;">
+            🖨️ Imprimir / Salvar como PDF
+          </button>
+        </body>
+      </html>
+    `;
+    
+    printWindow.document.write(html);
+    printWindow.document.close();
+    setDialogExportarPDF(false);
+  };
+
+  const exportarPDFVendedor = async (ano, mes) => {
+    // Filtrar agendamentos do mês selecionado baseado na data de CRIAÇÃO
+    const agendamentosMesVendedor = agendamentos
+      .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
+      .filter(ag => ag.vendedor_id && ag.vendedor_nome) // Apenas com vendedor
+      .filter(ag => {
+        if (!ag.created_date) return false;
+        const dataCriacao = ag.created_date.substring(0, 7); // YYYY-MM
+        return dataCriacao === mesSelecionadoPDF;
+      });
+
+    // Agrupar por vendedor
+    const agendamentosPorVendedor = {};
+    agendamentosMesVendedor.forEach(ag => {
+      const vendedorId = ag.vendedor_id;
+      if (!agendamentosPorVendedor[vendedorId]) {
+        agendamentosPorVendedor[vendedorId] = {
+          nome: ag.vendedor_nome,
+          agendamentos: []
+        };
+      }
+      agendamentosPorVendedor[vendedorId].agendamentos.push(ag);
+    });
+
+    const listaVendedores = Object.values(agendamentosPorVendedor);
+
+    await base44.entities.LogAcao.create({
+      tipo: "exportou_planilha",
+      usuario_email: usuarioAtual?.email,
+      descricao: `Exportou relatório de vendedores em PDF - Mês: ${format(new Date(ano, mes - 1), "MMMM/yyyy", { locale: ptBR })}, ${agendamentosMesVendedor.length} registros`,
+      entidade_tipo: "RelatorioFinanceiro"
+    });
+
+    const printWindow = window.open('', '_blank');
+    const mesNome = format(new Date(ano, mes - 1), "MMMM 'de' yyyy", { locale: ptBR });
+    
+    const html = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Relatório de Vendedores - ${mesNome}</title>
+          <style>
+            body { font-family: Arial, sans-serif; padding: 20px; font-size: 12px; }
+            h1 { color: #3b82f6; margin-bottom: 5px; }
+            h2 { color: #374151; margin-top: 25px; margin-bottom: 10px; font-size: 16px; }
+            h3 { color: #6b7280; margin-top: 20px; margin-bottom: 8px; font-size: 14px; background-color: #f3f4f6; padding: 8px; border-left: 4px solid #3b82f6; }
+            table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+            th, td { border: 1px solid #d1d5db; padding: 6px 8px; text-align: left; font-size: 11px; }
+            th { background-color: #f3f4f6; font-weight: bold; }
+            .total { font-weight: bold; background-color: #fef3c7; }
+            .text-right { text-align: right; }
+            .summary-box { background-color: #eff6ff; border: 2px solid #3b82f6; padding: 15px; border-radius: 8px; margin: 15px 0; }
+            .page-break { page-break-before: always; }
+            @media print {
+              button { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <h1>📊 Relatório Detalhado por Vendedor</h1>
+          <p><strong>Período:</strong> ${mesNome}</p>
+          <p><strong>Data de Emissão:</strong> ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+          <p><strong>Total de Agendamentos com Vendedor:</strong> ${agendamentosMesVendedor.length}</p>
+
+          ${listaVendedores.map((vendedor, idx) => {
+            const totalCombinado = vendedor.agendamentos.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
+            const totalPago = vendedor.agendamentos.reduce((sum, ag) => sum + (ag.valor_pago || 0), 0);
+            const totalAReceber = vendedor.agendamentos.reduce((sum, ag) => sum + (ag.falta_quanto || 0), 0);
+
+            return `
+              <div class="${idx > 0 ? 'page-break' : ''}">
+                <h3>👤 ${vendedor.nome}</h3>
+                
+                <div class="summary-box">
+                  <p style="margin: 5px 0;"><strong>Total de Vendas:</strong> ${vendedor.agendamentos.length} agendamentos</p>
+                  <p style="margin: 5px 0;"><strong>Valor Total Combinado:</strong> ${formatarMoeda(totalCombinado)}</p>
+                  <p style="margin: 5px 0;"><strong>Valor Total Recebido:</strong> <span style="color: #10b981;">${formatarMoeda(totalPago)}</span></p>
+                  <p style="margin: 5px 0;"><strong>Valor Total a Receber:</strong> <span style="color: #f97316;">${formatarMoeda(totalAReceber)}</span></p>
+                </div>
+
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Data Agend.</th>
+                      <th>Cliente</th>
+                      <th>Profissional</th>
+                      <th class="text-right">Vlr. Combinado</th>
+                      <th class="text-right">Vlr. Pago</th>
+                      <th class="text-right">Falta</th>
+                      <th>Status</th>
+                      <th>Criado Em</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${vendedor.agendamentos
+                      .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
+                      .map(ag => `
+                        <tr>
+                          <td>${ag.data ? format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR }) : "-"}</td>
+                          <td>${ag.cliente_nome || "-"}</td>
+                          <td>${ag.profissional_nome || "-"}</td>
+                          <td class="text-right">${formatarMoeda(ag.valor_combinado)}</td>
+                          <td class="text-right" style="color: #10b981; font-weight: 600;">${formatarMoeda(ag.valor_pago)}</td>
+                          <td class="text-right" style="color: #f97316;">${formatarMoeda(ag.falta_quanto)}</td>
+                          <td>${ag.status || "-"}</td>
+                          <td>${ag.created_date ? format(new Date(ag.created_date), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "-"}</td>
+                        </tr>
+                    `).join('')}
+                    <tr class="total">
+                      <td colspan="3"><strong>TOTAL - ${vendedor.nome}</strong></td>
+                      <td class="text-right"><strong>${formatarMoeda(totalCombinado)}</strong></td>
+                      <td class="text-right"><strong>${formatarMoeda(totalPago)}</strong></td>
+                      <td class="text-right"><strong>${formatarMoeda(totalAReceber)}</strong></td>
+                      <td colspan="2"></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            `;
+          }).join('')}
+
+          <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #d1d5db; text-align: center; color: #6b7280;">
+            <p style="margin: 5px 0;">Relatório gerado automaticamente pelo sistema</p>
+            <p style="margin: 5px 0; font-size: 10px;">Total de ${agendamentosMesVendedor.length} agendamentos com vendedor no período</p>
+          </div>
+
+          <button onclick="window.print()" style="margin-top: 30px; padding: 12px 24px; background: #3b82f6; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px; font-weight: bold;">
             🖨️ Imprimir / Salvar como PDF
           </button>
         </body>
@@ -1144,6 +1292,19 @@ export default function RelatoriosFinanceirosPage() {
 
           <div className="space-y-4 py-4">
             <div className="space-y-2">
+              <Label>Selecione o Tipo de Relatório *</Label>
+              <Select value={tipoRelatorioPDF} onValueChange={setTipoRelatorioPDF}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="financeiro">📊 Relatório Financeiro Detalhado</SelectItem>
+                  <SelectItem value="vendedor">👤 Relatório do Vendedor Detalhado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
               <Label>Selecione o Mês do Relatório *</Label>
               <Select value={mesSelecionadoPDF} onValueChange={setMesSelecionadoPDF}>
                 <SelectTrigger>
@@ -1161,9 +1322,15 @@ export default function RelatoriosFinanceirosPage() {
                   })}
                 </SelectContent>
               </Select>
-              <p className="text-xs text-gray-500 mt-2">
-                O relatório incluirá todos os agendamentos, detalhamento completo e estatísticas por terapeuta do mês selecionado.
-              </p>
+              {tipoRelatorioPDF === "financeiro" ? (
+                <p className="text-xs text-gray-500 mt-2">
+                  O relatório incluirá todos os agendamentos, detalhamento completo e estatísticas por terapeuta do mês selecionado.
+                </p>
+              ) : (
+                <p className="text-xs text-gray-500 mt-2">
+                  O relatório mostrará todos os agendamentos com vendedor cadastrado, separados por vendedor, baseado na data de criação do agendamento.
+                </p>
+              )}
             </div>
           </div>
 
