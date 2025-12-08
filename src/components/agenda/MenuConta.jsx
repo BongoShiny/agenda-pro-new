@@ -15,7 +15,18 @@ export default function MenuConta({ usuarioAtual, onClose }) {
     queryFn: () => base44.entities.DispositivoConectado.filter({ usuario_email: usuarioAtual?.email }, "-created_date"),
     enabled: showDispositivos && !!usuarioAtual?.email,
     initialData: [],
+    refetchInterval: 5000, // Atualizar a cada 5 segundos
   });
+
+  // Obter informações do dispositivo atual
+  const dispositivoAtual = `${navigator.userAgent.includes('Mobile') ? '📱 Mobile' : '💻 Desktop'} - ${
+    navigator.userAgent.includes('Chrome') ? 'Chrome' : 
+    navigator.userAgent.includes('Firefox') ? 'Firefox' : 
+    navigator.userAgent.includes('Safari') ? 'Safari' : 
+    'Outro Navegador'
+  }`;
+
+  const sessaoAtualId = localStorage.getItem('sessao_id');
 
   const handleLogout = async () => {
     // Registrar logout no log
@@ -112,42 +123,60 @@ export default function MenuConta({ usuarioAtual, onClose }) {
             </div>
             
             <div className="space-y-2 max-h-60 overflow-y-auto">
-              {dispositivos.map(disp => (
-                <div 
-                  key={disp.id} 
-                  className={`p-3 rounded-lg border ${disp.sessao_ativa ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start gap-2 flex-1">
-                      <Monitor className={`w-4 h-4 mt-0.5 ${disp.sessao_ativa ? 'text-green-600' : 'text-gray-400'}`} />
-                      <div className="flex-1">
-                        <div className="text-sm font-medium text-gray-900">{disp.dispositivo}</div>
-                        {disp.ip && (
-                          <div className="text-xs text-gray-500 mt-1">IP: {disp.ip}</div>
-                        )}
-                        {disp.localizacao && (
-                          <div className="text-xs text-gray-500">📍 {disp.localizacao}</div>
-                        )}
-                        <div className="text-xs text-gray-500 mt-1">
-                          {disp.data_login ? format(new Date(disp.data_login), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : "Data desconhecida"}
-                        </div>
+              {/* Dispositivo Atual - Sempre em primeiro */}
+              <div className="p-3 rounded-lg border-2 bg-blue-50 border-blue-400">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-start gap-2 flex-1">
+                    <Monitor className="w-4 h-4 mt-0.5 text-blue-600" />
+                    <div className="flex-1">
+                      <div className="text-sm font-medium text-gray-900">{dispositivoAtual}</div>
+                      <div className="text-xs text-blue-600 font-medium mt-1">
+                        Este dispositivo (agora)
                       </div>
                     </div>
-                    {disp.sessao_ativa && (
-                      <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
-                        Ativo
-                      </Badge>
-                    )}
                   </div>
+                  <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 border-blue-400">
+                    Conectado
+                  </Badge>
                 </div>
-              ))}
+              </div>
 
-              {dispositivos.length === 0 && (
-                <div className="text-center py-6 text-gray-500">
-                  <Monitor className="w-8 h-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm">Nenhum dispositivo registrado</p>
-                </div>
-              )}
+              {/* Outros dispositivos */}
+              {dispositivos
+                .filter(disp => disp.dispositivo !== dispositivoAtual || !disp.sessao_ativa)
+                .map(disp => (
+                  <div 
+                    key={disp.id} 
+                    className={`p-3 rounded-lg border ${disp.sessao_ativa ? 'bg-green-50 border-green-200' : 'bg-gray-50 border-gray-200'}`}
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start gap-2 flex-1">
+                        <Monitor className={`w-4 h-4 mt-0.5 ${disp.sessao_ativa ? 'text-green-600' : 'text-gray-400'}`} />
+                        <div className="flex-1">
+                          <div className="text-sm font-medium text-gray-900">{disp.dispositivo}</div>
+                          {disp.ip && (
+                            <div className="text-xs text-gray-500 mt-1">IP: {disp.ip}</div>
+                          )}
+                          {disp.localizacao && (
+                            <div className="text-xs text-gray-500">📍 {disp.localizacao}</div>
+                          )}
+                          <div className="text-xs text-gray-500 mt-1">
+                            {disp.data_login ? format(new Date(disp.data_login), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR }) : "Data desconhecida"}
+                          </div>
+                        </div>
+                      </div>
+                      {disp.sessao_ativa ? (
+                        <Badge variant="outline" className="text-xs bg-green-100 text-green-700 border-green-300">
+                          Ativo
+                        </Badge>
+                      ) : (
+                        <Badge variant="outline" className="text-xs bg-gray-100 text-gray-600 border-gray-300">
+                          Inativo
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                ))}
             </div>
           </div>
         )}
