@@ -537,7 +537,7 @@ export default function NovoAgendamentoDialog({
                 formData.falta_quanto > 0 
                   ? `+${formData.falta_quanto}` 
                   : formData.falta_quanto < 0 
-                    ? `Pago a mais do que combinado ${Math.abs(formData.falta_quanto)}`
+                    ? `PAGO A MAIS R$${Math.abs(formData.falta_quanto)}`
                     : (formData.falta_quanto || "")
               }
               readOnly
