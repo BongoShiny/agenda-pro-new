@@ -20,10 +20,10 @@ Deno.serve(async (req) => {
     // Limpar telefone
     const telefoneLimpo = telefone.replace(/\D/g, '').replace('55', '');
 
-    // Verificar se é comando de confirmação ou cancelamento
-    const mensagemLower = mensagem.toLowerCase().trim();
+    // Verificar se é comando de confirmação ou cancelamento (aceita a palavra em qualquer lugar)
+    const mensagemLower = mensagem.toLowerCase();
     
-    if (mensagemLower === 'confirmar') {
+    if (mensagemLower.includes('confirmar')) {
       // Buscar agendamentos pendentes do cliente
       const agendamentos = await base44.asServiceRole.entities.Agendamento.filter({
         status: 'agendado'
@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
         agendamento_id: proximoAgendamento.id
       });
 
-    } else if (mensagemLower === 'cancelar') {
+    } else if (mensagemLower.includes('cancelar')) {
       // Buscar agendamentos pendentes do cliente
       const agendamentos = await base44.asServiceRole.entities.Agendamento.filter({
         status: 'agendado'
