@@ -45,7 +45,8 @@ export default function HomePage() {
       proximosAgendamentos: true,
       tarefasPendentes: true,
       performanceVendedores: true,
-      contasReceber: true
+      contasReceber: true,
+      metricasVendas: true
     };
   });
 
@@ -102,7 +103,8 @@ export default function HomePage() {
     { id: 'proximosAgendamentos', label: 'Próximos Agendamentos', component: WidgetProximosAgendamentos },
     { id: 'tarefasPendentes', label: 'Tarefas Pendentes', component: WidgetTarefasPendentes },
     { id: 'performanceVendedores', label: 'Performance de Vendedores', component: WidgetPerformanceVendedores },
-    { id: 'contasReceber', label: 'Contas a Receber', component: WidgetContasReceber }
+    { id: 'contasReceber', label: 'Contas a Receber', component: WidgetContasReceber },
+    { id: 'metricasVendas', label: 'Métricas de Vendas', component: WidgetMetricasVendas }
   ];
 
   return (
