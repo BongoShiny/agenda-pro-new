@@ -220,6 +220,11 @@ export default function HomePage() {
           </CardContent>
         </Card>
 
+        {/* Métricas de Vendas - Topo */}
+        {widgetsVisiveis.metricasVendas && (
+          <WidgetMetricasVendas agendamentos={agendamentos} dataInicio={dataInicioVendas} dataFim={dataFimVendas} />
+        )}
+
         {/* Grid de Widgets */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {widgetsVisiveis.faturamento && (
@@ -240,10 +245,6 @@ export default function HomePage() {
           
           {widgetsVisiveis.contasReceber && (
             <WidgetContasReceber agendamentos={agendamentos} />
-          )}
-          
-          {widgetsVisiveis.metricasVendas && (
-            <WidgetMetricasVendas agendamentos={agendamentos} dataInicio={dataInicioVendas} dataFim={dataFimVendas} />
           )}
         </div>
 
