@@ -16,6 +16,7 @@ export default function ConfiguracaoWhatsAppPage() {
   const [usuarioAtual, setUsuarioAtual] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [testando, setTestando] = useState(false);
+  const [mensagensEditaveis, setMensagensEditaveis] = useState({});
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -164,7 +165,7 @@ export default function ConfiguracaoWhatsAppPage() {
 
         {unidades.map(unidade => {
           const config = configuracoes.find(c => c.unidade_id === unidade.id);
-          const [mensagemEditavel, setMensagemEditavel] = useState(config?.mensagem_template || mensagemPadrao);
+          const mensagemEditavel = mensagensEditaveis[unidade.id] || config?.mensagem_template || mensagemPadrao;
 
           return (
             <Card key={unidade.id}>
@@ -213,7 +214,7 @@ export default function ConfiguracaoWhatsAppPage() {
                     <Label>Mensagem Personalizada</Label>
                     <Textarea
                       value={mensagemEditavel}
-                      onChange={(e) => setMensagemEditavel(e.target.value)}
+                      onChange={(e) => setMensagensEditaveis(prev => ({ ...prev, [unidade.id]: e.target.value }))}
                       rows={10}
                       className="font-mono text-sm"
                     />
