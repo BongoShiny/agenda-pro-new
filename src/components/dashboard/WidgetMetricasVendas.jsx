@@ -18,10 +18,11 @@ const formatarMoeda = (valor) => {
 };
 
 export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim }) {
-  // Filtrar vendas baseado em created_date (data de criação)
+  // Filtrar vendas baseado em created_date (data de criação) e que tenham vendedor
   const vendasPeriodo = agendamentos.filter(ag => {
     if (ag.status === "bloqueio" || ag.tipo === "bloqueio") return false;
     if (!ag.created_date) return false;
+    if (!ag.vendedor_id && !ag.vendedor_nome) return false; // Apenas com vendedor
     
     const dataCriacao = ag.created_date.substring(0, 10); // YYYY-MM-DD
     return dataCriacao >= dataInicio && dataCriacao <= dataFim;
