@@ -3,8 +3,11 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { format } from "date-fns";
 import { 
   LayoutDashboard, 
   Calendar, 
@@ -14,13 +17,6 @@ import {
   FileText,
   ArrowLeft
 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import WidgetFaturamento from "../components/dashboard/WidgetFaturamento";
 import WidgetProximosAgendamentos from "../components/dashboard/WidgetProximosAgendamentos";
@@ -32,7 +28,9 @@ export default function HomePage() {
   const navigate = useNavigate();
   const [usuarioAtual, setUsuarioAtual] = useState(null);
   const [carregando, setCarregando] = useState(true);
-  const [periodoFaturamento, setPeriodoFaturamento] = useState("dia");
+  const hoje = format(new Date(), "yyyy-MM-dd");
+  const [dataInicio, setDataInicio] = useState(hoje);
+  const [dataFim, setDataFim] = useState(hoje);
   
   // Estado de widgets visíveis (salvo no localStorage)
   const [widgetsVisiveis, setWidgetsVisiveis] = useState(() => {
@@ -165,18 +163,25 @@ export default function HomePage() {
               </div>
 
               {widgetsVisiveis.faturamento && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-600">Período do Faturamento:</span>
-                  <Select value={periodoFaturamento} onValueChange={setPeriodoFaturamento}>
-                    <SelectTrigger className="w-32">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="dia">Hoje</SelectItem>
-                      <SelectItem value="semana">Esta Semana</SelectItem>
-                      <SelectItem value="mes">Este Mês</SelectItem>
-                    </SelectContent>
-                  </Select>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm text-gray-600">De:</Label>
+                    <Input
+                      type="date"
+                      value={dataInicio}
+                      onChange={(e) => setDataInicio(e.target.value)}
+                      className="w-40"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm text-gray-600">Até:</Label>
+                    <Input
+                      type="date"
+                      value={dataFim}
+                      onChange={(e) => setDataFim(e.target.value)}
+                      className="w-40"
+                    />
+                  </div>
                 </div>
               )}
             </div>
@@ -186,7 +191,7 @@ export default function HomePage() {
         {/* Grid de Widgets */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {widgetsVisiveis.faturamento && (
-            <WidgetFaturamento agendamentos={agendamentos} periodo={periodoFaturamento} />
+            <WidgetFaturamento agendamentos={agendamentos} dataInicio={dataInicio} dataFim={dataFim} />
           )}
           
           {widgetsVisiveis.proximosAgendamentos && (

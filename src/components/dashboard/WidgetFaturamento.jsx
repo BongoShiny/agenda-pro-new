@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, TrendingUp, TrendingDown } from "lucide-react";
-import { format, startOfDay, startOfWeek, startOfMonth } from "date-fns";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const formatarMoeda = (valor) => {
@@ -9,24 +9,10 @@ const formatarMoeda = (valor) => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
 };
 
-export default function WidgetFaturamento({ agendamentos, periodo = "dia" }) {
-  const hoje = new Date();
-  let dataInicio;
-
-  switch (periodo) {
-    case "semana":
-      dataInicio = format(startOfWeek(hoje, { locale: ptBR }), "yyyy-MM-dd");
-      break;
-    case "mes":
-      dataInicio = format(startOfMonth(hoje), "yyyy-MM-dd");
-      break;
-    default: // dia
-      dataInicio = format(startOfDay(hoje), "yyyy-MM-dd");
-  }
-
+export default function WidgetFaturamento({ agendamentos, dataInicio, dataFim }) {
   const agendamentosPeriodo = agendamentos.filter(ag => {
     if (ag.status === "bloqueio" || ag.tipo === "bloqueio") return false;
-    return ag.data >= dataInicio;
+    return ag.data >= dataInicio && ag.data <= dataFim;
   });
 
   const totalCombinado = agendamentosPeriodo.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
@@ -35,16 +21,17 @@ export default function WidgetFaturamento({ agendamentos, periodo = "dia" }) {
   );
   const totalAReceber = agendamentosPeriodo.reduce((sum, ag) => sum + (ag.falta_quanto || 0), 0);
 
-  const periodoLabel = {
-    dia: "Hoje",
-    semana: "Esta Semana",
-    mes: "Este Mês"
+  const formatarPeriodo = () => {
+    if (dataInicio === dataFim) {
+      return format(new Date(dataInicio + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR });
+    }
+    return `${format(new Date(dataInicio + 'T12:00:00'), "dd/MM", { locale: ptBR })} - ${format(new Date(dataFim + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR })}`;
   };
 
   return (
     <Card>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium">Faturamento - {periodoLabel[periodo]}</CardTitle>
+        <CardTitle className="text-sm font-medium">Faturamento - {formatarPeriodo()}</CardTitle>
         <DollarSign className="h-4 w-4 text-emerald-600" />
       </CardHeader>
       <CardContent>
