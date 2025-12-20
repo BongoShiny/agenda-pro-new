@@ -147,21 +147,120 @@ export default function ConfiguracaoWhatsAppPage() {
       </div>
 
       <div className="max-w-5xl mx-auto p-6 space-y-6">
-        <Alert className="bg-blue-50 border-blue-200">
-          <AlertCircle className="h-4 w-4 text-blue-600" />
-          <AlertDescription className="text-blue-800">
-            <strong>Configuração da API:</strong> Configure as variáveis WHATSAPP_API_URL, WHATSAPP_API_TOKEN e WHATSAPP_INSTANCE_NAME no Dashboard → Settings.
-            <br /><strong>Webhook:</strong> Configure sua API de WhatsApp para enviar respostas para: <code className="bg-blue-100 px-2 py-1 rounded">/webhookWhatsApp</code>
-          </AlertDescription>
-        </Alert>
+        <Card className="border-2 border-blue-500 bg-blue-50">
+          <CardHeader>
+            <CardTitle className="text-blue-900 flex items-center gap-2">
+              <AlertCircle className="w-5 h-5" />
+              Passo 1: Configure os Secrets da API do WhatsApp
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <p className="text-blue-800">
+              Vá até o <strong>Dashboard → Settings → Application Secrets</strong> e adicione os seguintes secrets:
+            </p>
+            
+            <div className="space-y-3">
+              <div className="bg-white p-4 rounded-lg border border-blue-200">
+                <div className="flex items-start gap-3">
+                  <div className="bg-blue-600 text-white rounded px-2 py-1 text-xs font-bold">1</div>
+                  <div className="flex-1">
+                    <p className="font-bold text-gray-900">WHATSAPP_API_URL</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      URL da sua API de WhatsApp (exemplo: Evolution API, Twilio, etc)
+                    </p>
+                    <code className="text-xs bg-gray-100 px-2 py-1 rounded mt-2 block">
+                      Exemplo Evolution API: https://sua-api.com/message/sendText
+                    </code>
+                  </div>
+                </div>
+              </div>
 
-        <Alert className="bg-amber-50 border-amber-200">
-          <Clock className="h-4 w-4 text-amber-600" />
-          <AlertDescription className="text-amber-800">
-            <strong>Horários de envio:</strong> Os lembretes são enviados em horário de Brasília, 1 dia e/ou 12 horas antes do agendamento.
-            <br /><strong>Automação:</strong> Para envio automático, configure um cron job no Dashboard para chamar a função <code className="bg-amber-100 px-2 py-1 rounded">enviarLembreteWhatsApp</code> a cada hora.
-          </AlertDescription>
-        </Alert>
+              <div className="bg-white p-4 rounded-lg border border-blue-200">
+                <div className="flex items-start gap-3">
+                  <div className="bg-blue-600 text-white rounded px-2 py-1 text-xs font-bold">2</div>
+                  <div className="flex-1">
+                    <p className="font-bold text-gray-900">WHATSAPP_API_TOKEN</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Token de autenticação da sua API de WhatsApp
+                    </p>
+                    <code className="text-xs bg-gray-100 px-2 py-1 rounded mt-2 block">
+                      Exemplo: seu-token-secreto-aqui
+                    </code>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-white p-4 rounded-lg border border-blue-200">
+                <div className="flex items-start gap-3">
+                  <div className="bg-blue-600 text-white rounded px-2 py-1 text-xs font-bold">3</div>
+                  <div className="flex-1">
+                    <p className="font-bold text-gray-900">WHATSAPP_INSTANCE_NAME</p>
+                    <p className="text-sm text-gray-600 mt-1">
+                      Nome da instância do WhatsApp (se usar Evolution API)
+                    </p>
+                    <code className="text-xs bg-gray-100 px-2 py-1 rounded mt-2 block">
+                      Exemplo: clinica
+                    </code>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Alert className="bg-white border-blue-300">
+              <MessageCircle className="h-4 w-4 text-blue-600" />
+              <AlertDescription className="text-blue-800">
+                <strong>APIs compatíveis:</strong> Evolution API, Twilio WhatsApp API, ou qualquer API que aceite envio de mensagens via HTTP POST.
+              </AlertDescription>
+            </Alert>
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 border-green-500 bg-green-50">
+          <CardHeader>
+            <CardTitle className="text-green-900 flex items-center gap-2">
+              <MessageCircle className="w-5 h-5" />
+              Passo 2: Configure o Webhook para Receber Respostas
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-green-800 mb-4">
+              Configure sua API de WhatsApp para enviar as respostas dos clientes para:
+            </p>
+            <div className="bg-white p-4 rounded-lg border border-green-300">
+              <code className="text-sm font-mono text-green-900">
+                {window.location.origin}/functions/webhookWhatsApp
+              </code>
+            </div>
+            <p className="text-sm text-green-700 mt-3">
+              ✅ Quando o cliente responder "Confirmar" ou "Cancelar", o sistema atualizará automaticamente o agendamento.
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card className="border-2 border-amber-500 bg-amber-50">
+          <CardHeader>
+            <CardTitle className="text-amber-900 flex items-center gap-2">
+              <Clock className="w-5 h-5" />
+              Passo 3: Configure Envio Automático (Opcional)
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-amber-800 mb-3">
+              Os lembretes são enviados em <strong>horário de Brasília</strong>, 1 dia e/ou 12 horas antes do agendamento.
+            </p>
+            <p className="text-amber-800 mb-4">
+              Para envio automático, configure um <strong>Cron Job</strong> no Dashboard para chamar a função:
+            </p>
+            <div className="bg-white p-4 rounded-lg border border-amber-300">
+              <code className="text-sm font-mono text-amber-900">
+                enviarLembreteWhatsApp
+              </code>
+            </div>
+            <p className="text-sm text-amber-700 mt-3">
+              💡 Recomendado: Execute a cada hora (0 */1 * * *) para garantir o envio no horário correto.
+            </p>
+          </CardContent>
+        </Card>
 
         {unidades.map(unidade => {
           const config = configuracoes.find(c => c.unidade_id === unidade.id);
