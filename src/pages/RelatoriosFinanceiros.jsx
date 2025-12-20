@@ -56,6 +56,7 @@ export default function RelatoriosFinanceirosPage() {
   const [dialogVendedorAberto, setDialogVendedorAberto] = useState(false);
   const [pesquisaDetalhado, setPesquisaDetalhado] = useState("");
   const [comprovanteVisualizacao, setComprovanteVisualizacao] = useState(null);
+  const [mesAnoAnalise, setMesAnoAnalise] = useState(format(new Date(), "yyyy-MM"));
   const [novoVendedor, setNovoVendedor] = useState({
     nome: "",
     email: "",
@@ -181,9 +182,12 @@ export default function RelatoriosFinanceirosPage() {
       return true;
     });
 
-  // Calcular totais
+  // Calcular totais com os novos campos
   const totalCombinado = agendamentosFiltrados.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
-  const totalPago = agendamentosFiltrados.reduce((sum, ag) => sum + (ag.valor_pago || 0), 0);
+  const totalSinal = agendamentosFiltrados.reduce((sum, ag) => sum + (ag.sinal || 0), 0);
+  const totalRecebimento2 = agendamentosFiltrados.reduce((sum, ag) => sum + (ag.recebimento_2 || 0), 0);
+  const totalFinalPagamento = agendamentosFiltrados.reduce((sum, ag) => sum + (ag.final_pagamento || 0), 0);
+  const totalPago = totalSinal + totalRecebimento2 + totalFinalPagamento;
   const totalAReceber = agendamentosFiltrados.reduce((sum, ag) => sum + (ag.falta_quanto || 0), 0);
 
   // Agrupar por profissional
@@ -198,8 +202,9 @@ export default function RelatoriosFinanceirosPage() {
         quantidade: 0
       };
     }
+    const totalPagoAg = (ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0);
     acc[prof].totalCombinado += ag.valor_combinado || 0;
-    acc[prof].totalPago += ag.valor_pago || 0;
+    acc[prof].totalPago += totalPagoAg;
     acc[prof].totalAReceber += ag.falta_quanto || 0;
     acc[prof].quantidade += 1;
     return acc;
@@ -219,8 +224,9 @@ export default function RelatoriosFinanceirosPage() {
         quantidade: 0
       };
     }
+    const totalPagoAg = (ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0);
     acc[unidade].totalCombinado += ag.valor_combinado || 0;
-    acc[unidade].totalPago += ag.valor_pago || 0;
+    acc[unidade].totalPago += totalPagoAg;
     acc[unidade].totalAReceber += ag.falta_quanto || 0;
     acc[unidade].quantidade += 1;
     return acc;
@@ -328,13 +334,26 @@ export default function RelatoriosFinanceirosPage() {
   };
 
   const handleCampoChange = (agendamentoId, campo, valor) => {
-    setDadosEditados(prev => ({
-      ...prev,
-      [agendamentoId]: {
+    setDadosEditados(prev => {
+      const novosValores = {
         ...prev[agendamentoId],
-        [campo]: valor ? parseFloat(valor) : null
-      }
-    }));
+        [campo]: campo === 'observacoes' ? valor : (valor ? parseFloat(valor) : null)
+      };
+      
+      // Recalcular falta_quanto automaticamente
+      const sinal = parseFloat(novosValores.sinal !== undefined ? novosValores.sinal : prev[agendamentoId]?.sinal) || 0;
+      const recebimento2 = parseFloat(novosValores.recebimento_2 !== undefined ? novosValores.recebimento_2 : prev[agendamentoId]?.recebimento_2) || 0;
+      const finalPagamento = parseFloat(novosValores.final_pagamento !== undefined ? novosValores.final_pagamento : prev[agendamentoId]?.final_pagamento) || 0;
+      const valorCombinado = parseFloat(novosValores.valor_combinado !== undefined ? novosValores.valor_combinado : prev[agendamentoId]?.valor_combinado) || 0;
+      
+      const totalPago = sinal + recebimento2 + finalPagamento;
+      novosValores.falta_quanto = valorCombinado - totalPago;
+      
+      return {
+        ...prev,
+        [agendamentoId]: novosValores
+      };
+    });
   };
 
   const handleSalvarEdicoes = async () => {
@@ -356,8 +375,11 @@ export default function RelatoriosFinanceirosPage() {
           dadosAntigos: {
             cliente_nome: agendamento.cliente_nome,
             valor_combinado: agendamento.valor_combinado,
-            valor_pago: agendamento.valor_pago,
-            falta_quanto: agendamento.falta_quanto
+            sinal: agendamento.sinal,
+            recebimento_2: agendamento.recebimento_2,
+            final_pagamento: agendamento.final_pagamento,
+            falta_quanto: agendamento.falta_quanto,
+            observacoes: agendamento.observacoes
           }
         });
       }
@@ -427,9 +449,12 @@ export default function RelatoriosFinanceirosPage() {
         return dataAg === mesSelecionadoPDF;
       });
 
-    // Calcular totais do mês
+    // Calcular totais do mês com novos campos
     const totalCombinadoMes = agendamentosMes.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
-    const totalPagoMes = agendamentosMes.reduce((sum, ag) => sum + (ag.valor_pago || 0), 0);
+    const totalSinalMes = agendamentosMes.reduce((sum, ag) => sum + (ag.sinal || 0), 0);
+    const totalRecebimento2Mes = agendamentosMes.reduce((sum, ag) => sum + (ag.recebimento_2 || 0), 0);
+    const totalFinalPagamentoMes = agendamentosMes.reduce((sum, ag) => sum + (ag.final_pagamento || 0), 0);
+    const totalPagoMes = totalSinalMes + totalRecebimento2Mes + totalFinalPagamentoMes;
     const totalAReceberMes = agendamentosMes.reduce((sum, ag) => sum + (ag.falta_quanto || 0), 0);
 
     // Agrupar por profissional
@@ -438,8 +463,9 @@ export default function RelatoriosFinanceirosPage() {
       if (!acc[prof]) {
         acc[prof] = { nome: prof, totalCombinado: 0, totalPago: 0, totalAReceber: 0, quantidade: 0 };
       }
+      const totalPagoAg = (ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0);
       acc[prof].totalCombinado += ag.valor_combinado || 0;
-      acc[prof].totalPago += ag.valor_pago || 0;
+      acc[prof].totalPago += totalPagoAg;
       acc[prof].totalAReceber += ag.falta_quanto || 0;
       acc[prof].quantidade += 1;
       return acc;
@@ -511,7 +537,10 @@ export default function RelatoriosFinanceirosPage() {
                 <th>Serviço</th>
                 <th>Vendedor</th>
                 <th class="text-right">Vlr. Combinado</th>
-                <th class="text-right">Vlr. Pago</th>
+                <th class="text-right">Sinal</th>
+                <th class="text-right">Recebimento 2</th>
+                <th class="text-right">Final</th>
+                <th class="text-right">Total Pago</th>
                 <th class="text-right">Falta</th>
                 <th>Status</th>
               </tr>
@@ -527,7 +556,10 @@ export default function RelatoriosFinanceirosPage() {
                   <td>${ag.servico_nome || "-"}</td>
                   <td>${ag.vendedor_nome || "-"}</td>
                   <td class="text-right">${formatarMoeda(ag.valor_combinado)}</td>
-                  <td class="text-right" style="color: #10b981; font-weight: 600;">${formatarMoeda(ag.valor_pago)}</td>
+                  <td class="text-right" style="color: #10b981;">${formatarMoeda(ag.sinal)}</td>
+                  <td class="text-right" style="color: #10b981;">${formatarMoeda(ag.recebimento_2)}</td>
+                  <td class="text-right" style="color: #10b981;">${formatarMoeda(ag.final_pagamento)}</td>
+                  <td class="text-right" style="color: #10b981; font-weight: 600;">${formatarMoeda((ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0))}</td>
                   <td class="text-right" style="color: #f97316;">${formatarMoeda(ag.falta_quanto)}</td>
                   <td>${ag.status || "-"}</td>
                 </tr>
@@ -535,6 +567,9 @@ export default function RelatoriosFinanceirosPage() {
               <tr class="total">
                 <td colspan="7"><strong>TOTAIS GERAIS</strong></td>
                 <td class="text-right"><strong>${formatarMoeda(totalCombinadoMes)}</strong></td>
+                <td class="text-right"><strong>${formatarMoeda(totalSinalMes)}</strong></td>
+                <td class="text-right"><strong>${formatarMoeda(totalRecebimento2Mes)}</strong></td>
+                <td class="text-right"><strong>${formatarMoeda(totalFinalPagamentoMes)}</strong></td>
                 <td class="text-right"><strong>${formatarMoeda(totalPagoMes)}</strong></td>
                 <td class="text-right"><strong>${formatarMoeda(totalAReceberMes)}</strong></td>
                 <td></td>
@@ -665,7 +700,10 @@ export default function RelatoriosFinanceirosPage() {
                       <th>Cliente</th>
                       <th>Profissional</th>
                       <th class="text-right">Vlr. Combinado</th>
-                      <th class="text-right">Vlr. Pago</th>
+                      <th class="text-right">Sinal</th>
+                      <th class="text-right">Receb. 2</th>
+                      <th class="text-right">Final</th>
+                      <th class="text-right">Total Pago</th>
                       <th class="text-right">Falta</th>
                       <th>Status</th>
                       <th>Criado Em</th>
@@ -681,7 +719,10 @@ export default function RelatoriosFinanceirosPage() {
                           <td>${ag.cliente_nome || "-"}</td>
                           <td>${ag.profissional_nome || "-"}</td>
                           <td class="text-right">${formatarMoeda(ag.valor_combinado)}</td>
-                          <td class="text-right" style="color: #10b981; font-weight: 600;">${formatarMoeda(ag.valor_pago)}</td>
+                          <td class="text-right" style="color: #10b981;">${formatarMoeda(ag.sinal)}</td>
+                          <td class="text-right" style="color: #10b981;">${formatarMoeda(ag.recebimento_2)}</td>
+                          <td class="text-right" style="color: #10b981;">${formatarMoeda(ag.final_pagamento)}</td>
+                          <td class="text-right" style="color: #10b981; font-weight: 600;">${formatarMoeda((ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0))}</td>
                           <td class="text-right" style="color: #f97316;">${formatarMoeda(ag.falta_quanto)}</td>
                           <td>${ag.status || "-"}</td>
                           <td>${ag.created_date ? format(new Date(ag.created_date), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "-"}</td>
@@ -690,6 +731,9 @@ export default function RelatoriosFinanceirosPage() {
                     <tr class="total">
                       <td colspan="4"><strong>TOTAL - ${vendedor.nome}</strong></td>
                       <td class="text-right"><strong>${formatarMoeda(totalCombinado)}</strong></td>
+                      <td class="text-right"><strong>${formatarMoeda(totalSinal)}</strong></td>
+                      <td class="text-right"><strong>${formatarMoeda(totalRecebimento2)}</strong></td>
+                      <td class="text-right"><strong>${formatarMoeda(totalFinalPagamento)}</strong></td>
                       <td class="text-right"><strong>${formatarMoeda(totalPago)}</strong></td>
                       <td class="text-right"><strong>${formatarMoeda(totalAReceber)}</strong></td>
                       <td colspan="2"></td>
@@ -915,6 +959,7 @@ export default function RelatoriosFinanceirosPage() {
           <TabsList>
             <TabsTrigger value="profissional">Por Profissional</TabsTrigger>
             <TabsTrigger value="unidade">Por Unidade</TabsTrigger>
+            <TabsTrigger value="analise-mensal">Análise Mensal</TabsTrigger>
             <TabsTrigger value="detalhado">Detalhado</TabsTrigger>
             <TabsTrigger value="por-vendedor">Por Vendedor</TabsTrigger>
           </TabsList>
@@ -941,6 +986,140 @@ export default function RelatoriosFinanceirosPage() {
                     ))}
                   </TableBody>
                 </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="analise-mensal">
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>📊 Análise Mês a Mês</CardTitle>
+                  <Input
+                    type="month"
+                    value={mesAnoAnalise}
+                    onChange={(e) => setMesAnoAnalise(e.target.value)}
+                    className="w-48"
+                  />
+                </div>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  const agendamentosMesAnalise = agendamentos
+                    .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
+                    .filter(ag => {
+                      if (!ag.data) return false;
+                      return ag.data.substring(0, 7) === mesAnoAnalise;
+                    });
+
+                  const totalCombinadoMes = agendamentosMesAnalise.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
+                  const totalSinalMes = agendamentosMesAnalise.reduce((sum, ag) => sum + (ag.sinal || 0), 0);
+                  const totalRecebimento2Mes = agendamentosMesAnalise.reduce((sum, ag) => sum + (ag.recebimento_2 || 0), 0);
+                  const totalFinalPagamentoMes = agendamentosMesAnalise.reduce((sum, ag) => sum + (ag.final_pagamento || 0), 0);
+                  const totalPagoMes = totalSinalMes + totalRecebimento2Mes + totalFinalPagamentoMes;
+                  const totalAReceberMes = agendamentosMesAnalise.reduce((sum, ag) => sum + (ag.falta_quanto || 0), 0);
+
+                  // Agrupar por vendedor
+                  const porVendedor = {};
+                  agendamentosMesAnalise.forEach(ag => {
+                    const vendedorNome = ag.vendedor_nome || "Sem Vendedor";
+                    if (!porVendedor[vendedorNome]) {
+                      porVendedor[vendedorNome] = {
+                        quantidade: 0,
+                        totalCombinado: 0,
+                        totalSinal: 0,
+                        totalRecebimento2: 0,
+                        totalFinalPagamento: 0,
+                        totalPago: 0,
+                        totalAReceber: 0
+                      };
+                    }
+                    porVendedor[vendedorNome].quantidade += 1;
+                    porVendedor[vendedorNome].totalCombinado += ag.valor_combinado || 0;
+                    porVendedor[vendedorNome].totalSinal += ag.sinal || 0;
+                    porVendedor[vendedorNome].totalRecebimento2 += ag.recebimento_2 || 0;
+                    porVendedor[vendedorNome].totalFinalPagamento += ag.final_pagamento || 0;
+                    porVendedor[vendedorNome].totalPago += (ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0);
+                    porVendedor[vendedorNome].totalAReceber += ag.falta_quanto || 0;
+                  });
+
+                  return (
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-4 gap-4">
+                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                          <p className="text-sm text-blue-600 mb-1">Valor Combinado</p>
+                          <p className="text-2xl font-bold text-blue-700">{formatarMoeda(totalCombinadoMes)}</p>
+                        </div>
+                        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                          <p className="text-sm text-green-600 mb-1">Sinal Recebido</p>
+                          <p className="text-2xl font-bold text-green-700">{formatarMoeda(totalSinalMes)}</p>
+                        </div>
+                        <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
+                          <p className="text-sm text-emerald-600 mb-1">Total Pago</p>
+                          <p className="text-2xl font-bold text-emerald-700">{formatarMoeda(totalPagoMes)}</p>
+                        </div>
+                        <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                          <p className="text-sm text-orange-600 mb-1">A Receber</p>
+                          <p className="text-2xl font-bold text-orange-700">{formatarMoeda(totalAReceberMes)}</p>
+                        </div>
+                      </div>
+
+                      <div>
+                        <h3 className="font-semibold text-lg mb-4">Desempenho por Vendedor</h3>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Vendedor</TableHead>
+                              <TableHead className="text-right">Qtd</TableHead>
+                              <TableHead className="text-right">Vlr. Combinado</TableHead>
+                              <TableHead className="text-right">Sinal</TableHead>
+                              <TableHead className="text-right">Receb. 2</TableHead>
+                              <TableHead className="text-right">Final</TableHead>
+                              <TableHead className="text-right">Total Pago</TableHead>
+                              <TableHead className="text-right">A Receber</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {Object.entries(porVendedor).map(([nome, dados]) => (
+                              <TableRow key={nome}>
+                                <TableCell className="font-medium">{nome}</TableCell>
+                                <TableCell className="text-right">{dados.quantidade}</TableCell>
+                                <TableCell className="text-right">{formatarMoeda(dados.totalCombinado)}</TableCell>
+                                <TableCell className="text-right text-green-600">{formatarMoeda(dados.totalSinal)}</TableCell>
+                                <TableCell className="text-right text-green-600">{formatarMoeda(dados.totalRecebimento2)}</TableCell>
+                                <TableCell className="text-right text-green-600">{formatarMoeda(dados.totalFinalPagamento)}</TableCell>
+                                <TableCell className="text-right text-emerald-600 font-semibold">{formatarMoeda(dados.totalPago)}</TableCell>
+                                <TableCell className="text-right text-orange-600">{formatarMoeda(dados.totalAReceber)}</TableCell>
+                              </TableRow>
+                            ))}
+                          </TableBody>
+                        </Table>
+                      </div>
+
+                      <div className="bg-gray-50 p-4 rounded-lg">
+                        <h3 className="font-semibold text-lg mb-2">Resumo do Mês</h3>
+                        <div className="grid grid-cols-3 gap-4 text-sm">
+                          <div>
+                            <p className="text-gray-600">Total de Agendamentos</p>
+                            <p className="text-xl font-bold">{agendamentosMesAnalise.length}</p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600">Taxa de Recebimento</p>
+                            <p className="text-xl font-bold text-emerald-600">
+                              {totalCombinadoMes > 0 ? ((totalPagoMes / totalCombinadoMes) * 100).toFixed(1) : "0"}%
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-gray-600">Taxa Pendente</p>
+                            <p className="text-xl font-bold text-orange-600">
+                              {totalCombinadoMes > 0 ? ((totalAReceberMes / totalCombinadoMes) * 100).toFixed(1) : "0"}%
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })()}
               </CardContent>
             </Card>
           </TabsContent>
@@ -1026,12 +1205,16 @@ export default function RelatoriosFinanceirosPage() {
                         <TableHead>Cliente</TableHead>
                         <TableHead>Profissional</TableHead>
                         <TableHead>Vendedor</TableHead>
-                        <TableHead className="text-right">Valor Combinado</TableHead>
-                        <TableHead className="text-right">Valor Pago</TableHead>
+                        <TableHead className="text-right">Vlr. Combinado</TableHead>
+                        <TableHead className="text-right">Sinal</TableHead>
+                        <TableHead className="text-right">Receb. 2</TableHead>
+                        <TableHead className="text-right">Final</TableHead>
+                        <TableHead className="text-right">Total Pago</TableHead>
                         <TableHead className="text-right">Falta</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Observações</TableHead>
                         <TableHead>Criado em</TableHead>
-                        <TableHead>Comprovante</TableHead>
+                        <TableHead>Comprovantes</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1042,22 +1225,34 @@ export default function RelatoriosFinanceirosPage() {
                           ag.profissional_nome?.toLowerCase().includes(termo) ||
                           ag.vendedor_nome?.toLowerCase().includes(termo) ||
                           String(ag.valor_combinado || 0).includes(termo) ||
-                          String(ag.valor_pago || 0).includes(termo) ||
+                          String(ag.sinal || 0).includes(termo) ||
+                          String(ag.recebimento_2 || 0).includes(termo) ||
+                          String(ag.final_pagamento || 0).includes(termo) ||
                           String(ag.falta_quanto || 0).includes(termo)
                         );
                       }).map((ag) => {
                         const valorCombinado = dadosEditados[ag.id]?.valor_combinado !== undefined 
                           ? dadosEditados[ag.id].valor_combinado 
                           : ag.valor_combinado;
-                        const valorPago = dadosEditados[ag.id]?.valor_pago !== undefined 
-                          ? dadosEditados[ag.id].valor_pago 
-                          : ag.valor_pago;
+                        const sinal = dadosEditados[ag.id]?.sinal !== undefined 
+                          ? dadosEditados[ag.id].sinal 
+                          : ag.sinal;
+                        const recebimento2 = dadosEditados[ag.id]?.recebimento_2 !== undefined 
+                          ? dadosEditados[ag.id].recebimento_2 
+                          : ag.recebimento_2;
+                        const finalPagamento = dadosEditados[ag.id]?.final_pagamento !== undefined 
+                          ? dadosEditados[ag.id].final_pagamento 
+                          : ag.final_pagamento;
+                        const totalPago = (parseFloat(sinal) || 0) + (parseFloat(recebimento2) || 0) + (parseFloat(finalPagamento) || 0);
                         const faltaQuanto = dadosEditados[ag.id]?.falta_quanto !== undefined 
                           ? dadosEditados[ag.id].falta_quanto 
                           : ag.falta_quanto;
                         const vendedorId = dadosEditados[ag.id]?.vendedor_id !== undefined
                           ? dadosEditados[ag.id].vendedor_id
                           : ag.vendedor_id;
+                        const observacoes = dadosEditados[ag.id]?.observacoes !== undefined
+                          ? dadosEditados[ag.id].observacoes
+                          : ag.observacoes;
                         
                         return (
                           <TableRow key={ag.id} className={dadosEditados[ag.id] ? "bg-yellow-50" : ""}>
@@ -1104,42 +1299,82 @@ export default function RelatoriosFinanceirosPage() {
                                   step="0.01"
                                   value={valorCombinado || ""}
                                   onChange={(e) => handleCampoChange(ag.id, "valor_combinado", e.target.value)}
-                                  className="w-28 text-right"
+                                  className="w-24 text-right"
                                 />
                               ) : (
                                 formatarMoeda(valorCombinado)
                               )}
                             </TableCell>
-                            <TableCell className="text-right text-emerald-600 font-semibold">
+                            <TableCell className="text-right text-green-600">
                               {modoEditor ? (
                                 <Input
                                   type="number"
                                   step="0.01"
-                                  value={valorPago || ""}
-                                  onChange={(e) => handleCampoChange(ag.id, "valor_pago", e.target.value)}
-                                  className="w-28 text-right"
+                                  value={sinal || ""}
+                                  onChange={(e) => handleCampoChange(ag.id, "sinal", e.target.value)}
+                                  className="w-24 text-right"
                                 />
                               ) : (
-                                formatarMoeda(valorPago)
+                                formatarMoeda(sinal)
                               )}
                             </TableCell>
-                            <TableCell className="text-right text-orange-600">
+                            <TableCell className="text-right text-green-600">
                               {modoEditor ? (
                                 <Input
                                   type="number"
                                   step="0.01"
-                                  value={faltaQuanto || ""}
-                                  onChange={(e) => handleCampoChange(ag.id, "falta_quanto", e.target.value)}
-                                  className="w-28 text-right"
+                                  value={recebimento2 || ""}
+                                  onChange={(e) => handleCampoChange(ag.id, "recebimento_2", e.target.value)}
+                                  className="w-24 text-right"
                                 />
                               ) : (
-                                formatarMoeda(faltaQuanto)
+                                formatarMoeda(recebimento2)
                               )}
+                            </TableCell>
+                            <TableCell className="text-right text-green-600">
+                              {modoEditor ? (
+                                <Input
+                                  type="number"
+                                  step="0.01"
+                                  value={finalPagamento || ""}
+                                  onChange={(e) => handleCampoChange(ag.id, "final_pagamento", e.target.value)}
+                                  className="w-24 text-right"
+                                />
+                              ) : (
+                                formatarMoeda(finalPagamento)
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right text-emerald-600 font-semibold">
+                              {formatarMoeda(totalPago)}
+                            </TableCell>
+                            <TableCell className="text-right text-orange-600">
+                              {formatarMoeda(faltaQuanto)}
                             </TableCell>
                             <TableCell>
                               <span className="text-xs px-2 py-1 rounded-full bg-gray-100">
                                 {ag.status}
                               </span>
+                            </TableCell>
+                            <TableCell className="max-w-[200px]">
+                              {modoEditor ? (
+                                <Textarea
+                                  value={observacoes || ""}
+                                  onChange={(e) => setDadosEditados(prev => ({
+                                    ...prev,
+                                    [ag.id]: {
+                                      ...prev[ag.id],
+                                      observacoes: e.target.value
+                                    }
+                                  }))}
+                                  placeholder="Observações..."
+                                  className="text-xs min-h-[60px]"
+                                  rows={2}
+                                />
+                              ) : (
+                                <span className="text-xs text-gray-600 line-clamp-2">
+                                  {observacoes || "-"}
+                                </span>
+                              )}
                             </TableCell>
                             <TableCell>
                               <div className="text-xs text-gray-600">
@@ -1152,30 +1387,24 @@ export default function RelatoriosFinanceirosPage() {
                               </div>
                             </TableCell>
                             <TableCell>
-                              <div className="flex gap-1">
-                                {ag.comprovante_url && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setComprovanteVisualizacao(ag.comprovante_url)}
-                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-xs"
-                                  >
-                                    <Eye className="w-3 h-3 mr-1" />
-                                    1
-                                  </Button>
-                                )}
-                                {ag.comprovante_url_2 && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => setComprovanteVisualizacao(ag.comprovante_url_2)}
-                                    className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-xs"
-                                  >
-                                    <Eye className="w-3 h-3 mr-1" />
-                                    2
-                                  </Button>
-                                )}
-                                {!ag.comprovante_url && !ag.comprovante_url_2 && (
+                              <div className="flex gap-1 flex-wrap">
+                                {[1, 2, 3, 4, 5].map(num => {
+                                  const comprovante = ag[`comprovante_${num}`];
+                                  if (!comprovante) return null;
+                                  return (
+                                    <Button
+                                      key={num}
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => setComprovanteVisualizacao(comprovante)}
+                                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-xs"
+                                    >
+                                      <Eye className="w-3 h-3 mr-1" />
+                                      {num}
+                                    </Button>
+                                  );
+                                })}
+                                {!ag.comprovante_1 && !ag.comprovante_2 && !ag.comprovante_3 && !ag.comprovante_4 && !ag.comprovante_5 && (
                                   <span className="text-xs text-gray-400">-</span>
                                 )}
                               </div>
@@ -1233,7 +1462,10 @@ export default function RelatoriosFinanceirosPage() {
                       );
 
                       const totalCombinado = agendamentosVendedor.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
-                      const totalRecebido = agendamentosVendedor.reduce((sum, ag) => sum + (ag.valor_pago || 0), 0);
+                      const totalSinal = agendamentosVendedor.reduce((sum, ag) => sum + (ag.sinal || 0), 0);
+                      const totalRecebimento2 = agendamentosVendedor.reduce((sum, ag) => sum + (ag.recebimento_2 || 0), 0);
+                      const totalFinalPagamento = agendamentosVendedor.reduce((sum, ag) => sum + (ag.final_pagamento || 0), 0);
+                      const totalRecebido = totalSinal + totalRecebimento2 + totalFinalPagamento;
                       const totalAReceber = totalCombinado - totalRecebido;
 
                       return (
