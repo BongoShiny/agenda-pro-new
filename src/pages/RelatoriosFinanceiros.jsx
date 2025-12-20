@@ -1188,7 +1188,7 @@ export default function RelatoriosFinanceirosPage() {
                 </div>
                 <div className="w-full">
                   <Input
-                    placeholder="Pesquisar por profissional, vendedor, valor combinado, valor pago ou falta..."
+                    placeholder="Pesquisar por data, número, cliente, profissional, vendedor, valores ou status..."
                     value={pesquisaDetalhado}
                     onChange={(e) => setPesquisaDetalhado(e.target.value)}
                     className="max-w-xl"
@@ -1222,8 +1222,14 @@ export default function RelatoriosFinanceirosPage() {
                         if (!pesquisaDetalhado) return true;
                         const termo = pesquisaDetalhado.toLowerCase();
                         return (
+                          ag.data?.includes(termo) ||
+                          format(criarDataPura(ag.data || ""), "dd/MM/yyyy", { locale: ptBR }).includes(termo) ||
+                          ag.cliente_telefone?.toLowerCase().includes(termo) ||
+                          ag.cliente_nome?.toLowerCase().includes(termo) ||
                           ag.profissional_nome?.toLowerCase().includes(termo) ||
                           ag.vendedor_nome?.toLowerCase().includes(termo) ||
+                          ag.status?.toLowerCase().includes(termo) ||
+                          ag.observacoes?.toLowerCase().includes(termo) ||
                           String(ag.valor_combinado || 0).includes(termo) ||
                           String(ag.sinal || 0).includes(termo) ||
                           String(ag.recebimento_2 || 0).includes(termo) ||
@@ -1420,10 +1426,18 @@ export default function RelatoriosFinanceirosPage() {
                   if (!pesquisaDetalhado) return true;
                   const termo = pesquisaDetalhado.toLowerCase();
                   return (
+                    ag.data?.includes(termo) ||
+                    format(criarDataPura(ag.data || ""), "dd/MM/yyyy", { locale: ptBR }).includes(termo) ||
+                    ag.cliente_telefone?.toLowerCase().includes(termo) ||
+                    ag.cliente_nome?.toLowerCase().includes(termo) ||
                     ag.profissional_nome?.toLowerCase().includes(termo) ||
                     ag.vendedor_nome?.toLowerCase().includes(termo) ||
+                    ag.status?.toLowerCase().includes(termo) ||
+                    ag.observacoes?.toLowerCase().includes(termo) ||
                     String(ag.valor_combinado || 0).includes(termo) ||
-                    String(ag.valor_pago || 0).includes(termo) ||
+                    String(ag.sinal || 0).includes(termo) ||
+                    String(ag.recebimento_2 || 0).includes(termo) ||
+                    String(ag.final_pagamento || 0).includes(termo) ||
                     String(ag.falta_quanto || 0).includes(termo)
                   );
                 }).length === 0 && (
