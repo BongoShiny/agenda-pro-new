@@ -531,10 +531,9 @@ export default function NovoAgendamentoDialog({
           <div className="space-y-2">
             <Label>Falta Quanto</Label>
             <Input
-              type="number"
-              step="0.01"
+              type="text"
               placeholder="R$ 0,00"
-              value={formData.falta_quanto || ""}
+              value={formData.falta_quanto > 0 ? `+${formData.falta_quanto}` : (formData.falta_quanto || "")}
               readOnly
               className="bg-gray-100"
             />
