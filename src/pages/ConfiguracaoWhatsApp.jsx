@@ -17,6 +17,7 @@ export default function ConfiguracaoWhatsAppPage() {
   const [carregando, setCarregando] = useState(true);
   const [testando, setTestando] = useState(false);
   const [mensagensEditaveis, setMensagensEditaveis] = useState({});
+  const [numeroTeste, setNumeroTeste] = useState("");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -101,9 +102,16 @@ export default function ConfiguracaoWhatsAppPage() {
   };
 
   const handleTestarEnvio = async () => {
+    if (!numeroTeste) {
+      alert("⚠️ Por favor, insira um número de telefone para testar");
+      return;
+    }
+    
     setTestando(true);
     try {
-      const response = await base44.functions.invoke('enviarLembreteWhatsApp', {});
+      const response = await base44.functions.invoke('enviarLembreteWhatsApp', { 
+        numeroTeste: numeroTeste 
+      });
       alert(`✅ Teste concluído!\n\nMensagens enviadas: ${response.data.mensagensEnviadas || 0}`);
     } catch (error) {
       alert(`❌ Erro no teste: ${error.message}`);
@@ -140,10 +148,19 @@ export default function ConfiguracaoWhatsAppPage() {
               <p className="text-sm text-gray-500">Lembretes automáticos e confirmações via WhatsApp</p>
             </div>
           </div>
-          <Button onClick={handleTestarEnvio} disabled={testando} className="bg-blue-600 hover:bg-blue-700">
-            <Send className="w-4 h-4 mr-2" />
-            {testando ? "Testando..." : "Testar Envio"}
-          </Button>
+          <div className="flex items-center gap-2">
+            <Input
+              type="text"
+              placeholder="Número para teste (ex: 5511999999999)"
+              value={numeroTeste}
+              onChange={(e) => setNumeroTeste(e.target.value)}
+              className="w-64"
+            />
+            <Button onClick={handleTestarEnvio} disabled={testando} className="bg-blue-600 hover:bg-blue-700">
+              <Send className="w-4 h-4 mr-2" />
+              {testando ? "Testando..." : "Testar Envio"}
+            </Button>
+          </div>
         </div>
       </div>
 
