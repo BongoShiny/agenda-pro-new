@@ -20,6 +20,7 @@ const formatarMoeda = (valor) => {
 
 export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim }) {
   const [unidadeSelecionada, setUnidadeSelecionada] = useState("todas");
+  const [vendedorSelecionado, setVendedorSelecionado] = useState("todos");
 
   // Filtrar vendas baseado em created_date (data de criação) e que tenham vendedor
   const vendasPeriodo = agendamentos.filter(ag => {
@@ -31,13 +32,16 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
     return dataCriacao >= dataInicio && dataCriacao <= dataFim;
   });
 
-  // Obter lista única de unidades
+  // Obter lista única de unidades e vendedores
   const unidadesUnicas = [...new Set(vendasPeriodo.map(ag => ag.unidade_nome || "Sem Unidade"))];
+  const vendedoresUnicos = [...new Set(vendasPeriodo.map(ag => ag.vendedor_nome || "Sem Vendedor"))];
 
-  // Filtrar vendas pela unidade selecionada
-  const vendasFiltradas = unidadeSelecionada === "todas" 
-    ? vendasPeriodo 
-    : vendasPeriodo.filter(ag => (ag.unidade_nome || "Sem Unidade") === unidadeSelecionada);
+  // Filtrar vendas pela unidade e vendedor selecionados
+  const vendasFiltradas = vendasPeriodo.filter(ag => {
+    const unidadeMatch = unidadeSelecionada === "todas" || (ag.unidade_nome || "Sem Unidade") === unidadeSelecionada;
+    const vendedorMatch = vendedorSelecionado === "todos" || (ag.vendedor_nome || "Sem Vendedor") === vendedorSelecionado;
+    return unidadeMatch && vendedorMatch;
+  });
 
   const formatarPeriodo = () => {
     if (dataInicio === dataFim) {
@@ -74,22 +78,36 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
             <p>Nenhuma venda registrada neste período</p>
           </div>
         ) : (
-          <Tabs value={unidadeSelecionada} onValueChange={setUnidadeSelecionada}>
-            <TabsList className="mb-4">
-              <TabsTrigger value="todas">Todas as Unidades</TabsTrigger>
-              {unidadesUnicas.map(unidade => (
-                <TabsTrigger key={unidade} value={unidade}>
-                  {unidade}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+          <div className="space-y-4">
+            <Tabs value={unidadeSelecionada} onValueChange={setUnidadeSelecionada}>
+              <TabsList className="mb-2">
+                <TabsTrigger value="todas">Todas as Unidades</TabsTrigger>
+                {unidadesUnicas.map(unidade => (
+                  <TabsTrigger key={unidade} value={unidade}>
+                    {unidade}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
 
-            <TabsContent value={unidadeSelecionada}>
-              <div className="border rounded-lg p-4">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">
-                    {unidadeSelecionada === "todas" ? "Todas as Unidades" : unidadeSelecionada}
-                  </h3>
+            <Tabs value={vendedorSelecionado} onValueChange={setVendedorSelecionado}>
+              <TabsList className="mb-4">
+                <TabsTrigger value="todos">Todos os Vendedores</TabsTrigger>
+                {vendedoresUnicos.map(vendedor => (
+                  <TabsTrigger key={vendedor} value={vendedor}>
+                    {vendedor}
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+
+            <div>
+            <div className="border rounded-lg p-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">
+                  {unidadeSelecionada === "todas" ? "Todas as Unidades" : unidadeSelecionada}
+                  {vendedorSelecionado !== "todos" && <span className="text-blue-600"> - {vendedorSelecionado}</span>}
+                </h3>
                   <div className="flex items-center gap-4">
                     <span className="text-sm text-gray-600">
                       {totalVendas} venda{totalVendas !== 1 ? 's' : ''}
@@ -97,10 +115,10 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                     <span className="text-lg font-bold text-emerald-600">
                       {formatarMoeda(totalValor)}
                     </span>
-                  </div>
                 </div>
+              </div>
 
-                <Table>
+              <Table>
                   <TableHeader>
                     <TableRow>
                       <TableHead>Data/Hora Criação</TableHead>
@@ -150,11 +168,10 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                           </TableRow>
                         );
                       })}
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
-          </Tabs>
+                </TableBody>
+              </Table>
+            </div>
+          </div>
         )}
       </CardContent>
     </Card>
