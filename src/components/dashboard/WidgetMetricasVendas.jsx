@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, TrendingUp, Calendar, Clock } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
   TableBody,
@@ -18,6 +19,8 @@ const formatarMoeda = (valor) => {
 };
 
 export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim }) {
+  const [unidadeSelecionada, setUnidadeSelecionada] = useState("todas");
+
   // Filtrar vendas baseado em created_date (data de criação) e que tenham vendedor
   const vendasPeriodo = agendamentos.filter(ag => {
     if (ag.status === "bloqueio" || ag.tipo === "bloqueio") return false;
@@ -28,19 +31,13 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
     return dataCriacao >= dataInicio && dataCriacao <= dataFim;
   });
 
-  // Agrupar vendas por unidade
-  const vendasPorUnidade = {};
-  vendasPeriodo.forEach(ag => {
-    const unidade = ag.unidade_nome || "Sem Unidade";
-    if (!vendasPorUnidade[unidade]) {
-      vendasPorUnidade[unidade] = {
-        vendas: [],
-        total: 0
-      };
-    }
-    vendasPorUnidade[unidade].vendas.push(ag);
-    vendasPorUnidade[unidade].total += ag.valor_combinado || 0;
-  });
+  // Obter lista única de unidades
+  const unidadesUnicas = [...new Set(vendasPeriodo.map(ag => ag.unidade_nome || "Sem Unidade"))];
+
+  // Filtrar vendas pela unidade selecionada
+  const vendasFiltradas = unidadeSelecionada === "todas" 
+    ? vendasPeriodo 
+    : vendasPeriodo.filter(ag => (ag.unidade_nome || "Sem Unidade") === unidadeSelecionada);
 
   const formatarPeriodo = () => {
     if (dataInicio === dataFim) {
@@ -49,8 +46,8 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
     return `${format(new Date(dataInicio + 'T12:00:00'), "dd/MM", { locale: ptBR })} - ${format(new Date(dataFim + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR })}`;
   };
 
-  const totalVendas = vendasPeriodo.length;
-  const totalValor = vendasPeriodo.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
+  const totalVendas = vendasFiltradas.length;
+  const totalValor = vendasFiltradas.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
 
   return (
     <Card className="col-span-full">
@@ -70,81 +67,94 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
           </div>
         </div>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {Object.entries(vendasPorUnidade).length === 0 ? (
+      <CardContent>
+        {vendasPeriodo.length === 0 ? (
           <div className="text-center py-8 text-gray-500">
             <Eye className="w-12 h-12 mx-auto mb-3 text-gray-300" />
             <p>Nenhuma venda registrada neste período</p>
           </div>
         ) : (
-          Object.entries(vendasPorUnidade).map(([unidade, dados]) => (
-            <div key={unidade} className="border rounded-lg p-4">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">{unidade}</h3>
-                <div className="flex items-center gap-4">
-                  <span className="text-sm text-gray-600">
-                    {dados.vendas.length} venda{dados.vendas.length !== 1 ? 's' : ''}
-                  </span>
-                  <span className="text-lg font-bold text-emerald-600">
-                    {formatarMoeda(dados.total)}
-                  </span>
-                </div>
-              </div>
+          <Tabs value={unidadeSelecionada} onValueChange={setUnidadeSelecionada}>
+            <TabsList className="mb-4">
+              <TabsTrigger value="todas">Todas as Unidades</TabsTrigger>
+              {unidadesUnicas.map(unidade => (
+                <TabsTrigger key={unidade} value={unidade}>
+                  {unidade}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data/Hora Criação</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Vendedor</TableHead>
-                    <TableHead>Profissional</TableHead>
-                    <TableHead>Data Agendamento</TableHead>
-                    <TableHead className="text-right">Valor</TableHead>
-                    <TableHead className="text-right">Pago</TableHead>
-                    <TableHead className="text-right">A Receber</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {dados.vendas
-                    .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
-                    .map((venda) => {
-                      const totalPago = (venda.sinal || 0) + (venda.recebimento_2 || 0) + (venda.final_pagamento || 0);
-                      return (
-                        <TableRow key={venda.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-2 text-sm">
-                              <Calendar className="w-3 h-3 text-gray-400" />
-                              {format(new Date(venda.created_date), "dd/MM/yyyy", { locale: ptBR })}
-                              <Clock className="w-3 h-3 text-gray-400 ml-1" />
-                              {format(new Date(venda.created_date), "HH:mm", { locale: ptBR })}
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium">{venda.cliente_nome}</TableCell>
-                          <TableCell>
-                            <span className="text-blue-600 font-medium">
-                              {venda.vendedor_nome || "-"}
-                            </span>
-                          </TableCell>
-                          <TableCell>{venda.profissional_nome}</TableCell>
-                          <TableCell>
-                            {venda.data ? format(new Date(venda.data + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR }) : "-"}
-                          </TableCell>
-                          <TableCell className="text-right font-semibold">
-                            {formatarMoeda(venda.valor_combinado)}
-                          </TableCell>
-                          <TableCell className="text-right text-emerald-600">
-                            {formatarMoeda(totalPago)}
-                          </TableCell>
-                          <TableCell className="text-right text-orange-600">
-                            {formatarMoeda(venda.falta_quanto)}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                </TableBody>
-              </Table>
-            </div>
-          ))
+            <TabsContent value={unidadeSelecionada}>
+              <div className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {unidadeSelecionada === "todas" ? "Todas as Unidades" : unidadeSelecionada}
+                  </h3>
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm text-gray-600">
+                      {totalVendas} venda{totalVendas !== 1 ? 's' : ''}
+                    </span>
+                    <span className="text-lg font-bold text-emerald-600">
+                      {formatarMoeda(totalValor)}
+                    </span>
+                  </div>
+                </div>
+
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data/Hora Criação</TableHead>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Vendedor</TableHead>
+                      <TableHead>Profissional</TableHead>
+                      <TableHead>Data Agendamento</TableHead>
+                      <TableHead className="text-right">Valor</TableHead>
+                      <TableHead className="text-right">Pago</TableHead>
+                      <TableHead className="text-right">A Receber</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {vendasFiltradas
+                      .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
+                      .map((venda) => {
+                        const totalPago = (venda.sinal || 0) + (venda.recebimento_2 || 0) + (venda.final_pagamento || 0);
+                        return (
+                          <TableRow key={venda.id}>
+                            <TableCell>
+                              <div className="flex items-center gap-2 text-sm">
+                                <Calendar className="w-3 h-3 text-gray-400" />
+                                {format(new Date(venda.created_date), "dd/MM/yyyy", { locale: ptBR })}
+                                <Clock className="w-3 h-3 text-gray-400 ml-1" />
+                                {format(new Date(venda.created_date), "HH:mm", { locale: ptBR })}
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-medium">{venda.cliente_nome}</TableCell>
+                            <TableCell>
+                              <span className="text-blue-600 font-medium">
+                                {venda.vendedor_nome || "-"}
+                              </span>
+                            </TableCell>
+                            <TableCell>{venda.profissional_nome}</TableCell>
+                            <TableCell>
+                              {venda.data ? format(new Date(venda.data + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                            </TableCell>
+                            <TableCell className="text-right font-semibold">
+                              {formatarMoeda(venda.valor_combinado)}
+                            </TableCell>
+                            <TableCell className="text-right text-emerald-600">
+                              {formatarMoeda(totalPago)}
+                            </TableCell>
+                            <TableCell className="text-right text-orange-600">
+                              {formatarMoeda(venda.falta_quanto)}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                  </TableBody>
+                </Table>
+              </div>
+            </TabsContent>
+          </Tabs>
         )}
       </CardContent>
     </Card>
