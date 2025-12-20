@@ -67,10 +67,32 @@ export default function ConfiguracaoWhatsAppPage() {
   });
 
   const handleToggleAtivo = async (config) => {
+    const novoStatus = !config.ativo;
+    
     await atualizarConfiguracaoMutation.mutateAsync({
       id: config.id,
-      dados: { ativo: !config.ativo }
+      dados: { ativo: novoStatus }
     });
+
+    // Se ativou, disparar envio automático para o dia seguinte
+    if (novoStatus) {
+      const confirmar = window.confirm(
+        `🚀 Deseja enviar mensagens automaticamente para todos os agendamentos de amanhã da unidade ${config.unidade_nome}?\n\nSerá enviado com 50s de intervalo entre cada mensagem.`
+      );
+      
+      if (confirmar) {
+        try {
+          const response = await base44.functions.invoke('enviarLembreteWhatsApp', {
+            unidadeId: config.unidade_id,
+            envioImediato: true
+          });
+          
+          alert(`✅ Enviando mensagens!\n\nTotal: ${response.data.mensagensEnviadas || 0} mensagens`);
+        } catch (error) {
+          alert(`⚠️ Erro ao enviar: ${error.message}`);
+        }
+      }
+    }
   };
 
   const handleSalvarMensagem = async (config, novaMensagem) => {

@@ -13,6 +13,8 @@ Deno.serve(async (req) => {
     // Pegar parâmetros da requisição
     const body = await req.json().catch(() => ({}));
     const numeroTeste = body.numeroTeste; // Número opcional para teste
+    const envioImediato = body.envioImediato; // Envio imediato ao ativar
+    const unidadeId = body.unidadeId; // ID da unidade para envio imediato
 
     // Pegar configurações da API do WhatsApp
     const WHATSAPP_API_URL = Deno.env.get("WHATSAPP_API_URL");
@@ -36,10 +38,29 @@ Deno.serve(async (req) => {
     const dozeHorasFrente = new Date(agoraBrasilia);
     dozeHorasFrente.setHours(dozeHorasFrente.getHours() + 12);
 
-    // Buscar configurações - se for teste, buscar todas; se não, apenas ativas
-    const configuracoes = numeroTeste 
-      ? await base44.asServiceRole.entities.ConfiguracaoWhatsApp.list()
-      : await base44.asServiceRole.entities.ConfiguracaoWhatsApp.filter({ ativo: true });
+    // Para envio imediato, calcular data de amanhã
+    let dataAmanha = null;
+    if (envioImediato) {
+      const amanha = new Date(agoraBrasilia);
+      amanha.setDate(amanha.getDate() + 1);
+      dataAmanha = amanha.toISOString().split('T')[0]; // YYYY-MM-DD
+    }
+
+    // Buscar configurações
+    let configuracoes;
+    if (envioImediato && unidadeId) {
+      // Envio imediato: buscar apenas a unidade específica
+      configuracoes = await base44.asServiceRole.entities.ConfiguracaoWhatsApp.filter({ 
+        unidade_id: unidadeId,
+        ativo: true 
+      });
+    } else if (numeroTeste) {
+      // Teste: buscar todas
+      configuracoes = await base44.asServiceRole.entities.ConfiguracaoWhatsApp.list();
+    } else {
+      // Normal: buscar apenas ativas
+      configuracoes = await base44.asServiceRole.entities.ConfiguracaoWhatsApp.filter({ ativo: true });
+    }
     
     if (configuracoes.length === 0) {
       return Response.json({ message: 'Nenhuma configuração encontrada' });
@@ -55,11 +76,18 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // Buscar agendamentos da unidade que precisam de lembrete
-      const agendamentos = await base44.asServiceRole.entities.Agendamento.filter({
+      // Buscar agendamentos da unidade
+      let filtroAgendamentos = {
         unidade_id: config.unidade_id,
         status: 'agendado'
-      });
+      };
+
+      // Se for envio imediato, filtrar por data de amanhã
+      if (envioImediato && dataAmanha) {
+        filtroAgendamentos.data = dataAmanha;
+      }
+
+      const agendamentos = await base44.asServiceRole.entities.Agendamento.filter(filtroAgendamentos);
 
       for (const ag of agendamentos) {
         // Verificar se tem telefone
@@ -79,11 +107,11 @@ Deno.serve(async (req) => {
         const [hora, minuto] = ag.hora_inicio.split(':').map(Number);
         const dataAgendamento = new Date(ano, mes - 1, dia, hora, minuto);
 
-        // Se for teste, sempre enviar; se não, verificar horários
+        // Determinar se deve enviar
         let deveEnviar = false;
         
-        if (numeroTeste) {
-          deveEnviar = true; // Modo teste: sempre envia
+        if (numeroTeste || envioImediato) {
+          deveEnviar = true; // Modo teste ou envio imediato: sempre envia
         } else {
           // Modo normal: verificar se precisa enviar lembrete de 1 dia ou 12 horas
           const diff1Dia = Math.abs(dataAgendamento - umDiaFrente);
@@ -138,13 +166,20 @@ Deno.serve(async (req) => {
             // Registrar no log
             await base44.asServiceRole.entities.LogAcao.create({
               tipo: "editou_agendamento",
-              usuario_email: numeroTeste ? user.email : "sistema-whatsapp",
+              usuario_email: numeroTeste || envioImediato ? user.email : "sistema-whatsapp",
               descricao: numeroTeste 
                 ? `Teste WhatsApp enviado para ${ag.cliente_nome} (${ag.cliente_telefone}) - Unidade: ${ag.unidade_nome}`
+                : envioImediato
+                ? `WhatsApp enviado automaticamente para ${ag.cliente_nome} (${ag.cliente_telefone}) - Ativação da unidade ${ag.unidade_nome}`
                 : `Lembrete WhatsApp enviado para ${ag.cliente_nome} (${ag.cliente_telefone})`,
               entidade_tipo: "Agendamento",
               entidade_id: ag.id
             });
+
+            // Cooldown de 50 segundos entre envios (apenas no envio imediato)
+            if (envioImediato) {
+              await new Promise(resolve => setTimeout(resolve, 50000));
+            }
           } else {
             erros.push(`Erro ao enviar para ${ag.cliente_nome} (${ag.unidade_nome}): ${response.statusText}`);
           }
@@ -158,7 +193,8 @@ Deno.serve(async (req) => {
       success: true,
       mensagensEnviadas,
       erros: erros.length > 0 ? erros : undefined,
-      modoTeste: !!numeroTeste
+      modoTeste: !!numeroTeste,
+      envioImediato: !!envioImediato
     });
 
   } catch (error) {
