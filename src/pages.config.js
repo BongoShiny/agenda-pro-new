@@ -7,6 +7,7 @@ import Administrador from './pages/Administrador';
 import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
 import Home from './pages/Home';
+import ConfiguracaoWhatsApp from './pages/ConfiguracaoWhatsApp';
 
 
 export const PAGES = {
@@ -19,6 +20,7 @@ export const PAGES = {
     "RelatoriosClientes": RelatoriosClientes,
     "RelatoriosFinanceiros": RelatoriosFinanceiros,
     "Home": Home,
+    "ConfiguracaoWhatsApp": ConfiguracaoWhatsApp,
 }
 
 export const pagesConfig = {
