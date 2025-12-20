@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { 
   LayoutDashboard, 
@@ -11,7 +11,8 @@ import {
   Settings,
   Eye,
   EyeOff,
-  FileText
+  FileText,
+  ArrowLeft
 } from "lucide-react";
 import {
   Select,
@@ -28,6 +29,7 @@ import WidgetPerformanceVendedores from "../components/dashboard/WidgetPerforman
 import WidgetContasReceber from "../components/dashboard/WidgetContasReceber";
 
 export default function HomePage() {
+  const navigate = useNavigate();
   const [usuarioAtual, setUsuarioAtual] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [periodoFaturamento, setPeriodoFaturamento] = useState("dia");
@@ -49,14 +51,21 @@ export default function HomePage() {
       try {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
+        
+        // Verificar se é superior/admin
+        const isSuperior = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades";
+        if (!isSuperior) {
+          navigate(createPageUrl("Agenda"));
+        }
       } catch (error) {
         console.error("Erro ao carregar usuário:", error);
+        navigate(createPageUrl("Agenda"));
       } finally {
         setCarregando(false);
       }
     };
     carregarUsuario();
-  }, []);
+  }, [navigate]);
 
   // Salvar preferências de widgets
   const toggleWidget = (widget) => {
@@ -98,13 +107,20 @@ export default function HomePage() {
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <LayoutDashboard className="w-5 h-5 text-blue-600" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-              <p className="text-sm text-gray-500">Bem-vindo, {usuarioAtual?.full_name}</p>
+          <div className="flex items-center gap-4">
+            <Link to={createPageUrl("Administrador")}>
+              <Button variant="outline" size="icon">
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+            </Link>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                <LayoutDashboard className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">Análises</h1>
+                <p className="text-sm text-gray-500">Visão geral e métricas do sistema</p>
+              </div>
             </div>
           </div>
           
@@ -115,14 +131,6 @@ export default function HomePage() {
                 Ir para Agenda
               </Button>
             </Link>
-            {(isAdmin || isGerencia) && (
-              <Link to={createPageUrl("Administrador")}>
-                <Button variant="outline">
-                  <Settings className="w-4 h-4 mr-2" />
-                  Administração
-                </Button>
-              </Link>
-            )}
           </div>
         </div>
       </div>

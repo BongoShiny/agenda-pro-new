@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Settings, FileText, ShieldCheck, ArrowLeft, FileSpreadsheet, DollarSign, MessageCircle } from "lucide-react";
+import { Users, Settings, FileText, ShieldCheck, ArrowLeft, FileSpreadsheet, DollarSign, MessageCircle, BarChart3 } from "lucide-react";
 
 export default function AdministradorPage() {
   const [usuarioAtual, setUsuarioAtual] = useState(null);
@@ -70,6 +70,18 @@ export default function AdministradorPage() {
 
       <div className="max-w-4xl mx-auto p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {(isAdmin || isGerencia) && (
+            <Link to={createPageUrl("Home")} className="block">
+              <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-300 transition-all cursor-pointer h-full">
+                <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
+                  <BarChart3 className="w-6 h-6 text-indigo-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Análises</h3>
+                <p className="text-sm text-gray-500">Dashboard com visão geral, métricas e análises do sistema</p>
+              </div>
+            </Link>
+          )}
+
           {(isAdmin || isGerencia) && (
             <Link to={createPageUrl("GerenciarUsuarios")} className="block">
             <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer h-full">
