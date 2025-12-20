@@ -337,7 +337,7 @@ export default function RelatoriosFinanceirosPage() {
     setDadosEditados(prev => {
       const novosValores = {
         ...prev[agendamentoId],
-        [campo]: campo === 'observacoes' ? valor : (valor ? parseFloat(valor) : null)
+        [campo]: campo === 'anotacao_venda' ? valor : (valor ? parseFloat(valor) : null)
       };
       
       // Recalcular falta_quanto automaticamente
@@ -379,7 +379,7 @@ export default function RelatoriosFinanceirosPage() {
             recebimento_2: agendamento.recebimento_2,
             final_pagamento: agendamento.final_pagamento,
             falta_quanto: agendamento.falta_quanto,
-            observacoes: agendamento.observacoes
+            anotacao_venda: agendamento.anotacao_venda
           }
         });
       }
@@ -1212,7 +1212,7 @@ export default function RelatoriosFinanceirosPage() {
                         <TableHead className="text-right">Total Pago</TableHead>
                         <TableHead className="text-right">Falta</TableHead>
                         <TableHead>Status</TableHead>
-                        <TableHead>Observações</TableHead>
+                        <TableHead>Anotação da Venda</TableHead>
                         <TableHead>Criado em</TableHead>
                         <TableHead>Comprovantes</TableHead>
                       </TableRow>
@@ -1229,7 +1229,7 @@ export default function RelatoriosFinanceirosPage() {
                           ag.profissional_nome?.toLowerCase().includes(termo) ||
                           ag.vendedor_nome?.toLowerCase().includes(termo) ||
                           ag.status?.toLowerCase().includes(termo) ||
-                          ag.observacoes?.toLowerCase().includes(termo) ||
+                          ag.anotacao_venda?.toLowerCase().includes(termo) ||
                           String(ag.valor_combinado || 0).includes(termo) ||
                           String(ag.sinal || 0).includes(termo) ||
                           String(ag.recebimento_2 || 0).includes(termo) ||
@@ -1256,9 +1256,9 @@ export default function RelatoriosFinanceirosPage() {
                         const vendedorId = dadosEditados[ag.id]?.vendedor_id !== undefined
                           ? dadosEditados[ag.id].vendedor_id
                           : ag.vendedor_id;
-                        const observacoes = dadosEditados[ag.id]?.observacoes !== undefined
-                          ? dadosEditados[ag.id].observacoes
-                          : ag.observacoes;
+                        const anotacaoVenda = dadosEditados[ag.id]?.anotacao_venda !== undefined
+                          ? dadosEditados[ag.id].anotacao_venda
+                          : ag.anotacao_venda;
                         
                         return (
                           <TableRow key={ag.id} className={dadosEditados[ag.id] ? "bg-yellow-50" : ""}>
@@ -1364,21 +1364,21 @@ export default function RelatoriosFinanceirosPage() {
                             <TableCell className="max-w-[200px]">
                               {modoEditor ? (
                                 <Textarea
-                                  value={observacoes || ""}
+                                  value={anotacaoVenda || ""}
                                   onChange={(e) => setDadosEditados(prev => ({
                                     ...prev,
                                     [ag.id]: {
                                       ...prev[ag.id],
-                                      observacoes: e.target.value
+                                      anotacao_venda: e.target.value
                                     }
                                   }))}
-                                  placeholder="Observações..."
+                                  placeholder="Anotação da venda..."
                                   className="text-xs min-h-[60px]"
                                   rows={2}
                                 />
                               ) : (
                                 <span className="text-xs text-gray-600 line-clamp-2">
-                                  {observacoes || "-"}
+                                  {anotacaoVenda || "-"}
                                 </span>
                               )}
                             </TableCell>
@@ -1433,7 +1433,7 @@ export default function RelatoriosFinanceirosPage() {
                     ag.profissional_nome?.toLowerCase().includes(termo) ||
                     ag.vendedor_nome?.toLowerCase().includes(termo) ||
                     ag.status?.toLowerCase().includes(termo) ||
-                    ag.observacoes?.toLowerCase().includes(termo) ||
+                    ag.anotacao_venda?.toLowerCase().includes(termo) ||
                     String(ag.valor_combinado || 0).includes(termo) ||
                     String(ag.sinal || 0).includes(termo) ||
                     String(ag.recebimento_2 || 0).includes(termo) ||
