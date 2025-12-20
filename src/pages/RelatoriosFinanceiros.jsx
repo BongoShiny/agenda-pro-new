@@ -1200,21 +1200,21 @@ export default function RelatoriosFinanceirosPage() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Data</TableHead>
-                        <TableHead>Número</TableHead>
-                        <TableHead>Cliente</TableHead>
-                        <TableHead>Profissional</TableHead>
-                        <TableHead>Vendedor</TableHead>
-                        <TableHead className="text-right">Vlr. Combinado</TableHead>
-                        <TableHead className="text-right">Sinal</TableHead>
-                        <TableHead className="text-right">Receb. 2</TableHead>
-                        <TableHead className="text-right">Final</TableHead>
-                        <TableHead className="text-right">Total Pago</TableHead>
-                        <TableHead className="text-right">Falta</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Anotação da Venda</TableHead>
-                        <TableHead>Criado em</TableHead>
-                        <TableHead>Comprovantes</TableHead>
+                        <TableHead className="px-4 py-3 min-w-[110px]">Data</TableHead>
+                        <TableHead className="px-4 py-3 min-w-[120px]">Número</TableHead>
+                        <TableHead className="px-4 py-3 min-w-[150px]">Cliente</TableHead>
+                        <TableHead className="px-4 py-3 min-w-[130px]">Profissional</TableHead>
+                        <TableHead className="px-4 py-3 min-w-[130px]">Vendedor</TableHead>
+                        <TableHead className="text-right px-4 py-3 min-w-[130px]">Vlr. Combinado</TableHead>
+                        <TableHead className="text-right px-4 py-3 min-w-[110px]">Sinal</TableHead>
+                        <TableHead className="text-right px-4 py-3 min-w-[110px]">Receb. 2</TableHead>
+                        <TableHead className="text-right px-4 py-3 min-w-[110px]">Final</TableHead>
+                        <TableHead className="text-right px-4 py-3 min-w-[120px]">Total Pago</TableHead>
+                        <TableHead className="text-right px-4 py-3 min-w-[110px]">Falta</TableHead>
+                        <TableHead className="px-4 py-3 min-w-[100px]">Status</TableHead>
+                        <TableHead className="px-4 py-3 min-w-[200px]">Anotação da Venda</TableHead>
+                        <TableHead className="px-4 py-3 min-w-[110px]">Criado em</TableHead>
+                        <TableHead className="px-4 py-3 min-w-[130px]">Comprovantes</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1262,13 +1262,13 @@ export default function RelatoriosFinanceirosPage() {
                         
                         return (
                           <TableRow key={ag.id} className={dadosEditados[ag.id] ? "bg-yellow-50" : ""}>
-                            <TableCell>
+                            <TableCell className="px-4 py-3">
                               {ag.data ? format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR }) : "-"}
                             </TableCell>
-                            <TableCell className="text-sm">{ag.cliente_telefone || "-"}</TableCell>
-                            <TableCell className="font-medium">{ag.cliente_nome}</TableCell>
-                            <TableCell>{ag.profissional_nome}</TableCell>
-                            <TableCell>
+                            <TableCell className="text-sm px-4 py-3">{ag.cliente_telefone || "-"}</TableCell>
+                            <TableCell className="font-medium px-4 py-3">{ag.cliente_nome}</TableCell>
+                            <TableCell className="px-4 py-3">{ag.profissional_nome}</TableCell>
+                            <TableCell className="px-4 py-3">
                               {modoEditor ? (
                                 <Select 
                                   value={vendedorId || ""} 
@@ -1298,70 +1298,70 @@ export default function RelatoriosFinanceirosPage() {
                                 <span className="text-sm">{ag.vendedor_nome || "-"}</span>
                               )}
                             </TableCell>
-                            <TableCell className="text-right">
+                            <TableCell className="text-right px-4 py-3">
                               {modoEditor ? (
                                 <Input
                                   type="number"
                                   step="0.01"
                                   value={valorCombinado || ""}
                                   onChange={(e) => handleCampoChange(ag.id, "valor_combinado", e.target.value)}
-                                  className="w-24 text-right"
+                                  className="w-28 text-right"
                                 />
                               ) : (
                                 formatarMoeda(valorCombinado)
                               )}
                             </TableCell>
-                            <TableCell className="text-right text-green-600">
+                            <TableCell className="text-right text-green-600 px-4 py-3">
                               {modoEditor ? (
                                 <Input
                                   type="number"
                                   step="0.01"
                                   value={sinal || ""}
                                   onChange={(e) => handleCampoChange(ag.id, "sinal", e.target.value)}
-                                  className="w-24 text-right"
+                                  className="w-28 text-right"
                                 />
                               ) : (
                                 formatarMoeda(sinal)
                               )}
                             </TableCell>
-                            <TableCell className="text-right text-green-600">
+                            <TableCell className="text-right text-green-600 px-4 py-3">
                               {modoEditor ? (
                                 <Input
                                   type="number"
                                   step="0.01"
                                   value={recebimento2 || ""}
                                   onChange={(e) => handleCampoChange(ag.id, "recebimento_2", e.target.value)}
-                                  className="w-24 text-right"
+                                  className="w-28 text-right"
                                 />
                               ) : (
                                 formatarMoeda(recebimento2)
                               )}
                             </TableCell>
-                            <TableCell className="text-right text-green-600">
+                            <TableCell className="text-right text-green-600 px-4 py-3">
                               {modoEditor ? (
                                 <Input
                                   type="number"
                                   step="0.01"
                                   value={finalPagamento || ""}
                                   onChange={(e) => handleCampoChange(ag.id, "final_pagamento", e.target.value)}
-                                  className="w-24 text-right"
+                                  className="w-28 text-right"
                                 />
                               ) : (
                                 formatarMoeda(finalPagamento)
                               )}
                             </TableCell>
-                            <TableCell className="text-right text-emerald-600 font-semibold">
+                            <TableCell className="text-right text-emerald-600 font-semibold px-4 py-3">
                               {formatarMoeda(totalPago)}
                             </TableCell>
-                            <TableCell className="text-right text-orange-600">
+                            <TableCell className="text-right text-orange-600 px-4 py-3">
                               {formatarMoeda(faltaQuanto)}
                             </TableCell>
-                            <TableCell>
+                            <TableCell className="px-4 py-3">
                               <span className="text-xs px-2 py-1 rounded-full bg-gray-100">
                                 {ag.status}
                               </span>
                             </TableCell>
-                            <TableCell className="max-w-[200px]">
+                            <TableCell className="max-w-[200px] px-4 py-3">
                               {modoEditor ? (
                                 <Textarea
                                   value={anotacaoVenda || ""}
@@ -1381,8 +1381,8 @@ export default function RelatoriosFinanceirosPage() {
                                   {anotacaoVenda || "-"}
                                 </span>
                               )}
-                            </TableCell>
-                            <TableCell>
+                              </TableCell>
+                              <TableCell className="px-4 py-3">
                               <div className="text-xs text-gray-600">
                                 {ag.created_date ? (
                                   <>
@@ -1391,8 +1391,8 @@ export default function RelatoriosFinanceirosPage() {
                                   </>
                                 ) : "-"}
                               </div>
-                            </TableCell>
-                            <TableCell>
+                              </TableCell>
+                              <TableCell className="px-4 py-3">
                               <div className="flex gap-1 flex-wrap">
                                 {[1, 2, 3, 4, 5].map(num => {
                                   const comprovante = ag[`comprovante_${num}`];
