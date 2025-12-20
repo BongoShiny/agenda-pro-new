@@ -147,7 +147,7 @@ export default function NovoAgendamentoDialog({
     const finalPagamento = parseFloat(formData.final_pagamento) || 0;
     const totalPago = sinal + recebimento2 + finalPagamento;
     const falta = combinado - totalPago;
-    setFormData(prev => ({ ...prev, falta_quanto: falta >= 0 ? falta : 0 }));
+    setFormData(prev => ({ ...prev, falta_quanto: falta }));
   }, [formData.valor_combinado, formData.sinal, formData.recebimento_2, formData.final_pagamento]);
 
   const handleClienteChange = (clienteId) => {
