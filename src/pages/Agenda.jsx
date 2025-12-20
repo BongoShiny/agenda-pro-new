@@ -482,9 +482,10 @@ export default function AgendaPage() {
       if (resultado.status_paciente === "paciente_novo" && resultado.vendedor_id) {
         const vendedor = await base44.entities.Vendedor.list().then(v => v.find(vend => vend.id === resultado.vendedor_id));
         if (vendedor) {
+          const totalPago = (resultado.sinal || 0) + (resultado.recebimento_2 || 0) + (resultado.final_pagamento || 0);
           await base44.entities.Vendedor.update(vendedor.id, {
             valor_combinado_total: (vendedor.valor_combinado_total || 0) + (resultado.valor_combinado || 0),
-            valor_recebido_total: (vendedor.valor_recebido_total || 0) + (resultado.valor_pago || 0),
+            valor_recebido_total: (vendedor.valor_recebido_total || 0) + totalPago,
             a_receber_total: (vendedor.a_receber_total || 0) + (resultado.falta_quanto || 0)
           });
           queryClient.invalidateQueries({ queryKey: ['vendedores'] });
@@ -547,24 +548,26 @@ export default function AgendaPage() {
           resultado.vendedor_id) {
         const vendedor = await base44.entities.Vendedor.list().then(v => v.find(vend => vend.id === resultado.vendedor_id));
         if (vendedor) {
+          const totalPago = (resultado.sinal || 0) + (resultado.recebimento_2 || 0) + (resultado.final_pagamento || 0);
           await base44.entities.Vendedor.update(vendedor.id, {
             valor_combinado_total: (vendedor.valor_combinado_total || 0) + (resultado.valor_combinado || 0),
-            valor_recebido_total: (vendedor.valor_recebido_total || 0) + (resultado.valor_pago || 0),
+            valor_recebido_total: (vendedor.valor_recebido_total || 0) + totalPago,
             a_receber_total: (vendedor.a_receber_total || 0) + (resultado.falta_quanto || 0)
           });
           queryClient.invalidateQueries({ queryKey: ['vendedores'] });
         }
       }
-      
+
       // Remover venda se desmarcou "Paciente Novo"
       if (dadosAntigos?.status_paciente === "paciente_novo" && 
           resultado.status_paciente !== "paciente_novo" && 
           dadosAntigos?.vendedor_id) {
         const vendedor = await base44.entities.Vendedor.list().then(v => v.find(vend => vend.id === dadosAntigos.vendedor_id));
         if (vendedor) {
+          const totalPagoAntigo = (dadosAntigos.sinal || 0) + (dadosAntigos.recebimento_2 || 0) + (dadosAntigos.final_pagamento || 0);
           await base44.entities.Vendedor.update(vendedor.id, {
             valor_combinado_total: (vendedor.valor_combinado_total || 0) - (dadosAntigos.valor_combinado || 0),
-            valor_recebido_total: (vendedor.valor_recebido_total || 0) - (dadosAntigos.valor_pago || 0),
+            valor_recebido_total: (vendedor.valor_recebido_total || 0) - totalPagoAntigo,
             a_receber_total: (vendedor.a_receber_total || 0) - (dadosAntigos.falta_quanto || 0)
           });
           queryClient.invalidateQueries({ queryKey: ['vendedores'] });
