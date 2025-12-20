@@ -23,6 +23,7 @@ import WidgetProximosAgendamentos from "../components/dashboard/WidgetProximosAg
 import WidgetTarefasPendentes from "../components/dashboard/WidgetTarefasPendentes";
 import WidgetPerformanceVendedores from "../components/dashboard/WidgetPerformanceVendedores";
 import WidgetContasReceber from "../components/dashboard/WidgetContasReceber";
+import WidgetMetricasVendas from "../components/dashboard/WidgetMetricasVendas";
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -31,6 +32,10 @@ export default function HomePage() {
   const hoje = format(new Date(), "yyyy-MM-dd");
   const [dataInicio, setDataInicio] = useState(hoje);
   const [dataFim, setDataFim] = useState(hoje);
+  
+  // Período para Métricas de Vendas (separado do faturamento)
+  const [dataInicioVendas, setDataInicioVendas] = useState(hoje);
+  const [dataFimVendas, setDataFimVendas] = useState(hoje);
   
   // Estado de widgets visíveis (salvo no localStorage)
   const [widgetsVisiveis, setWidgetsVisiveis] = useState(() => {
@@ -164,6 +169,7 @@ export default function HomePage() {
 
               {widgetsVisiveis.faturamento && (
                 <div className="flex items-center gap-4">
+                  <span className="text-sm font-medium text-gray-700">Período Faturamento:</span>
                   <div className="flex items-center gap-2">
                     <Label className="text-sm text-gray-600">De:</Label>
                     <Input
@@ -179,6 +185,30 @@ export default function HomePage() {
                       type="date"
                       value={dataFim}
                       onChange={(e) => setDataFim(e.target.value)}
+                      className="w-40"
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {widgetsVisiveis.metricasVendas && (
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-medium text-gray-700">Período Métricas de Vendas:</span>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm text-gray-600">De:</Label>
+                    <Input
+                      type="date"
+                      value={dataInicioVendas}
+                      onChange={(e) => setDataInicioVendas(e.target.value)}
+                      className="w-40"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Label className="text-sm text-gray-600">Até:</Label>
+                    <Input
+                      type="date"
+                      value={dataFimVendas}
+                      onChange={(e) => setDataFimVendas(e.target.value)}
                       className="w-40"
                     />
                   </div>
@@ -208,6 +238,10 @@ export default function HomePage() {
           
           {widgetsVisiveis.contasReceber && (
             <WidgetContasReceber agendamentos={agendamentos} />
+          )}
+          
+          {widgetsVisiveis.metricasVendas && (
+            <WidgetMetricasVendas agendamentos={agendamentos} dataInicio={dataInicioVendas} dataFim={dataFimVendas} />
           )}
         </div>
 
