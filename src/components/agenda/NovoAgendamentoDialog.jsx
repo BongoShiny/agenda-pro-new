@@ -533,7 +533,13 @@ export default function NovoAgendamentoDialog({
             <Input
               type="text"
               placeholder="R$ 0,00"
-              value={formData.falta_quanto > 0 ? `+${formData.falta_quanto}` : (formData.falta_quanto || "")}
+              value={
+                formData.falta_quanto > 0 
+                  ? `+${formData.falta_quanto}` 
+                  : formData.falta_quanto < 0 
+                    ? `Pago a mais do que combinado ${Math.abs(formData.falta_quanto)}`
+                    : (formData.falta_quanto || "")
+              }
               readOnly
               className="bg-gray-100"
             />
