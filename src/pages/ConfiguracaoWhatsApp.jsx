@@ -69,6 +69,23 @@ export default function ConfiguracaoWhatsAppPage() {
   const handleToggleAtivo = async (config) => {
     const novoStatus = !config.ativo;
     
+    // Se está tentando ativar, verificar se a API está configurada
+    if (novoStatus) {
+      try {
+        const response = await base44.functions.invoke('enviarLembreteWhatsApp', {
+          verificarConfig: true
+        });
+        
+        if (response.data.error) {
+          alert(`❌ Não é possível ativar!\n\n${response.data.error}\n\nConfigure os secrets da API do WhatsApp primeiro.`);
+          return;
+        }
+      } catch (error) {
+        alert(`❌ Não é possível ativar!\n\nErro: ${error.message}\n\nConfigure os secrets da API do WhatsApp primeiro.`);
+        return;
+      }
+    }
+    
     await atualizarConfiguracaoMutation.mutateAsync({
       id: config.id,
       dados: { ativo: novoStatus }

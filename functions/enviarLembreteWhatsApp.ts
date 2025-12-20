@@ -15,11 +15,22 @@ Deno.serve(async (req) => {
     const numeroTeste = body.numeroTeste; // Número opcional para teste
     const envioImediato = body.envioImediato; // Envio imediato ao ativar
     const unidadeId = body.unidadeId; // ID da unidade para envio imediato
+    const verificarConfig = body.verificarConfig; // Apenas verificar se a config existe
 
     // Pegar configurações da API do WhatsApp
     const WHATSAPP_API_URL = Deno.env.get("WHATSAPP_API_URL");
     const WHATSAPP_API_TOKEN = Deno.env.get("WHATSAPP_API_TOKEN");
     const WHATSAPP_INSTANCE_NAME = Deno.env.get("WHATSAPP_INSTANCE_NAME");
+
+    // Se for apenas verificação de configuração
+    if (verificarConfig) {
+      if (!WHATSAPP_API_URL || !WHATSAPP_API_TOKEN) {
+        return Response.json({ 
+          error: 'API do WhatsApp não configurada. Configure WHATSAPP_API_URL e WHATSAPP_API_TOKEN nos secrets do aplicativo.' 
+        });
+      }
+      return Response.json({ success: true, configurado: true });
+    }
 
     if (!WHATSAPP_API_URL || !WHATSAPP_API_TOKEN) {
       return Response.json({ 
