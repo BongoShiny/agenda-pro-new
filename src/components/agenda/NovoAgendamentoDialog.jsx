@@ -54,7 +54,6 @@ export default function NovoAgendamentoDialog({
   modoEdicao = false,
   agendamentos = []
 }) {
-  // unidades já vem filtradas da página principal
   const [formData, setFormData] = useState({
     cliente_id: "",
     cliente_nome: "",
@@ -73,13 +72,25 @@ export default function NovoAgendamentoDialog({
     observacoes: "",
     sala: "",
     equipamento: "",
-    status_paciente: ""
+    status_paciente: "",
+    valor_combinado: null,
+    sinal: null,
+    recebimento_2: null,
+    final_pagamento: null,
+    falta_quanto: null,
+    vendedor_id: "",
+    vendedor_nome: "",
+    comprovante_1: "",
+    comprovante_2: "",
+    comprovante_3: "",
+    comprovante_4: "",
+    comprovante_5: ""
   });
 
   const [clientePopoverAberto, setClientePopoverAberto] = useState(false);
   const [buscaCliente, setBuscaCliente] = useState("");
   const [erroHorarioBloqueado, setErroHorarioBloqueado] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [uploadingFile, setUploadingFile] = useState(null);
 
   const { data: vendedores = [] } = useQuery({
     queryKey: ['vendedores'],
@@ -110,19 +121,34 @@ export default function NovoAgendamentoDialog({
         equipamento: agendamentoInicial.equipamento || "",
         status_paciente: agendamentoInicial.status_paciente || "",
         valor_combinado: agendamentoInicial.valor_combinado || null,
-        valor_pago: agendamentoInicial.valor_pago || null,
+        sinal: agendamentoInicial.sinal || null,
+        recebimento_2: agendamentoInicial.recebimento_2 || null,
+        final_pagamento: agendamentoInicial.final_pagamento || null,
         falta_quanto: agendamentoInicial.falta_quanto || null,
         vendedor_id: agendamentoInicial.vendedor_id || "",
         vendedor_nome: agendamentoInicial.vendedor_nome || "",
-        comprovante_url: agendamentoInicial.comprovante_url || "",
-        comprovante_url_2: agendamentoInicial.comprovante_url_2 || ""
+        comprovante_1: agendamentoInicial.comprovante_1 || "",
+        comprovante_2: agendamentoInicial.comprovante_2 || "",
+        comprovante_3: agendamentoInicial.comprovante_3 || "",
+        comprovante_4: agendamentoInicial.comprovante_4 || "",
+        comprovante_5: agendamentoInicial.comprovante_5 || ""
       };
       
-      console.log("📝 DIALOG ABERTO | Modo:", modoEdicao ? "EDIÇÃO" : "NOVO", "| Data:", dados.data);
       setFormData(dados);
       setBuscaCliente(dados.cliente_nome);
     }
   }, [open, agendamentoInicial, modoEdicao]);
+
+  // Calcular automaticamente falta_quanto
+  useEffect(() => {
+    const combinado = parseFloat(formData.valor_combinado) || 0;
+    const sinal = parseFloat(formData.sinal) || 0;
+    const recebimento2 = parseFloat(formData.recebimento_2) || 0;
+    const finalPagamento = parseFloat(formData.final_pagamento) || 0;
+    const totalPago = sinal + recebimento2 + finalPagamento;
+    const falta = combinado - totalPago;
+    setFormData(prev => ({ ...prev, falta_quanto: falta >= 0 ? falta : 0 }));
+  }, [formData.valor_combinado, formData.sinal, formData.recebimento_2, formData.final_pagamento]);
 
   const handleClienteChange = (clienteId) => {
     const cliente = clientes.find(c => c.id === clienteId);
@@ -172,40 +198,30 @@ export default function NovoAgendamentoDialog({
   const handleDataChange = (date) => {
     if (date) {
       const dataFormatada = formatarDataPura(date);
-      console.log("📅 DIALOG - Data selecionada:", dataFormatada, "| Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
       setFormData(prev => ({ ...prev, data: dataFormatada }));
     }
   };
 
-  const handleUploadComprovante = async (e, numero) => {
-    const file = e.target.files?.[0];
+  const handleFileUpload = async (e, numeroComprovante) => {
+    const file = e.target.files[0];
     if (!file) return;
 
-    // Validar tipo de arquivo (apenas imagens)
-    if (!file.type.startsWith('image/')) {
-      alert('Por favor, selecione apenas arquivos de imagem');
-      return;
-    }
-
-    setUploading(true);
+    setUploadingFile(numeroComprovante);
     try {
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      if (numero === 1) {
-        setFormData(prev => ({ ...prev, comprovante_url: file_url }));
-      } else {
-        setFormData(prev => ({ ...prev, comprovante_url_2: file_url }));
-      }
+      
+      const campoComprovante = `comprovante_${numeroComprovante}`;
+      setFormData(prev => ({ ...prev, [campoComprovante]: file_url }));
+      
+      alert("✅ Comprovante enviado com sucesso!");
     } catch (error) {
-      console.error('Erro ao fazer upload:', error);
-      alert('Erro ao fazer upload do comprovante: ' + error.message);
+      alert("❌ Erro ao enviar comprovante: " + error.message);
     } finally {
-      setUploading(false);
+      setUploadingFile(null);
     }
   };
 
   const handleSubmit = () => {
-    console.log("💾 DIALOG - Salvando com data:", formData.data);
-    
     // Verificar se há bloqueio que SOBREPÕE com o horário selecionado
     const [horaInicioNum, minInicioNum] = formData.hora_inicio.split(':').map(Number);
     const [horaFimNum, minFimNum] = formData.hora_fim.split(':').map(Number);
@@ -219,13 +235,11 @@ export default function NovoAgendamentoDialog({
       if (!(ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO")) return false;
       if (ag.id === formData.id) return false;
       
-      // Verificar sobreposição de horários
       const [agHoraInicio, agMinInicio] = ag.hora_inicio.split(':').map(Number);
       const [agHoraFim, agMinFim] = ag.hora_fim.split(':').map(Number);
       const agInicioMinutos = agHoraInicio * 60 + agMinInicio;
       const agFimMinutos = agHoraFim * 60 + agMinFim;
       
-      // Verifica se há sobreposição: início antes do fim do bloqueio E fim depois do início do bloqueio
       return (inicioMinutos < agFimMinutos && fimMinutos > agInicioMinutos);
     });
 
@@ -235,21 +249,13 @@ export default function NovoAgendamentoDialog({
       return;
     }
     
-    // Calcular automaticamente falta_quanto
-    const valorCombinado = formData.valor_combinado || 0;
-    const valorPago = formData.valor_pago || 0;
-    const dadosComCalculo = {
-      ...formData,
-      falta_quanto: valorCombinado - valorPago
-    };
-    
-    onSave(dadosComCalculo);
+    onSave(formData);
     onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>{modoEdicao ? "Editar Agendamento" : "Novo Agendamento"}</DialogTitle>
         </DialogHeader>
@@ -481,113 +487,87 @@ export default function NovoAgendamentoDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Valor Pago</Label>
+            <Label>Sinal</Label>
             <Input
               type="number"
               step="0.01"
               placeholder="R$ 0,00"
-              value={formData.valor_pago || ""}
+              value={formData.sinal || ""}
               onChange={(e) => setFormData(prev => ({ 
                 ...prev, 
-                valor_pago: e.target.value ? parseFloat(e.target.value) : null 
+                sinal: e.target.value ? parseFloat(e.target.value) : null 
               }))}
             />
           </div>
 
           <div className="space-y-2">
-            <Label>Anexar Comprovantes (até 2)</Label>
-            <div className="grid grid-cols-2 gap-3">
-              {/* Comprovante 1 */}
-              <div>
-                <Label className="text-xs text-gray-500">Comprovante 1</Label>
-                {formData.comprovante_url ? (
-                  <div className="space-y-2">
-                    <div className="relative border rounded-lg overflow-hidden">
-                      <img 
-                        src={formData.comprovante_url} 
-                        alt="Comprovante 1" 
-                        className="w-full h-24 object-cover"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-1 right-1 h-5 w-5"
-                        onClick={() => setFormData(prev => ({ ...prev, comprovante_url: "" }))}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                    <a 
-                      href={formData.comprovante_url} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:underline block"
-                    >
-                      Ver completo
-                    </a>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleUploadComprovante(e, 1)}
-                      disabled={uploading}
-                      className="cursor-pointer text-xs"
-                    />
-                  </div>
-                )}
-              </div>
+            <Label>Recebimento 2</Label>
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="R$ 0,00"
+              value={formData.recebimento_2 || ""}
+              onChange={(e) => setFormData(prev => ({ 
+                ...prev, 
+                recebimento_2: e.target.value ? parseFloat(e.target.value) : null 
+              }))}
+            />
+          </div>
 
-              {/* Comprovante 2 */}
-              <div>
-                <Label className="text-xs text-gray-500">Comprovante 2</Label>
-                {formData.comprovante_url_2 ? (
-                  <div className="space-y-2">
-                    <div className="relative border rounded-lg overflow-hidden">
-                      <img 
-                        src={formData.comprovante_url_2} 
-                        alt="Comprovante 2" 
-                        className="w-full h-24 object-cover"
-                      />
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="icon"
-                        className="absolute top-1 right-1 h-5 w-5"
-                        onClick={() => setFormData(prev => ({ ...prev, comprovante_url_2: "" }))}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                    <a 
-                      href={formData.comprovante_url_2} 
-                      target="_blank" 
-                      rel="noopener noreferrer"
-                      className="text-xs text-blue-600 hover:underline block"
+          <div className="space-y-2">
+            <Label>Final de Pagamento</Label>
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="R$ 0,00"
+              value={formData.final_pagamento || ""}
+              onChange={(e) => setFormData(prev => ({ 
+                ...prev, 
+                final_pagamento: e.target.value ? parseFloat(e.target.value) : null 
+              }))}
+            />
+          </div>
+
+          <div className="space-y-2">
+            <Label>Falta Quanto</Label>
+            <Input
+              type="number"
+              step="0.01"
+              placeholder="R$ 0,00"
+              value={formData.falta_quanto || ""}
+              readOnly
+              className="bg-gray-100"
+            />
+          </div>
+
+          <div className="col-span-2 space-y-3">
+            <Label>Anexar Comprovantes (até 5)</Label>
+            <div className="grid grid-cols-5 gap-3">
+              {[1, 2, 3, 4, 5].map(num => (
+                <div key={num}>
+                  <Label className="text-xs text-gray-500">Comprovante {num}</Label>
+                  <Input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => handleFileUpload(e, num)}
+                    disabled={uploadingFile === num}
+                  />
+                  {uploadingFile === num && (
+                    <p className="text-xs text-blue-600 mt-1">Enviando...</p>
+                  )}
+                  {formData[`comprovante_${num}`] && (
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="text-xs p-0 h-auto mt-1"
+                      onClick={() => window.open(formData[`comprovante_${num}`], '_blank')}
                     >
-                      Ver completo
-                    </a>
-                  </div>
-                ) : (
-                  <div className="relative">
-                    <Input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleUploadComprovante(e, 2)}
-                      disabled={uploading}
-                      className="cursor-pointer text-xs"
-                    />
-                  </div>
-                )}
-              </div>
+                      Ver comprovante {num}
+                    </Button>
+                  )}
+                </div>
+              ))}
             </div>
-            {uploading && (
-              <div className="text-xs text-gray-600 text-center">
-                Enviando comprovante...
-              </div>
-            )}
           </div>
 
           <div className="col-span-2 space-y-2">
