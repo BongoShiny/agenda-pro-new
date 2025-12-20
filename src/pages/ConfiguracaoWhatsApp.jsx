@@ -281,23 +281,40 @@ export default function ConfiguracaoWhatsAppPage() {
           <CardHeader>
             <CardTitle className="text-amber-900 flex items-center gap-2">
               <Clock className="w-5 h-5" />
-              Passo 3: Configure Envio Automático (Opcional)
+              Passo 3: Configure Envio Automático Recorrente
             </CardTitle>
           </CardHeader>
           <CardContent>
+            <Alert className="mb-4 bg-green-50 border-green-300">
+              <MessageCircle className="h-4 w-4 text-green-600" />
+              <AlertDescription className="text-green-800">
+                <strong>✅ Unidades ATIVAS:</strong> Com o Cron Job configurado, o sistema enviará automaticamente mensagens TODOS OS DIAS para os agendamentos do dia seguinte, conforme os horários configurados (1 dia antes e/ou 12 horas antes).
+              </AlertDescription>
+            </Alert>
+
             <p className="text-amber-800 mb-3">
               Os lembretes são enviados em <strong>horário de Brasília</strong>, 1 dia e/ou 12 horas antes do agendamento.
             </p>
             <p className="text-amber-800 mb-4">
-              Para envio automático, configure um <strong>Cron Job</strong> no Dashboard para chamar a função:
+              Para ativar o envio automático recorrente, configure um <strong>Cron Job</strong> no Dashboard:
             </p>
-            <div className="bg-white p-4 rounded-lg border border-amber-300">
-              <code className="text-sm font-mono text-amber-900">
-                enviarLembreteWhatsApp
-              </code>
+            <div className="bg-white p-4 rounded-lg border border-amber-300 space-y-3">
+              <div>
+                <p className="text-sm font-semibold text-amber-900 mb-1">Função:</p>
+                <code className="text-sm font-mono text-amber-900">
+                  enviarLembreteWhatsApp
+                </code>
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-amber-900 mb-1">Schedule (Cron):</p>
+                <code className="text-sm font-mono text-amber-900">
+                  0 */1 * * *
+                </code>
+                <p className="text-xs text-amber-700 mt-1">(A cada hora)</p>
+              </div>
             </div>
             <p className="text-sm text-amber-700 mt-3">
-              💡 Recomendado: Execute a cada hora (0 */1 * * *) para garantir o envio no horário correto.
+              💡 <strong>Importante:</strong> Apenas unidades com o toggle "Ativo" ligado receberão os envios automáticos recorrentes.
             </p>
           </CardContent>
         </Card>
