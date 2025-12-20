@@ -101,73 +101,72 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
               </TabsList>
             </Tabs>
 
-            <div>
             <div className="border rounded-lg p-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">
                   {unidadeSelecionada === "todas" ? "Todas as Unidades" : unidadeSelecionada}
                   {vendedorSelecionado !== "todos" && <span className="text-blue-600"> - {vendedorSelecionado}</span>}
                 </h3>
-                  <div className="flex items-center gap-4">
-                    <span className="text-sm text-gray-600">
-                      {totalVendas} venda{totalVendas !== 1 ? 's' : ''}
-                    </span>
-                    <span className="text-lg font-bold text-emerald-600">
-                      {formatarMoeda(totalValor)}
-                    </span>
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-gray-600">
+                    {totalVendas} venda{totalVendas !== 1 ? 's' : ''}
+                  </span>
+                  <span className="text-lg font-bold text-emerald-600">
+                    {formatarMoeda(totalValor)}
+                  </span>
                 </div>
               </div>
 
               <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Data/Hora Criação</TableHead>
-                      <TableHead>Cliente</TableHead>
-                      <TableHead>Vendedor</TableHead>
-                      <TableHead>Profissional</TableHead>
-                      <TableHead>Data Agendamento</TableHead>
-                      <TableHead className="text-right">Valor</TableHead>
-                      <TableHead className="text-right">Pago</TableHead>
-                      <TableHead className="text-right">A Receber</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {vendasFiltradas
-                      .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
-                      .map((venda) => {
-                        const totalPago = (venda.sinal || 0) + (venda.recebimento_2 || 0) + (venda.final_pagamento || 0);
-                        return (
-                          <TableRow key={venda.id}>
-                            <TableCell>
-                              <div className="flex items-center gap-2 text-sm">
-                                <Calendar className="w-3 h-3 text-gray-400" />
-                                {format(new Date(venda.created_date), "dd/MM/yyyy", { locale: ptBR })}
-                                <Clock className="w-3 h-3 text-gray-400 ml-1" />
-                                {format(new Date(venda.created_date), "HH:mm", { locale: ptBR })}
-                              </div>
-                            </TableCell>
-                            <TableCell className="font-medium">{venda.cliente_nome}</TableCell>
-                            <TableCell>
-                              <span className="text-blue-600 font-medium">
-                                {venda.vendedor_nome || "-"}
-                              </span>
-                            </TableCell>
-                            <TableCell>{venda.profissional_nome}</TableCell>
-                            <TableCell>
-                              {venda.data ? format(new Date(venda.data + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR }) : "-"}
-                            </TableCell>
-                            <TableCell className="text-right font-semibold">
-                              {formatarMoeda(venda.valor_combinado)}
-                            </TableCell>
-                            <TableCell className="text-right text-emerald-600">
-                              {formatarMoeda(totalPago)}
-                            </TableCell>
-                            <TableCell className="text-right text-orange-600">
-                              {formatarMoeda(venda.falta_quanto)}
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Data/Hora Criação</TableHead>
+                    <TableHead>Cliente</TableHead>
+                    <TableHead>Vendedor</TableHead>
+                    <TableHead>Profissional</TableHead>
+                    <TableHead>Data Agendamento</TableHead>
+                    <TableHead className="text-right">Valor</TableHead>
+                    <TableHead className="text-right">Pago</TableHead>
+                    <TableHead className="text-right">A Receber</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {vendasFiltradas
+                    .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
+                    .map((venda) => {
+                      const totalPago = (venda.sinal || 0) + (venda.recebimento_2 || 0) + (venda.final_pagamento || 0);
+                      return (
+                        <TableRow key={venda.id}>
+                          <TableCell>
+                            <div className="flex items-center gap-2 text-sm">
+                              <Calendar className="w-3 h-3 text-gray-400" />
+                              {format(new Date(venda.created_date), "dd/MM/yyyy", { locale: ptBR })}
+                              <Clock className="w-3 h-3 text-gray-400 ml-1" />
+                              {format(new Date(venda.created_date), "HH:mm", { locale: ptBR })}
+                            </div>
+                          </TableCell>
+                          <TableCell className="font-medium">{venda.cliente_nome}</TableCell>
+                          <TableCell>
+                            <span className="text-blue-600 font-medium">
+                              {venda.vendedor_nome || "-"}
+                            </span>
+                          </TableCell>
+                          <TableCell>{venda.profissional_nome}</TableCell>
+                          <TableCell>
+                            {venda.data ? format(new Date(venda.data + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">
+                            {formatarMoeda(venda.valor_combinado)}
+                          </TableCell>
+                          <TableCell className="text-right text-emerald-600">
+                            {formatarMoeda(totalPago)}
+                          </TableCell>
+                          <TableCell className="text-right text-orange-600">
+                            {formatarMoeda(venda.falta_quanto)}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                 </TableBody>
               </Table>
             </div>
