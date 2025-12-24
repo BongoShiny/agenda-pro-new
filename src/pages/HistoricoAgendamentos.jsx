@@ -64,7 +64,16 @@ const tipoAcaoLabels = {
     editou_unidade: "Editou Unidade",
     excluiu_unidade: "Excluiu Unidade",
     criou_excecao_horario: "Criou Exceção de Horário",
-    excluiu_excecao_horario: "Excluiu Exceção de Horário"
+    excluiu_excecao_horario: "Excluiu Exceção de Horário",
+    criou_vendedor: "Criou Vendedor",
+    editou_vendedor: "Editou Vendedor",
+    excluiu_vendedor: "Excluiu Vendedor",
+    gerou_relatorio_pdf: "Gerou Relatório PDF",
+    gerou_relatorio_csv: "Gerou Relatório CSV",
+    salvou_prontuario: "Salvou Prontuário",
+    editou_prontuario: "Editou Prontuário",
+    login: "Login",
+    logout: "Logout"
   };
 
 const tipoAcaoColors = {
@@ -86,7 +95,16 @@ const tipoAcaoColors = {
   editou_unidade: "bg-sky-100 text-sky-800",
   excluiu_unidade: "bg-rose-100 text-rose-800",
   criou_excecao_horario: "bg-fuchsia-100 text-fuchsia-800",
-  excluiu_excecao_horario: "bg-stone-100 text-stone-800"
+  excluiu_excecao_horario: "bg-stone-100 text-stone-800",
+  criou_vendedor: "bg-cyan-100 text-cyan-800",
+  editou_vendedor: "bg-cyan-100 text-cyan-800",
+  excluiu_vendedor: "bg-red-100 text-red-800",
+  gerou_relatorio_pdf: "bg-pink-100 text-pink-800",
+  gerou_relatorio_csv: "bg-pink-100 text-pink-800",
+  salvou_prontuario: "bg-amber-100 text-amber-800",
+  editou_prontuario: "bg-amber-100 text-amber-800",
+  login: "bg-green-100 text-green-800",
+  logout: "bg-gray-100 text-gray-800"
 };
 
 export default function HistoricoAgendamentosPage() {

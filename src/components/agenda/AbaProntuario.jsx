@@ -63,7 +63,7 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
         
         // Registrar edição no log
         await base44.entities.LogAcao.create({
-          tipo: "editou_agendamento",
+          tipo: "editou_prontuario",
           usuario_email: usuarioAtual?.email || "sistema",
           descricao: `Editou prontuário de: ${agendamento.cliente_nome} - ${agendamento.data} às ${agendamento.hora_inicio}`,
           entidade_tipo: "Prontuario",
@@ -86,9 +86,9 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
         
         // Registrar criação no log
         await base44.entities.LogAcao.create({
-          tipo: "criou_agendamento",
+          tipo: "salvou_prontuario",
           usuario_email: usuarioAtual?.email || "sistema",
-          descricao: `Criou prontuário para: ${agendamento.cliente_nome} - ${agendamento.data} às ${agendamento.hora_inicio}`,
+          descricao: `Salvou novo prontuário para: ${agendamento.cliente_nome} - ${agendamento.data} às ${agendamento.hora_inicio}`,
           entidade_tipo: "Prontuario",
           entidade_id: resultado.id,
           dados_novos: JSON.stringify(resultado)

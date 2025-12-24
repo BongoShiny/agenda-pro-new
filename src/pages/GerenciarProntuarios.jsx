@@ -59,6 +59,14 @@ export default function GerenciarProntuariosPage() {
         
         if (!temAcesso) {
           navigate(createPageUrl("Agenda"));
+        } else {
+          // Registrar entrada na área de prontuários
+          await base44.entities.LogAcao.create({
+            tipo: "acessou_relatorios",
+            usuario_email: user.email,
+            descricao: "Entrou na área de Gerenciar Prontuários",
+            entidade_tipo: "Prontuario"
+          });
         }
       } catch (error) {
         navigate(createPageUrl("Agenda"));
@@ -67,6 +75,18 @@ export default function GerenciarProntuariosPage() {
       }
     };
     carregarUsuario();
+
+    // Registrar saída quando componente desmontar
+    return () => {
+      if (usuarioAtual) {
+        base44.entities.LogAcao.create({
+          tipo: "acessou_relatorios",
+          usuario_email: usuarioAtual.email,
+          descricao: "Saiu da área de Gerenciar Prontuários",
+          entidade_tipo: "Prontuario"
+        }).catch(err => console.error("Erro ao registrar saída:", err));
+      }
+    };
   }, [navigate]);
 
   const { data: agendamentos = [] } = useQuery({
