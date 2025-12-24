@@ -51,10 +51,23 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
 
   const salvarProntuarioMutation = useMutation({
     mutationFn: async (dados) => {
+      let resultado;
+      
       if (prontuarioExistente) {
-        return await base44.entities.Prontuario.update(prontuarioExistente.id, dados);
+        resultado = await base44.entities.Prontuario.update(prontuarioExistente.id, dados);
+        
+        // Registrar edição no log
+        await base44.entities.LogAcao.create({
+          tipo: "editou_agendamento",
+          usuario_email: usuarioAtual?.email || "sistema",
+          descricao: `Editou prontuário de: ${agendamento.cliente_nome} - ${agendamento.data} às ${agendamento.hora_inicio}`,
+          entidade_tipo: "Prontuario",
+          entidade_id: prontuarioExistente.id,
+          dados_antigos: JSON.stringify(prontuarioExistente),
+          dados_novos: JSON.stringify(resultado)
+        });
       } else {
-        return await base44.entities.Prontuario.create({
+        resultado = await base44.entities.Prontuario.create({
           ...dados,
           agendamento_id: agendamento.id,
           cliente_id: agendamento.cliente_id,
@@ -65,12 +78,42 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
           data_sessao: agendamento.data,
           criado_por: usuarioAtual?.email
         });
+        
+        // Registrar criação no log
+        await base44.entities.LogAcao.create({
+          tipo: "criou_agendamento",
+          usuario_email: usuarioAtual?.email || "sistema",
+          descricao: `Criou prontuário para: ${agendamento.cliente_nome} - ${agendamento.data} às ${agendamento.hora_inicio}`,
+          entidade_tipo: "Prontuario",
+          entidade_id: resultado.id,
+          dados_novos: JSON.stringify(resultado)
+        });
       }
+      
+      // Atualizar status do agendamento para "concluido"
+      await base44.entities.Agendamento.update(agendamento.id, {
+        status: "concluido"
+      });
+      
+      // Registrar mudança de status
+      await base44.entities.LogAcao.create({
+        tipo: "editou_agendamento",
+        usuario_email: usuarioAtual?.email || "sistema",
+        descricao: `Marcou como concluído (prontuário preenchido): ${agendamento.cliente_nome} - ${agendamento.data} às ${agendamento.hora_inicio}`,
+        entidade_tipo: "Agendamento",
+        entidade_id: agendamento.id,
+        dados_antigos: JSON.stringify({ status: agendamento.status }),
+        dados_novos: JSON.stringify({ status: "concluido" })
+      });
+      
+      return resultado;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['prontuario', agendamento.id] });
       queryClient.invalidateQueries({ queryKey: ['prontuarios'] });
-      alert("✅ Prontuário salvo com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+      queryClient.invalidateQueries({ queryKey: ['logs-acoes'] });
+      alert("✅ Prontuário salvo com sucesso! Agendamento marcado como concluído.");
     }
   });
 
