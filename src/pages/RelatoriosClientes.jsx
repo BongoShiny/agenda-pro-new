@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -43,6 +43,8 @@ export default function RelatoriosClientesPage() {
   const [unidadeTab, setUnidadeTab] = useState("todas");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const scrollTopRef = useRef(null);
+  const scrollTableRef = useRef(null);
 
   useEffect(() => {
     const carregarUsuario = async () => {
@@ -69,6 +71,30 @@ export default function RelatoriosClientesPage() {
     };
     carregarUsuario();
   }, [navigate]);
+
+  // Sincronizar scrolls
+  useEffect(() => {
+    const scrollTop = document.getElementById('scroll-top');
+    const scrollTable = document.getElementById('scroll-table');
+
+    if (!scrollTop || !scrollTable) return;
+
+    const handleTopScroll = () => {
+      scrollTable.scrollLeft = scrollTop.scrollLeft;
+    };
+
+    const handleTableScroll = () => {
+      scrollTop.scrollLeft = scrollTable.scrollLeft;
+    };
+
+    scrollTop.addEventListener('scroll', handleTopScroll);
+    scrollTable.addEventListener('scroll', handleTableScroll);
+
+    return () => {
+      scrollTop.removeEventListener('scroll', handleTopScroll);
+      scrollTable.removeEventListener('scroll', handleTableScroll);
+    };
+  }, []);
 
   const { data: agendamentos = [] } = useQuery({
     queryKey: ['agendamentos-relatorio'],
@@ -430,7 +456,12 @@ export default function RelatoriosClientesPage() {
 
         {/* Tabela estilo Excel */}
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-          <div className="overflow-x-auto">
+          {/* Barra de scroll superior */}
+          <div className="overflow-x-auto border-b border-gray-200" id="scroll-top">
+            <div style={{ width: '1600px', height: '1px' }}></div>
+          </div>
+          
+          <div className="overflow-x-auto" id="scroll-table">
             <table className="w-full text-sm">
               <thead className="bg-gray-100 border-b border-gray-200">
                 <tr>
