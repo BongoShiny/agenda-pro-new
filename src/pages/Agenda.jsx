@@ -9,6 +9,7 @@ import AgendaDiaView from "../components/agenda/AgendaDiaView";
 import NovoAgendamentoDialog from "../components/agenda/NovoAgendamentoDialog";
 import DetalhesAgendamentoDialog from "../components/agenda/DetalhesAgendamentoDialog";
 import MenuConta from "../components/agenda/MenuConta";
+import AlertasModal from "../components/agenda/AlertasModal";
 import { Button } from "@/components/ui/button";
 import { Filter, X, User } from "lucide-react";
 
@@ -1228,6 +1229,9 @@ export default function AgendaPage() {
           />
         </>
       )}
+
+      {/* Alertas Modal */}
+      <AlertasModal usuarioAtual={usuarioAtual} />
       </div>
       );
       }

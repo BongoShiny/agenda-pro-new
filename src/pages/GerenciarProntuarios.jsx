@@ -42,6 +42,10 @@ export default function GerenciarProntuariosPage() {
   const [dialogEditarAberto, setDialogEditarAberto] = useState(false);
   const [prontuarioEditando, setProntuarioEditando] = useState(null);
   const [agendamentoEditando, setAgendamentoEditando] = useState(null);
+  const [dialogCobrarAberto, setDialogCobrarAberto] = useState(false);
+  const [agendamentoCobrando, setAgendamentoCobrando] = useState(null);
+  const [recepcionistasSelecionados, setRecepcionistasSelecionados] = useState([]);
+  const [mensagemAlerta, setMensagemAlerta] = useState("");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -106,6 +110,15 @@ export default function GerenciarProntuariosPage() {
     queryFn: () => base44.entities.Unidade.list("nome"),
     initialData: [],
   });
+
+  const { data: usuarios = [] } = useQuery({
+    queryKey: ['usuarios-recepcionistas'],
+    queryFn: () => base44.entities.User.list(),
+    initialData: [],
+  });
+
+  // Filtrar recepcionistas
+  const recepcionistas = usuarios.filter(u => u.cargo === "recepcao");
 
   // Filtrar agendamentos não bloqueados
   const agendamentosValidos = agendamentos.filter(ag => 
@@ -201,6 +214,65 @@ export default function GerenciarProntuariosPage() {
   const handleSalvarEdicao = () => {
     const { id, agendamento_id, cliente_id, cliente_nome, cliente_telefone, profissional_nome, unidade_nome, data_sessao, criado_por, created_date, updated_date, created_by, ...dados } = prontuarioEditando;
     atualizarProntuarioMutation.mutate(dados);
+  };
+
+  const handleAbrirCobrar = (ag) => {
+    setAgendamentoCobrando(ag);
+    setMensagemAlerta(`⚠️ PRONTUÁRIO ATRASADO - ${ag.cliente_nome}\n\nData: ${format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR })}\nHorário: ${ag.hora_inicio}\nProfissional: ${ag.profissional_nome}\n\nPor favor, providenciar o preenchimento do prontuário com urgência!`);
+    setRecepcionistasSelecionados([]);
+    setDialogCobrarAberto(true);
+  };
+
+  const enviarAlertaMutation = useMutation({
+    mutationFn: async () => {
+      const alertas = [];
+      for (const email of recepcionistasSelecionados) {
+        await base44.entities.Alerta.create({
+          usuario_email: email,
+          titulo: "⚠️ PRONTUÁRIO ATRASADO",
+          mensagem: mensagemAlerta,
+          tipo: "prontuario_atrasado",
+          agendamento_id: agendamentoCobrando.id,
+          enviado_por: usuarioAtual?.email
+        });
+        alertas.push(email);
+      }
+      
+      // Registrar no log
+      await base44.entities.LogAcao.create({
+        tipo: "editou_agendamento",
+        usuario_email: usuarioAtual?.email || "sistema",
+        descricao: `Enviou cobrança de prontuário atrasado para: ${alertas.join(", ")} - ${agendamentoCobrando.cliente_nome}`,
+        entidade_tipo: "Alerta",
+        entidade_id: agendamentoCobrando.id
+      });
+      
+      return alertas;
+    },
+    onSuccess: (alertas) => {
+      setDialogCobrarAberto(false);
+      alert(`✅ Alertas enviados com sucesso para ${alertas.length} recepcionista(s)!`);
+    }
+  });
+
+  const handleEnviarAlertas = () => {
+    if (recepcionistasSelecionados.length === 0) {
+      alert("⚠️ Selecione pelo menos um recepcionista!");
+      return;
+    }
+    if (!mensagemAlerta.trim()) {
+      alert("⚠️ Digite uma mensagem!");
+      return;
+    }
+    enviarAlertaMutation.mutate();
+  };
+
+  const toggleRecepcionista = (email) => {
+    setRecepcionistasSelecionados(prev => 
+      prev.includes(email) 
+        ? prev.filter(e => e !== email)
+        : [...prev, email]
+    );
   };
 
   const exportarProntuario = async (agendamento) => {
@@ -587,9 +659,21 @@ export default function GerenciarProntuariosPage() {
                           <TableCell>{ag.profissional_nome}</TableCell>
                           <TableCell>{ag.unidade_nome}</TableCell>
                           <TableCell>
-                            <Badge className={status.cor}>
-                              {status.label}
-                            </Badge>
+                            {status.tipo === 'atrasado' ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleAbrirCobrar(ag)}
+                                className="border-red-600 text-red-700 hover:bg-red-50"
+                              >
+                                <AlertTriangle className="w-4 h-4 mr-2" />
+                                {status.label}
+                              </Button>
+                            ) : (
+                              <Badge className={status.cor}>
+                                {status.label}
+                              </Badge>
+                            )}
                           </TableCell>
                         </TableRow>
                       );
@@ -703,6 +787,90 @@ export default function GerenciarProntuariosPage() {
             <Button onClick={handleSalvarEdicao} className="bg-amber-600 hover:bg-amber-700">
               <Save className="w-4 h-4 mr-2" />
               Salvar Alterações
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Cobrar Prontuário Atrasado */}
+      <Dialog open={dialogCobrarAberto} onOpenChange={setDialogCobrarAberto}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="w-6 h-6" />
+              COBRAR PRONTUÁRIO ATRASADO
+            </DialogTitle>
+          </DialogHeader>
+
+          {agendamentoCobrando && (
+            <div className="space-y-4 py-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-sm font-bold text-red-900">
+                  {agendamentoCobrando.cliente_nome}
+                </p>
+                <p className="text-xs text-red-700 mt-1">
+                  Data: {format(criarDataPura(agendamentoCobrando.data), "dd/MM/yyyy", { locale: ptBR })} às {agendamentoCobrando.hora_inicio}
+                </p>
+                <p className="text-xs text-red-700">
+                  Profissional: {agendamentoCobrando.profissional_nome} | Unidade: {agendamentoCobrando.unidade_nome}
+                </p>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Selecionar Recepcionistas:
+                </Label>
+                <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                  {recepcionistas.length === 0 ? (
+                    <p className="text-sm text-gray-500">Nenhum recepcionista cadastrado</p>
+                  ) : (
+                    recepcionistas.map(recep => (
+                      <div key={recep.email} className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id={recep.email}
+                          checked={recepcionistasSelecionados.includes(recep.email)}
+                          onChange={() => toggleRecepcionista(recep.email)}
+                          className="w-4 h-4"
+                        />
+                        <label htmlFor={recep.email} className="text-sm cursor-pointer">
+                          {recep.full_name} ({recep.email})
+                        </label>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setRecepcionistasSelecionados(recepcionistas.map(r => r.email))}
+                  className="mt-2"
+                >
+                  Selecionar Todos
+                </Button>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Mensagem do Alerta:</Label>
+                <Textarea
+                  value={mensagemAlerta}
+                  onChange={(e) => setMensagemAlerta(e.target.value)}
+                  placeholder="Digite a mensagem que aparecerá para os recepcionistas..."
+                  rows={6}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogCobrarAberto(false)}>
+              <X className="w-4 h-4 mr-2" />
+              Cancelar
+            </Button>
+            <Button onClick={handleEnviarAlertas} className="bg-red-600 hover:bg-red-700">
+              <AlertTriangle className="w-4 h-4 mr-2" />
+              Enviar Alertas
             </Button>
           </DialogFooter>
         </DialogContent>
