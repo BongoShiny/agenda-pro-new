@@ -23,7 +23,12 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogFooter,
 } from "@/components/ui/dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { AlertTriangle, X, CheckCircle } from "lucide-react";
 
 const criarDataPura = (dataString) => {
   if (!dataString) return new Date();
@@ -36,6 +41,10 @@ export default function GerenciarContratosPage() {
   const [carregando, setCarregando] = useState(true);
   const [pesquisa, setPesquisa] = useState("");
   const [contratoVisualizando, setContratoVisualizando] = useState(null);
+  const [dialogCobrarAberto, setDialogCobrarAberto] = useState(false);
+  const [agendamentoCobrando, setAgendamentoCobrando] = useState(null);
+  const [recepcionistasSelecionados, setRecepcionistasSelecionados] = useState([]);
+  const [mensagemAlerta, setMensagemAlerta] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -87,19 +96,30 @@ export default function GerenciarContratosPage() {
     initialData: [],
   });
 
-  // Filtrar apenas agendamentos com contrato
-  const agendamentosComContrato = agendamentos.filter(ag => 
-    ag.contrato_termo_url && 
+  const { data: usuarios = [] } = useQuery({
+    queryKey: ['usuarios-recepcionistas-contratos'],
+    queryFn: () => base44.entities.User.list(),
+    initialData: [],
+  });
+
+  const recepcionistas = usuarios.filter(u => u.cargo === "recepcao");
+
+  // Filtrar agendamentos válidos
+  const agendamentosValidos = agendamentos.filter(ag => 
     ag.status !== "bloqueio" && 
     ag.tipo !== "bloqueio" && 
     ag.cliente_nome !== "FECHADO"
   );
 
+  // Separar com e sem contrato
+  const agendamentosComContrato = agendamentosValidos.filter(ag => ag.contrato_termo_url);
+  const agendamentosSemContrato = agendamentosValidos.filter(ag => !ag.contrato_termo_url);
+
   // Função de pesquisa
-  const filtrarContratos = () => {
-    if (!pesquisa) return agendamentosComContrato;
+  const filtrarContratos = (lista) => {
+    if (!pesquisa) return lista;
     const termo = pesquisa.toLowerCase();
-    return agendamentosComContrato.filter(ag =>
+    return lista.filter(ag =>
       ag.cliente_nome?.toLowerCase().includes(termo) ||
       ag.cliente_telefone?.toLowerCase().includes(termo) ||
       ag.unidade_nome?.toLowerCase().includes(termo) ||
@@ -107,8 +127,86 @@ export default function GerenciarContratosPage() {
     );
   };
 
+  // Função para calcular status do contrato
+  const getStatusContrato = (ag) => {
+    if (ag.contrato_termo_url) {
+      return { label: 'Anexado', cor: 'bg-green-100 text-green-700', tipo: 'anexado' };
+    }
+    
+    // Verificar se passou o horário da sessão
+    const agora = new Date();
+    const [ano, mes, dia] = ag.data.split('-').map(Number);
+    const [horaFim, minutoFim] = ag.hora_fim.split(':').map(Number);
+    const dataFimSessao = new Date(ano, mes - 1, dia, horaFim, minutoFim);
+    
+    if (agora > dataFimSessao) {
+      return { label: '⚠️ Atrasado', cor: 'bg-red-100 text-red-700', tipo: 'atrasado' };
+    }
+    
+    return { label: 'Pendente', cor: 'bg-orange-100 text-orange-700', tipo: 'pendente' };
+  };
+
   const handleVisualizar = (ag) => {
     setContratoVisualizando(ag);
+  };
+
+  const handleAbrirCobrar = (ag) => {
+    setAgendamentoCobrando(ag);
+    setMensagemAlerta(`⚠️ CONTRATO TERMO 30% NÃO ANEXADO - ${ag.cliente_nome}\n\nData: ${format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR })}\nHorário: ${ag.hora_inicio} - ${ag.hora_fim}\nProfissional: ${ag.profissional_nome}\n\nPor favor, providenciar o contrato assinado com urgência!`);
+    setRecepcionistasSelecionados([]);
+    setDialogCobrarAberto(true);
+  };
+
+  const enviarAlertaMutation = async () => {
+    const alertas = [];
+    for (const email of recepcionistasSelecionados) {
+      await base44.entities.Alerta.create({
+        usuario_email: email,
+        titulo: "⚠️ CONTRATO TERMO 30% NÃO ANEXADO",
+        mensagem: mensagemAlerta,
+        tipo: "warning",
+        agendamento_id: agendamentoCobrando.id,
+        enviado_por: usuarioAtual?.email
+      });
+      alertas.push(email);
+    }
+    
+    await base44.entities.LogAcao.create({
+      tipo: "editou_agendamento",
+      usuario_email: usuarioAtual?.email || "sistema",
+      descricao: `Enviou cobrança de contrato não anexado para: ${alertas.join(", ")} - ${agendamentoCobrando.cliente_nome}`,
+      entidade_tipo: "Alerta",
+      entidade_id: agendamentoCobrando.id
+    });
+    
+    return alertas;
+  };
+
+  const handleEnviarAlertas = async () => {
+    if (recepcionistasSelecionados.length === 0) {
+      alert("⚠️ Selecione pelo menos um recepcionista!");
+      return;
+    }
+    if (!mensagemAlerta.trim()) {
+      alert("⚠️ Digite uma mensagem!");
+      return;
+    }
+    
+    try {
+      const alertas = await enviarAlertaMutation();
+      setDialogCobrarAberto(false);
+      alert(`✅ Alertas enviados com sucesso para ${alertas.length} recepcionista(s)!`);
+    } catch (error) {
+      alert("❌ Erro ao enviar alertas: " + error.message);
+    }
+  };
+
+  const toggleRecepcionista = (email) => {
+    setRecepcionistasSelecionados(prev => 
+      prev.includes(email) 
+        ? prev.filter(e => e !== email)
+        : [...prev, email]
+    );
   };
 
   if (carregando) {
@@ -151,86 +249,162 @@ export default function GerenciarContratosPage() {
               className="pl-10"
             />
           </div>
-          <Badge variant="outline" className="text-lg px-4 py-2">
-            {filtrarContratos().length} contrato{filtrarContratos().length !== 1 ? 's' : ''}
-          </Badge>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <FileText className="w-5 h-5 text-orange-600" />
-              Contratos Termo 30% Multa Anexados
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Telefone</TableHead>
-                  <TableHead>Profissional</TableHead>
-                  <TableHead>Unidade</TableHead>
-                  <TableHead>Ações</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filtrarContratos().map(ag => (
-                  <TableRow key={ag.id}>
-                    <TableCell>
-                      {format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR })}
-                    </TableCell>
-                    <TableCell className="font-medium">{ag.cliente_nome}</TableCell>
-                    <TableCell>{ag.cliente_telefone || "-"}</TableCell>
-                    <TableCell>{ag.profissional_nome}</TableCell>
-                    <TableCell>{ag.unidade_nome}</TableCell>
-                    <TableCell>
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleVisualizar(ag)}
-                          className="border-blue-600 text-blue-700 hover:bg-blue-50"
-                        >
-                          <Eye className="w-4 h-4 mr-2" />
-                          Visualizar
-                        </Button>
-                        <a 
-                          href={ag.contrato_termo_url} 
-                          download={`Contrato_${ag.cliente_nome}_${ag.data}.pdf`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="border-green-600 text-green-700 hover:bg-green-50"
-                          >
-                            <Download className="w-4 h-4 mr-2" />
-                            Baixar
-                          </Button>
-                        </a>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+        <Tabs defaultValue="com-contrato" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="com-contrato">
+              Com Contrato ({filtrarContratos(agendamentosComContrato).length})
+            </TabsTrigger>
+            <TabsTrigger value="sem-contrato">
+              Sem Contrato ({filtrarContratos(agendamentosSemContrato).length})
+            </TabsTrigger>
+          </TabsList>
 
-            {filtrarContratos().length === 0 && (
-              <div className="text-center py-12 text-gray-500">
-                <FileText className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p className="font-medium">Nenhum contrato encontrado</p>
-                <p className="text-sm mt-1">
-                  {pesquisa 
-                    ? "Tente ajustar sua pesquisa" 
-                    : "Nenhum contrato termo 30% foi anexado ainda"}
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+          <TabsContent value="com-contrato">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="w-5 h-5 text-green-600" />
+                  Contratos Anexados
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Telefone</TableHead>
+                      <TableHead>Profissional</TableHead>
+                      <TableHead>Unidade</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtrarContratos(agendamentosComContrato).map(ag => (
+                      <TableRow key={ag.id}>
+                        <TableCell>
+                          {format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR })}
+                        </TableCell>
+                        <TableCell className="font-medium">{ag.cliente_nome}</TableCell>
+                        <TableCell>{ag.cliente_telefone || "-"}</TableCell>
+                        <TableCell>{ag.profissional_nome}</TableCell>
+                        <TableCell>{ag.unidade_nome}</TableCell>
+                        <TableCell>
+                          <Badge className="bg-green-100 text-green-700">
+                            Anexado
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleVisualizar(ag)}
+                              className="border-blue-600 text-blue-700 hover:bg-blue-50"
+                            >
+                              <Eye className="w-4 h-4 mr-2" />
+                              Visualizar
+                            </Button>
+                            <a 
+                              href={ag.contrato_termo_url} 
+                              download={`Contrato_${ag.cliente_nome}_${ag.data}.pdf`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-green-600 text-green-700 hover:bg-green-50"
+                              >
+                                <Download className="w-4 h-4 mr-2" />
+                                Baixar
+                              </Button>
+                            </a>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+
+                {filtrarContratos(agendamentosComContrato).length === 0 && (
+                  <div className="text-center py-12 text-gray-500">
+                    <CheckCircle className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                    <p className="font-medium">Nenhum contrato encontrado</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="sem-contrato">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-orange-600" />
+                  Contratos Não Anexados
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data</TableHead>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Telefone</TableHead>
+                      <TableHead>Profissional</TableHead>
+                      <TableHead>Unidade</TableHead>
+                      <TableHead>Status</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filtrarContratos(agendamentosSemContrato).map(ag => {
+                      const status = getStatusContrato(ag);
+                      return (
+                        <TableRow key={ag.id}>
+                          <TableCell>
+                            {format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR })}
+                          </TableCell>
+                          <TableCell className="font-medium">{ag.cliente_nome}</TableCell>
+                          <TableCell>{ag.cliente_telefone || "-"}</TableCell>
+                          <TableCell>{ag.profissional_nome}</TableCell>
+                          <TableCell>{ag.unidade_nome}</TableCell>
+                          <TableCell>
+                            {status.tipo === 'atrasado' ? (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleAbrirCobrar(ag)}
+                                className="border-red-600 text-red-700 hover:bg-red-50"
+                              >
+                                <AlertTriangle className="w-4 h-4 mr-2" />
+                                {status.label}
+                              </Button>
+                            ) : (
+                              <Badge className={status.cor}>
+                                {status.label}
+                              </Badge>
+                            )}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+
+                {filtrarContratos(agendamentosSemContrato).length === 0 && (
+                  <div className="text-center py-12 text-gray-500">
+                    <CheckCircle className="w-12 h-12 mx-auto mb-4 text-green-400" />
+                    <p className="font-medium">Todos os agendamentos têm contrato anexado!</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Dialog Visualizar Contrato */}
@@ -292,6 +466,90 @@ export default function GerenciarContratosPage() {
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Cobrar Contrato Atrasado */}
+      <Dialog open={dialogCobrarAberto} onOpenChange={setDialogCobrarAberto}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertTriangle className="w-6 h-6" />
+              COBRAR CONTRATO NÃO ANEXADO
+            </DialogTitle>
+          </DialogHeader>
+
+          {agendamentoCobrando && (
+            <div className="space-y-4 py-4">
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-sm font-bold text-red-900">
+                  {agendamentoCobrando.cliente_nome}
+                </p>
+                <p className="text-xs text-red-700 mt-1">
+                  Data: {format(criarDataPura(agendamentoCobrando.data), "dd/MM/yyyy", { locale: ptBR })} às {agendamentoCobrando.hora_inicio}
+                </p>
+                <p className="text-xs text-red-700">
+                  Profissional: {agendamentoCobrando.profissional_nome} | Unidade: {agendamentoCobrando.unidade_nome}
+                </p>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Selecionar Recepcionistas:
+                </Label>
+                <div className="space-y-2 max-h-48 overflow-y-auto border border-gray-200 rounded-lg p-3">
+                  {recepcionistas.length === 0 ? (
+                    <p className="text-sm text-gray-500">Nenhum recepcionista cadastrado</p>
+                  ) : (
+                    recepcionistas.map(recep => (
+                      <div key={recep.email} className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id={recep.email}
+                          checked={recepcionistasSelecionados.includes(recep.email)}
+                          onChange={() => toggleRecepcionista(recep.email)}
+                          className="w-4 h-4"
+                        />
+                        <label htmlFor={recep.email} className="text-sm cursor-pointer">
+                          {recep.full_name} ({recep.email})
+                        </label>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setRecepcionistasSelecionados(recepcionistas.map(r => r.email))}
+                  className="mt-2"
+                >
+                  Selecionar Todos
+                </Button>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Mensagem do Alerta:</Label>
+                <Textarea
+                  value={mensagemAlerta}
+                  onChange={(e) => setMensagemAlerta(e.target.value)}
+                  placeholder="Digite a mensagem que aparecerá para os recepcionistas..."
+                  rows={6}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogCobrarAberto(false)}>
+              <X className="w-4 h-4 mr-2" />
+              Cancelar
+            </Button>
+            <Button onClick={handleEnviarAlertas} className="bg-red-600 hover:bg-red-700">
+              <AlertTriangle className="w-4 h-4 mr-2" />
+              Enviar Alertas
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
