@@ -135,9 +135,9 @@ export default function GerenciarProntuariosPage() {
       
       // Registrar edição no log
       await base44.entities.LogAcao.create({
-        tipo: "editou_agendamento",
+        tipo: "editou_prontuario",
         usuario_email: usuarioAtual?.email || "sistema",
-        descricao: `Editou prontuário de: ${agendamentoEditando.cliente_nome} - ${agendamentoEditando.data} às ${agendamentoEditando.hora_inicio}`,
+        descricao: `Editou prontuário de: ${agendamentoEditando.cliente_nome} - ${agendamentoEditando.data} às ${agendamentoEditando.hora_inicio} na área de Gerenciar Prontuários`,
         entidade_tipo: "Prontuario",
         entidade_id: prontuarioEditando.id,
         dados_antigos: JSON.stringify(prontuarioEditando),
@@ -161,9 +161,18 @@ export default function GerenciarProntuariosPage() {
     atualizarProntuarioMutation.mutate(dados);
   };
 
-  const exportarProntuario = (agendamento) => {
+  const exportarProntuario = async (agendamento) => {
     const prontuario = prontuarios.find(p => p.agendamento_id === agendamento.id);
     if (!prontuario) return;
+
+    // Registrar exportação no log
+    await base44.entities.LogAcao.create({
+      tipo: "gerou_relatorio_pdf",
+      usuario_email: usuarioAtual?.email || "sistema",
+      descricao: `Exportou PDF do prontuário de: ${agendamento.cliente_nome} - ${agendamento.data} na área de Gerenciar Prontuários`,
+      entidade_tipo: "Prontuario",
+      entidade_id: prontuario.id
+    });
 
     const dataFormatada = format(criarDataPura(agendamento.data), "dd/MM/yyyy", { locale: ptBR });
     
