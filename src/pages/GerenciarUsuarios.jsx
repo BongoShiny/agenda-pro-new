@@ -403,9 +403,15 @@ export default function GerenciarUsuariosPage() {
                                 </div>
                               </SelectItem>
                             )}
+                            <SelectItem value="recepcao">
+                             <div className="flex items-center gap-2">
+                               <User className="w-3 h-3" />
+                               Recepção
+                             </div>
+                            </SelectItem>
                             {(usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin") && (
-                              <>
-                                <SelectItem value="gerencia_unidades">
+                             <>
+                               <SelectItem value="gerencia_unidades">
                                   <div className="flex items-center gap-2">
                                     <Building2 className="w-3 h-3" />
                                     Gerência de Unidades
@@ -610,7 +616,7 @@ export default function GerenciarUsuariosPage() {
             <CardTitle>Diferenças entre Cargos</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid md:grid-cols-3 lg:grid-cols-5 gap-6">
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2 mb-3">
                   <Shield className="w-5 h-5 text-blue-600" />
@@ -664,6 +670,20 @@ export default function GerenciarUsuariosPage() {
                   <li>• Não pode bloquear a agenda</li>
                   <li>• Acesso às unidades permitidas</li>
                   <li>• Visível na aba "Por Vendedor"</li>
+                </ul>
+              </div>
+
+              <div className="p-4 bg-indigo-50 rounded-lg border border-indigo-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <User className="w-5 h-5 text-indigo-600" />
+                  <h3 className="font-semibold text-indigo-900">Recepção</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-indigo-800">
+                  <li>• Pode criar e editar agendamentos</li>
+                  <li>• Não pode bloquear a agenda</li>
+                  <li>• Não pode editar quando bloqueada</li>
+                  <li>• Acesso às unidades permitidas</li>
+                  <li>• Acesso básico ao sistema</li>
                 </ul>
               </div>
 
