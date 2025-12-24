@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, XCircle, Ban, ChevronDown } from "lucide-react";
+import { CheckCircle, Clock, XCircle, Ban, ChevronDown, FileText, AlertTriangle, AlertCircle } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,12 +48,36 @@ const statusPacienteColors = {
   "ultima_sessao": "#dc2626"
 };
 
-export default function AgendamentoCard({ agendamento, onClick, onStatusChange, onStatusPacienteChange }) {
+export default function AgendamentoCard({ agendamento, onClick, onStatusChange, onStatusPacienteChange, prontuarios = [] }) {
   const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio" || agendamento.cliente_nome === "FECHADO";
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownPacienteOpen, setDropdownPacienteOpen] = useState(false);
   
   console.log(`🎴 CARD | ${agendamento.cliente_nome} | Data: ${agendamento.data} | ${agendamento.hora_inicio}`);
+  
+  // Calcular status do prontuário
+  const getStatusProntuario = () => {
+    const temProntuario = prontuarios.some(p => p.agendamento_id === agendamento.id);
+    
+    if (temProntuario) {
+      return { icon: CheckCircle, cor: 'text-green-400', label: 'Preenchido' };
+    }
+    
+    // Verificar se está atrasado (1 hora após o término)
+    const agora = new Date();
+    const [ano, mes, dia] = agendamento.data.split('-').map(Number);
+    const [horaFim, minutoFim] = agendamento.hora_fim.split(':').map(Number);
+    const dataFimSessao = new Date(ano, mes - 1, dia, horaFim, minutoFim);
+    const umaHoraDepois = new Date(dataFimSessao.getTime() + 60 * 60 * 1000);
+    
+    if (agora > umaHoraDepois) {
+      return { icon: AlertTriangle, cor: 'text-red-400', label: 'Atrasado' };
+    }
+    
+    return { icon: FileText, cor: 'text-yellow-300', label: 'Pendente' };
+  };
+
+  const statusProntuario = getStatusProntuario();
   
   if (isBloqueio) {
     return (
@@ -86,7 +110,10 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
             <StatusIcon className="w-2.5 md:w-3 h-2.5 md:h-3 flex-shrink-0" />
             <span className="font-semibold text-[9px] md:text-xs truncate">{agendamento.cliente_nome}</span>
           </div>
-          <span className="text-[8px] md:text-[10px] font-medium whitespace-nowrap">{agendamento.hora_inicio}</span>
+          <div className="flex items-center gap-0.5">
+            <statusProntuario.icon className={`w-2.5 md:w-3 h-2.5 md:h-3 flex-shrink-0 ${statusProntuario.cor}`} title={`Prontuário ${statusProntuario.label}`} />
+            <span className="text-[8px] md:text-[10px] font-medium whitespace-nowrap">{agendamento.hora_inicio}</span>
+          </div>
         </div>
         
         {/* Info central - flex grow para ocupar espaço */}

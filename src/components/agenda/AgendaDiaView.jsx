@@ -29,6 +29,13 @@ export default function AgendaDiaView({
   dataAtual,
   excecoesHorario = []
 }) {
+  // Buscar prontuários
+  const { data: prontuarios = [] } = useQuery({
+    queryKey: ['prontuarios-agenda'],
+    queryFn: () => base44.entities.Prontuario.list(),
+    initialData: [],
+    refetchInterval: 10000, // Atualizar a cada 10 segundos
+  });
   const [slotMenuAberto, setSlotMenuAberto] = useState(null);
       const [dialogBloquearAberto, setDialogBloquearAberto] = useState(false);
       const [profissionalBloquear, setProfissionalBloquear] = useState(null);
@@ -443,6 +450,7 @@ export default function AgendaDiaView({
                                 onClick={onAgendamentoClick}
                                 onStatusChange={onStatusChange}
                                 onStatusPacienteChange={onStatusPacienteChange}
+                                prontuarios={prontuarios}
                               />
                             </div>
                           );
