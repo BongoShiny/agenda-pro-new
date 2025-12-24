@@ -111,7 +111,7 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
             <span className="font-semibold text-[9px] md:text-xs truncate">{agendamento.cliente_nome}</span>
           </div>
           <div className="flex items-center gap-0.5">
-            <statusProntuario.icon className={`w-2.5 md:w-3 h-2.5 md:h-3 flex-shrink-0 ${statusProntuario.cor}`} title={`Prontuário ${statusProntuario.label}`} />
+            <statusProntuario.icon className={`w-4 md:w-5 h-4 md:h-5 flex-shrink-0 ${statusProntuario.cor}`} title={`Prontuário ${statusProntuario.label}`} />
             <span className="text-[8px] md:text-[10px] font-medium whitespace-nowrap">{agendamento.hora_inicio}</span>
           </div>
         </div>
