@@ -74,27 +74,44 @@ export default function RelatoriosClientesPage() {
 
   // Sincronizar scrolls
   useEffect(() => {
-    const scrollTop = document.getElementById('scroll-top');
-    const scrollTable = document.getElementById('scroll-table');
+    // Timeout para garantir que os elementos estão renderizados
+    const timer = setTimeout(() => {
+      const scrollTop = document.getElementById('scroll-top');
+      const scrollTable = document.getElementById('scroll-table');
 
-    if (!scrollTop || !scrollTable) return;
+      if (!scrollTop || !scrollTable) {
+        console.log('Elementos não encontrados');
+        return;
+      }
 
-    const handleTopScroll = () => {
-      scrollTable.scrollLeft = scrollTop.scrollLeft;
-    };
+      let isScrollingTop = false;
+      let isScrollingTable = false;
 
-    const handleTableScroll = () => {
-      scrollTop.scrollLeft = scrollTable.scrollLeft;
-    };
+      const handleTopScroll = () => {
+        if (isScrollingTable) return;
+        isScrollingTop = true;
+        scrollTable.scrollLeft = scrollTop.scrollLeft;
+        setTimeout(() => { isScrollingTop = false; }, 10);
+      };
 
-    scrollTop.addEventListener('scroll', handleTopScroll);
-    scrollTable.addEventListener('scroll', handleTableScroll);
+      const handleTableScroll = () => {
+        if (isScrollingTop) return;
+        isScrollingTable = true;
+        scrollTop.scrollLeft = scrollTable.scrollLeft;
+        setTimeout(() => { isScrollingTable = false; }, 10);
+      };
 
-    return () => {
-      scrollTop.removeEventListener('scroll', handleTopScroll);
-      scrollTable.removeEventListener('scroll', handleTableScroll);
-    };
-  }, []);
+      scrollTop.addEventListener('scroll', handleTopScroll);
+      scrollTable.addEventListener('scroll', handleTableScroll);
+
+      return () => {
+        scrollTop.removeEventListener('scroll', handleTopScroll);
+        scrollTable.removeEventListener('scroll', handleTableScroll);
+      };
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [agendamentosFiltrados]);
 
   const { data: agendamentos = [] } = useQuery({
     queryKey: ['agendamentos-relatorio'],

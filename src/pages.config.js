@@ -3,13 +3,13 @@ import Agenda from './pages/Agenda';
 import ConfiguracaoTerapeutas from './pages/ConfiguracaoTerapeutas';
 import ConfiguracaoWhatsApp from './pages/ConfiguracaoWhatsApp';
 import ConfigurarUnidades from './pages/ConfigurarUnidades';
+import GerenciarContratos from './pages/GerenciarContratos';
 import GerenciarProntuarios from './pages/GerenciarProntuarios';
 import GerenciarUsuarios from './pages/GerenciarUsuarios';
 import HistoricoAgendamentos from './pages/HistoricoAgendamentos';
 import Home from './pages/Home';
 import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
-import GerenciarContratos from './pages/GerenciarContratos';
 
 
 export const PAGES = {
@@ -18,13 +18,13 @@ export const PAGES = {
     "ConfiguracaoTerapeutas": ConfiguracaoTerapeutas,
     "ConfiguracaoWhatsApp": ConfiguracaoWhatsApp,
     "ConfigurarUnidades": ConfigurarUnidades,
+    "GerenciarContratos": GerenciarContratos,
     "GerenciarProntuarios": GerenciarProntuarios,
     "GerenciarUsuarios": GerenciarUsuarios,
     "HistoricoAgendamentos": HistoricoAgendamentos,
     "Home": Home,
     "RelatoriosClientes": RelatoriosClientes,
     "RelatoriosFinanceiros": RelatoriosFinanceiros,
-    "GerenciarContratos": GerenciarContratos,
 }
 
 export const pagesConfig = {
