@@ -165,8 +165,9 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
             .header {
               text-align: center;
               margin-bottom: 12px;
-              padding-bottom: 10px;
-              border-bottom: 2px solid #7C5746;
+              padding: 15px 10px 10px 10px;
+              background: #7C5746;
+              border-radius: 4px 4px 0 0;
             }
             .logo {
               width: 80px;
@@ -174,13 +175,13 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
               margin-bottom: 8px;
             }
             .title {
-              color: #7C5746;
+              color: #fff;
               font-size: 16px;
               font-weight: bold;
               margin: 5px 0;
             }
             .subtitle {
-              color: #7C5746;
+              color: #f9f5f3;
               font-size: 10px;
               font-style: italic;
             }
