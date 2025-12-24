@@ -72,45 +72,7 @@ export default function RelatoriosClientesPage() {
     carregarUsuario();
   }, [navigate]);
 
-  // Sincronizar scrolls
-  useEffect(() => {
-    // Timeout para garantir que os elementos estão renderizados
-    const timer = setTimeout(() => {
-      const scrollTop = document.getElementById('scroll-top');
-      const scrollTable = document.getElementById('scroll-table');
 
-      if (!scrollTop || !scrollTable) {
-        return;
-      }
-
-      let isScrollingTop = false;
-      let isScrollingTable = false;
-
-      const handleTopScroll = () => {
-        if (isScrollingTable) return;
-        isScrollingTop = true;
-        scrollTable.scrollLeft = scrollTop.scrollLeft;
-        setTimeout(() => { isScrollingTop = false; }, 10);
-      };
-
-      const handleTableScroll = () => {
-        if (isScrollingTop) return;
-        isScrollingTable = true;
-        scrollTop.scrollLeft = scrollTable.scrollLeft;
-        setTimeout(() => { isScrollingTable = false; }, 10);
-      };
-
-      scrollTop.addEventListener('scroll', handleTopScroll);
-      scrollTable.addEventListener('scroll', handleTableScroll);
-
-      return () => {
-        scrollTop.removeEventListener('scroll', handleTopScroll);
-        scrollTable.removeEventListener('scroll', handleTableScroll);
-      };
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, []);
 
   const { data: agendamentos = [] } = useQuery({
     queryKey: ['agendamentos-relatorio'],
@@ -474,17 +436,26 @@ export default function RelatoriosClientesPage() {
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           {/* Barra de scroll superior */}
           <div 
-            className="overflow-x-auto border-b border-gray-200 bg-gray-50" 
-            id="scroll-top"
-            style={{ overflowY: 'hidden' }}
+            className="overflow-x-scroll border-b-2 border-gray-300 bg-gray-100" 
+            ref={scrollTopRef}
+            onScroll={(e) => {
+              if (scrollTableRef.current) {
+                scrollTableRef.current.scrollLeft = e.target.scrollLeft;
+              }
+            }}
+            style={{ height: '20px' }}
           >
-            <div style={{ width: '2000px', height: '15px' }}></div>
+            <div style={{ width: '2000px', height: '1px' }}></div>
           </div>
           
           <div 
-            className="overflow-x-auto" 
-            id="scroll-table"
-            style={{ overflowY: 'auto' }}
+            className="overflow-x-scroll" 
+            ref={scrollTableRef}
+            onScroll={(e) => {
+              if (scrollTopRef.current) {
+                scrollTopRef.current.scrollLeft = e.target.scrollLeft;
+              }
+            }}
           >
             <table className="w-full text-sm" style={{ minWidth: '2000px' }}>
               <thead className="bg-gray-100 border-b border-gray-200">
