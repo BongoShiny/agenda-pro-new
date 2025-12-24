@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import AgendamentoCard from "./AgendamentoCard";
+import { useQuery } from "@tanstack/react-query";
+import { base44 } from "@/api/base44Client";
 import SlotMenu from "./SlotMenu";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
