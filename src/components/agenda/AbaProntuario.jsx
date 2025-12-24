@@ -189,10 +189,11 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
             }
             .info-section {
               background: #f9f5f3;
-              padding: 10px;
-              border-radius: 4px;
+              padding: 12px;
+              border-radius: 8px;
               margin-bottom: 12px;
-              border-left: 3px solid #7C5746;
+              border: 1px solid #d4c5b9;
+              box-shadow: 0 2px 4px rgba(0,0,0,0.08);
               display: grid;
               grid-template-columns: 1fr 1fr;
               gap: 5px;
@@ -211,8 +212,11 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
             }
             .field-section {
               margin-bottom: 10px;
-              padding-bottom: 8px;
-              border-bottom: 1px solid #e0d5d0;
+              padding: 10px;
+              background: #f9f5f3;
+              border: 1px solid #d4c5b9;
+              border-radius: 8px;
+              box-shadow: 0 1px 3px rgba(0,0,0,0.06);
             }
             .field-label {
               font-weight: bold;
@@ -225,16 +229,19 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
               color: #333;
               line-height: 1.3;
               white-space: pre-wrap;
-              padding: 5px;
-              background: #f9f5f3;
-              border-radius: 3px;
+              padding: 6px;
+              background: #fff;
+              border-radius: 4px;
               min-height: 25px;
               font-size: 9px;
+              border: 1px solid #e8e0db;
             }
             .footer {
               margin-top: 12px;
-              padding-top: 8px;
-              border-top: 2px solid #7C5746;
+              padding: 10px;
+              background: #f9f5f3;
+              border: 1px solid #d4c5b9;
+              border-radius: 8px;
               text-align: center;
               color: #7C5746;
               font-size: 8px;
