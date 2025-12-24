@@ -204,11 +204,11 @@ export default function GerenciarProntuariosPage() {
           <style>
             @page {
               size: A4;
-              margin: 10mm;
+              margin: 8mm;
             }
             body { 
               font-family: Arial, sans-serif; 
-              padding: 10px; 
+              padding: 0; 
               background: #fff;
               margin: 0;
             }
@@ -222,47 +222,47 @@ export default function GerenciarProntuariosPage() {
             .header {
               text-align: center;
               margin-bottom: 0;
-              padding: 20px 15px;
+              padding: 12px 10px;
               background: #7C5746;
             }
             .content {
-              padding: 15px;
+              padding: 10px;
             }
             .logo {
-              width: 80px;
+              width: 60px;
               height: auto;
-              margin-bottom: 8px;
+              margin-bottom: 5px;
             }
             .title {
               color: #fff;
-              font-size: 16px;
+              font-size: 15px;
               font-weight: bold;
-              margin: 5px 0;
+              margin: 3px 0;
             }
             .subtitle {
               color: #f9f5f3;
-              font-size: 10px;
+              font-size: 9px;
               font-style: italic;
             }
             .info-section {
               background: #f9f5f3;
-              padding: 12px;
-              border-radius: 8px;
-              margin-bottom: 12px;
+              padding: 8px;
+              border-radius: 6px;
+              margin-bottom: 8px;
               border: 1px solid #d4c5b9;
-              box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+              box-shadow: 0 1px 2px rgba(0,0,0,0.06);
               display: grid;
               grid-template-columns: 1fr 1fr;
-              gap: 5px;
+              gap: 4px;
             }
             .info-row {
               display: flex;
-              font-size: 9px;
+              font-size: 10px;
             }
             .info-label {
               font-weight: bold;
               color: #7C5746;
-              min-width: 70px;
+              min-width: 65px;
             }
             .info-value {
               color: #333;
@@ -294,14 +294,14 @@ export default function GerenciarProntuariosPage() {
               border: 1px solid #e8e0db;
             }
             .footer {
-              margin-top: 12px;
-              padding: 10px;
+              margin-top: 8px;
+              padding: 6px;
               background: #f9f5f3;
               border: 1px solid #d4c5b9;
-              border-radius: 8px;
+              border-radius: 6px;
               text-align: center;
               color: #7C5746;
-              font-size: 8px;
+              font-size: 9px;
             }
             @media print {
               body { padding: 0; }
