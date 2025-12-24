@@ -27,14 +27,28 @@ export default function AlertasModal({ usuarioAtual }) {
   });
 
   const marcarLidoMutation = useMutation({
-    mutationFn: (alertaId) => base44.entities.Alerta.update(alertaId, { lido: true }),
+    mutationFn: async (alerta) => {
+      await base44.entities.Alerta.update(alerta.id, { lido: true });
+      
+      // Registrar no log
+      await base44.entities.LogAcao.create({
+        tipo: "editou_agendamento",
+        usuario_email: usuarioAtual?.email || "sistema",
+        descricao: `Marcou como lido o alerta: ${alerta.titulo}`,
+        entidade_tipo: "Alerta",
+        entidade_id: alerta.id
+      });
+      
+      return alerta.id;
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['alertas-usuario'] });
+      queryClient.invalidateQueries({ queryKey: ['logs-acoes'] });
     }
   });
 
-  const handleMarcarLido = (alertaId) => {
-    marcarLidoMutation.mutate(alertaId);
+  const handleMarcarLido = (alerta) => {
+    marcarLidoMutation.mutate(alerta);
   };
 
   // Auto-abrir quando há alertas novos
@@ -85,7 +99,7 @@ export default function AlertasModal({ usuarioAtual }) {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleMarcarLido(alerta.id)}
+                    onClick={() => handleMarcarLido(alerta)}
                     className="border-green-600 text-green-700 hover:bg-green-50"
                   >
                     <CheckCircle className="w-4 h-4 mr-1" />
