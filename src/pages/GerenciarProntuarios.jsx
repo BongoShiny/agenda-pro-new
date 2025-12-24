@@ -61,7 +61,8 @@ export default function GerenciarProntuariosPage() {
                          user?.cargo === "gerencia_unidades" ||
                          user?.cargo === "financeiro";
         
-        if (!temAcesso) {
+        // Bloquear acesso para recepcionistas
+        if (!temAcesso || user?.cargo === "recepcao") {
           navigate(createPageUrl("Agenda"));
         } else {
           // Registrar entrada na área de prontuários

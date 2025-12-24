@@ -38,7 +38,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
   const statusInfo = statusLabels[agendamento.status] || statusLabels.agendado;
   const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio" || agendamento.cliente_nome === "FECHADO";
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
-  const temAcessoProntuario = isAdmin || usuarioAtual?.cargo === "financeiro";
+  const temAcessoProntuario = isAdmin || usuarioAtual?.cargo === "financeiro" || usuarioAtual?.cargo === "recepcao";
   const podeConfirmar = agendamento.status === "agendado";
 
   const handleDelete = () => {
