@@ -216,15 +216,17 @@ export default function GerenciarProntuariosPage() {
               max-width: 100%;
               margin: 0 auto;
               border: 4px solid #7C5746;
-              padding: 15px;
+              padding: 0;
               background: white;
             }
             .header {
               text-align: center;
-              margin-bottom: 12px;
-              padding: 15px 10px 10px 10px;
+              margin-bottom: 0;
+              padding: 20px 15px;
               background: #7C5746;
-              border-radius: 4px 4px 0 0;
+            }
+            .content {
+              padding: 15px;
             }
             .logo {
               width: 80px;
@@ -308,6 +310,7 @@ export default function GerenciarProntuariosPage() {
               <div class="subtitle">Clínica especializada em Dor</div>
             </div>
 
+            <div class="content">
             <div class="info-section">
               <div class="info-row">
                 <span class="info-label">Paciente:</span>
@@ -368,6 +371,7 @@ export default function GerenciarProntuariosPage() {
             <div class="footer">
               <p><strong>Vibi Terapias</strong> - Clínica especializada em Dor</p>
               <p>Prontuário gerado em ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}</p>
+            </div>
             </div>
           </div>
 
