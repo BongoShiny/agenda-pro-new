@@ -9,6 +9,7 @@ import HistoricoAgendamentos from './pages/HistoricoAgendamentos';
 import Home from './pages/Home';
 import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
+import GerenciarContratos from './pages/GerenciarContratos';
 
 
 export const PAGES = {
@@ -23,6 +24,7 @@ export const PAGES = {
     "Home": Home,
     "RelatoriosClientes": RelatoriosClientes,
     "RelatoriosFinanceiros": RelatoriosFinanceiros,
+    "GerenciarContratos": GerenciarContratos,
 }
 
 export const pagesConfig = {

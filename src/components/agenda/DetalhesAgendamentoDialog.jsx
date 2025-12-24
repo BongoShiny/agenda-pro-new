@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar, Clock, User, Briefcase, MapPin, Tag, FileText, Ban, Unlock, CheckCircle, FileImage } from "lucide-react";
 import AbaProntuario from "./AbaProntuario";
+import AbaContrato from "./AbaContrato";
 
 const statusLabels = {
   confirmado: { label: "Confirmado", color: "bg-emerald-500" },
@@ -139,9 +140,10 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
           </div>
         ) : temAcessoProntuario ? (
           <Tabs value={abaAtiva} onValueChange={setAbaAtiva} className="flex-1 flex flex-col overflow-hidden">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
               <TabsTrigger value="prontuario">Prontuário</TabsTrigger>
+              <TabsTrigger value="contrato">Contrato Termo 30%</TabsTrigger>
             </TabsList>
             
             <TabsContent value="detalhes" className="flex-1 overflow-y-auto">
@@ -280,7 +282,11 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
         <TabsContent value="prontuario" className="flex-1 overflow-y-auto">
           <AbaProntuario agendamento={agendamento} usuarioAtual={usuarioAtual} />
         </TabsContent>
-      </Tabs>
+
+        <TabsContent value="contrato" className="flex-1 overflow-y-auto">
+          <AbaContrato agendamento={agendamento} usuarioAtual={usuarioAtual} />
+        </TabsContent>
+        </Tabs>
     ) : (
       <div className="space-y-4 py-4 overflow-y-auto">
         <div className="flex items-start gap-3">
