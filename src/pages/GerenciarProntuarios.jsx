@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileText, Download, Search, CheckCircle, XCircle, Edit, Save, X } from "lucide-react";
+import { ArrowLeft, FileText, Download, Search, CheckCircle, XCircle, Edit, Save, X, AlertTriangle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -120,6 +120,28 @@ export default function GerenciarProntuariosPage() {
   const agendamentosSemProntuario = agendamentosValidos.filter(ag =>
     !prontuarios.some(p => p.agendamento_id === ag.id)
   );
+
+  // Função para calcular status do prontuário
+  const getStatusProntuario = (ag) => {
+    const temProntuario = prontuarios.some(p => p.agendamento_id === ag.id);
+    
+    if (temProntuario) {
+      return { label: 'Preenchido', cor: 'bg-green-100 text-green-700', tipo: 'preenchido' };
+    }
+    
+    // Verificar se está atrasado (1 hora após o término)
+    const agora = new Date();
+    const [ano, mes, dia] = ag.data.split('-').map(Number);
+    const [horaFim, minutoFim] = ag.hora_fim.split(':').map(Number);
+    const dataFimSessao = new Date(ano, mes - 1, dia, horaFim, minutoFim);
+    const umaHoraDepois = new Date(dataFimSessao.getTime() + 60 * 60 * 1000);
+    
+    if (agora > umaHoraDepois) {
+      return { label: '⚠️ Atrasado', cor: 'bg-red-100 text-red-700', tipo: 'atrasado' };
+    }
+    
+    return { label: 'Pendente', cor: 'bg-orange-100 text-orange-700', tipo: 'pendente' };
+  };
 
   // Função de pesquisa
   const filtrarAgendamentos = (lista) => {
@@ -553,22 +575,25 @@ export default function GerenciarProntuariosPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filtrarAgendamentos(agendamentosSemProntuario).map(ag => (
-                      <TableRow key={ag.id}>
-                        <TableCell>
-                          {format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR })}
-                        </TableCell>
-                        <TableCell className="font-medium">{ag.cliente_nome}</TableCell>
-                        <TableCell>{ag.cliente_telefone || "-"}</TableCell>
-                        <TableCell>{ag.profissional_nome}</TableCell>
-                        <TableCell>{ag.unidade_nome}</TableCell>
-                        <TableCell>
-                          <Badge className="bg-orange-100 text-orange-700">
-                            Pendente
-                          </Badge>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    {filtrarAgendamentos(agendamentosSemProntuario).map(ag => {
+                      const status = getStatusProntuario(ag);
+                      return (
+                        <TableRow key={ag.id}>
+                          <TableCell>
+                            {format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR })}
+                          </TableCell>
+                          <TableCell className="font-medium">{ag.cliente_nome}</TableCell>
+                          <TableCell>{ag.cliente_telefone || "-"}</TableCell>
+                          <TableCell>{ag.profissional_nome}</TableCell>
+                          <TableCell>{ag.unidade_nome}</TableCell>
+                          <TableCell>
+                            <Badge className={status.cor}>
+                              {status.label}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
 
