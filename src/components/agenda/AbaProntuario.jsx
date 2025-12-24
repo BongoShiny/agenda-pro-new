@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { FileText, Download, Save } from "lucide-react";
+import { FileText, Download, Save, Edit } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -28,7 +28,7 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
   const queryClient = useQueryClient();
 
   // Buscar prontuário existente
-  const { data: prontuarioExistente } = useQuery({
+  const { data: prontuarioExistente, isLoading } = useQuery({
     queryKey: ['prontuario', agendamento.id],
     queryFn: async () => {
       const prontuarios = await base44.entities.Prontuario.filter({
@@ -36,20 +36,23 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
       });
       return prontuarios[0] || null;
     },
-    onSuccess: (data) => {
-      if (data) {
-        setProntuario({
-          terapia_feita: data.terapia_feita || "",
-          musculo_liberado: data.musculo_liberado || "",
-          sugestoes_proxima_sessao: data.sugestoes_proxima_sessao || "",
-          observacoes: data.observacoes || "",
-          relato_terapeuta: data.relato_terapeuta || "",
-          sessao_plano_terapeutico: data.sessao_plano_terapeutico || ""
-        });
-        setModoEdicao(false);
-      }
-    }
+    enabled: !!agendamento?.id
   });
+
+  // Atualizar estado quando prontuario existente mudar
+  React.useEffect(() => {
+    if (prontuarioExistente) {
+      setProntuario({
+        terapia_feita: prontuarioExistente.terapia_feita || "",
+        musculo_liberado: prontuarioExistente.musculo_liberado || "",
+        sugestoes_proxima_sessao: prontuarioExistente.sugestoes_proxima_sessao || "",
+        observacoes: prontuarioExistente.observacoes || "",
+        relato_terapeuta: prontuarioExistente.relato_terapeuta || "",
+        sessao_plano_terapeutico: prontuarioExistente.sessao_plano_terapeutico || ""
+      });
+      setModoEdicao(false);
+    }
+  }, [prontuarioExistente]);
 
   const salvarProntuarioMutation = useMutation({
     mutationFn: async (dados) => {
@@ -110,11 +113,15 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
       
       return resultado;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['prontuario', agendamento.id] });
-      queryClient.invalidateQueries({ queryKey: ['prontuarios'] });
-      queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
-      queryClient.invalidateQueries({ queryKey: ['logs-acoes'] });
+    onSuccess: async () => {
+      // Invalidar e refetch imediato
+      await queryClient.invalidateQueries({ queryKey: ['prontuario', agendamento.id] });
+      await queryClient.refetchQueries({ queryKey: ['prontuario', agendamento.id] });
+      await queryClient.invalidateQueries({ queryKey: ['prontuarios'] });
+      await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+      await queryClient.invalidateQueries({ queryKey: ['logs-acoes'] });
+      
+      setModoEdicao(false);
       alert("✅ Prontuário salvo com sucesso! Agendamento marcado como concluído.");
     }
   });
@@ -322,6 +329,14 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
     printWindow.document.close();
   };
 
+  if (isLoading) {
+    return (
+      <div className="space-y-6 py-4 flex items-center justify-center">
+        <p className="text-gray-500">Carregando prontuário...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6 py-4">
       <div className="flex items-center justify-between mb-4">
@@ -375,10 +390,16 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
             </div>
           </div>
 
-          <Button onClick={handleEditar} className="w-full bg-blue-600 hover:bg-blue-700">
-            <FileText className="w-4 h-4 mr-2" />
-            Editar Prontuário
-          </Button>
+          <div className="grid grid-cols-2 gap-3">
+            <Button onClick={handleEditar} className="bg-blue-600 hover:bg-blue-700">
+              <Edit className="w-4 h-4 mr-2" />
+              Editar Prontuário
+            </Button>
+            <Button onClick={handleExportar} variant="outline" className="border-amber-600 text-amber-700 hover:bg-amber-50">
+              <Download className="w-4 h-4 mr-2" />
+              Exportar PDF
+            </Button>
+          </div>
         </div>
       ) : (
         <div className="space-y-4">
