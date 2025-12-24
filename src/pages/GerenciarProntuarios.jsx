@@ -1,15 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, FileText, Download, Search, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, FileText, Download, Search, CheckCircle, XCircle, Edit, Save, X } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import {
   Table,
   TableBody,
@@ -30,7 +39,11 @@ export default function GerenciarProntuariosPage() {
   const [usuarioAtual, setUsuarioAtual] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [pesquisa, setPesquisa] = useState("");
+  const [dialogEditarAberto, setDialogEditarAberto] = useState(false);
+  const [prontuarioEditando, setProntuarioEditando] = useState(null);
+  const [agendamentoEditando, setAgendamentoEditando] = useState(null);
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   useEffect(() => {
     const carregarUsuario = async () => {
@@ -97,6 +110,55 @@ export default function GerenciarProntuariosPage() {
       ag.cliente_telefone?.toLowerCase().includes(termo) ||
       ag.unidade_nome?.toLowerCase().includes(termo)
     );
+  };
+
+  const abrirEdicao = (agendamento) => {
+    const prontuario = prontuarios.find(p => p.agendamento_id === agendamento.id);
+    if (!prontuario) return;
+    
+    setProntuarioEditando({
+      ...prontuario,
+      terapia_feita: prontuario.terapia_feita || "",
+      musculo_liberado: prontuario.musculo_liberado || "",
+      sugestoes_proxima_sessao: prontuario.sugestoes_proxima_sessao || "",
+      observacoes: prontuario.observacoes || "",
+      relato_terapeuta: prontuario.relato_terapeuta || "",
+      sessao_plano_terapeutico: prontuario.sessao_plano_terapeutico || ""
+    });
+    setAgendamentoEditando(agendamento);
+    setDialogEditarAberto(true);
+  };
+
+  const atualizarProntuarioMutation = useMutation({
+    mutationFn: async (dados) => {
+      const resultado = await base44.entities.Prontuario.update(prontuarioEditando.id, dados);
+      
+      // Registrar edição no log
+      await base44.entities.LogAcao.create({
+        tipo: "editou_agendamento",
+        usuario_email: usuarioAtual?.email || "sistema",
+        descricao: `Editou prontuário de: ${agendamentoEditando.cliente_nome} - ${agendamentoEditando.data} às ${agendamentoEditando.hora_inicio}`,
+        entidade_tipo: "Prontuario",
+        entidade_id: prontuarioEditando.id,
+        dados_antigos: JSON.stringify(prontuarioEditando),
+        dados_novos: JSON.stringify(resultado)
+      });
+      
+      return resultado;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['prontuarios'] });
+      queryClient.invalidateQueries({ queryKey: ['logs-acoes'] });
+      setDialogEditarAberto(false);
+      setProntuarioEditando(null);
+      setAgendamentoEditando(null);
+      alert("✅ Prontuário atualizado com sucesso!");
+    }
+  });
+
+  const handleSalvarEdicao = () => {
+    const { id, agendamento_id, cliente_id, cliente_nome, cliente_telefone, profissional_nome, unidade_nome, data_sessao, criado_por, created_date, updated_date, created_by, ...dados } = prontuarioEditando;
+    atualizarProntuarioMutation.mutate(dados);
   };
 
   const exportarProntuario = (agendamento) => {
@@ -384,15 +446,26 @@ export default function GerenciarProntuariosPage() {
                           </Badge>
                         </TableCell>
                         <TableCell>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={() => exportarProntuario(ag)}
-                            className="border-amber-600 text-amber-700 hover:bg-amber-50"
-                          >
-                            <Download className="w-4 h-4 mr-2" />
-                            Exportar
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => abrirEdicao(ag)}
+                              className="border-blue-600 text-blue-700 hover:bg-blue-50"
+                            >
+                              <Edit className="w-4 h-4 mr-2" />
+                              Editar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => exportarProntuario(ag)}
+                              className="border-amber-600 text-amber-700 hover:bg-amber-50"
+                            >
+                              <Download className="w-4 h-4 mr-2" />
+                              Exportar
+                            </Button>
+                          </div>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -460,6 +533,105 @@ export default function GerenciarProntuariosPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Dialog Editar Prontuário */}
+      <Dialog open={dialogEditarAberto} onOpenChange={setDialogEditarAberto}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Prontuário</DialogTitle>
+          </DialogHeader>
+
+          {prontuarioEditando && agendamentoEditando && (
+            <div className="space-y-4 py-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm font-medium text-blue-900">
+                  {agendamentoEditando.cliente_nome} - {format(criarDataPura(agendamentoEditando.data), "dd/MM/yyyy", { locale: ptBR })}
+                </p>
+                <p className="text-xs text-blue-700 mt-1">
+                  Profissional: {agendamentoEditando.profissional_nome} | Unidade: {agendamentoEditando.unidade_nome}
+                </p>
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-700">TERAPIA FEITA:</Label>
+                <Textarea
+                  value={prontuarioEditando.terapia_feita}
+                  onChange={(e) => setProntuarioEditando({ ...prontuarioEditando, terapia_feita: e.target.value })}
+                  placeholder="Descreva a terapia realizada..."
+                  rows={3}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-700">MÚSCULO LIBERADO:</Label>
+                <Textarea
+                  value={prontuarioEditando.musculo_liberado}
+                  onChange={(e) => setProntuarioEditando({ ...prontuarioEditando, musculo_liberado: e.target.value })}
+                  placeholder="Liste os músculos que foram liberados..."
+                  rows={3}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-700">SUGESTÕES PARA PRÓXIMA SESSÃO:</Label>
+                <Textarea
+                  value={prontuarioEditando.sugestoes_proxima_sessao}
+                  onChange={(e) => setProntuarioEditando({ ...prontuarioEditando, sugestoes_proxima_sessao: e.target.value })}
+                  placeholder="Sugestões e recomendações para a próxima sessão..."
+                  rows={3}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-700">OBSERVAÇÕES:</Label>
+                <Textarea
+                  value={prontuarioEditando.observacoes}
+                  onChange={(e) => setProntuarioEditando({ ...prontuarioEditando, observacoes: e.target.value })}
+                  placeholder="Observações gerais..."
+                  rows={3}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-700">RELATO DO TERAPEUTA SOBRE A SESSÃO:</Label>
+                <Textarea
+                  value={prontuarioEditando.relato_terapeuta}
+                  onChange={(e) => setProntuarioEditando({ ...prontuarioEditando, relato_terapeuta: e.target.value })}
+                  placeholder="Relato detalhado do terapeuta sobre a sessão..."
+                  rows={4}
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label className="text-sm font-medium text-gray-700">QUAL A SESSÃO DO PLANO TERAPÊUTICO:</Label>
+                <Textarea
+                  value={prontuarioEditando.sessao_plano_terapeutico}
+                  onChange={(e) => setProntuarioEditando({ ...prontuarioEditando, sessao_plano_terapeutico: e.target.value })}
+                  placeholder="Ex: 3ª sessão de 10, 5ª sessão do plano..."
+                  rows={2}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogEditarAberto(false)}>
+              <X className="w-4 h-4 mr-2" />
+              Cancelar
+            </Button>
+            <Button onClick={handleSalvarEdicao} className="bg-amber-600 hover:bg-amber-700">
+              <Save className="w-4 h-4 mr-2" />
+              Salvar Alterações
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

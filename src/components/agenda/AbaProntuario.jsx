@@ -23,6 +23,7 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
     relato_terapeuta: "",
     sessao_plano_terapeutico: ""
   });
+  const [modoEdicao, setModoEdicao] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -45,6 +46,7 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
           relato_terapeuta: data.relato_terapeuta || "",
           sessao_plano_terapeutico: data.sessao_plano_terapeutico || ""
         });
+        setModoEdicao(false);
       }
     }
   });
@@ -120,6 +122,12 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
   const handleSalvar = () => {
     salvarProntuarioMutation.mutate(prontuario);
   };
+
+  const handleEditar = () => {
+    setModoEdicao(true);
+  };
+
+  const podeEditar = !prontuarioExistente || modoEdicao;
 
   const handleExportar = () => {
     const dataFormatada = format(criarDataPura(agendamento.data), "dd/MM/yyyy", { locale: ptBR });
@@ -321,7 +329,7 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
           <FileText className="w-5 h-5 text-amber-600" />
           <h3 className="text-lg font-semibold text-gray-900">Ficha de Prontuário</h3>
         </div>
-        {prontuarioExistente && (
+        {prontuarioExistente && !modoEdicao && (
           <Button onClick={handleExportar} variant="outline" className="border-amber-600 text-amber-700 hover:bg-amber-50">
             <Download className="w-4 h-4 mr-2" />
             Exportar PDF
@@ -329,78 +337,123 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
         )}
       </div>
 
-      <div className="space-y-4">
-        <div>
-          <Label className="text-sm font-medium text-gray-700">TERAPIA FEITA:</Label>
-          <Textarea
-            value={prontuario.terapia_feita}
-            onChange={(e) => setProntuario({ ...prontuario, terapia_feita: e.target.value })}
-            placeholder="Descreva a terapia realizada..."
-            rows={3}
-            className="mt-1"
-          />
-        </div>
+      {prontuarioExistente && !modoEdicao ? (
+        <div className="space-y-4">
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <p className="text-sm text-green-800 font-medium">✅ Prontuário já preenchido para este agendamento</p>
+          </div>
 
-        <div>
-          <Label className="text-sm font-medium text-gray-700">MÚSCULO LIBERADO:</Label>
-          <Textarea
-            value={prontuario.musculo_liberado}
-            onChange={(e) => setProntuario({ ...prontuario, musculo_liberado: e.target.value })}
-            placeholder="Liste os músculos que foram liberados..."
-            rows={3}
-            className="mt-1"
-          />
-        </div>
+          <div className="space-y-4">
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <Label className="text-sm font-semibold text-gray-700">TERAPIA FEITA:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.terapia_feita || "-"}</p>
+            </div>
 
-        <div>
-          <Label className="text-sm font-medium text-gray-700">SUGESTÕES PARA PRÓXIMA SESSÃO:</Label>
-          <Textarea
-            value={prontuario.sugestoes_proxima_sessao}
-            onChange={(e) => setProntuario({ ...prontuario, sugestoes_proxima_sessao: e.target.value })}
-            placeholder="Sugestões e recomendações para a próxima sessão..."
-            rows={3}
-            className="mt-1"
-          />
-        </div>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <Label className="text-sm font-semibold text-gray-700">MÚSCULO LIBERADO:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.musculo_liberado || "-"}</p>
+            </div>
 
-        <div>
-          <Label className="text-sm font-medium text-gray-700">OBSERVAÇÕES:</Label>
-          <Textarea
-            value={prontuario.observacoes}
-            onChange={(e) => setProntuario({ ...prontuario, observacoes: e.target.value })}
-            placeholder="Observações gerais..."
-            rows={3}
-            className="mt-1"
-          />
-        </div>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <Label className="text-sm font-semibold text-gray-700">SUGESTÕES PARA PRÓXIMA SESSÃO:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.sugestoes_proxima_sessao || "-"}</p>
+            </div>
 
-        <div>
-          <Label className="text-sm font-medium text-gray-700">RELATO DO TERAPEUTA SOBRE A SESSÃO:</Label>
-          <Textarea
-            value={prontuario.relato_terapeuta}
-            onChange={(e) => setProntuario({ ...prontuario, relato_terapeuta: e.target.value })}
-            placeholder="Relato detalhado do terapeuta sobre a sessão..."
-            rows={4}
-            className="mt-1"
-          />
-        </div>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <Label className="text-sm font-semibold text-gray-700">OBSERVAÇÕES:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.observacoes || "-"}</p>
+            </div>
 
-        <div>
-          <Label className="text-sm font-medium text-gray-700">QUAL A SESSÃO DO PLANO TERAPÊUTICO:</Label>
-          <Textarea
-            value={prontuario.sessao_plano_terapeutico}
-            onChange={(e) => setProntuario({ ...prontuario, sessao_plano_terapeutico: e.target.value })}
-            placeholder="Ex: 3ª sessão de 10, 5ª sessão do plano..."
-            rows={2}
-            className="mt-1"
-          />
-        </div>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <Label className="text-sm font-semibold text-gray-700">RELATO DO TERAPEUTA SOBRE A SESSÃO:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.relato_terapeuta || "-"}</p>
+            </div>
 
-        <Button onClick={handleSalvar} className="w-full bg-amber-600 hover:bg-amber-700">
-          <Save className="w-4 h-4 mr-2" />
-          Salvar Prontuário
-        </Button>
-      </div>
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <Label className="text-sm font-semibold text-gray-700">QUAL A SESSÃO DO PLANO TERAPÊUTICO:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.sessao_plano_terapeutico || "-"}</p>
+            </div>
+          </div>
+
+          <Button onClick={handleEditar} className="w-full bg-blue-600 hover:bg-blue-700">
+            <FileText className="w-4 h-4 mr-2" />
+            Editar Prontuário
+          </Button>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          <div>
+            <Label className="text-sm font-medium text-gray-700">TERAPIA FEITA:</Label>
+            <Textarea
+              value={prontuario.terapia_feita}
+              onChange={(e) => setProntuario({ ...prontuario, terapia_feita: e.target.value })}
+              placeholder="Descreva a terapia realizada..."
+              rows={3}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">MÚSCULO LIBERADO:</Label>
+            <Textarea
+              value={prontuario.musculo_liberado}
+              onChange={(e) => setProntuario({ ...prontuario, musculo_liberado: e.target.value })}
+              placeholder="Liste os músculos que foram liberados..."
+              rows={3}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">SUGESTÕES PARA PRÓXIMA SESSÃO:</Label>
+            <Textarea
+              value={prontuario.sugestoes_proxima_sessao}
+              onChange={(e) => setProntuario({ ...prontuario, sugestoes_proxima_sessao: e.target.value })}
+              placeholder="Sugestões e recomendações para a próxima sessão..."
+              rows={3}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">OBSERVAÇÕES:</Label>
+            <Textarea
+              value={prontuario.observacoes}
+              onChange={(e) => setProntuario({ ...prontuario, observacoes: e.target.value })}
+              placeholder="Observações gerais..."
+              rows={3}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">RELATO DO TERAPEUTA SOBRE A SESSÃO:</Label>
+            <Textarea
+              value={prontuario.relato_terapeuta}
+              onChange={(e) => setProntuario({ ...prontuario, relato_terapeuta: e.target.value })}
+              placeholder="Relato detalhado do terapeuta sobre a sessão..."
+              rows={4}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">QUAL A SESSÃO DO PLANO TERAPÊUTICO:</Label>
+            <Textarea
+              value={prontuario.sessao_plano_terapeutico}
+              onChange={(e) => setProntuario({ ...prontuario, sessao_plano_terapeutico: e.target.value })}
+              placeholder="Ex: 3ª sessão de 10, 5ª sessão do plano..."
+              rows={2}
+              className="mt-1"
+            />
+          </div>
+
+          <Button onClick={handleSalvar} className="w-full bg-amber-600 hover:bg-amber-700">
+            <Save className="w-4 h-4 mr-2" />
+            Salvar Prontuário
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
