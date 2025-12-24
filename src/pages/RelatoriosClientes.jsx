@@ -80,7 +80,6 @@ export default function RelatoriosClientesPage() {
       const scrollTable = document.getElementById('scroll-table');
 
       if (!scrollTop || !scrollTable) {
-        console.log('Elementos não encontrados');
         return;
       }
 
@@ -111,7 +110,7 @@ export default function RelatoriosClientesPage() {
     }, 100);
 
     return () => clearTimeout(timer);
-  }, [agendamentosFiltrados]);
+  }, []);
 
   const { data: agendamentos = [] } = useQuery({
     queryKey: ['agendamentos-relatorio'],
