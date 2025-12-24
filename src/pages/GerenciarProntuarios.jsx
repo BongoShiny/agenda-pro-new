@@ -202,87 +202,96 @@ export default function GerenciarProntuariosPage() {
         <head>
           <title>Prontuário - ${agendamento.cliente_nome}</title>
           <style>
+            @page {
+              size: A4;
+              margin: 10mm;
+            }
             body { 
               font-family: Arial, sans-serif; 
-              padding: 40px; 
+              padding: 10px; 
               background: #fff;
+              margin: 0;
             }
             .container {
-              max-width: 800px;
+              max-width: 100%;
               margin: 0 auto;
-              border: 8px solid #7C5746;
-              padding: 40px;
+              border: 4px solid #7C5746;
+              padding: 15px;
               background: white;
             }
             .header {
               text-align: center;
-              margin-bottom: 30px;
-              padding-bottom: 20px;
-              border-bottom: 3px solid #7C5746;
+              margin-bottom: 12px;
+              padding-bottom: 10px;
+              border-bottom: 2px solid #7C5746;
             }
             .logo {
-              width: 150px;
+              width: 80px;
               height: auto;
-              margin-bottom: 15px;
+              margin-bottom: 8px;
             }
             .title {
               color: #7C5746;
-              font-size: 28px;
+              font-size: 16px;
               font-weight: bold;
-              margin: 10px 0;
+              margin: 5px 0;
             }
             .subtitle {
               color: #7C5746;
-              font-size: 14px;
+              font-size: 10px;
               font-style: italic;
             }
             .info-section {
               background: #f9f5f3;
-              padding: 20px;
-              border-radius: 8px;
-              margin-bottom: 25px;
-              border-left: 4px solid #7C5746;
+              padding: 10px;
+              border-radius: 4px;
+              margin-bottom: 12px;
+              border-left: 3px solid #7C5746;
+              display: grid;
+              grid-template-columns: 1fr 1fr;
+              gap: 5px;
             }
             .info-row {
               display: flex;
-              margin-bottom: 10px;
+              font-size: 9px;
             }
             .info-label {
               font-weight: bold;
               color: #7C5746;
-              min-width: 150px;
+              min-width: 70px;
             }
             .info-value {
               color: #333;
             }
             .field-section {
-              margin-bottom: 25px;
-              padding-bottom: 20px;
+              margin-bottom: 10px;
+              padding-bottom: 8px;
               border-bottom: 1px solid #e0d5d0;
             }
             .field-label {
               font-weight: bold;
               color: #7C5746;
-              font-size: 14px;
-              margin-bottom: 8px;
+              font-size: 10px;
+              margin-bottom: 4px;
               display: block;
             }
             .field-value {
               color: #333;
-              line-height: 1.6;
+              line-height: 1.3;
               white-space: pre-wrap;
-              padding: 10px;
+              padding: 5px;
               background: #f9f5f3;
-              border-radius: 4px;
-              min-height: 40px;
+              border-radius: 3px;
+              min-height: 25px;
+              font-size: 9px;
             }
             .footer {
-              margin-top: 40px;
-              padding-top: 20px;
-              border-top: 3px solid #7C5746;
+              margin-top: 12px;
+              padding-top: 8px;
+              border-top: 2px solid #7C5746;
               text-align: center;
               color: #7C5746;
-              font-size: 12px;
+              font-size: 8px;
             }
             @media print {
               body { padding: 0; }
