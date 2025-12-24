@@ -457,12 +457,20 @@ export default function RelatoriosClientesPage() {
         {/* Tabela estilo Excel */}
         <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           {/* Barra de scroll superior */}
-          <div className="overflow-x-auto border-b border-gray-200" id="scroll-top">
-            <div style={{ width: '1600px', height: '1px' }}></div>
+          <div 
+            className="overflow-x-auto border-b border-gray-200 bg-gray-50" 
+            id="scroll-top"
+            style={{ overflowY: 'hidden' }}
+          >
+            <div style={{ width: '2000px', height: '15px' }}></div>
           </div>
           
-          <div className="overflow-x-auto" id="scroll-table">
-            <table className="w-full text-sm">
+          <div 
+            className="overflow-x-auto" 
+            id="scroll-table"
+            style={{ overflowY: 'auto' }}
+          >
+            <table className="w-full text-sm" style={{ minWidth: '2000px' }}>
               <thead className="bg-gray-100 border-b border-gray-200">
                 <tr>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">
