@@ -16,11 +16,21 @@ const criarDataPura = (dataString) => {
 
 export default function AbaProntuario({ agendamento, usuarioAtual }) {
   const [prontuario, setProntuario] = useState({
-    terapia_feita: "",
-    musculo_liberado: "",
-    sugestoes_proxima_sessao: "",
-    observacoes: "",
+    terapia_realizada: "",
+    tecnicas_utilizadas: "",
+    musculos_cabeca_pescoco: "",
+    musculos_face_temporomandibular: "",
+    musculos_face_costas_superior: "",
+    musculos_ombros_bracos: "",
+    musculos_toracica_lombar: "",
+    musculos_quadris_coxas: "",
+    musculos_panturrilhas: "",
+    musculos_pes: "",
+    musculos_abdomen: "",
+    feedback_pre_sessao: "",
+    feedback_pos_sessao: "",
     relato_terapeuta: "",
+    observacoes_proxima_sessao: "",
     sessao_plano_terapeutico: ""
   });
   const [modoEdicao, setModoEdicao] = useState(false);
@@ -43,11 +53,21 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
   React.useEffect(() => {
     if (prontuarioExistente) {
       setProntuario({
-        terapia_feita: prontuarioExistente.terapia_feita || "",
-        musculo_liberado: prontuarioExistente.musculo_liberado || "",
-        sugestoes_proxima_sessao: prontuarioExistente.sugestoes_proxima_sessao || "",
-        observacoes: prontuarioExistente.observacoes || "",
+        terapia_realizada: prontuarioExistente.terapia_realizada || "",
+        tecnicas_utilizadas: prontuarioExistente.tecnicas_utilizadas || "",
+        musculos_cabeca_pescoco: prontuarioExistente.musculos_cabeca_pescoco || "",
+        musculos_face_temporomandibular: prontuarioExistente.musculos_face_temporomandibular || "",
+        musculos_face_costas_superior: prontuarioExistente.musculos_face_costas_superior || "",
+        musculos_ombros_bracos: prontuarioExistente.musculos_ombros_bracos || "",
+        musculos_toracica_lombar: prontuarioExistente.musculos_toracica_lombar || "",
+        musculos_quadris_coxas: prontuarioExistente.musculos_quadris_coxas || "",
+        musculos_panturrilhas: prontuarioExistente.musculos_panturrilhas || "",
+        musculos_pes: prontuarioExistente.musculos_pes || "",
+        musculos_abdomen: prontuarioExistente.musculos_abdomen || "",
+        feedback_pre_sessao: prontuarioExistente.feedback_pre_sessao || "",
+        feedback_pos_sessao: prontuarioExistente.feedback_pos_sessao || "",
         relato_terapeuta: prontuarioExistente.relato_terapeuta || "",
+        observacoes_proxima_sessao: prontuarioExistente.observacoes_proxima_sessao || "",
         sessao_plano_terapeutico: prontuarioExistente.sessao_plano_terapeutico || ""
       });
       setModoEdicao(false);
@@ -289,28 +309,78 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
             </div>
 
             <div class="field-section">
-              <span class="field-label">TERAPIA FEITA:</span>
-              <div class="field-value">${prontuario.terapia_feita || "-"}</div>
+              <span class="field-label">TERAPIA REALIZADA:</span>
+              <div class="field-value">${prontuario.terapia_realizada || "-"}</div>
             </div>
 
             <div class="field-section">
-              <span class="field-label">MÚSCULO LIBERADO:</span>
-              <div class="field-value">${prontuario.musculo_liberado || "-"}</div>
+              <span class="field-label">TÉCNICAS UTILIZADAS:</span>
+              <div class="field-value">${prontuario.tecnicas_utilizadas || "-"}</div>
             </div>
 
             <div class="field-section">
-              <span class="field-label">SUGESTÕES PARA PRÓXIMA SESSÃO:</span>
-              <div class="field-value">${prontuario.sugestoes_proxima_sessao || "-"}</div>
+              <span class="field-label">MÚSCULOS LIBERADOS DA CABEÇA E PESCOÇO:</span>
+              <div class="field-value">${prontuario.musculos_cabeca_pescoco || "-"}</div>
             </div>
 
             <div class="field-section">
-              <span class="field-label">OBSERVAÇÕES:</span>
-              <div class="field-value">${prontuario.observacoes || "-"}</div>
+              <span class="field-label">MÚSCULOS LIBERADOS DA FACE E REGIÃO TEMPOROMANDIBULAR:</span>
+              <div class="field-value">${prontuario.musculos_face_temporomandibular || "-"}</div>
+            </div>
+
+            <div class="field-section">
+              <span class="field-label">MÚSCULOS LIBERADOS DA FACE E REGIÃO SUPERIOR DAS COSTAS:</span>
+              <div class="field-value">${prontuario.musculos_face_costas_superior || "-"}</div>
+            </div>
+
+            <div class="field-section">
+              <span class="field-label">MÚSCULOS LIBERADOS DOS OMBROS E BRAÇOS:</span>
+              <div class="field-value">${prontuario.musculos_ombros_bracos || "-"}</div>
+            </div>
+
+            <div class="field-section">
+              <span class="field-label">MÚSCULOS LIBERADOS DA REGIÃO E TORÁCICA E LOMBAR:</span>
+              <div class="field-value">${prontuario.musculos_toracica_lombar || "-"}</div>
+            </div>
+
+            <div class="field-section">
+              <span class="field-label">MÚSCULOS LIBERADOS DOS QUADRIS E COXAS:</span>
+              <div class="field-value">${prontuario.musculos_quadris_coxas || "-"}</div>
+            </div>
+
+            <div class="field-section">
+              <span class="field-label">MÚSCULOS LIBERADOS DAS PANTURRILHAS:</span>
+              <div class="field-value">${prontuario.musculos_panturrilhas || "-"}</div>
+            </div>
+
+            <div class="field-section">
+              <span class="field-label">MÚSCULOS LIBERADOS DOS PÉS:</span>
+              <div class="field-value">${prontuario.musculos_pes || "-"}</div>
+            </div>
+
+            <div class="field-section">
+              <span class="field-label">MÚSCULOS LIBERADOS DO ABDÔMEN:</span>
+              <div class="field-value">${prontuario.musculos_abdomen || "-"}</div>
+            </div>
+
+            <div class="field-section">
+              <span class="field-label">FEEDBACK DO PACIENTE PRÉ SESSÃO:</span>
+              <div class="field-value">${prontuario.feedback_pre_sessao || "-"}</div>
+            </div>
+
+            <div class="field-section">
+              <span class="field-label">FEEDBACK DO PACIENTE PÓS SESSÃO:</span>
+              <div class="field-value">${prontuario.feedback_pos_sessao || "-"}</div>
             </div>
 
             <div class="field-section">
               <span class="field-label">RELATO DO TERAPEUTA SOBRE A SESSÃO:</span>
               <div class="field-value">${prontuario.relato_terapeuta || "-"}</div>
+            </div>
+
+            <div class="field-section">
+              <span class="field-label">OBSERVAÇÕES PARA UMA PRÓXIMA SESSÃO:</span>
+              <div class="field-value">${prontuario.observacoes_proxima_sessao || "-"}</div>
             </div>
 
             <div class="field-section">
@@ -381,28 +451,78 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
 
           <div className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <Label className="text-sm font-semibold text-gray-700">TERAPIA FEITA:</Label>
-              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.terapia_feita || "-"}</p>
+              <Label className="text-sm font-semibold text-gray-700">TERAPIA REALIZADA:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.terapia_realizada || "-"}</p>
             </div>
 
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <Label className="text-sm font-semibold text-gray-700">MÚSCULO LIBERADO:</Label>
-              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.musculo_liberado || "-"}</p>
+              <Label className="text-sm font-semibold text-gray-700">TÉCNICAS UTILIZADAS:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.tecnicas_utilizadas || "-"}</p>
             </div>
 
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <Label className="text-sm font-semibold text-gray-700">SUGESTÕES PARA PRÓXIMA SESSÃO:</Label>
-              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.sugestoes_proxima_sessao || "-"}</p>
+              <Label className="text-sm font-semibold text-gray-700">MÚSCULOS LIBERADOS DA CABEÇA E PESCOÇO:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.musculos_cabeca_pescoco || "-"}</p>
             </div>
 
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-              <Label className="text-sm font-semibold text-gray-700">OBSERVAÇÕES:</Label>
-              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.observacoes || "-"}</p>
+              <Label className="text-sm font-semibold text-gray-700">MÚSCULOS LIBERADOS DA FACE E REGIÃO TEMPOROMANDIBULAR:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.musculos_face_temporomandibular || "-"}</p>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <Label className="text-sm font-semibold text-gray-700">MÚSCULOS LIBERADOS DA FACE E REGIÃO SUPERIOR DAS COSTAS:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.musculos_face_costas_superior || "-"}</p>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <Label className="text-sm font-semibold text-gray-700">MÚSCULOS LIBERADOS DOS OMBROS E BRAÇOS:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.musculos_ombros_bracos || "-"}</p>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <Label className="text-sm font-semibold text-gray-700">MÚSCULOS LIBERADOS DA REGIÃO E TORÁCICA E LOMBAR:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.musculos_toracica_lombar || "-"}</p>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <Label className="text-sm font-semibold text-gray-700">MÚSCULOS LIBERADOS DOS QUADRIS E COXAS:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.musculos_quadris_coxas || "-"}</p>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <Label className="text-sm font-semibold text-gray-700">MÚSCULOS LIBERADOS DAS PANTURRILHAS:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.musculos_panturrilhas || "-"}</p>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <Label className="text-sm font-semibold text-gray-700">MÚSCULOS LIBERADOS DOS PÉS:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.musculos_pes || "-"}</p>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <Label className="text-sm font-semibold text-gray-700">MÚSCULOS LIBERADOS DO ABDÔMEN:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.musculos_abdomen || "-"}</p>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <Label className="text-sm font-semibold text-gray-700">FEEDBACK DO PACIENTE PRÉ SESSÃO:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.feedback_pre_sessao || "-"}</p>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <Label className="text-sm font-semibold text-gray-700">FEEDBACK DO PACIENTE PÓS SESSÃO:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.feedback_pos_sessao || "-"}</p>
             </div>
 
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
               <Label className="text-sm font-semibold text-gray-700">RELATO DO TERAPEUTA SOBRE A SESSÃO:</Label>
               <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.relato_terapeuta || "-"}</p>
+            </div>
+
+            <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+              <Label className="text-sm font-semibold text-gray-700">OBSERVAÇÕES PARA UMA PRÓXIMA SESSÃO:</Label>
+              <p className="mt-2 text-gray-800 whitespace-pre-wrap">{prontuario.observacoes_proxima_sessao || "-"}</p>
             </div>
 
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
@@ -425,45 +545,144 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
       ) : (
         <div className="space-y-4">
           <div>
-            <Label className="text-sm font-medium text-gray-700">TERAPIA FEITA:</Label>
+            <Label className="text-sm font-medium text-gray-700">TERAPIA REALIZADA:</Label>
             <Textarea
-              value={prontuario.terapia_feita}
-              onChange={(e) => setProntuario({ ...prontuario, terapia_feita: e.target.value })}
+              value={prontuario.terapia_realizada}
+              onChange={(e) => setProntuario({ ...prontuario, terapia_realizada: e.target.value })}
               placeholder="Descreva a terapia realizada..."
-              rows={3}
+              rows={2}
               className="mt-1"
             />
           </div>
 
           <div>
-            <Label className="text-sm font-medium text-gray-700">MÚSCULO LIBERADO:</Label>
+            <Label className="text-sm font-medium text-gray-700">TÉCNICAS UTILIZADAS:</Label>
             <Textarea
-              value={prontuario.musculo_liberado}
-              onChange={(e) => setProntuario({ ...prontuario, musculo_liberado: e.target.value })}
-              placeholder="Liste os músculos que foram liberados..."
-              rows={3}
+              value={prontuario.tecnicas_utilizadas}
+              onChange={(e) => setProntuario({ ...prontuario, tecnicas_utilizadas: e.target.value })}
+              placeholder="Descreva as técnicas utilizadas..."
+              rows={2}
               className="mt-1"
             />
           </div>
 
           <div>
-            <Label className="text-sm font-medium text-gray-700">SUGESTÕES PARA PRÓXIMA SESSÃO:</Label>
+            <Label className="text-sm font-medium text-gray-700">MÚSCULOS LIBERADOS DA CABEÇA E PESCOÇO:</Label>
             <Textarea
-              value={prontuario.sugestoes_proxima_sessao}
-              onChange={(e) => setProntuario({ ...prontuario, sugestoes_proxima_sessao: e.target.value })}
-              placeholder="Sugestões e recomendações para a próxima sessão..."
-              rows={3}
+              value={prontuario.musculos_cabeca_pescoco}
+              onChange={(e) => setProntuario({ ...prontuario, musculos_cabeca_pescoco: e.target.value })}
+              placeholder="Liste os músculos..."
+              rows={2}
               className="mt-1"
             />
           </div>
 
           <div>
-            <Label className="text-sm font-medium text-gray-700">OBSERVAÇÕES:</Label>
+            <Label className="text-sm font-medium text-gray-700">MÚSCULOS LIBERADOS DA FACE E REGIÃO TEMPOROMANDIBULAR:</Label>
             <Textarea
-              value={prontuario.observacoes}
-              onChange={(e) => setProntuario({ ...prontuario, observacoes: e.target.value })}
-              placeholder="Observações gerais..."
-              rows={3}
+              value={prontuario.musculos_face_temporomandibular}
+              onChange={(e) => setProntuario({ ...prontuario, musculos_face_temporomandibular: e.target.value })}
+              placeholder="Liste os músculos..."
+              rows={2}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">MÚSCULOS LIBERADOS DA FACE E REGIÃO SUPERIOR DAS COSTAS:</Label>
+            <Textarea
+              value={prontuario.musculos_face_costas_superior}
+              onChange={(e) => setProntuario({ ...prontuario, musculos_face_costas_superior: e.target.value })}
+              placeholder="Liste os músculos..."
+              rows={2}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">MÚSCULOS LIBERADOS DOS OMBROS E BRAÇOS:</Label>
+            <Textarea
+              value={prontuario.musculos_ombros_bracos}
+              onChange={(e) => setProntuario({ ...prontuario, musculos_ombros_bracos: e.target.value })}
+              placeholder="Liste os músculos..."
+              rows={2}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">MÚSCULOS LIBERADOS DA REGIÃO E TORÁCICA E LOMBAR:</Label>
+            <Textarea
+              value={prontuario.musculos_toracica_lombar}
+              onChange={(e) => setProntuario({ ...prontuario, musculos_toracica_lombar: e.target.value })}
+              placeholder="Liste os músculos..."
+              rows={2}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">MÚSCULOS LIBERADOS DOS QUADRIS E COXAS:</Label>
+            <Textarea
+              value={prontuario.musculos_quadris_coxas}
+              onChange={(e) => setProntuario({ ...prontuario, musculos_quadris_coxas: e.target.value })}
+              placeholder="Liste os músculos..."
+              rows={2}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">MÚSCULOS LIBERADOS DAS PANTURRILHAS:</Label>
+            <Textarea
+              value={prontuario.musculos_panturrilhas}
+              onChange={(e) => setProntuario({ ...prontuario, musculos_panturrilhas: e.target.value })}
+              placeholder="Liste os músculos..."
+              rows={2}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">MÚSCULOS LIBERADOS DOS PÉS:</Label>
+            <Textarea
+              value={prontuario.musculos_pes}
+              onChange={(e) => setProntuario({ ...prontuario, musculos_pes: e.target.value })}
+              placeholder="Liste os músculos..."
+              rows={2}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">MÚSCULOS LIBERADOS DO ABDÔMEN:</Label>
+            <Textarea
+              value={prontuario.musculos_abdomen}
+              onChange={(e) => setProntuario({ ...prontuario, musculos_abdomen: e.target.value })}
+              placeholder="Liste os músculos..."
+              rows={2}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">FEEDBACK DO PACIENTE PRÉ SESSÃO:</Label>
+            <Textarea
+              value={prontuario.feedback_pre_sessao}
+              onChange={(e) => setProntuario({ ...prontuario, feedback_pre_sessao: e.target.value })}
+              placeholder="Feedback antes da sessão..."
+              rows={2}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">FEEDBACK DO PACIENTE PÓS SESSÃO:</Label>
+            <Textarea
+              value={prontuario.feedback_pos_sessao}
+              onChange={(e) => setProntuario({ ...prontuario, feedback_pos_sessao: e.target.value })}
+              placeholder="Feedback após a sessão..."
+              rows={2}
               className="mt-1"
             />
           </div>
@@ -473,8 +692,19 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
             <Textarea
               value={prontuario.relato_terapeuta}
               onChange={(e) => setProntuario({ ...prontuario, relato_terapeuta: e.target.value })}
-              placeholder="Relato detalhado do terapeuta sobre a sessão..."
-              rows={4}
+              placeholder="Relato detalhado do terapeuta..."
+              rows={3}
+              className="mt-1"
+            />
+          </div>
+
+          <div>
+            <Label className="text-sm font-medium text-gray-700">OBSERVAÇÕES PARA UMA PRÓXIMA SESSÃO:</Label>
+            <Textarea
+              value={prontuario.observacoes_proxima_sessao}
+              onChange={(e) => setProntuario({ ...prontuario, observacoes_proxima_sessao: e.target.value })}
+              placeholder="Observações e recomendações..."
+              rows={2}
               className="mt-1"
             />
           </div>
