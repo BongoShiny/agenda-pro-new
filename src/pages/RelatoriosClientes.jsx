@@ -43,8 +43,8 @@ export default function RelatoriosClientesPage() {
   const [unidadeTab, setUnidadeTab] = useState("todas");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const scrollTopRef = React.useRef(null);
-  const scrollTableRef = React.useRef(null);
+  const scrollTopRef = useRef(null);
+  const scrollTableRef = useRef(null);
 
   useEffect(() => {
     const carregarUsuario = async () => {
@@ -439,15 +439,11 @@ export default function RelatoriosClientesPage() {
             className="overflow-x-scroll border-b-2 border-gray-300 bg-gray-100" 
             ref={scrollTopRef}
             onScroll={(e) => {
-              try {
-                if (scrollTableRef.current) {
-                  scrollTableRef.current.scrollLeft = e.target.scrollLeft;
-                }
-              } catch (error) {
-                console.error("Erro no scroll superior:", error);
+              if (scrollTableRef.current) {
+                scrollTableRef.current.scrollLeft = e.target.scrollLeft;
               }
             }}
-            style={{ height: '20px', overflowY: 'hidden' }}
+            style={{ height: '20px' }}
           >
             <div style={{ width: '2000px', height: '1px' }}></div>
           </div>
@@ -456,12 +452,8 @@ export default function RelatoriosClientesPage() {
             className="overflow-x-scroll" 
             ref={scrollTableRef}
             onScroll={(e) => {
-              try {
-                if (scrollTopRef.current) {
-                  scrollTopRef.current.scrollLeft = e.target.scrollLeft;
-                }
-              } catch (error) {
-                console.error("Erro no scroll da tabela:", error);
+              if (scrollTopRef.current) {
+                scrollTopRef.current.scrollLeft = e.target.scrollLeft;
               }
             }}
           >
