@@ -111,24 +111,26 @@ export const normalizarData = (valor) => {
 export default function AgendaPage() {
   // ⚠️ CRÍTICO: Inicializar dataAtual sempre com meio-dia LOCAL
   const inicializarData = () => {
-    const agora = new Date();
-    const ano = agora.getFullYear();
-    const mes = agora.getMonth();
-    const dia = agora.getDate();
-    let dataLocal = new Date(ano, mes, dia, 12, 0, 0, 0);
-    
-    // Se for domingo (0), avançar para segunda (1)
-    if (dataLocal.getDay() === 0) {
-      dataLocal = addDays(dataLocal, 1);
+    try {
+      const agora = new Date();
+      const ano = agora.getFullYear();
+      const mes = agora.getMonth();
+      const dia = agora.getDate();
+      let dataLocal = new Date(ano, mes, dia, 12, 0, 0, 0);
+      
+      // Se for domingo (0), avançar para segunda (1)
+      if (dataLocal.getDay() === 0) {
+        dataLocal = addDays(dataLocal, 1);
+      }
+      
+      console.log("🚀 INICIALIZANDO PÁGINA");
+      console.log("Data formatada:", formatarDataPura(dataLocal));
+      
+      return dataLocal;
+    } catch (error) {
+      console.error("Erro ao inicializar data:", error);
+      return new Date();
     }
-    
-    console.log("🚀🚀🚀 INICIALIZANDO PÁGINA 🚀🚀🚀");
-    console.log("Data agora (raw):", agora.toString());
-    console.log("Data local (12h):", dataLocal.toString());
-    console.log("Data formatada:", formatarDataPura(dataLocal));
-    console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-    
-    return dataLocal;
   };
   
   const [dataAtual, setDataAtual] = useState(inicializarData);
@@ -147,8 +149,9 @@ export default function AgendaPage() {
 
   useEffect(() => {
     const carregarUsuario = async () => {
-      const user = await base44.auth.me();
-      setUsuarioAtual(user);
+      try {
+        const user = await base44.auth.me();
+        setUsuarioAtual(user);
       
       // Verificar prontuários atrasados periodicamente (a cada 5 minutos)
       const verificarAtrasados = async () => {
@@ -173,14 +176,19 @@ export default function AgendaPage() {
       console.log("Data atual:", dataAtual.toString());
       console.log("Data formatada:", formatarDataPura(dataAtual));
 
-      // Gerenciar sessão única
-      await gerenciarSessaoUnica(user);
+        // Gerenciar sessão única
+        await gerenciarSessaoUnica(user);
+      } catch (error) {
+        console.error("Erro ao carregar usuário:", error);
+      }
     };
     carregarUsuario();
   }, []);
 
   // Função para gerenciar sessão única
   const gerenciarSessaoUnica = async (user) => {
+    if (!user) return;
+    
     try {
       // Gerar ID único para esta sessão
       let sessaoId = localStorage.getItem('sessao_id');

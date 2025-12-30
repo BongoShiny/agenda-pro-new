@@ -15,6 +15,10 @@ const criarDataPura = (dataString) => {
 };
 
 export default function AbaProntuario({ agendamento, usuarioAtual }) {
+  if (!agendamento) {
+    return <div className="p-4 text-center text-gray-500">Nenhum agendamento selecionado</div>;
+  }
+
   const [prontuario, setProntuario] = useState({
     terapia_realizada: "",
     tecnicas_utilizadas: "",
