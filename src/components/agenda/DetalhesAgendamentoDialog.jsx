@@ -14,6 +14,7 @@ import { ptBR } from "date-fns/locale";
 import { Calendar, Clock, User, Briefcase, MapPin, Tag, FileText, Ban, Unlock, CheckCircle, FileImage } from "lucide-react";
 import AbaProntuario from "./AbaProntuario";
 import AbaContrato from "./AbaContrato";
+import AbaAvaliacaoTermal from "./AbaAvaliacaoTermal";
 
 const statusLabels = {
   confirmado: { label: "Confirmado", color: "bg-emerald-500" },
@@ -140,10 +141,11 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
           </div>
         ) : temAcessoProntuario ? (
           <Tabs value={abaAtiva} onValueChange={setAbaAtiva} className="flex-1 flex flex-col overflow-hidden">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
               <TabsTrigger value="prontuario">Prontuário</TabsTrigger>
-              <TabsTrigger value="contrato">Contrato Termo 30%</TabsTrigger>
+              <TabsTrigger value="contrato">Contrato 30%</TabsTrigger>
+              <TabsTrigger value="avaliacao-termal">Aval. Termal</TabsTrigger>
             </TabsList>
             
             <TabsContent value="detalhes" className="flex-1 overflow-y-auto">
@@ -285,6 +287,10 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
 
         <TabsContent value="contrato" className="flex-1 overflow-y-auto">
           <AbaContrato agendamento={agendamento} usuarioAtual={usuarioAtual} />
+        </TabsContent>
+
+        <TabsContent value="avaliacao-termal" className="flex-1 overflow-y-auto">
+          <AbaAvaliacaoTermal agendamento={agendamento} usuarioAtual={usuarioAtual} />
         </TabsContent>
         </Tabs>
     ) : (
