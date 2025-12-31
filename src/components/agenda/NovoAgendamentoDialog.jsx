@@ -84,7 +84,10 @@ export default function NovoAgendamentoDialog({
     comprovante_2: "",
     comprovante_3: "",
     comprovante_4: "",
-    comprovante_5: ""
+    comprovante_5: "",
+    cliente_pacote: "Não",
+    quantas_sessoes: null,
+    sessoes_feitas: null
   });
 
   const [clientePopoverAberto, setClientePopoverAberto] = useState(false);
@@ -131,7 +134,10 @@ export default function NovoAgendamentoDialog({
         comprovante_2: agendamentoInicial.comprovante_2 || "",
         comprovante_3: agendamentoInicial.comprovante_3 || "",
         comprovante_4: agendamentoInicial.comprovante_4 || "",
-        comprovante_5: agendamentoInicial.comprovante_5 || ""
+        comprovante_5: agendamentoInicial.comprovante_5 || "",
+        cliente_pacote: agendamentoInicial.cliente_pacote || "Não",
+        quantas_sessoes: agendamentoInicial.quantas_sessoes || null,
+        sessoes_feitas: agendamentoInicial.sessoes_feitas || null
       };
       
       setFormData(dados);
@@ -417,7 +423,16 @@ export default function NovoAgendamentoDialog({
 
           <div className="space-y-2">
             <Label>Tipo</Label>
-            <Select value={formData.tipo} onValueChange={(value) => setFormData(prev => ({ ...prev, tipo: value }))}>
+            <Select 
+              value={formData.tipo} 
+              onValueChange={(value) => {
+                setFormData(prev => ({ 
+                  ...prev, 
+                  tipo: value,
+                  cliente_pacote: value === "pacote" ? "Sim" : prev.cliente_pacote
+                }));
+              }}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -435,6 +450,59 @@ export default function NovoAgendamentoDialog({
               </SelectContent>
             </Select>
           </div>
+
+          <div className="space-y-2">
+            <Label>Cliente tem Pacote?</Label>
+            <Select 
+              value={formData.cliente_pacote} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, cliente_pacote: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Sim">Sim</SelectItem>
+                <SelectItem value="Não">Não</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {formData.cliente_pacote === "Sim" && (
+            <>
+              <div className="space-y-2">
+                <Label>Quantas Sessões (total do pacote)</Label>
+                <Input
+                  type="number"
+                  min="1"
+                  placeholder="Ex: 10"
+                  value={formData.quantas_sessoes || ""}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    quantas_sessoes: e.target.value ? parseInt(e.target.value) : null 
+                  }))}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Sessões Feitas</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  placeholder="Ex: 3"
+                  value={formData.sessoes_feitas || ""}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    sessoes_feitas: e.target.value ? parseInt(e.target.value) : null 
+                  }))}
+                />
+                {formData.quantas_sessoes && (
+                  <p className="text-xs text-gray-500">
+                    {formData.sessoes_feitas || 0} de {formData.quantas_sessoes} sessões realizadas
+                  </p>
+                )}
+              </div>
+            </>
+          )}
 
           <div className="space-y-2">
             <Label>Status do Paciente</Label>
