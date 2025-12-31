@@ -101,6 +101,31 @@ export default function NovoAgendamentoDialog({
     initialData: [],
   });
 
+  // Buscar pacote ativo do cliente selecionado
+  const { data: pacoteCliente } = useQuery({
+    queryKey: ['pacote-cliente', formData.cliente_id],
+    queryFn: async () => {
+      if (!formData.cliente_id) return null;
+      
+      const agendamentosCliente = await base44.entities.Agendamento.filter({
+        cliente_id: formData.cliente_id,
+        cliente_pacote: "Sim"
+      });
+
+      // Encontrar o pacote mais recente que ainda não foi concluído
+      const pacoteAtivo = agendamentosCliente
+        .filter(ag => {
+          const sessoes = ag.quantas_sessoes || 0;
+          const feitas = ag.sessoes_feitas || 0;
+          return feitas < sessoes;
+        })
+        .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
+
+      return pacoteAtivo || null;
+    },
+    enabled: !!formData.cliente_id && !modoEdicao,
+  });
+
   useEffect(() => {
     if (open) {
       const dados = {
@@ -169,6 +194,21 @@ export default function NovoAgendamentoDialog({
       setClientePopoverAberto(false);
     }
   };
+
+  // Sincronizar dados do pacote quando pacoteCliente mudar
+  useEffect(() => {
+    if (pacoteCliente && !modoEdicao && formData.cliente_id) {
+      const proximaSessao = (pacoteCliente.sessoes_feitas || 0) + 1;
+      
+      setFormData(prev => ({
+        ...prev,
+        cliente_pacote: "Sim",
+        quantas_sessoes: pacoteCliente.quantas_sessoes,
+        sessoes_feitas: proximaSessao,
+        tipo: "pacote"
+      }));
+    }
+  }, [pacoteCliente, modoEdicao, formData.cliente_id]);
 
   const clientesFiltrados = clientes.filter(c => 
     c.nome.toLowerCase().includes(buscaCliente.toLowerCase())
@@ -485,6 +525,11 @@ export default function NovoAgendamentoDialog({
                     quantas_sessoes: e.target.value ? parseInt(e.target.value) : null 
                   }))}
                 />
+                {pacoteCliente && !modoEdicao && (
+                  <p className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
+                    ℹ️ Sincronizado automaticamente do pacote anterior do cliente
+                  </p>
+                )}
               </div>
 
               <div className="space-y-2">
@@ -502,6 +547,9 @@ export default function NovoAgendamentoDialog({
                 {formData.quantas_sessoes && (
                   <p className="text-xs text-gray-500">
                     {formData.sessoes_feitas || 0} de {formData.quantas_sessoes} sessões realizadas
+                    {formData.sessoes_feitas >= formData.quantas_sessoes && (
+                      <span className="text-green-600 font-bold ml-2">✅ PACOTE CONCLUÍDO</span>
+                    )}
                   </p>
                 )}
               </div>
