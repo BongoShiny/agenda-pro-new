@@ -451,23 +451,27 @@ export default function NovoAgendamentoDialog({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label>Cliente tem Pacote?</Label>
-            <Select 
-              value={formData.cliente_pacote} 
-              onValueChange={(value) => setFormData(prev => ({ ...prev, cliente_pacote: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Sim">Sim</SelectItem>
-                <SelectItem value="Não">Não</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {formData.tipo === "pacote" && (
+            <>
+              <div className="space-y-2">
+                <Label>Cliente tem Pacote?</Label>
+                <Select 
+                  value={formData.cliente_pacote} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, cliente_pacote: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Sim">Sim</SelectItem>
+                    <SelectItem value="Não">Não</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </>
+          )}
 
-          {formData.cliente_pacote === "Sim" && (
+          {formData.tipo === "pacote" && formData.cliente_pacote === "Sim" && (
             <>
               <div className="space-y-2">
                 <Label>Quantas Sessões (total do pacote)</Label>
