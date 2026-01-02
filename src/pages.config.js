@@ -10,6 +10,7 @@ import HistoricoAgendamentos from './pages/HistoricoAgendamentos';
 import Home from './pages/Home';
 import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
+import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
@@ -30,4 +31,5 @@ export const PAGES = {
 export const pagesConfig = {
     mainPage: "Agenda",
     Pages: PAGES,
+    Layout: __Layout,
 };
