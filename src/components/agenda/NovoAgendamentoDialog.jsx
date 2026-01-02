@@ -197,7 +197,7 @@ export default function NovoAgendamentoDialog({
 
   // Sincronizar dados do pacote quando pacoteCliente mudar
   useEffect(() => {
-    if (pacoteCliente && !modoEdicao && formData.cliente_id) {
+    if (pacoteCliente && !modoEdicao) {
       const proximaSessao = (pacoteCliente.sessoes_feitas || 0) + 1;
       
       setFormData(prev => ({
@@ -208,7 +208,7 @@ export default function NovoAgendamentoDialog({
         tipo: "pacote"
       }));
     }
-  }, [pacoteCliente, modoEdicao, formData.cliente_id]);
+  }, [pacoteCliente, modoEdicao]);
 
   const clientesFiltrados = clientes.filter(c => 
     c.nome.toLowerCase().includes(buscaCliente.toLowerCase())
