@@ -15,7 +15,8 @@ import {
   ChevronDown,
   Edit,
   Eye,
-  Save
+  Save,
+  Upload
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -41,10 +42,13 @@ export default function RelatoriosClientesPage() {
   const [modoEditor, setModoEditor] = useState(false);
   const [dadosEditados, setDadosEditados] = useState({});
   const [unidadeTab, setUnidadeTab] = useState("todas");
+  const [importandoCSV, setImportandoCSV] = useState(false);
+  const [resultadoImportacao, setResultadoImportacao] = useState(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const scrollTopRef = useRef(null);
   const scrollTableRef = useRef(null);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
     const carregarUsuario = async () => {
@@ -264,6 +268,177 @@ export default function RelatoriosClientesPage() {
     link.click();
   };
 
+  const handleImportarCSV = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setImportandoCSV(true);
+    setResultadoImportacao(null);
+
+    try {
+      // Upload do arquivo
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+
+      // Schema para extrair dados - todos os campos são opcionais
+      const schema = {
+        type: "object",
+        properties: {
+          items: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                cliente_nome: { type: "string" },
+                cliente_telefone: { type: "string" },
+                profissional_nome: { type: "string" },
+                servico_nome: { type: "string" },
+                unidade_nome: { type: "string" },
+                data: { type: "string" },
+                horario: { type: "string" },
+                status: { type: "string" },
+                equipamento: { type: "string" },
+                cliente_pacote: { type: "string" },
+                quantas_sessoes: { type: "number" },
+                sessoes_feitas: { type: "number" }
+              }
+            }
+          }
+        }
+      };
+
+      // Extrair dados do CSV
+      const resultado = await base44.integrations.Core.ExtractDataFromUploadedFile({
+        file_url: file_url,
+        json_schema: schema
+      });
+
+      if (resultado.status === "error") {
+        throw new Error(resultado.details);
+      }
+
+      const registros = resultado.output?.items || [];
+      let sucessos = 0;
+      let erros = 0;
+      const errosDetalhes = [];
+
+      // Processar cada registro
+      for (let i = 0; i < registros.length; i++) {
+        const reg = registros[i];
+        
+        try {
+          // Campos obrigatórios mínimos
+          if (!reg.cliente_nome) {
+            erros++;
+            errosDetalhes.push(`Linha ${i + 2}: Cliente não informado`);
+            continue;
+          }
+
+          // Encontrar ou criar IDs das entidades relacionadas
+          let unidade_id = "";
+          let profissional_id = "";
+          let servico_id = "";
+
+          if (reg.unidade_nome) {
+            const unidadeEncontrada = unidades.find(u => 
+              u.nome.toLowerCase() === reg.unidade_nome.toLowerCase()
+            );
+            unidade_id = unidadeEncontrada?.id || "";
+          }
+
+          if (reg.profissional_nome) {
+            const profissionalEncontrado = profissionais.find(p => 
+              p.nome.toLowerCase() === reg.profissional_nome.toLowerCase()
+            );
+            profissional_id = profissionalEncontrado?.id || "";
+          }
+
+          if (reg.servico_nome) {
+            const servicoEncontrado = servicos.find(s => 
+              s.nome.toLowerCase() === reg.servico_nome.toLowerCase()
+            );
+            servico_id = servicoEncontrado?.id || "";
+          }
+
+          // Processar data (dd/MM/yyyy -> yyyy-MM-dd)
+          let dataFormatada = "";
+          if (reg.data) {
+            try {
+              const partes = reg.data.split('/');
+              if (partes.length === 3) {
+                dataFormatada = `${partes[2]}-${partes[1].padStart(2, '0')}-${partes[0].padStart(2, '0')}`;
+              }
+            } catch (e) {
+              // Se falhar, deixa vazio
+            }
+          }
+
+          // Processar horário
+          let hora_inicio = "09:00";
+          let hora_fim = "10:00";
+          if (reg.horario && reg.horario.includes('-')) {
+            const [inicio, fim] = reg.horario.split('-').map(h => h.trim());
+            hora_inicio = inicio || "09:00";
+            hora_fim = fim || "10:00";
+          }
+
+          // Criar agendamento
+          const agendamento = {
+            cliente_nome: reg.cliente_nome,
+            cliente_telefone: reg.cliente_telefone || "",
+            profissional_nome: reg.profissional_nome || "",
+            profissional_id: profissional_id,
+            servico_nome: reg.servico_nome || "",
+            servico_id: servico_id,
+            unidade_nome: reg.unidade_nome || "",
+            unidade_id: unidade_id,
+            data: dataFormatada || format(new Date(), "yyyy-MM-dd"),
+            hora_inicio: hora_inicio,
+            hora_fim: hora_fim,
+            status: reg.status || "agendado",
+            equipamento: reg.equipamento || "",
+            cliente_pacote: reg.cliente_pacote || "Não",
+            quantas_sessoes: reg.quantas_sessoes || null,
+            sessoes_feitas: reg.sessoes_feitas || null,
+            tipo: "consulta",
+            observacoes: "Importado via CSV"
+          };
+
+          await base44.entities.Agendamento.create(agendamento);
+          sucessos++;
+        } catch (error) {
+          erros++;
+          errosDetalhes.push(`Linha ${i + 2}: ${error.message}`);
+        }
+      }
+
+      // Registrar importação no log
+      await base44.entities.LogAcao.create({
+        tipo: "exportou_planilha",
+        usuario_email: usuarioAtual?.email,
+        descricao: `Importou CSV - ${sucessos} sucessos, ${erros} erros`,
+        entidade_tipo: "Relatorio",
+        dados_novos: JSON.stringify({ sucessos, erros, errosDetalhes: errosDetalhes.slice(0, 10) })
+      });
+
+      setResultadoImportacao({
+        sucessos,
+        erros,
+        errosDetalhes
+      });
+
+      // Atualizar lista
+      queryClient.invalidateQueries({ queryKey: ['agendamentos-relatorio'] });
+
+    } catch (error) {
+      alert("❌ Erro ao importar CSV: " + error.message);
+    } finally {
+      setImportandoCSV(false);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
+    }
+  };
+
   const SortIcon = ({ campo }) => {
     if (ordenacao.campo !== campo) return <ArrowUpDown className="w-4 h-4 text-gray-400" />;
     return ordenacao.direcao === "asc" ? 
@@ -337,6 +512,21 @@ export default function RelatoriosClientesPage() {
                 Modo Editor
               </Button>
             )}
+            <Button 
+              onClick={() => fileInputRef.current?.click()} 
+              disabled={importandoCSV}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Upload className="w-4 h-4 mr-2" />
+              {importandoCSV ? "Importando..." : "Importar CSV"}
+            </Button>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              onChange={handleImportarCSV}
+              className="hidden"
+            />
             <Button onClick={exportarCSV} className="bg-green-600 hover:bg-green-700">
               <Download className="w-4 h-4 mr-2" />
               Exportar CSV
@@ -346,6 +536,38 @@ export default function RelatoriosClientesPage() {
       </div>
 
       <div className="max-w-7xl mx-auto p-6">
+        {/* Resultado da importação */}
+        {resultadoImportacao && (
+          <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
+            <div className="flex items-start justify-between mb-2">
+              <h3 className="font-bold text-lg">Resultado da Importação</h3>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                onClick={() => setResultadoImportacao(null)}
+              >
+                ✕
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <p className="text-green-600 font-medium">✅ {resultadoImportacao.sucessos} registros importados com sucesso</p>
+              {resultadoImportacao.erros > 0 && (
+                <>
+                  <p className="text-red-600 font-medium">❌ {resultadoImportacao.erros} registros com erro</p>
+                  {resultadoImportacao.errosDetalhes.length > 0 && (
+                    <div className="mt-3 bg-red-50 border border-red-200 rounded p-3 max-h-40 overflow-y-auto">
+                      <p className="text-sm font-medium text-red-800 mb-2">Detalhes dos erros:</p>
+                      {resultadoImportacao.errosDetalhes.map((erro, idx) => (
+                        <p key={idx} className="text-xs text-red-700">{erro}</p>
+                      ))}
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
                     {/* Tabs por Unidade */}
                     <Tabs value={unidadeTab} onValueChange={setUnidadeTab} className="mb-4">
                       <TabsList className="flex-wrap h-auto">
