@@ -268,6 +268,19 @@ export default function RelatoriosClientesPage() {
     link.click();
   };
 
+  const baixarModeloCSV = () => {
+    const headers = ["Cliente", "Telefone", "Profissional", "Serviço", "Unidade", "Data", "Horário", "Status", "Equipamento", "Cliente Pacote?", "Quantas Sessões", "Sessões Feitas"];
+    const exemploLinha = ["João Silva", "(11) 98765-4321", "Dr. Pedro", "Liberação Miofascial", "Alphaville", "04/01/2026", "09:00 - 10:00", "agendado", "PACOTE", "Sim", "10", "1"];
+    
+    const csv = [headers, exemploLinha].map(row => row.map(cell => `"${cell || ""}"`).join(";")).join("\n");
+    const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `modelo_importacao_agendamentos.csv`;
+    link.click();
+  };
+
   const handleImportarCSV = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -512,21 +525,31 @@ export default function RelatoriosClientesPage() {
                 Modo Editor
               </Button>
             )}
-            <Button 
-              onClick={() => fileInputRef.current?.click()} 
-              disabled={importandoCSV}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Upload className="w-4 h-4 mr-2" />
-              {importandoCSV ? "Importando..." : "Importar CSV"}
-            </Button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv"
-              onChange={handleImportarCSV}
-              className="hidden"
-            />
+            <div className="flex items-center gap-2">
+              <Button 
+                onClick={() => fileInputRef.current?.click()} 
+                disabled={importandoCSV}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Upload className="w-4 h-4 mr-2" />
+                {importandoCSV ? "Importando..." : "Importar CSV"}
+              </Button>
+              <Button 
+                onClick={baixarModeloCSV} 
+                variant="outline"
+                className="border-blue-600 text-blue-700 hover:bg-blue-50"
+              >
+                <Download className="w-4 h-4 mr-2" />
+                Baixar Modelo
+              </Button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv"
+                onChange={handleImportarCSV}
+                className="hidden"
+              />
+            </div>
             <Button onClick={exportarCSV} className="bg-green-600 hover:bg-green-700">
               <Download className="w-4 h-4 mr-2" />
               Exportar CSV
