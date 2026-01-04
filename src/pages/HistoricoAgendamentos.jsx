@@ -306,10 +306,10 @@ export default function HistoricoAgendamentosPage() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <User className="w-4 h-4 text-blue-600" />
+                            <Calendar className="w-4 h-4 text-blue-600" />
                           </div>
                           <span className="font-medium text-sm">
-                            {ag.criador_email || "Sistema"}
+                            {ag.criador_email || "Agendamentos"}
                           </span>
                         </div>
                       </TableCell>
