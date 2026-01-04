@@ -10,6 +10,7 @@ import HistoricoAgendamentos from './pages/HistoricoAgendamentos';
 import Home from './pages/Home';
 import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
+import RelatoriosAvancados from './pages/RelatoriosAvancados';
 
 
 export const PAGES = {
@@ -25,6 +26,7 @@ export const PAGES = {
     "Home": Home,
     "RelatoriosClientes": RelatoriosClientes,
     "RelatoriosFinanceiros": RelatoriosFinanceiros,
+    "RelatoriosAvancados": RelatoriosAvancados,
 }
 
 export const pagesConfig = {
