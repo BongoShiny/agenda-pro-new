@@ -962,9 +962,25 @@ export default function AgendaPage() {
     };
 
     try {
+      // Lógica de descontabilização de sessão para clientes com pacote
+      let dadosAtualizados = { ...agendamento, status: novoStatus, editor_email: usuarioAtual?.email };
+      
+      if (agendamento.cliente_pacote === "Sim" && agendamento.sessoes_feitas > 0) {
+        // Se está mudando PARA cancelado e tinha sido contabilizada
+        if (novoStatus === "cancelado" && statusAntigo !== "cancelado") {
+          dadosAtualizados.sessoes_feitas = agendamento.sessoes_feitas - 1;
+          console.log("⚠️ Descontabilizando sessão cancelada:", agendamento.sessoes_feitas, "→", dadosAtualizados.sessoes_feitas);
+        }
+        // Se está mudando DE cancelado para outro status
+        else if (statusAntigo === "cancelado" && novoStatus !== "cancelado") {
+          dadosAtualizados.sessoes_feitas = agendamento.sessoes_feitas + 1;
+          console.log("✅ Recontabilizando sessão restaurada:", agendamento.sessoes_feitas, "→", dadosAtualizados.sessoes_feitas);
+        }
+      }
+
       await atualizarAgendamentoMutation.mutateAsync({
         id: agendamento.id,
-        dados: { ...agendamento, status: novoStatus, editor_email: usuarioAtual?.email },
+        dados: dadosAtualizados,
         dadosAntigos: agendamento
       });
 
