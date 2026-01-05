@@ -8,9 +8,9 @@ import GerenciarProntuarios from './pages/GerenciarProntuarios';
 import GerenciarUsuarios from './pages/GerenciarUsuarios';
 import HistoricoAgendamentos from './pages/HistoricoAgendamentos';
 import Home from './pages/Home';
+import RelatoriosAvancados from './pages/RelatoriosAvancados';
 import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
-import RelatoriosAvancados from './pages/RelatoriosAvancados';
 
 
 export const PAGES = {
@@ -24,9 +24,9 @@ export const PAGES = {
     "GerenciarUsuarios": GerenciarUsuarios,
     "HistoricoAgendamentos": HistoricoAgendamentos,
     "Home": Home,
+    "RelatoriosAvancados": RelatoriosAvancados,
     "RelatoriosClientes": RelatoriosClientes,
     "RelatoriosFinanceiros": RelatoriosFinanceiros,
-    "RelatoriosAvancados": RelatoriosAvancados,
 }
 
 export const pagesConfig = {
