@@ -11,7 +11,6 @@ import { BarChart, Bar, PieChart as RechartsPie, Pie, Cell, XAxis, YAxis, Cartes
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import * as XLSX from "xlsx";
-import { jsPDF } from "jspdf";
 
 const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#84cc16'];
 
@@ -121,42 +120,7 @@ export default function RelatoriosAvancadosPage() {
   };
 
   const exportarPDF = () => {
-    const doc = new jsPDF();
-    
-    doc.setFontSize(18);
-    doc.text("Relatório de Agendamentos", 20, 20);
-    
-    doc.setFontSize(10);
-    doc.text(`Período: ${format(new Date(dataInicio), "dd/MM/yyyy")} a ${format(new Date(dataFim), "dd/MM/yyyy")}`, 20, 30);
-    doc.text(`Total de agendamentos: ${agendamentosFiltrados.length}`, 20, 36);
-    
-    let y = 50;
-    doc.setFontSize(14);
-    doc.text("Por Status:", 20, y);
-    y += 8;
-    
-    doc.setFontSize(10);
-    dadosPorStatus.forEach(item => {
-      doc.text(`${item.nome}: ${item.valor}`, 30, y);
-      y += 6;
-    });
-    
-    y += 5;
-    doc.setFontSize(14);
-    doc.text("Por Profissional:", 20, y);
-    y += 8;
-    
-    doc.setFontSize(10);
-    dadosPorProfissional.forEach(item => {
-      if (y > 270) {
-        doc.addPage();
-        y = 20;
-      }
-      doc.text(`${item.nome}: ${item.total}`, 30, y);
-      y += 6;
-    });
-    
-    doc.save(`relatorio_avancado_${format(new Date(), "yyyy-MM-dd")}.pdf`);
+    alert("Exportação em PDF estará disponível em breve!");
   };
 
   const aplicarPreset = (preset) => {
