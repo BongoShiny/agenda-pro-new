@@ -955,14 +955,252 @@ export default function RelatoriosFinanceirosPage() {
         </div>
 
         {/* Tabelas por Profissional e Unidade */}
-        <Tabs defaultValue="profissional" className="w-full">
+        <Tabs defaultValue="dashboard" className="w-full">
           <TabsList>
+            <TabsTrigger value="dashboard">📊 Dashboard</TabsTrigger>
             <TabsTrigger value="profissional">Por Profissional</TabsTrigger>
             <TabsTrigger value="unidade">Por Unidade</TabsTrigger>
             <TabsTrigger value="analise-mensal">Análise Mensal</TabsTrigger>
             <TabsTrigger value="detalhado">Detalhado</TabsTrigger>
             <TabsTrigger value="por-vendedor">Por Vendedor</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="dashboard">
+            <div className="space-y-6">
+              {/* KPIs Principais */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <Card className="border-2 border-blue-200 bg-blue-50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-blue-700">💰 Faturamento Total</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-blue-900">{formatarMoeda(totalCombinado)}</div>
+                    <p className="text-xs text-blue-600 mt-1">{agendamentosFiltrados.length} agendamentos</p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-2 border-emerald-200 bg-emerald-50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-emerald-700">✅ Total Recebido</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-emerald-900">{formatarMoeda(totalPago)}</div>
+                    <p className="text-xs text-emerald-600 mt-1">
+                      {totalCombinado > 0 ? `${((totalPago / totalCombinado) * 100).toFixed(1)}%` : "0%"} do total
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-2 border-orange-200 bg-orange-50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-orange-700">⏳ A Receber</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-orange-900">{formatarMoeda(totalAReceber)}</div>
+                    <p className="text-xs text-orange-600 mt-1">
+                      {totalCombinado > 0 ? `${((totalAReceber / totalCombinado) * 100).toFixed(1)}%` : "0%"} pendente
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="border-2 border-purple-200 bg-purple-50">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-purple-700">📈 Taxa de Conversão</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="text-3xl font-bold text-purple-900">
+                      {totalCombinado > 0 ? `${((totalPago / totalCombinado) * 100).toFixed(1)}%` : "0%"}
+                    </div>
+                    <p className="text-xs text-purple-600 mt-1">Recebido vs Combinado</p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Gráficos Principais */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {/* Gráfico de Performance por Profissional */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <BarChart3 className="w-5 h-5 text-blue-600" />
+                      Performance por Profissional
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <BarChart data={listaProfissionais.slice(0, 8)}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis 
+                          dataKey="nome" 
+                          angle={-45} 
+                          textAnchor="end" 
+                          height={100}
+                          fontSize={11}
+                        />
+                        <YAxis />
+                        <Tooltip 
+                          formatter={(value) => formatarMoeda(value)}
+                          contentStyle={{ fontSize: '12px' }}
+                        />
+                        <Legend />
+                        <Bar dataKey="totalPago" fill="#10b981" name="Recebido" />
+                        <Bar dataKey="totalAReceber" fill="#f97316" name="A Receber" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+
+                {/* Gráfico de Pizza - Distribuição por Unidade */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <PieChart className="w-5 h-5 text-purple-600" />
+                      Distribuição por Unidade
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <ResponsiveContainer width="100%" height={300}>
+                      <RechartsPie>
+                        <Pie
+                          data={listaUnidades}
+                          cx="50%"
+                          cy="50%"
+                          labelLine={false}
+                          label={({ nome, totalPago }) => `${nome}: ${formatarMoeda(totalPago)}`}
+                          outerRadius={100}
+                          fill="#8884d8"
+                          dataKey="totalPago"
+                        >
+                          {listaUnidades.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'][index % 5]} />
+                          ))}
+                        </Pie>
+                        <Tooltip formatter={(value) => formatarMoeda(value)} />
+                      </RechartsPie>
+                    </ResponsiveContainer>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Gráfico de Tendência ao Longo do Tempo */}
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-emerald-600" />
+                    Tendência de Faturamento nos Últimos Meses
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {(() => {
+                    // Agrupar agendamentos por mês dos últimos 6 meses
+                    const hoje = new Date();
+                    const dadosPorMes = [];
+                    
+                    for (let i = 5; i >= 0; i--) {
+                      const mes = new Date(hoje.getFullYear(), hoje.getMonth() - i, 1);
+                      const mesAno = format(mes, "yyyy-MM");
+                      
+                      const agendamentosMes = agendamentos
+                        .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
+                        .filter(ag => ag.data && ag.data.substring(0, 7) === mesAno);
+                      
+                      const totalCombinadoMes = agendamentosMes.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
+                      const totalPagoMes = agendamentosMes.reduce((sum, ag) => 
+                        sum + (ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0), 0
+                      );
+                      const totalAReceberMes = agendamentosMes.reduce((sum, ag) => sum + (ag.falta_quanto || 0), 0);
+                      
+                      dadosPorMes.push({
+                        mes: format(mes, "MMM/yy", { locale: ptBR }),
+                        combinado: totalCombinadoMes,
+                        recebido: totalPagoMes,
+                        aReceber: totalAReceberMes
+                      });
+                    }
+                    
+                    return (
+                      <ResponsiveContainer width="100%" height={350}>
+                        <LineChart data={dadosPorMes}>
+                          <CartesianGrid strokeDasharray="3 3" />
+                          <XAxis dataKey="mes" />
+                          <YAxis tickFormatter={(value) => `R$ ${(value / 1000).toFixed(0)}k`} />
+                          <Tooltip 
+                            formatter={(value) => formatarMoeda(value)}
+                            contentStyle={{ fontSize: '12px' }}
+                          />
+                          <Legend />
+                          <Line 
+                            type="monotone" 
+                            dataKey="combinado" 
+                            stroke="#3b82f6" 
+                            strokeWidth={2}
+                            name="Valor Combinado"
+                            dot={{ r: 4 }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="recebido" 
+                            stroke="#10b981" 
+                            strokeWidth={2}
+                            name="Recebido"
+                            dot={{ r: 4 }}
+                          />
+                          <Line 
+                            type="monotone" 
+                            dataKey="aReceber" 
+                            stroke="#f97316" 
+                            strokeWidth={2}
+                            name="A Receber"
+                            dot={{ r: 4 }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    );
+                  })()}
+                </CardContent>
+              </Card>
+
+              {/* Tabela Resumida de Top Performers */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>🏆 Top 5 Profissionais do Período</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Posição</TableHead>
+                        <TableHead>Profissional</TableHead>
+                        <TableHead className="text-right">Atendimentos</TableHead>
+                        <TableHead className="text-right">Total Recebido</TableHead>
+                        <TableHead className="text-right">Ticket Médio</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {listaProfissionais.slice(0, 5).map((prof, idx) => {
+                        const ticketMedio = prof.quantidade > 0 ? prof.totalPago / prof.quantidade : 0;
+                        return (
+                          <TableRow key={idx}>
+                            <TableCell className="font-bold text-lg">
+                              {idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : `${idx + 1}º`}
+                            </TableCell>
+                            <TableCell className="font-medium">{prof.nome}</TableCell>
+                            <TableCell className="text-right">{prof.quantidade}</TableCell>
+                            <TableCell className="text-right text-emerald-600 font-semibold">
+                              {formatarMoeda(prof.totalPago)}
+                            </TableCell>
+                            <TableCell className="text-right text-blue-600">
+                              {formatarMoeda(ticketMedio)}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            </div>
+          </TabsContent>
 
           <TabsContent value="profissional">
             <Card>
