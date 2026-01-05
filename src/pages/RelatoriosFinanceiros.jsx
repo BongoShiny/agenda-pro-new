@@ -1165,7 +1165,7 @@ export default function RelatoriosFinanceirosPage() {
               <CardHeader className="space-y-4">
                 <div className="flex flex-row items-center justify-between">
                   <CardTitle>Detalhamento Completo</CardTitle>
-                  {isAdmin && (
+                  {(isAdmin || usuarioAtual?.cargo === "financeiro") && (
                     <div className="flex gap-2">
                       {modoEditor ? (
                         <>
