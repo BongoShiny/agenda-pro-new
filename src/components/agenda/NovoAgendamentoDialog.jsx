@@ -101,6 +101,36 @@ export default function NovoAgendamentoDialog({
     initialData: [],
   });
 
+  // Buscar pacote ativo do cliente selecionado
+  const { data: pacoteCliente } = useQuery({
+    queryKey: ['pacote-cliente', formData.cliente_id],
+    queryFn: async () => {
+      try {
+        if (!formData.cliente_id) return null;
+        
+        const agendamentosCliente = await base44.entities.Agendamento.filter({
+          cliente_id: formData.cliente_id,
+          cliente_pacote: "Sim"
+        });
+
+        const pacoteAtivo = agendamentosCliente
+          .filter(ag => {
+            const sessoes = ag.quantas_sessoes || 0;
+            const feitas = ag.sessoes_feitas || 0;
+            return feitas < sessoes;
+          })
+          .sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0))[0];
+
+        return pacoteAtivo || null;
+      } catch (error) {
+        console.error("Erro ao buscar pacote do cliente:", error);
+        return null;
+      }
+    },
+    enabled: !!formData.cliente_id && !modoEdicao && open,
+    retry: false,
+  });
+
   useEffect(() => {
     if (open) {
       try {
