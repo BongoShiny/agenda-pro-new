@@ -105,70 +105,80 @@ export default function NovoAgendamentoDialog({
   const { data: pacoteCliente } = useQuery({
     queryKey: ['pacote-cliente', formData.cliente_id],
     queryFn: async () => {
-      if (!formData.cliente_id) return null;
-      
-      const agendamentosCliente = await base44.entities.Agendamento.filter({
-        cliente_id: formData.cliente_id,
-        cliente_pacote: "Sim"
-      });
+      try {
+        if (!formData.cliente_id) return null;
+        
+        const agendamentosCliente = await base44.entities.Agendamento.filter({
+          cliente_id: formData.cliente_id,
+          cliente_pacote: "Sim"
+        });
 
-      // Encontrar o pacote mais recente que ainda não foi concluído
-      const pacoteAtivo = agendamentosCliente
-        .filter(ag => {
-          const sessoes = ag.quantas_sessoes || 0;
-          const feitas = ag.sessoes_feitas || 0;
-          return feitas < sessoes;
-        })
-        .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))[0];
+        // Encontrar o pacote mais recente que ainda não foi concluído
+        const pacoteAtivo = agendamentosCliente
+          .filter(ag => {
+            const sessoes = ag.quantas_sessoes || 0;
+            const feitas = ag.sessoes_feitas || 0;
+            return feitas < sessoes;
+          })
+          .sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0))[0];
 
-      return pacoteAtivo || null;
+        return pacoteAtivo || null;
+      } catch (error) {
+        console.error("Erro ao buscar pacote do cliente:", error);
+        return null;
+      }
     },
     enabled: !!formData.cliente_id && !modoEdicao,
+    retry: false,
   });
 
   useEffect(() => {
     if (open) {
-      const dados = {
-        id: agendamentoInicial.id || undefined,
-        cliente_id: agendamentoInicial.cliente_id || "",
-        cliente_nome: agendamentoInicial.cliente_nome || "",
-        cliente_telefone: agendamentoInicial.cliente_telefone || "",
-        profissional_id: agendamentoInicial.profissional_id || "",
-        profissional_nome: agendamentoInicial.profissional_nome || "",
-        servico_id: agendamentoInicial.servico_id || "",
-        servico_nome: agendamentoInicial.servico_nome || "",
-        unidade_id: agendamentoInicial.unidade_id || "",
-        unidade_nome: agendamentoInicial.unidade_nome || "",
-        data: agendamentoInicial.data || formatarDataPura(new Date()),
-        hora_inicio: agendamentoInicial.hora_inicio || "09:00",
-        hora_fim: agendamentoInicial.hora_fim || "10:00",
-        status: agendamentoInicial.status || "agendado",
-        tipo: agendamentoInicial.tipo || "consulta",
-        observacoes: agendamentoInicial.observacoes || "",
-        sala: agendamentoInicial.sala || "",
-        equipamento: agendamentoInicial.equipamento || "",
-        status_paciente: agendamentoInicial.status_paciente || "",
-        valor_combinado: agendamentoInicial.valor_combinado || null,
-        sinal: agendamentoInicial.sinal || null,
-        recebimento_2: agendamentoInicial.recebimento_2 || null,
-        final_pagamento: agendamentoInicial.final_pagamento || null,
-        falta_quanto: agendamentoInicial.falta_quanto || null,
-        vendedor_id: agendamentoInicial.vendedor_id || "",
-        vendedor_nome: agendamentoInicial.vendedor_nome || "",
-        comprovante_1: agendamentoInicial.comprovante_1 || "",
-        comprovante_2: agendamentoInicial.comprovante_2 || "",
-        comprovante_3: agendamentoInicial.comprovante_3 || "",
-        comprovante_4: agendamentoInicial.comprovante_4 || "",
-        comprovante_5: agendamentoInicial.comprovante_5 || "",
-        cliente_pacote: agendamentoInicial.cliente_pacote || "Não",
-        quantas_sessoes: agendamentoInicial.quantas_sessoes || null,
-        sessoes_feitas: agendamentoInicial.sessoes_feitas || null
-      };
-      
-      setFormData(dados);
-      setBuscaCliente(dados.cliente_nome);
+      try {
+        const dados = {
+          id: agendamentoInicial?.id || undefined,
+          cliente_id: agendamentoInicial?.cliente_id || "",
+          cliente_nome: agendamentoInicial?.cliente_nome || "",
+          cliente_telefone: agendamentoInicial?.cliente_telefone || "",
+          profissional_id: agendamentoInicial?.profissional_id || "",
+          profissional_nome: agendamentoInicial?.profissional_nome || "",
+          servico_id: agendamentoInicial?.servico_id || "",
+          servico_nome: agendamentoInicial?.servico_nome || "",
+          unidade_id: agendamentoInicial?.unidade_id || "",
+          unidade_nome: agendamentoInicial?.unidade_nome || "",
+          data: agendamentoInicial?.data || formatarDataPura(new Date()),
+          hora_inicio: agendamentoInicial?.hora_inicio || "09:00",
+          hora_fim: agendamentoInicial?.hora_fim || "10:00",
+          status: agendamentoInicial?.status || "agendado",
+          tipo: agendamentoInicial?.tipo || "consulta",
+          observacoes: agendamentoInicial?.observacoes || "",
+          sala: agendamentoInicial?.sala || "",
+          equipamento: agendamentoInicial?.equipamento || "",
+          status_paciente: agendamentoInicial?.status_paciente || "",
+          valor_combinado: agendamentoInicial?.valor_combinado || null,
+          sinal: agendamentoInicial?.sinal || null,
+          recebimento_2: agendamentoInicial?.recebimento_2 || null,
+          final_pagamento: agendamentoInicial?.final_pagamento || null,
+          falta_quanto: agendamentoInicial?.falta_quanto || null,
+          vendedor_id: agendamentoInicial?.vendedor_id || "",
+          vendedor_nome: agendamentoInicial?.vendedor_nome || "",
+          comprovante_1: agendamentoInicial?.comprovante_1 || "",
+          comprovante_2: agendamentoInicial?.comprovante_2 || "",
+          comprovante_3: agendamentoInicial?.comprovante_3 || "",
+          comprovante_4: agendamentoInicial?.comprovante_4 || "",
+          comprovante_5: agendamentoInicial?.comprovante_5 || "",
+          cliente_pacote: agendamentoInicial?.cliente_pacote || "Não",
+          quantas_sessoes: agendamentoInicial?.quantas_sessoes || null,
+          sessoes_feitas: agendamentoInicial?.sessoes_feitas || null
+        };
+        
+        setFormData(dados);
+        setBuscaCliente(dados.cliente_nome);
+      } catch (error) {
+        console.error("Erro ao inicializar formulário:", error);
+      }
     }
-  }, [open, agendamentoInicial, modoEdicao]);
+  }, [open]);
 
   // Calcular automaticamente falta_quanto
   useEffect(() => {
@@ -197,16 +207,20 @@ export default function NovoAgendamentoDialog({
 
   // Sincronizar dados do pacote quando pacoteCliente mudar
   useEffect(() => {
-    if (pacoteCliente && !modoEdicao) {
-      const proximaSessao = (pacoteCliente.sessoes_feitas || 0) + 1;
-      
-      setFormData(prev => ({
-        ...prev,
-        cliente_pacote: "Sim",
-        quantas_sessoes: pacoteCliente.quantas_sessoes,
-        sessoes_feitas: proximaSessao,
-        tipo: "pacote"
-      }));
+    try {
+      if (pacoteCliente && !modoEdicao) {
+        const proximaSessao = (pacoteCliente.sessoes_feitas || 0) + 1;
+        
+        setFormData(prev => ({
+          ...prev,
+          cliente_pacote: "Sim",
+          quantas_sessoes: pacoteCliente.quantas_sessoes,
+          sessoes_feitas: proximaSessao,
+          tipo: "pacote"
+        }));
+      }
+    } catch (error) {
+      console.error("Erro ao sincronizar pacote:", error);
     }
   }, [pacoteCliente, modoEdicao]);
 
@@ -242,9 +256,13 @@ export default function NovoAgendamentoDialog({
   };
 
   const handleDataChange = (date) => {
-    if (date) {
-      const dataFormatada = formatarDataPura(date);
-      setFormData(prev => ({ ...prev, data: dataFormatada }));
+    try {
+      if (date) {
+        const dataFormatada = formatarDataPura(date);
+        setFormData(prev => ({ ...prev, data: dataFormatada }));
+      }
+    } catch (error) {
+      console.error("Erro ao mudar data:", error);
     }
   };
 
@@ -268,35 +286,40 @@ export default function NovoAgendamentoDialog({
   };
 
   const handleSubmit = () => {
-    // Verificar se há bloqueio que SOBREPÕE com o horário selecionado
-    const [horaInicioNum, minInicioNum] = formData.hora_inicio.split(':').map(Number);
-    const [horaFimNum, minFimNum] = formData.hora_fim.split(':').map(Number);
-    const inicioMinutos = horaInicioNum * 60 + minInicioNum;
-    const fimMinutos = horaFimNum * 60 + minFimNum;
-    
-    const horarioBloqueado = agendamentos.find(ag => {
-      if (ag.data !== formData.data) return false;
-      if (ag.profissional_id !== formData.profissional_id) return false;
-      if (ag.unidade_id !== formData.unidade_id) return false;
-      if (!(ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO")) return false;
-      if (ag.id === formData.id) return false;
+    try {
+      // Verificar se há bloqueio que SOBREPÕE com o horário selecionado
+      const [horaInicioNum, minInicioNum] = formData.hora_inicio.split(':').map(Number);
+      const [horaFimNum, minFimNum] = formData.hora_fim.split(':').map(Number);
+      const inicioMinutos = horaInicioNum * 60 + minInicioNum;
+      const fimMinutos = horaFimNum * 60 + minFimNum;
       
-      const [agHoraInicio, agMinInicio] = ag.hora_inicio.split(':').map(Number);
-      const [agHoraFim, agMinFim] = ag.hora_fim.split(':').map(Number);
-      const agInicioMinutos = agHoraInicio * 60 + agMinInicio;
-      const agFimMinutos = agHoraFim * 60 + agMinFim;
-      
-      return (inicioMinutos < agFimMinutos && fimMinutos > agInicioMinutos);
-    });
+      const horarioBloqueado = agendamentos.find(ag => {
+        if (ag.data !== formData.data) return false;
+        if (ag.profissional_id !== formData.profissional_id) return false;
+        if (ag.unidade_id !== formData.unidade_id) return false;
+        if (!(ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO")) return false;
+        if (ag.id === formData.id) return false;
+        
+        const [agHoraInicio, agMinInicio] = ag.hora_inicio.split(':').map(Number);
+        const [agHoraFim, agMinFim] = ag.hora_fim.split(':').map(Number);
+        const agInicioMinutos = agHoraInicio * 60 + agMinInicio;
+        const agFimMinutos = agHoraFim * 60 + agMinFim;
+        
+        return (inicioMinutos < agFimMinutos && fimMinutos > agInicioMinutos);
+      });
 
-    if (horarioBloqueado) {
-      setErroHorarioBloqueado(true);
-      setTimeout(() => setErroHorarioBloqueado(false), 3000);
-      return;
+      if (horarioBloqueado) {
+        setErroHorarioBloqueado(true);
+        setTimeout(() => setErroHorarioBloqueado(false), 3000);
+        return;
+      }
+      
+      onSave(formData);
+      onOpenChange(false);
+    } catch (error) {
+      console.error("Erro ao salvar agendamento:", error);
+      alert("Erro ao salvar agendamento. Por favor, tente novamente.");
     }
-    
-    onSave(formData);
-    onOpenChange(false);
   };
 
   return (
