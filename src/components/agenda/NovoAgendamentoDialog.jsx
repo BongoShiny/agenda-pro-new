@@ -179,6 +179,21 @@ export default function NovoAgendamentoDialog({
     }
   }, [open]);
 
+  // Sincronizar dados de pacote quando cliente é selecionado e tem pacote ativo
+  useEffect(() => {
+    if (pacoteCliente && !modoEdicao && open) {
+      console.log("🔄 Sincronizando pacote do cliente:", pacoteCliente);
+      
+      setFormData(prev => ({
+        ...prev,
+        cliente_pacote: "Sim",
+        quantas_sessoes: pacoteCliente.quantas_sessoes || prev.quantas_sessoes,
+        sessoes_feitas: (pacoteCliente.sessoes_feitas || 0) + 1, // Incrementar para próxima sessão
+        tipo: "pacote"
+      }));
+    }
+  }, [pacoteCliente, modoEdicao, open]);
+
   // Calcular automaticamente falta_quanto - SEM causar loop
   useEffect(() => {
     try {
