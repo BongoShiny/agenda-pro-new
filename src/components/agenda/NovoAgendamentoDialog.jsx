@@ -149,7 +149,7 @@ export default function NovoAgendamentoDialog({
     }
   }, [open]);
 
-  // Calcular automaticamente falta_quanto
+  // Calcular automaticamente falta_quanto - SEM causar loop
   useEffect(() => {
     try {
       const combinado = parseFloat(formData.valor_combinado) || 0;
@@ -157,8 +157,12 @@ export default function NovoAgendamentoDialog({
       const recebimento2 = parseFloat(formData.recebimento_2) || 0;
       const finalPagamento = parseFloat(formData.final_pagamento) || 0;
       const totalPago = sinal + recebimento2 + finalPagamento;
-      const falta = combinado - totalPago;
-      setFormData(prev => ({ ...prev, falta_quanto: falta }));
+      const faltaCalculada = combinado - totalPago;
+      
+      // Só atualizar se o valor mudou (evita loop infinito)
+      if (formData.falta_quanto !== faltaCalculada) {
+        setFormData(prev => ({ ...prev, falta_quanto: faltaCalculada }));
+      }
     } catch (error) {
       console.error("Erro ao calcular falta_quanto:", error);
     }
