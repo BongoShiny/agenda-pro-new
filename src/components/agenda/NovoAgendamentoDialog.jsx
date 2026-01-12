@@ -101,37 +101,6 @@ export default function NovoAgendamentoDialog({
     initialData: [],
   });
 
-  // Buscar pacote ativo do cliente selecionado
-  const { data: pacoteCliente } = useQuery({
-    queryKey: ['pacote-cliente', formData.cliente_id],
-    queryFn: async () => {
-      try {
-        if (!formData.cliente_id) return null;
-        
-        const agendamentosCliente = await base44.entities.Agendamento.filter({
-          cliente_id: formData.cliente_id,
-          cliente_pacote: "Sim"
-        });
-
-        // Encontrar o pacote mais recente que ainda não foi concluído
-        const pacoteAtivo = agendamentosCliente
-          .filter(ag => {
-            const sessoes = ag.quantas_sessoes || 0;
-            const feitas = ag.sessoes_feitas || 0;
-            return feitas < sessoes;
-          })
-          .sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0))[0];
-
-        return pacoteAtivo || null;
-      } catch (error) {
-        console.error("Erro ao buscar pacote do cliente:", error);
-        return null;
-      }
-    },
-    enabled: !!formData.cliente_id && !modoEdicao,
-    retry: false,
-  });
-
   useEffect(() => {
     if (open) {
       try {
@@ -182,59 +151,59 @@ export default function NovoAgendamentoDialog({
 
   // Calcular automaticamente falta_quanto
   useEffect(() => {
-    const combinado = parseFloat(formData.valor_combinado) || 0;
-    const sinal = parseFloat(formData.sinal) || 0;
-    const recebimento2 = parseFloat(formData.recebimento_2) || 0;
-    const finalPagamento = parseFloat(formData.final_pagamento) || 0;
-    const totalPago = sinal + recebimento2 + finalPagamento;
-    const falta = combinado - totalPago;
-    setFormData(prev => ({ ...prev, falta_quanto: falta }));
+    try {
+      const combinado = parseFloat(formData.valor_combinado) || 0;
+      const sinal = parseFloat(formData.sinal) || 0;
+      const recebimento2 = parseFloat(formData.recebimento_2) || 0;
+      const finalPagamento = parseFloat(formData.final_pagamento) || 0;
+      const totalPago = sinal + recebimento2 + finalPagamento;
+      const falta = combinado - totalPago;
+      setFormData(prev => ({ ...prev, falta_quanto: falta }));
+    } catch (error) {
+      console.error("Erro ao calcular falta_quanto:", error);
+    }
   }, [formData.valor_combinado, formData.sinal, formData.recebimento_2, formData.final_pagamento]);
 
   const handleClienteChange = (clienteId) => {
-    const cliente = clientes.find(c => c.id === clienteId);
-    if (cliente) {
-      setFormData(prev => ({
-        ...prev,
-        cliente_id: clienteId,
-        cliente_nome: cliente.nome,
-        cliente_telefone: cliente.telefone || ""
-      }));
-      setBuscaCliente(cliente.nome);
-      setClientePopoverAberto(false);
+    try {
+      const cliente = clientes.find(c => c.id === clienteId);
+      if (cliente) {
+        setFormData(prev => ({
+          ...prev,
+          cliente_id: clienteId,
+          cliente_nome: cliente.nome,
+          cliente_telefone: cliente.telefone || ""
+        }));
+        setBuscaCliente(cliente.nome);
+        setClientePopoverAberto(false);
+      }
+    } catch (error) {
+      console.error("Erro ao selecionar cliente:", error);
     }
   };
 
-  // Sincronizar dados do pacote quando pacoteCliente mudar
-  useEffect(() => {
+  const clientesFiltrados = React.useMemo(() => {
     try {
-      if (pacoteCliente && !modoEdicao) {
-        const proximaSessao = (pacoteCliente.sessoes_feitas || 0) + 1;
-        
-        setFormData(prev => ({
-          ...prev,
-          cliente_pacote: "Sim",
-          quantas_sessoes: pacoteCliente.quantas_sessoes,
-          sessoes_feitas: proximaSessao,
-          tipo: "pacote"
-        }));
-      }
+      return clientes.filter(c => 
+        c?.nome?.toLowerCase().includes(buscaCliente.toLowerCase())
+      );
     } catch (error) {
-      console.error("Erro ao sincronizar pacote:", error);
+      console.error("Erro ao filtrar clientes:", error);
+      return [];
     }
-  }, [pacoteCliente, modoEdicao]);
-
-  const clientesFiltrados = clientes.filter(c => 
-    c.nome.toLowerCase().includes(buscaCliente.toLowerCase())
-  );
+  }, [clientes, buscaCliente]);
 
   const handleProfissionalChange = (profId) => {
-    const prof = profissionais.find(p => p.id === profId);
-    setFormData(prev => ({
-      ...prev,
-      profissional_id: profId,
-      profissional_nome: prof ? prof.nome : ""
-    }));
+    try {
+      const prof = profissionais.find(p => p.id === profId);
+      setFormData(prev => ({
+        ...prev,
+        profissional_id: profId,
+        profissional_nome: prof ? prof.nome : ""
+      }));
+    } catch (error) {
+      console.error("Erro ao selecionar profissional:", error);
+    }
   };
 
   const handleServicoChange = (servicoId) => {
@@ -247,12 +216,16 @@ export default function NovoAgendamentoDialog({
   };
 
   const handleUnidadeChange = (unidadeId) => {
-    const unidade = unidades.find(u => u.id === unidadeId);
-    setFormData(prev => ({
-      ...prev,
-      unidade_id: unidadeId,
-      unidade_nome: unidade ? unidade.nome : ""
-    }));
+    try {
+      const unidade = unidades.find(u => u.id === unidadeId);
+      setFormData(prev => ({
+        ...prev,
+        unidade_id: unidadeId,
+        unidade_nome: unidade ? unidade.nome : ""
+      }));
+    } catch (error) {
+      console.error("Erro ao selecionar unidade:", error);
+    }
   };
 
   const handleDataChange = (date) => {
@@ -388,7 +361,7 @@ export default function NovoAgendamentoDialog({
           <div className="space-y-2">
             <Label>Telefone do Cliente</Label>
             <Input
-              value={formData.cliente_telefone}
+              value={formData.cliente_telefone || ""}
               onChange={(e) => setFormData(prev => ({ ...prev, cliente_telefone: e.target.value }))}
               placeholder="(00) 00000-0000"
             />
@@ -411,7 +384,7 @@ export default function NovoAgendamentoDialog({
           <div className="space-y-2">
             <Label>Serviço *</Label>
             <Input
-              value={formData.servico_nome}
+              value={formData.servico_nome || ""}
               onChange={(e) => setFormData(prev => ({ ...prev, servico_nome: e.target.value, servico_id: "" }))}
               placeholder="Digite o serviço (ex: Liberação Miofascial)"
             />
@@ -721,7 +694,7 @@ export default function NovoAgendamentoDialog({
           <div className="col-span-2 space-y-2">
             <Label>Observações</Label>
             <Textarea
-              value={formData.observacoes}
+              value={formData.observacoes || ""}
               onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
               placeholder="Observações adicionais"
               rows={3}
@@ -746,7 +719,7 @@ export default function NovoAgendamentoDialog({
           </Button>
           <Button 
             onClick={handleSubmit}
-            disabled={!formData.cliente_nome || !formData.profissional_nome || !formData.unidade_id}
+            disabled={!formData.cliente_nome || !formData.profissional_id || !formData.unidade_id}
             className="bg-blue-600 hover:bg-blue-700"
           >
             {modoEdicao ? "Salvar Alterações" : "Salvar Agendamento"}
