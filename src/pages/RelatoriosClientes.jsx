@@ -102,13 +102,33 @@ export default function RelatoriosClientesPage() {
     initialData: [],
   });
 
-  // Filtrar unidades baseado no acesso do usuário - gerentes veem APENAS suas unidades
+  // CRÍTICO: Filtrar unidades baseado no acesso do usuário - gerentes veem APENAS suas unidades
   const unidades = React.useMemo(() => {
-    if (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin") {
+    console.log("🏢 FILTRANDO UNIDADES Relatórios:", {
+      usuario: usuarioAtual?.email,
+      cargo: usuarioAtual?.cargo,
+      role: usuarioAtual?.role,
+      unidades_acesso: usuarioAtual?.unidades_acesso,
+      total_unidades: todasUnidades.length
+    });
+    
+    // APENAS administradores e superiores veem todas
+    if (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior") {
+      console.log("✅ ADMIN - mostrando todas:", todasUnidades.length);
       return todasUnidades;
     }
+    
+    // Gerentes e outros veem APENAS suas unidades
     const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-    return todasUnidades.filter(u => unidadesAcesso.includes(u.id));
+    const unidadesFiltradas = todasUnidades.filter(u => unidadesAcesso.includes(u.id));
+    
+    console.log("🔒 NÃO ADMIN - filtrando por acesso:", {
+      unidades_acesso: unidadesAcesso,
+      unidades_filtradas: unidadesFiltradas.length,
+      nomes: unidadesFiltradas.map(u => u.nome)
+    });
+    
+    return unidadesFiltradas;
   }, [todasUnidades, usuarioAtual]);
 
   const { data: servicos = [] } = useQuery({
