@@ -1145,20 +1145,25 @@ export default function AgendaPage() {
       return true;
     }
 
+    // CRÍTICO: Todos os OUTROS (gerencia_unidades, financeiro, etc) veem APENAS suas unidades
+    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+
+    console.error(`🔍 Filtrando agendamento ${ag.id}:`);
+    console.error(`  Unidade: "${ag.unidade_nome}" (${ag.unidade_id})`);
+    console.error(`  Unidades acesso: ${JSON.stringify(unidadesAcesso)}`);
+    console.error(`  Tem acesso? ${unidadesAcesso.includes(ag.unidade_id)}`);
+
+    if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
+      console.error(`  ❌ FILTRADO - sem acesso a essa unidade`);
+      return false;
+    }
+
+    console.error(`  ✅ PASSANDO NO FILTRO`);
+
     // Se for terapeuta, mostrar apenas seus próprios agendamentos
     if (isProfissional && profissionalDoUsuario) {
       const pertence = ag.profissional_id === profissionalDoUsuario.id;
-      console.log(`📋 Agendamento ${ag.id}: profissional_id=${ag.profissional_id}, meu_id=${profissionalDoUsuario.id}, mostrar=${pertence}`);
       if (!pertence) {
-        return false;
-      }
-    }
-
-    // Todos os outros veem apenas suas unidades de acesso
-    const cargoLowerCheck = usuarioAtual?.cargo?.toLowerCase() || "";
-    if (cargoLowerCheck !== "administrador" && usuarioAtual?.role !== "admin") {
-      const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-      if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
         return false;
       }
     }
