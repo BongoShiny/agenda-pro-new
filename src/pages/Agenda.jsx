@@ -148,11 +148,26 @@ export default function AgendaPage() {
   useEffect(() => {
     const carregarUsuario = async () => {
       const user = await base44.auth.me();
+
+      // CRÍTICO: Garantir que unidades_acesso é um ARRAY
+      if (typeof user.unidades_acesso === 'string') {
+        console.error("⚠️⚠️⚠️ unidades_acesso veio como STRING! Convertendo para ARRAY...");
+        try {
+          user.unidades_acesso = JSON.parse(user.unidades_acesso);
+        } catch (e) {
+          console.error("❌ Erro ao fazer parse:", e);
+          user.unidades_acesso = [];
+        }
+      } else if (!Array.isArray(user.unidades_acesso)) {
+        console.error("⚠️⚠️⚠️ unidades_acesso não é array! Tipo:", typeof user.unidades_acesso);
+        user.unidades_acesso = [];
+      }
+
       console.error("👤👤👤 USUÁRIO CARREGADO 👤👤👤");
       console.error("Email:", user.email);
       console.error("Cargo:", user.cargo);
-      console.error("Unidades Acesso RAW:", JSON.stringify(user.unidades_acesso));
-      console.error("Tipo:", typeof user.unidades_acesso);
+      console.error("Unidades Acesso FINAL:", JSON.stringify(user.unidades_acesso));
+      console.error("Tipo FINAL:", typeof user.unidades_acesso);
       console.error("É array?", Array.isArray(user.unidades_acesso));
       setUsuarioAtual(user);
       
