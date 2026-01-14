@@ -439,15 +439,6 @@ export default function AgendaPage() {
     ? todasUnidades
     : todasUnidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
 
-  console.log("🏢 UNIDADES FILTRADAS:", {
-    usuario: usuarioAtual?.email,
-    cargo: usuarioAtual?.cargo,
-    unidades_acesso: usuarioAtual?.unidades_acesso,
-    total_unidades: todasUnidades.length,
-    unidades_filtradas: unidades.length,
-    unidades_visiveis: unidades.map(u => u.nome)
-  });
-
   const { data: servicos = [] } = useQuery({
     queryKey: ['servicos'],
     queryFn: () => base44.entities.Servico.list("nome"),

@@ -122,15 +122,9 @@ export default function GerenciarProntuariosPage() {
   const recepcionistas = usuarios.filter(u => u.cargo === "recepcao");
 
   // Filtrar agendamentos não bloqueados
-  let agendamentosValidos = agendamentos.filter(ag => 
+  const agendamentosValidos = agendamentos.filter(ag => 
     ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO"
   );
-
-  // Filtrar por unidades de acesso para gerentes de unidade
-  if (usuarioAtual?.cargo === "gerencia_unidades") {
-    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-    agendamentosValidos = agendamentosValidos.filter(ag => unidadesAcesso.includes(ag.unidade_id));
-  }
 
   // Separar agendamentos com e sem prontuário
   const agendamentosComProntuario = agendamentosValidos.filter(ag =>

@@ -155,22 +155,11 @@ export default function AgendaDiaView({
     return horarioSlot < horarioAgora;
   };
 
-  // Filtrar terapeutas: se o usuário for terapeuta, mostrar apenas ele mesmo
-  const isProfissional = usuarioAtual?.cargo === "terapeuta";
-  const profissionalDoUsuario = profissionais.find(p => 
-    p.email && usuarioAtual?.email && p.email.toLowerCase() === usuarioAtual.email.toLowerCase()
-  );
-
-  let terapeutasAtivos = configuracoes
+  const terapeutasAtivos = configuracoes
     .filter(config => config.unidade_id === unidadeSelecionada.id && config.ativo)
     .sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
     .map(config => profissionais.find(p => p.id === config.profissional_id))
     .filter(Boolean);
-
-  // Se for terapeuta, mostrar apenas sua própria coluna
-  if (isProfissional && profissionalDoUsuario) {
-    terapeutasAtivos = terapeutasAtivos.filter(t => t.id === profissionalDoUsuario.id);
-  }
 
   const getAgendamentosParaSlot = (profissionalId, horario) => {
     // Retornar apenas agendamentos que INICIAM neste horário
