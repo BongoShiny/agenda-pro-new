@@ -428,8 +428,11 @@ export default function ConfiguracaoTerapeutasPage() {
 
   const handleSalvarProfissional = async (profissionalId) => {
     const profissional = profissionais.find(p => p.id === profissionalId);
+    const emailMudou = dadosEditados.email !== profissional.email;
+    
     const dadosAntigos = {
       nome: profissional.nome,
+      email: profissional.email,
       especialidade: profissional.especialidade,
       horario_inicio: profissional.horario_inicio,
       horario_fim: profissional.horario_fim
@@ -439,6 +442,28 @@ export default function ConfiguracaoTerapeutasPage() {
       id: profissionalId,
       dados: { ...profissional, ...dadosEditados }
     });
+
+    // Se o email mudou ou foi adicionado, atualizar cargo e unidades do usuário
+    if (emailMudou && dadosEditados.email) {
+      try {
+        const usuario = usuarios.find(u => u.email === dadosEditados.email);
+        if (usuario) {
+          // Buscar todas as unidades onde este terapeuta está configurado
+          const configsDoTerapeuta = configuracoes.filter(c => c.profissional_id === profissionalId);
+          const unidadesDoTerapeuta = [...new Set(configsDoTerapeuta.map(c => c.unidade_id))];
+          
+          await base44.entities.User.update(usuario.id, {
+            cargo: "terapeuta",
+            unidades_acesso: unidadesDoTerapeuta
+          });
+          console.log(`✅ Cargo e unidades atualizadas: ${usuario.email}`, unidadesDoTerapeuta);
+          alert(`✅ Cargo de ${usuario.full_name || usuario.email} atualizado para terapeuta!`);
+          queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+        }
+      } catch (error) {
+        console.error("Erro ao atualizar cargo do usuário:", error);
+      }
+    }
 
     // Registrar log
     await base44.entities.LogAcao.create({
