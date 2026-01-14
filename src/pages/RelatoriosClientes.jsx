@@ -112,9 +112,9 @@ export default function RelatoriosClientesPage() {
       total_unidades: todasUnidades.length
     });
     
-    // APENAS administradores e superiores veem todas
-    if (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior") {
-      console.log("✅ ADMIN - mostrando todas:", todasUnidades.length);
+    // APENAS administradores, superiores e role admin veem todas
+    if (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin") {
+      console.log("✅ ADMIN/SUPERIOR - mostrando todas:", todasUnidades.length);
       return todasUnidades;
     }
     
