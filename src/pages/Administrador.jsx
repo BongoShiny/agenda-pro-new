@@ -16,9 +16,15 @@ export default function AdministradorPage() {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
         
-        // Se não for admin, gerência, financeiro ou recepção, redireciona para agenda
-        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro" || user?.cargo === "recepcao";
-        if (!isAdmin) {
+        // Permitir acesso para admin, gerência, financeiro ou recepção
+        const temAcesso = user?.cargo === "administrador" || 
+                         user?.cargo === "superior" || 
+                         user?.role === "admin" || 
+                         user?.cargo === "gerencia_unidades" || 
+                         user?.cargo === "financeiro" || 
+                         user?.cargo === "recepcao";
+        
+        if (!temAcesso) {
           navigate(createPageUrl("Agenda"));
         }
       } catch (error) {
@@ -39,10 +45,13 @@ export default function AdministradorPage() {
     );
   }
 
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
+  // CRÍTICO: Verificar gerência PRIMEIRO para evitar conflitos
     const isGerencia = usuarioAtual?.cargo === "gerencia_unidades";
     const isFinanceiro = usuarioAtual?.cargo === "financeiro";
     const isRecepcao = usuarioAtual?.cargo === "recepcao";
+    // Admin APENAS se não for gerência, financeiro ou recepção
+    const isAdmin = !isGerencia && !isFinanceiro && !isRecepcao && 
+                    (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin");
 
     if (!isAdmin && !isGerencia && !isFinanceiro && !isRecepcao) {
       return null;
