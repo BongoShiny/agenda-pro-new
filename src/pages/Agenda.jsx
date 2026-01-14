@@ -1088,6 +1088,11 @@ export default function AgendaPage() {
   });
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
+    // SUPERIORES VEEM TUDO - sem nenhum filtro
+    if (usuarioAtual?.cargo === "superior") {
+      return true;
+    }
+
     // Se for terapeuta, mostrar apenas seus próprios agendamentos
     if (isProfissional && profissionalDoUsuario) {
       const pertence = ag.profissional_id === profissionalDoUsuario.id;
@@ -1097,8 +1102,8 @@ export default function AgendaPage() {
       }
     }
 
-    // Se for gerente de unidade, mostrar apenas agendamentos das suas unidades
-    if (usuarioAtual?.cargo === "gerencia_unidades") {
+    // Todos os outros (exceto superiores) veem apenas suas unidades de acesso
+    if (usuarioAtual?.cargo !== "superior") {
       const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
       if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
         return false;
