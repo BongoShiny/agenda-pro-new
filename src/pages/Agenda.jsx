@@ -150,18 +150,25 @@ export default function AgendaPage() {
       const user = await base44.auth.me();
 
       // CRÍTICO: Garantir que unidades_acesso é um ARRAY
-      if (typeof user.unidades_acesso === 'string') {
+      let unidadesAcessoFinal = user.unidades_acesso || [];
+
+      if (typeof unidadesAcessoFinal === 'string') {
         console.error("⚠️⚠️⚠️ unidades_acesso veio como STRING! Convertendo para ARRAY...");
         try {
-          user.unidades_acesso = JSON.parse(user.unidades_acesso);
+          unidadesAcessoFinal = JSON.parse(unidadesAcessoFinal);
         } catch (e) {
           console.error("❌ Erro ao fazer parse:", e);
-          user.unidades_acesso = [];
+          unidadesAcessoFinal = [];
         }
-      } else if (!Array.isArray(user.unidades_acesso)) {
-        console.error("⚠️⚠️⚠️ unidades_acesso não é array! Tipo:", typeof user.unidades_acesso);
-        user.unidades_acesso = [];
+      } else if (typeof unidadesAcessoFinal === 'object' && !Array.isArray(unidadesAcessoFinal)) {
+        console.error("⚠️⚠️⚠️ unidades_acesso é OBJECT! Convertendo para ARRAY com Object.keys...");
+        unidadesAcessoFinal = Object.keys(unidadesAcessoFinal);
+      } else if (!Array.isArray(unidadesAcessoFinal)) {
+        console.error("⚠️⚠️⚠️ unidades_acesso não é array! Tipo:", typeof unidadesAcessoFinal);
+        unidadesAcessoFinal = [];
       }
+
+      user.unidades_acesso = unidadesAcessoFinal;
 
       console.error("👤👤👤 USUÁRIO CARREGADO 👤👤👤");
       console.error("Email:", user.email);
