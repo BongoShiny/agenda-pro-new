@@ -56,9 +56,9 @@ export default function HomePage() {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
         
-        // Verificar se é superior/admin
-        const isSuperior = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades";
-        if (!isSuperior) {
+        // APENAS ADMINISTRADORES podem acessar o Dashboard de Análises
+        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin";
+        if (!isAdmin) {
           navigate(createPageUrl("Agenda"));
         }
       } catch (error) {

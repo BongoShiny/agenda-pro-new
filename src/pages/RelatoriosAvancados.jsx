@@ -32,7 +32,8 @@ export default function RelatoriosAvancadosPage() {
       try {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
-        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades";
+        // APENAS ADMINISTRADORES podem acessar Relatórios Avançados
+        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin";
         if (!isAdmin) {
           navigate(createPageUrl("Agenda"));
         }
