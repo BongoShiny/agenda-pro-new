@@ -437,6 +437,13 @@ export default function AgendaPage() {
   // CRÍTICO: APENAS administradores veem TODAS as unidades, gerência vê apenas suas unidades
   const unidades = React.useMemo(() => {
     console.log("🏢🏢🏢 ==================== FILTRANDO UNIDADES Agenda ==================== 🏢🏢🏢");
+    
+    // CRÍTICO: Se usuário ainda não carregou, não mostrar nada
+    if (!usuarioAtual) {
+      console.log("⚠️⚠️⚠️ USUÁRIO AINDA NÃO CARREGADO - AGUARDANDO... ⚠️⚠️⚠️");
+      return [];
+    }
+    
     console.log("Usuario:", usuarioAtual?.email);
     console.log("Cargo RAW:", usuarioAtual?.cargo);
     console.log("Role:", usuarioAtual?.role);
@@ -445,22 +452,22 @@ export default function AgendaPage() {
     console.log("Todas Unidades:", todasUnidades.map(u => `${u.nome} (${u.id})`).join(", "));
     
     // APENAS administrador vê TODAS (case-insensitive)
-    const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
+    const cargoLower = (usuarioAtual.cargo || "").toLowerCase().trim();
     console.log("Cargo LOWERCASE:", cargoLower);
     
-    if (cargoLower === "administrador" || usuarioAtual?.role === "admin") {
+    if (cargoLower === "administrador" || usuarioAtual.role === "admin") {
       console.log("✅✅✅ ADMINISTRADOR DETECTADO - MOSTRANDO TODAS:", todasUnidades.length);
       return todasUnidades;
     }
     
     // TODOS OS OUTROS (incluindo gerencia_unidades) veem apenas suas unidades
-    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+    const unidadesAcesso = usuarioAtual.unidades_acesso || [];
     console.log("🔒 CARGO NÃO É ADMIN - Unidades de acesso do usuario:", JSON.stringify(unidadesAcesso));
     console.log("🔒 Quantidade de unidades permitidas:", unidadesAcesso.length);
     
     if (unidadesAcesso.length === 0) {
-      console.log("⚠️⚠️⚠️ USUÁRIO SEM UNIDADES DE ACESSO - MOSTRANDO VAZIO ⚠️⚠️⚠️");
-      return [];
+      console.log("⚠️⚠️⚠️ USUÁRIO SEM UNIDADES DE ACESSO - MOSTRANDO TODAS (fallback) ⚠️⚠️⚠️");
+      return todasUnidades;
     }
     
     const unidadesFiltradas = todasUnidades.filter(u => {
