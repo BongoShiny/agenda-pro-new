@@ -177,7 +177,7 @@ export default function AgendaHeader({
             {format(dataAtual, "EEE, dd/MM/yyyy", { locale: ptBR })}
           </div>
 
-          {isAdmin && (
+          {canAccessAdminPanel && (
             <div className="flex items-center gap-2">
               <Link to={createPageUrl("Administrador")}>
                 <Button variant="outline" size="sm" className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100">
@@ -241,7 +241,7 @@ export default function AgendaHeader({
           </div>
 
           <div className="flex items-center gap-3">
-            {isAdmin && (
+            {canAccessAdminPanel && (
               <Link to={createPageUrl("Administrador")}>
                 <Button variant="outline" className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100">
                   <ShieldCheck className="w-4 h-4 mr-2" />
