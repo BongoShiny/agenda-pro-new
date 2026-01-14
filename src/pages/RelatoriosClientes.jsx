@@ -103,7 +103,7 @@ export default function RelatoriosClientesPage() {
   });
 
   // Filtrar unidades baseado no acesso do usuário
-  const unidades = (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades")
+  const unidades = (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin")
     ? todasUnidades
     : todasUnidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
 
@@ -127,8 +127,15 @@ export default function RelatoriosClientesPage() {
   const agendamentosFiltrados = agendamentos
     .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
     .filter(ag => {
-      // Se não for admin total ou gerência, filtrar por unidades de acesso
-      if (usuarioAtual?.cargo !== "administrador" && usuarioAtual?.cargo !== "superior" && usuarioAtual?.role !== "admin" && usuarioAtual?.cargo !== "gerencia_unidades") {
+      // Se for gerente de unidade, filtrar APENAS pelas unidades atribuídas
+      if (usuarioAtual?.cargo === "gerencia_unidades") {
+        const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+        if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
+          return false;
+        }
+      }
+      // Se não for admin total, superior ou gerência, filtrar por unidades de acesso
+      else if (usuarioAtual?.cargo !== "administrador" && usuarioAtual?.cargo !== "superior" && usuarioAtual?.role !== "admin") {
         const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
         if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
           return false;

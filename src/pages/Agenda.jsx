@@ -1088,6 +1088,14 @@ export default function AgendaPage() {
       }
     }
 
+    // Se for gerente de unidade, mostrar apenas agendamentos das suas unidades
+    if (usuarioAtual?.cargo === "gerencia_unidades") {
+      const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+      if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
+        return false;
+      }
+    }
+
     // Restante dos filtros normais
     // Log detalhado para cada agendamento
     const isDataMatch = ag.data === dataFiltro;
