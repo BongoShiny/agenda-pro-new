@@ -254,22 +254,24 @@ export default function AgendaHeader({
           </div>
         </div>
 
-        <Tabs value={unidadeSelecionada?.id || unidades[0]?.id} onValueChange={(value) => {
-          const unidade = unidades.find(u => u.id === value);
-          onUnidadeChange(unidade);
-        }}>
-          <TabsList className="bg-gray-100 p-1 h-auto w-full overflow-x-auto flex">
-            {unidades.map(unidade => (
-              <TabsTrigger 
-                key={unidade.id} 
-                value={unidade.id}
-                className="px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-sm font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white whitespace-nowrap"
-              >
-                {unidade.nome}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </Tabs>
+        {unidades.length > 0 && (
+          <Tabs value={unidadeSelecionada?.id || unidades[0]?.id} onValueChange={(value) => {
+            const unidade = unidades.find(u => u.id === value);
+            onUnidadeChange(unidade);
+          }}>
+            <TabsList className="bg-gray-100 p-1 h-auto w-full overflow-x-auto flex">
+              {unidades.map(unidade => (
+                <TabsTrigger 
+                  key={unidade.id} 
+                  value={unidade.id}
+                  className="px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-sm font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white whitespace-nowrap"
+                >
+                  {unidade.nome}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </Tabs>
+        )}
       </div>
     </div>
   );
