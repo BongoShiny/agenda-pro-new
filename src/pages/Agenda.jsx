@@ -1008,38 +1008,45 @@ export default function AgendaPage() {
 
 
 const agendamentosFiltrados = agendamentos.filter(ag => {
-  // Validação básica
-  if (!ag || !ag.unidade_id) return false;
+        // Validação básica
+        if (!ag || !ag.unidade_id) return false;
 
-  // Garantir que data está normalizada
-  if (!ag.data || typeof ag.data !== 'string') return false;
+        // Garantir que data está normalizada
+        if (!ag.data || typeof ag.data !== 'string') return false;
 
-  // ADMINISTRADORES VEEM TUDO - sem nenhum filtro (case-insensitive)
-  const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
-  const ehAdmin = cargoLower === "administrador" || usuarioAtual?.role === "admin";
+        // ADMINISTRADORES VEEM TUDO - sem nenhum filtro (case-insensitive)
+        const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
+        const ehAdmin = cargoLower === "administrador" || usuarioAtual?.role === "admin";
 
-  if (ehAdmin) {
-    // Mesmo admin, filtrar por unidade se selecionada
-    const isDataMatch = ag.data === dataFiltro;
-    const isUnidadeMatch = !unidadeFinal || ag.unidade_id === unidadeFinal.id;
-    return isDataMatch && isUnidadeMatch;
-  }
+        if (ehAdmin) {
+          // Mesmo admin, filtrar por unidade se selecionada
+          const isDataMatch = ag.data === dataFiltro;
+          const isUnidadeMatch = !unidadeFinal || ag.unidade_id === unidadeFinal.id;
+          return isDataMatch && isUnidadeMatch;
+        }
 
-    // CRÍTICO: Todos os OUTROS (gerencia_unidades, financeiro, etc) veem APENAS suas unidades
-    let unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+        // CRÍTICO: Todos os OUTROS (gerencia_unidades, gerencia_unidade_*, financeiro, etc) veem APENAS suas unidades
+        let unidadesAcesso = usuarioAtual?.unidades_acesso || [];
 
-    // Garantir que é array
-    if (typeof unidadesAcesso === 'object' && !Array.isArray(unidadesAcesso)) {
-      unidadesAcesso = Object.keys(unidadesAcesso);
-    }
-    if (!Array.isArray(unidadesAcesso)) {
-      unidadesAcesso = [];
-    }
+        // Garantir que é array
+        if (typeof unidadesAcesso === 'string') {
+          try {
+            const parsed = JSON.parse(unidadesAcesso);
+            unidadesAcesso = Array.isArray(parsed) ? parsed : Object.keys(parsed);
+          } catch (e) {
+            unidadesAcesso = [];
+          }
+        } else if (typeof unidadesAcesso === 'object' && !Array.isArray(unidadesAcesso)) {
+          unidadesAcesso = Object.keys(unidadesAcesso);
+        }
+        if (!Array.isArray(unidadesAcesso)) {
+          unidadesAcesso = [];
+        }
 
-    // Filtro de unidade - obrigatório para não-admin
-    if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
-      return false;
-    }
+        // Filtro de unidade - obrigatório para não-admin
+        if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
+          return false;
+        }
 
     // Se for terapeuta, mostrar apenas seus próprios agendamentos
     if (isProfissional && profissionalDoUsuario) {
