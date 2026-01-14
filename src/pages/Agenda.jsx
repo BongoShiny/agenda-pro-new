@@ -493,15 +493,25 @@ export default function AgendaPage() {
       // TODOS OS OUTROS (incluindo gerencia_unidades) veem APENAS suas unidades
       let unidadesAcesso = usuarioAtual.unidades_acesso || [];
 
-      // CRÍTICO: Se vier como string, converter para array
+      // CRÍTICO: Converter para array em QUALQUER formato
       if (typeof unidadesAcesso === 'string') {
-        console.error("⚠️ unidades_acesso veio como STRING! Convertendo...", unidadesAcesso);
+        console.error("⚠️ unidades_acesso veio como STRING! Convertendo...");
         try {
-          unidadesAcesso = JSON.parse(unidadesAcesso);
+          const parsed = JSON.parse(unidadesAcesso);
+          unidadesAcesso = Array.isArray(parsed) ? parsed : Object.keys(parsed);
         } catch (e) {
-          console.error("❌ Erro ao parsear unidades_acesso");
+          console.error("❌ Erro ao parsear");
           unidadesAcesso = [];
         }
+      } else if (typeof unidadesAcesso === 'object' && !Array.isArray(unidadesAcesso)) {
+        console.error("⚠️ unidades_acesso é OBJETO (não array)! Convertendo para array...");
+        unidadesAcesso = Object.keys(unidadesAcesso);
+      }
+
+      // Garantir que é um array
+      if (!Array.isArray(unidadesAcesso)) {
+        console.error("❌ AINDA NÃO É ARRAY! Forçando array vazio");
+        unidadesAcesso = [];
       }
 
       console.error("🔒 NÃO É ADMINISTRADOR");
