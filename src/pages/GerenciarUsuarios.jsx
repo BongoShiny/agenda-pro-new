@@ -44,9 +44,9 @@ export default function GerenciarUsuariosPage() {
     carregarUsuario();
   }, []);
 
-  // SINCRONIZAÇÃO: Detectar usuários funcionários sem unidade e atribuir automaticamente
+  // SINCRONIZAÇÃO COMPLETA: Sincronizar todos os cargos automaticamente
   useEffect(() => {
-    const sincronizarFuncionarios = async () => {
+    const sincronizarTodosCargos = async () => {
       if (!Array.isArray(usuarios) || usuarios.length === 0 || !Array.isArray(unidades) || unidades.length === 0) {
         return;
       }
@@ -54,27 +54,79 @@ export default function GerenciarUsuariosPage() {
       for (const usuario of usuarios) {
         const cargo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "funcionario");
         
-        // Se é funcionário e não tem unidade de acesso
-        if (cargo === "funcionario" && (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0)) {
-          console.log(`🔄 SINCRONIZANDO: ${usuario.full_name} (${usuario.email}) sem unidade`);
-          
-          // Atribuir a primeira unidade disponível
-          try {
+        try {
+          // FUNCIONÁRIO, RECEPÇÃO, TERAPEUTA, FINANCEIRO: Atribuir primeira unidade se sem unidade
+          if ((cargo === "funcionario" || cargo === "recepcao" || cargo === "terapeuta" || cargo === "financeiro") && 
+              (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0)) {
+            console.log(`🔄 SINCRONIZANDO ${cargo.toUpperCase()}: ${usuario.full_name} - atribuindo unidade`);
+            
             await atualizarUsuarioMutation.mutateAsync({
               id: usuario.id,
               dados: { unidades_acesso: [unidades[0].id] }
             });
-          } catch (error) {
-            console.error("Erro ao sincronizar funcionário:", error);
           }
+
+          // GERÊNCIA DE UNIDADE: Atribuir UMA unidade se sem unidade
+          if ((cargo === "gerencia_unidades" || cargo.includes("gerencia_unidade_")) && 
+              (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0)) {
+            console.log(`🔄 SINCRONIZANDO GERÊNCIA: ${usuario.full_name} - atribuindo primeira unidade`);
+            
+            await atualizarUsuarioMutation.mutateAsync({
+              id: usuario.id,
+              dados: { unidades_acesso: [unidades[0].id] }
+            });
+          }
+
+          // VENDEDOR: Criar registro de Vendedor se não existir
+          if (cargo === "vendedor") {
+            const vendedorExistente = vendedores.find(v => v.email === usuario.email);
+            if (!vendedorExistente) {
+              console.log(`🔄 SINCRONIZANDO VENDEDOR: ${usuario.full_name} - criando registro`);
+              
+              await base44.entities.Vendedor.create({
+                nome: usuario.full_name,
+                email: usuario.email,
+                ativo: true,
+                comissao_percentual: 0,
+                valor_combinado_total: 0,
+                valor_recebido_total: 0,
+                a_receber_total: 0
+              });
+              queryClient.invalidateQueries({ queryKey: ['vendedores'] });
+            }
+
+            // Também atribuir unidade se sem unidade
+            if (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0) {
+              console.log(`🔄 SINCRONIZANDO VENDEDOR: ${usuario.full_name} - atribuindo unidade`);
+              
+              await atualizarUsuarioMutation.mutateAsync({
+                id: usuario.id,
+                dados: { unidades_acesso: [unidades[0].id] }
+              });
+            }
+          }
+
+          // ADMINISTRADOR: Garantir role="admin" e sem unidades_acesso (acesso total)
+          if (cargo === "administrador") {
+            if (usuario.role !== "admin") {
+              console.log(`🔄 SINCRONIZANDO ADMIN: ${usuario.full_name} - ajustando role`);
+              
+              await atualizarUsuarioMutation.mutateAsync({
+                id: usuario.id,
+                dados: { role: "admin", unidades_acesso: [] }
+              });
+            }
+          }
+        } catch (error) {
+          console.error(`Erro ao sincronizar ${usuario.full_name}:`, error);
         }
       }
     };
 
-    if (usuarioAtual && usuarios.length > 0) {
-      sincronizarFuncionarios();
+    if (usuarioAtual && usuarios.length > 0 && unidades.length > 0) {
+      sincronizarTodosCargos();
     }
-  }, [usuarioAtual]);
+  }, [usuarioAtual, usuarios.length, unidades.length]);
 
   const { data: usuarios = [] } = useQuery({
     queryKey: ['usuarios'],
