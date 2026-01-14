@@ -1260,7 +1260,7 @@ export default function AgendaPage() {
     console.log(`  🔒 ${b.hora_inicio} | ${b.profissional_nome} | Data: ${b.data}`);
   });
 
-  const unidadeAtual = unidadeSelecionada || unidades[0];
+  const unidadeAtual = unidadeFinal;
 
   // Verificar se é admin ou gerência - ambos têm permissões administrativas
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
