@@ -181,26 +181,7 @@ export default function GerenciarUsuariosPage() {
   const handleAtualizarCargo = async (usuario, novoCargo) => {
     const cargoAntigo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "funcionario");
     
-    // Se mudou para um cargo de "Gerência de Unidade", atribuir a unidade apropriada
-    let unidadeParaAtribuir = null;
-    if (novoCargo.includes("gerencia_unidade_")) {
-      // Extrair o nome da unidade do cargo
-      const nomesUnidade = {
-        "gerencia_unidade_moema": "Moema + Gerência de Unidade",
-        "gerencia_unidade_londrina": "Londrina + Gerência de Unidade",
-        "gerencia_unidade_paulista": "Paulista + Gerência de Unidade"
-      };
-      
-      const nomeUnidade = nomesUnidade[novoCargo];
-      
-      // Encontrar o ID da unidade pelo nome (removendo " + Gerência de Unidade")
-      const nomeUnidadeExtraido = nomeUnidade.replace(" + Gerência de Unidade", "");
-      const unidade = unidades.find(u => u.nome === nomeUnidadeExtraido);
-      
-      if (unidade) {
-        unidadeParaAtribuir = unidade.id;
-      }
-    }
+    // Se mudou para "gerencia_unidades", não precisa de unidade no cargo, só nas unidades_acesso
     
     // Se mudou para "vendedor", criar registro automaticamente
     if (novoCargo === "vendedor" && cargoAntigo !== "vendedor") {
