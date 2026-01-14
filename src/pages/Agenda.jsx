@@ -1037,7 +1037,7 @@ const agendamentosFiltrados = agendamentos.filter(ag => {
           return isDataMatch && isUnidadeMatch;
         }
 
-        // CRÍTICO: Todos os OUTROS (gerencia_unidades, gerencia_unidade_*, financeiro, etc) veem APENAS suas unidades
+        // CRÍTICO: Todos os OUTROS (gerencia_unidades, financeiro, etc) veem APENAS suas unidades
         let unidadesAcesso = usuarioAtual?.unidades_acesso || [];
 
         // Garantir que é array
