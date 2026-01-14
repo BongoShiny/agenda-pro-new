@@ -90,13 +90,25 @@ export default function HomePage() {
     initialData: [],
   });
 
-  // Filtrar agendamentos por unidades de acesso para gerentes de unidade
-  const agendamentosFiltrados = usuarioAtual?.cargo === "gerencia_unidades"
-    ? agendamentos.filter(ag => {
-        const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-        return unidadesAcesso.includes(ag.unidade_id);
-      })
-    : agendamentos;
+  // Filtrar unidades baseado no acesso
+  const unidades = React.useMemo(() => {
+    const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
+    if (cargoLower === "administrador" || usuarioAtual?.role === "admin") {
+      return todasUnidades;
+    }
+    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+    return todasUnidades.filter(u => unidadesAcesso.includes(u.id));
+  }, [todasUnidades, usuarioAtual]);
+
+  // Filtrar agendamentos por unidades de acesso
+  const agendamentosFiltrados = React.useMemo(() => {
+    const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
+    if (cargoLower === "administrador" || usuarioAtual?.role === "admin") {
+      return agendamentos;
+    }
+    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+    return agendamentos.filter(ag => unidadesAcesso.includes(ag.unidade_id));
+  }, [agendamentos, usuarioAtual]);
 
   if (carregando) {
     return (

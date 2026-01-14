@@ -100,8 +100,7 @@ export default function MenuConta({ usuarioAtual, onClose }) {
   };
 
   const cargoLabels = {
-    administrador: { label: "Superior", icon: Shield, color: "bg-red-600" },
-    superior: { label: "Superior", icon: Shield, color: "bg-red-600" },
+    administrador: { label: "Administrador", icon: Shield, color: "bg-red-600" },
     gerencia_unidades: { label: "Gerência de Unidades", icon: Building2, color: "bg-purple-600" },
     financeiro: { label: "Financeiro", icon: FileSpreadsheet, color: "bg-green-600" },
     vendedor: { label: "Vendedor", icon: DollarSign, color: "bg-orange-600" },
