@@ -48,6 +48,12 @@ export default function ConfiguracaoTerapeutasPage() {
     const carregarUsuario = async () => {
       const user = await base44.auth.me();
       setUsuarioAtual(user);
+      
+      // Se é gerência de unidades, selecionar a primeira unidade de acesso
+      if (user?.cargo === "gerencia_unidades" && user?.unidades_acesso?.length > 0) {
+        const unidadeId = Array.isArray(user.unidades_acesso) ? user.unidades_acesso[0] : user.unidades_acesso;
+        setUnidadeSelecionada(unidadeId);
+      }
     };
     carregarUsuario();
   }, []);
