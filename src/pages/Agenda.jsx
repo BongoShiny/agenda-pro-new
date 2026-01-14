@@ -434,27 +434,37 @@ export default function AgendaPage() {
     initialData: [],
   });
 
-  // CRÍTICO: APENAS superiores veem TODAS as unidades, todos os outros têm restrições
+  // CRÍTICO: APENAS superiores veem TODAS as unidades, gerência vê apenas suas unidades
   const unidades = React.useMemo(() => {
-    console.log("🏢 FILTRANDO UNIDADES Agenda:", {
-      usuario: usuarioAtual?.email,
-      cargo: usuarioAtual?.cargo,
-      role: usuarioAtual?.role,
-      unidades_acesso: usuarioAtual?.unidades_acesso,
-      total_unidades: todasUnidades.length
-    });
+    console.log("🏢🏢🏢 FILTRANDO UNIDADES Agenda 🏢🏢🏢");
+    console.log("Usuario:", usuarioAtual?.email);
+    console.log("Cargo RAW:", usuarioAtual?.cargo);
+    console.log("Role:", usuarioAtual?.role);
+    console.log("Unidades Acesso:", usuarioAtual?.unidades_acesso);
+    console.log("Total Unidades:", todasUnidades.length);
     
-    // APENAS superiores/admins veem TODAS as unidades (case-insensitive)
-    const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
-    if (cargoLower === "superior" || cargoLower === "administrador" || usuarioAtual?.role === "admin") {
-      console.log("✅ SUPERIOR/ADMIN - mostrando TODAS:", todasUnidades.length);
+    // APENAS superior e administrador veem TODAS (case-insensitive)
+    const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
+    console.log("Cargo LOWERCASE:", cargoLower);
+    
+    if (cargoLower === "superior" || cargoLower === "administrador") {
+      console.log("✅✅✅ SUPERIOR/ADMIN DETECTADO - MOSTRANDO TODAS:", todasUnidades.length);
       return todasUnidades;
     }
     
-    // Todos os outros veem apenas suas unidades de acesso
+    // TODOS OS OUTROS (incluindo gerencia_unidades) veem apenas suas unidades
     const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+    console.log("Unidades de acesso do usuario:", unidadesAcesso);
+    
+    if (unidadesAcesso.length === 0) {
+      console.log("⚠️⚠️⚠️ USUÁRIO SEM UNIDADES DE ACESSO - MOSTRANDO VAZIO");
+      return [];
+    }
+    
     const unidadesFiltradas = todasUnidades.filter(u => unidadesAcesso.includes(u.id));
-    console.log("🔒 ACESSO LIMITADO - filtrando:", unidadesFiltradas.length);
+    console.log("🔒🔒🔒 FILTRANDO - Total filtrado:", unidadesFiltradas.length);
+    console.log("Unidades filtradas:", unidadesFiltradas.map(u => u.nome));
+    
     return unidadesFiltradas;
   }, [todasUnidades, usuarioAtual]);
 
