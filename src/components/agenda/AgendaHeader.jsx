@@ -107,14 +107,16 @@ export default function AgendaHeader({
     onDataChange(hoje);
   };
 
-      const cargo = (usuarioAtual?.cargo || "").toLowerCase();
-    // ✅ VALIDAÇÃO: Funcionário NÃO pode ver o botão Administrador
-    const canAccessAdminPanel = 
+      const cargo = (usuarioAtual?.cargo || "").toLowerCase().trim();
+      // ✅ VALIDAÇÃO: Funcionário NÃO pode ver o botão Administrador
+      const isFuncionario = cargo === "funcionario" || cargo === "funcionário";
+      const canAccessAdminPanel = !isFuncionario && (
         usuarioAtual?.email === 'lucagamerbr07@gmail.com' ||
         cargo === "administrador" || 
         usuarioAtual?.role === "admin" ||
         cargo.includes("gerencia") ||
-        (cargo === "financeiro" && cargo !== "funcionario" && cargo !== "funcionário");
+        cargo === "financeiro"
+      );
 
   return (
     <div className="bg-white border-b border-gray-200">
