@@ -449,7 +449,7 @@ export default function AgendaPage() {
     initialData: [],
   });
 
-  const { data: todasUnidades = [] } = useQuery({
+  const { data: todasUnidades = [], isLoading: unidadesCarregando } = useQuery({
     queryKey: ['unidades'],
     queryFn: async () => {
       console.error("📥 CARREGANDO UNIDADES...");
