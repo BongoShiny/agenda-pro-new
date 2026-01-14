@@ -54,27 +54,6 @@ export default function ConfigurarUnidadesPage() {
     };
     carregarUsuario();
   }, [navigate]);
-   const [usuarioAtual, setUsuarioAtual] = useState(null);
-   const navigate = useNavigate();
-
-  useEffect(() => {
-    const carregarUsuario = async () => {
-      try {
-        const user = await base44.auth.me();
-        setUsuarioAtual(user);
-
-        const cargoLower = (user?.cargo || "").toLowerCase().trim();
-        const isAdmin = user.role === "admin" || cargoLower === "administrador";
-
-        if (!isAdmin) {
-          navigate(createPageUrl("Agenda"));
-        }
-      } catch (error) {
-        navigate(createPageUrl("Agenda"));
-      }
-    };
-    carregarUsuario();
-  }, [navigate]);
 
   const { data: unidades = [] } = useQuery({
     queryKey: ['unidades'],
