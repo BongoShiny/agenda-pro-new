@@ -1073,10 +1073,10 @@ export default function AgendaPage() {
   const dataFiltro = formatarDataPura(dataAtual);
 
   // Filtrar por terapeuta se o usuário for um terapeuta
-  const isProfissional = usuarioAtual?.cargo === "terapeuta";
   const profissionalDoUsuario = profissionais.find(p => 
     p.email && usuarioAtual?.email && p.email.toLowerCase() === usuarioAtual.email.toLowerCase()
   );
+  const isProfissional = usuarioAtual?.cargo === "terapeuta" && !!profissionalDoUsuario;
 
 
 
