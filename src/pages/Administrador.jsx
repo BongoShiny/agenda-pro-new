@@ -111,72 +111,114 @@ export default function AdministradorPage() {
 
       <div className="max-w-4xl mx-auto p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {/* Configurar Terapeutas - Admin e Gerência */}
-              {(isAdmin || isGerencia) && (
-              <Link to={createPageUrl("ConfiguracaoTerapeutas")} className="block">
-                <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-green-300 transition-all cursor-pointer h-full">
-                  <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
-                    <Settings className="w-6 h-6 text-green-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Configurar Terapeutas</h3>
-                  <p className="text-sm text-gray-500">Gerenciar terapeutas, horários e configurações de atendimento</p>
-                </div>
-              </Link>
+              {/* GERÊNCIA DE UNIDADES - APENAS 5 CARDS */}
+              {isGerencia && (
+                <>
+                  <Link to={createPageUrl("ConfiguracaoTerapeutas")} className="block">
+                    <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-green-300 transition-all cursor-pointer h-full">
+                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                        <Settings className="w-6 h-6 text-green-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Configurar Terapeutas</h3>
+                      <p className="text-sm text-gray-500">Gerenciar terapeutas, horários e configurações de atendimento</p>
+                    </div>
+                  </Link>
+
+                  <Link to={createPageUrl("HistoricoAgendamentos")} className="block">
+                    <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-purple-300 transition-all cursor-pointer h-full">
+                      <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                        <FileText className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Histórico</h3>
+                      <p className="text-sm text-gray-500">Visualizar histórico de agendamentos e ações do sistema</p>
+                    </div>
+                  </Link>
+
+                  <Link to={createPageUrl("RelatoriosClientes")} className="block">
+                    <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer h-full">
+                      <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">
+                        <FileSpreadsheet className="w-6 h-6 text-emerald-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Relatórios / Planilha</h3>
+                      <p className="text-sm text-gray-500">Visualizar e exportar todos os clientes e agendamentos em formato de planilha</p>
+                    </div>
+                  </Link>
+
+                  <Link to={createPageUrl("GerenciarContratos")} className="block">
+                    <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-orange-300 transition-all cursor-pointer h-full">
+                      <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                        <FileText className="w-6 h-6 text-orange-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Contratos Termo 30%</h3>
+                      <p className="text-sm text-gray-500">Gerenciar contratos termo 30% multa assinados pelos clientes</p>
+                    </div>
+                  </Link>
+
+                  <Link to={createPageUrl("GerenciarProntuarios")} className="block">
+                    <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-amber-300 transition-all cursor-pointer h-full">
+                      <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4">
+                        <FileText className="w-6 h-6 text-amber-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Prontuários</h3>
+                      <p className="text-sm text-gray-500">Gerenciar e exportar fichas de prontuário dos clientes</p>
+                    </div>
+                  </Link>
+                </>
               )}
 
-              {/* Histórico - Todos exceto recepção */}
-              <Link to={createPageUrl("HistoricoAgendamentos")} className="block">
-                <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-purple-300 transition-all cursor-pointer h-full">
-                  <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                    <FileText className="w-6 h-6 text-purple-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Histórico</h3>
-                  <p className="text-sm text-gray-500">Visualizar histórico de agendamentos e ações do sistema</p>
-                </div>
-              </Link>
-
-              {/* Relatórios / Planilha - Admin e Gerência */}
-              {(isAdmin || isGerencia) && (
-              <Link to={createPageUrl("RelatoriosClientes")} className="block">
-                <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer h-full">
-                  <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">
-                    <FileSpreadsheet className="w-6 h-6 text-emerald-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Relatórios / Planilha</h3>
-                  <p className="text-sm text-gray-500">Visualizar e exportar todos os clientes e agendamentos em formato de planilha</p>
-                </div>
-              </Link>
-              )}
-
-              {/* Contratos Termo 30% - Admin, Gerência e Financeiro */}
-              {(isAdmin || isGerencia || isFinanceiro) && (
-              <Link to={createPageUrl("GerenciarContratos")} className="block">
-                <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-orange-300 transition-all cursor-pointer h-full">
-                  <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-                    <FileText className="w-6 h-6 text-orange-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Contratos Termo 30%</h3>
-                  <p className="text-sm text-gray-500">Gerenciar contratos termo 30% multa assinados pelos clientes</p>
-                </div>
-              </Link>
-              )}
-
-              {/* Prontuários - Admin, Gerência e Financeiro (não recepção) */}
-              {(isAdmin || isGerencia || (isFinanceiro && usuarioAtual?.cargo !== "recepcao")) && (
-              <Link to={createPageUrl("GerenciarProntuarios")} className="block">
-                <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-amber-300 transition-all cursor-pointer h-full">
-                  <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4">
-                    <FileText className="w-6 h-6 text-amber-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Prontuários</h3>
-                  <p className="text-sm text-gray-500">Gerenciar e exportar fichas de prontuário dos clientes</p>
-                </div>
-              </Link>
-              )}
-
-              {/* APENAS PARA ADMINS - Cards abaixo */}
+              {/* ADMINISTRADORES - TODOS OS CARDS */}
               {isAdmin && (
                 <>
+                  <Link to={createPageUrl("ConfiguracaoTerapeutas")} className="block">
+                    <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-green-300 transition-all cursor-pointer h-full">
+                      <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                        <Settings className="w-6 h-6 text-green-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Configurar Terapeutas</h3>
+                      <p className="text-sm text-gray-500">Gerenciar terapeutas, horários e configurações de atendimento</p>
+                    </div>
+                  </Link>
+
+                  <Link to={createPageUrl("HistoricoAgendamentos")} className="block">
+                    <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-purple-300 transition-all cursor-pointer h-full">
+                      <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                        <FileText className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Histórico</h3>
+                      <p className="text-sm text-gray-500">Visualizar histórico de agendamentos e ações do sistema</p>
+                    </div>
+                  </Link>
+
+                  <Link to={createPageUrl("RelatoriosClientes")} className="block">
+                    <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer h-full">
+                      <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">
+                        <FileSpreadsheet className="w-6 h-6 text-emerald-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Relatórios / Planilha</h3>
+                      <p className="text-sm text-gray-500">Visualizar e exportar todos os clientes e agendamentos em formato de planilha</p>
+                    </div>
+                  </Link>
+
+                  <Link to={createPageUrl("GerenciarContratos")} className="block">
+                    <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-orange-300 transition-all cursor-pointer h-full">
+                      <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                        <FileText className="w-6 h-6 text-orange-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Contratos Termo 30%</h3>
+                      <p className="text-sm text-gray-500">Gerenciar contratos termo 30% multa assinados pelos clientes</p>
+                    </div>
+                  </Link>
+
+                  <Link to={createPageUrl("GerenciarProntuarios")} className="block">
+                    <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-amber-300 transition-all cursor-pointer h-full">
+                      <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4">
+                        <FileText className="w-6 h-6 text-amber-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Prontuários</h3>
+                      <p className="text-sm text-gray-500">Gerenciar e exportar fichas de prontuário dos clientes</p>
+                    </div>
+                  </Link>
+
                   <Link to={createPageUrl("Home")} className="block">
                     <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-300 transition-all cursor-pointer h-full">
                       <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
@@ -224,6 +266,51 @@ export default function AdministradorPage() {
                       </div>
                       <h3 className="text-lg font-semibold text-gray-900 mb-2">WhatsApp Automático</h3>
                       <p className="text-sm text-gray-500">Lembretes automáticos e confirmações via WhatsApp</p>
+                    </div>
+                  </Link>
+                </>
+              )}
+
+              {/* FINANCEIRO - Histórico, Contratos e Relatórios Financeiros */}
+              {isFinanceiro && !isGerencia && !isAdmin && (
+                <>
+                  <Link to={createPageUrl("HistoricoAgendamentos")} className="block">
+                    <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-purple-300 transition-all cursor-pointer h-full">
+                      <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                        <FileText className="w-6 h-6 text-purple-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Histórico</h3>
+                      <p className="text-sm text-gray-500">Visualizar histórico de agendamentos e ações do sistema</p>
+                    </div>
+                  </Link>
+
+                  <Link to={createPageUrl("GerenciarContratos")} className="block">
+                    <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-orange-300 transition-all cursor-pointer h-full">
+                      <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
+                        <FileText className="w-6 h-6 text-orange-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Contratos Termo 30%</h3>
+                      <p className="text-sm text-gray-500">Gerenciar contratos termo 30% multa assinados pelos clientes</p>
+                    </div>
+                  </Link>
+
+                  <Link to={createPageUrl("GerenciarProntuarios")} className="block">
+                    <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-amber-300 transition-all cursor-pointer h-full">
+                      <div className="w-12 h-12 bg-amber-100 rounded-lg flex items-center justify-center mb-4">
+                        <FileText className="w-6 h-6 text-amber-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Prontuários</h3>
+                      <p className="text-sm text-gray-500">Gerenciar e exportar fichas de prontuário dos clientes</p>
+                    </div>
+                  </Link>
+
+                  <Link to={createPageUrl("RelatoriosFinanceiros")} className="block">
+                    <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer h-full">
+                      <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">
+                        <DollarSign className="w-6 h-6 text-emerald-600" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Relatórios Financeiros</h3>
+                      <p className="text-sm text-gray-500">Faturamento, pagamentos e valores a receber por período</p>
                     </div>
                   </Link>
                 </>
