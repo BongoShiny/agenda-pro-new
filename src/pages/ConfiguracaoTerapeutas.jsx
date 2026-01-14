@@ -14,6 +14,13 @@ import { createPageUrl } from "@/utils";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from "@/components/ui/command";
+import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -74,6 +81,8 @@ export default function ConfiguracaoTerapeutasPage() {
     tipo: "horario" // "horario" ou "folga"
   });
   const [usuarioAtual, setUsuarioAtual] = useState(null);
+  const [emailPopoverAberto, setEmailPopoverAberto] = useState(false);
+  const [emailEditPopoverAberto, setEmailEditPopoverAberto] = useState(false);
 
   const { data: profissionais = [] } = useQuery({
     queryKey: ['profissionais'],
@@ -96,6 +105,15 @@ export default function ConfiguracaoTerapeutasPage() {
   const { data: excecoesHorario = [] } = useQuery({
     queryKey: ['excecoes-horario'],
     queryFn: () => base44.entities.HorarioExcecao.list("-data"),
+    initialData: [],
+  });
+
+  const { data: usuarios = [] } = useQuery({
+    queryKey: ['usuarios'],
+    queryFn: async () => {
+      const users = await base44.entities.User.list("email");
+      return users;
+    },
     initialData: [],
   });
 
@@ -562,12 +580,46 @@ export default function ConfiguracaoTerapeutasPage() {
                                                   placeholder="Nome do terapeuta"
                                                   autoFocus
                                                 />
-                                                <Input
-                                                  value={dadosEditados.email}
-                                                  onChange={(e) => setDadosEditados(prev => ({ ...prev, email: e.target.value }))}
-                                                  placeholder="Email do terapeuta"
-                                                  type="email"
-                                                />
+                                                <Popover open={emailEditPopoverAberto} onOpenChange={setEmailEditPopoverAberto}>
+                                                  <PopoverTrigger asChild>
+                                                    <Input
+                                                      value={dadosEditados.email}
+                                                      onChange={(e) => {
+                                                        setDadosEditados(prev => ({ ...prev, email: e.target.value }));
+                                                        setEmailEditPopoverAberto(true);
+                                                      }}
+                                                      placeholder="Email do terapeuta"
+                                                      type="email"
+                                                    />
+                                                  </PopoverTrigger>
+                                                  <PopoverContent className="w-[300px] p-0" align="start">
+                                                    <Command>
+                                                      <CommandInput placeholder="Buscar usuário..." value={dadosEditados.email} />
+                                                      <CommandEmpty>Nenhum usuário encontrado</CommandEmpty>
+                                                      <CommandGroup className="max-h-[200px] overflow-y-auto">
+                                                        {usuarios
+                                                          .filter(u => u.email?.toLowerCase().includes(dadosEditados.email?.toLowerCase() || ""))
+                                                          .map(usuario => (
+                                                            <CommandItem
+                                                              key={usuario.id}
+                                                              value={usuario.email}
+                                                              onSelect={() => {
+                                                                setDadosEditados(prev => ({ ...prev, email: usuario.email }));
+                                                                setEmailEditPopoverAberto(false);
+                                                              }}
+                                                            >
+                                                              <div className="flex flex-col">
+                                                                <span className="font-medium">{usuario.email}</span>
+                                                                {usuario.full_name && (
+                                                                  <span className="text-xs text-gray-500">{usuario.full_name}</span>
+                                                                )}
+                                                              </div>
+                                                            </CommandItem>
+                                                          ))}
+                                                      </CommandGroup>
+                                                    </Command>
+                                                  </PopoverContent>
+                                                </Popover>
                                                 <Input
                                                   value={dadosEditados.especialidade}
                                                   onChange={(e) => setDadosEditados(prev => ({ ...prev, especialidade: e.target.value }))}
@@ -729,12 +781,46 @@ export default function ConfiguracaoTerapeutasPage() {
 
             <div className="space-y-2">
               <Label>Email do Terapeuta</Label>
-              <Input
-                type="email"
-                value={novoProfissional.email}
-                onChange={(e) => setNovoProfissional(prev => ({ ...prev, email: e.target.value }))}
-                placeholder="Ex: maria.silva@exemplo.com"
-              />
+              <Popover open={emailPopoverAberto} onOpenChange={setEmailPopoverAberto}>
+                <PopoverTrigger asChild>
+                  <Input
+                    type="email"
+                    value={novoProfissional.email}
+                    onChange={(e) => {
+                      setNovoProfissional(prev => ({ ...prev, email: e.target.value }));
+                      setEmailPopoverAberto(true);
+                    }}
+                    placeholder="Ex: maria.silva@exemplo.com"
+                  />
+                </PopoverTrigger>
+                <PopoverContent className="w-[400px] p-0" align="start">
+                  <Command>
+                    <CommandInput placeholder="Buscar usuário..." value={novoProfissional.email} />
+                    <CommandEmpty>Nenhum usuário encontrado</CommandEmpty>
+                    <CommandGroup className="max-h-[200px] overflow-y-auto">
+                      {usuarios
+                        .filter(u => u.email?.toLowerCase().includes(novoProfissional.email?.toLowerCase() || ""))
+                        .map(usuario => (
+                          <CommandItem
+                            key={usuario.id}
+                            value={usuario.email}
+                            onSelect={() => {
+                              setNovoProfissional(prev => ({ ...prev, email: usuario.email }));
+                              setEmailPopoverAberto(false);
+                            }}
+                          >
+                            <div className="flex flex-col">
+                              <span className="font-medium">{usuario.email}</span>
+                              {usuario.full_name && (
+                                <span className="text-xs text-gray-500">{usuario.full_name}</span>
+                              )}
+                            </div>
+                          </CommandItem>
+                        ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
               <p className="text-xs text-gray-500">Se informado, o terapeuta poderá fazer login e ver apenas seus próprios pacientes</p>
             </div>
 
