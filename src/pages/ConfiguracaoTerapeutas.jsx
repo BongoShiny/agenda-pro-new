@@ -96,10 +96,14 @@ export default function ConfiguracaoTerapeutasPage() {
     initialData: [],
   });
 
-  // Filtrar unidades baseado no acesso do usuário
-  const unidades = (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin")
-    ? todasUnidades
-    : todasUnidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
+  // Filtrar unidades baseado no acesso do usuário - gerentes veem APENAS suas unidades
+  const unidades = React.useMemo(() => {
+    if (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin") {
+      return todasUnidades;
+    }
+    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+    return todasUnidades.filter(u => unidadesAcesso.includes(u.id));
+  }, [todasUnidades, usuarioAtual]);
 
   const { data: configuracoes = [] } = useQuery({
     queryKey: ['configuracoes'],

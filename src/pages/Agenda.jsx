@@ -434,19 +434,31 @@ export default function AgendaPage() {
     initialData: [],
   });
 
-  // Filtrar unidades baseado no acesso do usuário
-  const unidades = (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin")
-    ? todasUnidades
-    : todasUnidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
-
-  console.log("🏢 UNIDADES FILTRADAS:", {
-    usuario: usuarioAtual?.email,
-    cargo: usuarioAtual?.cargo,
-    unidades_acesso: usuarioAtual?.unidades_acesso,
-    total_unidades: todasUnidades.length,
-    unidades_filtradas: unidades.length,
-    unidades_visiveis: unidades.map(u => u.nome)
-  });
+  // Filtrar unidades baseado no acesso do usuário - gerentes veem APENAS suas unidades
+  const unidades = React.useMemo(() => {
+    console.log("🏢 FILTRANDO UNIDADES:", {
+      usuario: usuarioAtual?.email,
+      cargo: usuarioAtual?.cargo,
+      unidades_acesso: usuarioAtual?.unidades_acesso,
+      total_unidades: todasUnidades.length
+    });
+    
+    if (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin") {
+      console.log("✅ ADMIN - mostrando todas as unidades:", todasUnidades.length);
+      return todasUnidades;
+    }
+    
+    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+    const unidadesFiltradas = todasUnidades.filter(u => unidadesAcesso.includes(u.id));
+    
+    console.log("🔒 NÃO ADMIN - filtrando por acesso:", {
+      unidades_acesso: unidadesAcesso,
+      unidades_filtradas: unidadesFiltradas.length,
+      nomes: unidadesFiltradas.map(u => u.nome)
+    });
+    
+    return unidadesFiltradas;
+  }, [todasUnidades, usuarioAtual]);
 
   // Se unidadeSelecionada não estiver nas unidades filtradas, selecionar a primeira
   React.useEffect(() => {
