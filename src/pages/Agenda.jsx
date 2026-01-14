@@ -1280,8 +1280,15 @@ const agendamentosFiltrados = agendamentos.filter(ag => {
         {unidadeAtual && (() => {
           // Filtro de profissionais por unidade da gerência
           let profissionaisPermitidos = profissionais;
+          const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
+          const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
+          const isAdmin = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin";
 
-          if (usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin") {
+          // ✅ VALIDAÇÃO: Se for TERAPEUTA, mostra APENAS a si mesmo
+          if (cargoLower === "terapeuta" && profissionalDoUsuario) {
+            profissionaisPermitidos = [profissionalDoUsuario];
+          } else if (isAdmin) {
+            // Admin vê TODOS os profissionais
             profissionaisPermitidos = profissionais;
           } else {
             // Para gerência e outros, filtrar por unidades de acesso
