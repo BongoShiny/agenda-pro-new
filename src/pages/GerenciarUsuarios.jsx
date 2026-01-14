@@ -44,14 +44,18 @@ export default function GerenciarUsuariosPage() {
     carregarUsuario();
   }, []);
 
-  // SINCRONIZAÇÃO COMPLETA: Sincronizar todos os cargos automaticamente
+  // SINCRONIZAÇÃO COMPLETA: Sincronizar todos os cargos automaticamente quando dados carregam
   useEffect(() => {
-    const sincronizarTodosCargos = async () => {
-      if (!Array.isArray(usuarios) || usuarios.length === 0 || !Array.isArray(unidades) || unidades.length === 0) {
+    const sincronizar = async () => {
+      const usuariosList = await base44.entities.User.list("full_name");
+      const unidadesList = await base44.entities.Unidade.list("nome");
+      const vendedoresList = await base44.entities.Vendedor.list("nome");
+
+      if (!Array.isArray(usuariosList) || usuariosList.length === 0 || !Array.isArray(unidadesList) || unidadesList.length === 0) {
         return;
       }
 
-      for (const usuario of usuarios) {
+      for (const usuario of usuariosList) {
         const cargo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "funcionario");
         
         try {
@@ -60,9 +64,8 @@ export default function GerenciarUsuariosPage() {
               (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0)) {
             console.log(`🔄 SINCRONIZANDO ${cargo.toUpperCase()}: ${usuario.full_name} - atribuindo unidade`);
             
-            await atualizarUsuarioMutation.mutateAsync({
-              id: usuario.id,
-              dados: { unidades_acesso: [unidades[0].id] }
+            await base44.entities.User.update(usuario.id, {
+              unidades_acesso: [unidadesList[0].id]
             });
           }
 
@@ -71,15 +74,14 @@ export default function GerenciarUsuariosPage() {
               (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0)) {
             console.log(`🔄 SINCRONIZANDO GERÊNCIA: ${usuario.full_name} - atribuindo primeira unidade`);
             
-            await atualizarUsuarioMutation.mutateAsync({
-              id: usuario.id,
-              dados: { unidades_acesso: [unidades[0].id] }
+            await base44.entities.User.update(usuario.id, {
+              unidades_acesso: [unidadesList[0].id]
             });
           }
 
           // VENDEDOR: Criar registro de Vendedor se não existir
           if (cargo === "vendedor") {
-            const vendedorExistente = vendedores.find(v => v.email === usuario.email);
+            const vendedorExistente = vendedoresList.find(v => v.email === usuario.email);
             if (!vendedorExistente) {
               console.log(`🔄 SINCRONIZANDO VENDEDOR: ${usuario.full_name} - criando registro`);
               
@@ -92,16 +94,14 @@ export default function GerenciarUsuariosPage() {
                 valor_recebido_total: 0,
                 a_receber_total: 0
               });
-              queryClient.invalidateQueries({ queryKey: ['vendedores'] });
             }
 
             // Também atribuir unidade se sem unidade
             if (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0) {
               console.log(`🔄 SINCRONIZANDO VENDEDOR: ${usuario.full_name} - atribuindo unidade`);
               
-              await atualizarUsuarioMutation.mutateAsync({
-                id: usuario.id,
-                dados: { unidades_acesso: [unidades[0].id] }
+              await base44.entities.User.update(usuario.id, {
+                unidades_acesso: [unidadesList[0].id]
               });
             }
           }
@@ -111,9 +111,9 @@ export default function GerenciarUsuariosPage() {
             if (usuario.role !== "admin") {
               console.log(`🔄 SINCRONIZANDO ADMIN: ${usuario.full_name} - ajustando role`);
               
-              await atualizarUsuarioMutation.mutateAsync({
-                id: usuario.id,
-                dados: { role: "admin", unidades_acesso: [] }
+              await base44.entities.User.update(usuario.id, {
+                role: "admin",
+                unidades_acesso: []
               });
             }
           }
@@ -123,10 +123,10 @@ export default function GerenciarUsuariosPage() {
       }
     };
 
-    if (usuarioAtual && usuarios.length > 0 && unidades.length > 0) {
-      sincronizarTodosCargos();
+    if (usuarioAtual) {
+      sincronizar();
     }
-  }, [usuarioAtual, usuarios.length, unidades.length]);
+  }, [usuarioAtual]);
 
   const { data: usuarios = [] } = useQuery({
     queryKey: ['usuarios'],
