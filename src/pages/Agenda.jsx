@@ -661,8 +661,6 @@ export default function AgendaPage() {
     },
   });
 
-  const [unidadeSelecionada, setUnidadeSelecionada] = useState(null);
-
   const handleFilterChange = (field, value) => {
     if (field === "limpar") {
       setFilters({});
