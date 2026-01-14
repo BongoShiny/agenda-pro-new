@@ -1083,15 +1083,7 @@ export default function AgendaPage() {
     return true;
   });
 
-  console.log("📊 TOTAL APÓS FILTRO:", agendamentosFiltrados.length);
-  
-  const bloqueiosFiltrados = agendamentosFiltrados.filter(ag => 
-    ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO"
-  );
-  console.log("🔒 BLOQUEIOS NO FILTRO:", bloqueiosFiltrados.length);
-  bloqueiosFiltrados.forEach(b => {
-    console.log(`  🔒 ${b.hora_inicio} | ${b.profissional_nome} | Data: ${b.data}`);
-  });
+
 
   const unidadeAtual = unidadeFinal;
 
