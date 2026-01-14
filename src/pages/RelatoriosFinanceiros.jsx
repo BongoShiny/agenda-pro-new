@@ -75,13 +75,18 @@ export default function RelatoriosFinanceirosPage() {
   useEffect(() => {
     const carregarUsuario = async () => {
       try {
-        const user = await base44.auth.me();
-        setUsuarioAtual(user);
-        
-        const isAdmin = user?.cargo === "administrador" || user?.role === "admin";
-        const hasAccess = isAdmin || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro";
-        if (!hasAccess) {
-          navigate(createPageUrl("Agenda"));
+         const user = await base44.auth.me();
+         setUsuarioAtual(user);
+
+         // APENAS admin, gerência e financeiro - BLOQUEIA vendedor, recepção, terapeuta, funcionário
+         const cargoLower = (user?.cargo || "").toLowerCase().trim();
+         const hasAccess = user?.role === "admin" || 
+                          cargoLower === "administrador" || 
+                          cargoLower === "gerencia_unidades" || 
+                          (user?.cargo && user.cargo.includes("+ Gerência de Unidade")) ||
+                          cargoLower === "financeiro";
+         if (!hasAccess) {
+           navigate(createPageUrl("Agenda"));
         } else {
           // Registrar acesso aos relatórios financeiros
           await base44.entities.LogAcao.create({
