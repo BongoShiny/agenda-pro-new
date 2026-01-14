@@ -16,13 +16,22 @@ export default function AdministradorPage() {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
         
-        // APENAS admin, gerência e financeiro têm acesso - BLOQUEIA vendedor, terapeuta, funcionário, recepção
+        // Verificar cargo
         const cargoLower = (user?.cargo || "").toLowerCase().trim();
+
+        // BLOQUEIE: Usuário sem cargo
+        if (!cargoLower) {
+          alert("❌ Você não tem cargo atribuído. Entre em contato com o administrador.");
+          navigate(createPageUrl("Agenda"));
+          return;
+        }
+
+        // APENAS admin, gerência e financeiro têm acesso
         const temAcesso = user?.role === "admin" || 
                          cargoLower === "administrador" || 
                          cargoLower === "gerencia_unidades" ||
                          cargoLower === "financeiro";
-        
+
         if (!temAcesso) {
           navigate(createPageUrl("Agenda"));
         }
