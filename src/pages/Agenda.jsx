@@ -136,13 +136,7 @@ export default function AgendaPage() {
 
       user.unidades_acesso = unidadesAcessoFinal;
 
-      console.error("👤👤👤 USUÁRIO CARREGADO 👤👤👤");
-      console.error("Email:", user.email);
-      console.error("Cargo:", user.cargo);
-      console.error("Unidades Acesso FINAL:", JSON.stringify(user.unidades_acesso));
-      console.error("Tipo FINAL:", typeof user.unidades_acesso);
-      console.error("É array?", Array.isArray(user.unidades_acesso));
-      setUsuarioAtual(user);
+        setUsuarioAtual(user);
       
       // Verificar prontuários atrasados periodicamente (a cada 5 minutos)
       const verificarAtrasados = async () => {
