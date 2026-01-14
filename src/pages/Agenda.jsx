@@ -894,6 +894,22 @@ export default function AgendaPage() {
   };
 
   const handleEditarAgendamento = (agendamento) => {
+    // ✅ VALIDAÇÃO: Verificar permissão para editar
+    const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
+    const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
+    const isAdmin = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin";
+    const isGerencia = cargoLower === "gerencia_unidades";
+    const isRecepcao = cargoLower === "recepcao";
+    const isFuncionario = cargoLower === "funcionario" || cargoLower === "funcionário";
+    const isTerapeuta = cargoLower === "terapeuta" && profissionalDoUsuario?.id === agendamento.profissional_id;
+    
+    const temPermissao = isAdmin || isGerencia || isRecepcao || isFuncionario || isTerapeuta;
+    
+    if (!temPermissao) {
+      alert("❌ Você não tem permissão para editar este agendamento!");
+      return;
+    }
+
     console.log("✏️ EDITANDO AGENDAMENTO:", agendamento.id);
     setAgendamentoInicial(agendamento);
     setDialogNovoAberto(true);
