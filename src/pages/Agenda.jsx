@@ -1232,6 +1232,18 @@ export default function AgendaPage() {
   // Verificar se é admin ou gerência - ambos têm permissões administrativas
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
 
+  // Aguardar carregamento de dados críticos
+  if (!usuarioAtual || unidadesCarregando) {
+    return (
+      <div className="h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando dados...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* PAINEL DE DEBUG - APENAS PARA ADMINISTRADORES */}
