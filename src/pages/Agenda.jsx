@@ -428,7 +428,7 @@ export default function AgendaPage() {
           return todasUnidades;
         }
 
-        // GERÊNCIA_UNIDADES e GERÊNCIA DE UNIDADE veem APENAS suas unidades de acesso
+        // GERÊNCIA_UNIDADES veem APENAS suas unidades de acesso
         let unidadesAcesso = usuarioAtual.unidades_acesso || [];
 
         // Garantir que é array
