@@ -24,18 +24,7 @@ export const formatarDataPura = (data) => {
   const ano = data.getFullYear(); // LOCAL time
   const mes = String(data.getMonth() + 1).padStart(2, '0'); // LOCAL time
   const dia = String(data.getDate()).padStart(2, '0'); // LOCAL time
-  const resultado = `${ano}-${mes}-${dia}`;
-  
-  console.log("🔧 FUNÇÃO formatarDataPura:", {
-    input: data.toString(),
-    ano: ano,
-    mes: mes,
-    dia: dia,
-    output: resultado,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-  });
-  
-  return resultado;
+  return `${ano}-${mes}-${dia}`;
 };
 
 // FUNÇÃO CRÍTICA: Converte string YYYY-MM-DD para Date object LOCAL
