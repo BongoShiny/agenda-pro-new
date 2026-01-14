@@ -448,6 +448,13 @@ export default function AgendaPage() {
     unidades_visiveis: unidades.map(u => u.nome)
   });
 
+  // Se unidadeSelecionada não estiver nas unidades filtradas, selecionar a primeira
+  React.useEffect(() => {
+    if (unidades.length > 0 && unidadeSelecionada && !unidades.find(u => u.id === unidadeSelecionada.id)) {
+      setUnidadeSelecionada(unidades[0]);
+    }
+  }, [unidades, unidadeSelecionada]);
+
   const { data: servicos = [] } = useQuery({
     queryKey: ['servicos'],
     queryFn: () => base44.entities.Servico.list("nome"),
