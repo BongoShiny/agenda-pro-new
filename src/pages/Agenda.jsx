@@ -122,36 +122,41 @@ export default function AgendaPage() {
 
   useEffect(() => {
     const carregarUsuario = async () => {
-      const user = await base44.auth.me();
+      try {
+        const user = await base44.auth.me();
 
-      // CRÍTICO: Garantir que unidades_acesso é um ARRAY
-      let unidadesAcessoFinal = user.unidades_acesso || [];
+        // CRÍTICO: Garantir que unidades_acesso é um ARRAY
+        let unidadesAcessoFinal = user.unidades_acesso || [];
 
-      if (typeof unidadesAcessoFinal === 'string') {
-        try {
-          unidadesAcessoFinal = JSON.parse(unidadesAcessoFinal);
-        } catch (e) {
+        if (typeof unidadesAcessoFinal === 'string') {
+          try {
+            unidadesAcessoFinal = JSON.parse(unidadesAcessoFinal);
+          } catch (e) {
+            unidadesAcessoFinal = [];
+          }
+        } else if (typeof unidadesAcessoFinal === 'object' && !Array.isArray(unidadesAcessoFinal)) {
+          unidadesAcessoFinal = Object.keys(unidadesAcessoFinal);
+        } else if (!Array.isArray(unidadesAcessoFinal)) {
           unidadesAcessoFinal = [];
         }
-      } else if (typeof unidadesAcessoFinal === 'object' && !Array.isArray(unidadesAcessoFinal)) {
-        unidadesAcessoFinal = Object.keys(unidadesAcessoFinal);
-      } else if (!Array.isArray(unidadesAcessoFinal)) {
-        unidadesAcessoFinal = [];
-      }
 
-      user.unidades_acesso = unidadesAcessoFinal;
+        user.unidades_acesso = unidadesAcessoFinal;
 
-      // SINCRONIZAÇÃO: Converter cargos antigos de gerência para novo padrão
-      const cargoLower = (user?.cargo || "").toLowerCase().trim();
-      if (cargoLower.includes("gerencia_unidade_")) {
-        console.log(`🔄 [SINCRONIZAÇÃO AUTOMÁTICA] Migrando cargo: ${user.email}`);
-        await base44.entities.User.update(user.id, {
-          cargo: "gerencia_unidades"
-        });
-        user.cargo = "gerencia_unidades";
-      }
+        // SINCRONIZAÇÃO: Converter cargos antigos de gerência para novo padrão
+        const cargoLower = (user?.cargo || "").toLowerCase().trim();
+        if (cargoLower.includes("gerencia_unidade_")) {
+          console.log(`🔄 [SINCRONIZAÇÃO AUTOMÁTICA] Migrando cargo: ${user.email}`);
+          try {
+            await base44.entities.User.update(user.id, {
+              cargo: "gerencia_unidades"
+            });
+            user.cargo = "gerencia_unidades";
+          } catch (error) {
+            console.error("❌ Erro ao migrar cargo:", error);
+          }
+        }
 
-      setUsuarioAtual(user);
+        setUsuarioAtual(user);
       
       // Verificar prontuários atrasados periodicamente (a cada 5 minutos)
       const verificarAtrasados = async () => {
@@ -168,8 +173,11 @@ export default function AgendaPage() {
       
       return () => clearInterval(intervalo);
 
-      // Gerenciar sessão única
-      await gerenciarSessaoUnica(user);
+        // Gerenciar sessão única
+        await gerenciarSessaoUnica(user);
+      } catch (error) {
+        console.error("❌ Erro ao carregar usuário:", error);
+      }
     };
     carregarUsuario();
   }, []);
