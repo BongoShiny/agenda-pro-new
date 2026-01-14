@@ -278,7 +278,7 @@ export default function GerenciarUsuariosPage() {
     });
     
     // Registrar no log
-    const nomesUnidadesNovas = unidadesIds.map(id => unidades.find(u => u.id === id)?.nome).filter(Boolean);
+    const nomesUnidadesNovas = unidadesIdsFinal.map(id => unidades.find(u => u.id === id)?.nome).filter(Boolean);
     await base44.entities.LogAcao.create({
       tipo: "editou_usuario",
       usuario_email: usuarioAtual?.email,
@@ -286,7 +286,7 @@ export default function GerenciarUsuariosPage() {
       entidade_tipo: "Usuario",
       entidade_id: usuario.id,
       dados_antigos: JSON.stringify({ unidades_acesso: unidadesAntigas }),
-      dados_novos: JSON.stringify({ unidades_acesso: unidadesIds })
+      dados_novos: JSON.stringify({ unidades_acesso: unidadesIdsFinal })
     });
   };
 
