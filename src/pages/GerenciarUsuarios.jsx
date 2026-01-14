@@ -63,9 +63,9 @@ export default function GerenciarUsuariosPage() {
           if ((cargo === "funcionario" || cargo === "recepcao" || cargo === "terapeuta" || cargo === "financeiro") && 
               (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0)) {
             console.log(`🔄 SINCRONIZANDO ${cargo.toUpperCase()}: ${usuario.full_name} - atribuindo unidade`);
-            
+
             await base44.entities.User.update(usuario.id, {
-              unidades_acesso: [unidadesList[0].id]
+              unidades_acesso: JSON.stringify([unidadesList[0].id])
             });
           }
 
@@ -73,10 +73,10 @@ export default function GerenciarUsuariosPage() {
           if ((cargo === "gerencia_unidades" || cargo.includes("gerencia_unidade_")) && 
               (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0)) {
             console.log(`🔄 SINCRONIZANDO GERÊNCIA: ${usuario.full_name} - atribuindo primeira unidade + unificando cargo`);
-            
+
             await base44.entities.User.update(usuario.id, {
               cargo: "gerencia_unidades",
-              unidades_acesso: [unidadesList[0].id]
+              unidades_acesso: JSON.stringify([unidadesList[0].id])
             });
           }
           
@@ -109,9 +109,9 @@ export default function GerenciarUsuariosPage() {
             // Também atribuir unidade se sem unidade
             if (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0) {
               console.log(`🔄 SINCRONIZANDO VENDEDOR: ${usuario.full_name} - atribuindo unidade`);
-              
+
               await base44.entities.User.update(usuario.id, {
-                unidades_acesso: [unidadesList[0].id]
+                unidades_acesso: JSON.stringify([unidadesList[0].id])
               });
             }
           }
