@@ -338,7 +338,7 @@ export default function GerenciarUsuariosPage() {
                           }`}>
                             {cargo === "administrador" || cargo === "superior" ? (
                               <Shield className="w-4 h-4 text-blue-600" />
-                            ) : cargo === "gerencia_unidades" ? (
+                            ) : (cargo === "gerencia_unidades" || cargo.includes("gerencia_unidade_")) ? (
                               <Building2 className="w-4 h-4 text-purple-600" />
                             ) : cargo === "financeiro" ? (
                               <FileSpreadsheet className="w-4 h-4 text-green-600" />
