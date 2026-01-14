@@ -586,19 +586,31 @@ export default function ConfiguracaoTerapeutasPage() {
                                                       value={dadosEditados.email}
                                                       onChange={(e) => {
                                                         setDadosEditados(prev => ({ ...prev, email: e.target.value }));
-                                                        setEmailEditPopoverAberto(true);
+                                                        if (e.target.value.length > 0) {
+                                                          setEmailEditPopoverAberto(true);
+                                                        }
+                                                      }}
+                                                      onFocus={() => {
+                                                        if (dadosEditados.email.length > 0) {
+                                                          setEmailEditPopoverAberto(true);
+                                                        }
                                                       }}
                                                       placeholder="Email do terapeuta"
                                                       type="email"
                                                     />
                                                   </PopoverTrigger>
                                                   <PopoverContent className="w-[300px] p-0" align="start">
-                                                    <Command>
-                                                      <CommandInput placeholder="Buscar usuário..." value={dadosEditados.email} />
+                                                    <Command shouldFilter={false}>
                                                       <CommandEmpty>Nenhum usuário encontrado</CommandEmpty>
                                                       <CommandGroup className="max-h-[200px] overflow-y-auto">
                                                         {usuarios
-                                                          .filter(u => u.email?.toLowerCase().includes(dadosEditados.email?.toLowerCase() || ""))
+                                                          .filter(u => {
+                                                            const busca = dadosEditados.email?.toLowerCase() || "";
+                                                            const email = u.email?.toLowerCase() || "";
+                                                            const nome = u.full_name?.toLowerCase() || "";
+                                                            return email.includes(busca) || nome.includes(busca);
+                                                          })
+                                                          .slice(0, 10)
                                                           .map(usuario => (
                                                             <CommandItem
                                                               key={usuario.id}
@@ -788,18 +800,30 @@ export default function ConfiguracaoTerapeutasPage() {
                     value={novoProfissional.email}
                     onChange={(e) => {
                       setNovoProfissional(prev => ({ ...prev, email: e.target.value }));
-                      setEmailPopoverAberto(true);
+                      if (e.target.value.length > 0) {
+                        setEmailPopoverAberto(true);
+                      }
+                    }}
+                    onFocus={() => {
+                      if (novoProfissional.email.length > 0) {
+                        setEmailPopoverAberto(true);
+                      }
                     }}
                     placeholder="Ex: maria.silva@exemplo.com"
                   />
                 </PopoverTrigger>
                 <PopoverContent className="w-[400px] p-0" align="start">
-                  <Command>
-                    <CommandInput placeholder="Buscar usuário..." value={novoProfissional.email} />
+                  <Command shouldFilter={false}>
                     <CommandEmpty>Nenhum usuário encontrado</CommandEmpty>
                     <CommandGroup className="max-h-[200px] overflow-y-auto">
                       {usuarios
-                        .filter(u => u.email?.toLowerCase().includes(novoProfissional.email?.toLowerCase() || ""))
+                        .filter(u => {
+                          const busca = novoProfissional.email?.toLowerCase() || "";
+                          const email = u.email?.toLowerCase() || "";
+                          const nome = u.full_name?.toLowerCase() || "";
+                          return email.includes(busca) || nome.includes(busca);
+                        })
+                        .slice(0, 10)
                         .map(usuario => (
                           <CommandItem
                             key={usuario.id}
