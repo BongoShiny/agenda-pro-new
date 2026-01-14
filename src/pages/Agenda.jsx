@@ -1257,13 +1257,14 @@ export default function AgendaPage() {
 
       {/* Header já usa 'unidades' que está filtrado */}
       {usuarioAtual && (() => {
-        const unidadesParaMostrar = unidades;
+       const unidadesParaMostrar = unidades;
+       const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
 
-        console.error("🎯🎯🎯 ==================== DADOS DO USUÁRIO ATUAL ==================== 🎯🎯🎯");
-        console.error("Email:", usuarioAtual?.email);
-        console.error("Cargo RAW:", usuarioAtual?.cargo);
-        console.error("Cargo LOWER:", cargoLower);
-        console.error("Role:", usuarioAtual?.role);
+       console.error("🎯🎯🎯 ==================== DADOS DO USUÁRIO ATUAL ==================== 🎯🎯🎯");
+       console.error("Email:", usuarioAtual?.email);
+       console.error("Cargo RAW:", usuarioAtual?.cargo);
+       console.error("Cargo LOWER:", cargoLower);
+       console.error("Role:", usuarioAtual?.role);
         console.error("Unidades Acesso RAW:", JSON.stringify(usuarioAtual.unidades_acesso));
         console.error("Tipo do campo unidades_acesso:", typeof usuarioAtual.unidades_acesso);
         console.error("É array?:", Array.isArray(usuarioAtual.unidades_acesso));
