@@ -58,10 +58,23 @@ export default function GerenciarUsuariosPage() {
       for (const usuario of usuariosList) {
         const cargo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "funcionario");
         
+        // Normalizar unidades_acesso para array
+        let unidadesAtuais = [];
+        if (typeof usuario.unidades_acesso === 'string') {
+          try {
+            const parsed = JSON.parse(usuario.unidades_acesso);
+            unidadesAtuais = Array.isArray(parsed) ? parsed : [];
+          } catch (e) {
+            unidadesAtuais = [];
+          }
+        } else if (Array.isArray(usuario.unidades_acesso)) {
+          unidadesAtuais = usuario.unidades_acesso;
+        }
+        
         try {
           // FUNCIONÁRIO, RECEPÇÃO, TERAPEUTA, FINANCEIRO: Atribuir primeira unidade se sem unidade
           if ((cargo === "funcionario" || cargo === "recepcao" || cargo === "terapeuta" || cargo === "financeiro") && 
-              (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0)) {
+              unidadesAtuais.length === 0) {
             console.log(`🔄 SINCRONIZANDO ${cargo.toUpperCase()}: ${usuario.full_name} - atribuindo unidade`);
 
             await base44.entities.User.update(usuario.id, {
