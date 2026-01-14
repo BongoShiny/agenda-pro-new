@@ -742,17 +742,8 @@ export default function AgendaPage() {
   };
   
   const handleBloquearHorarioUnico = async (unidadeId, profissionalId, horario) => {
-    console.log("🔒🔒🔒 ==================== INICIANDO BLOQUEIO ==================== 🔒🔒🔒");
-    console.log("📊 ESTADO ATUAL:");
-    console.log("  - dataAtual (Date object):", dataAtual.toString());
-    console.log("  - Timezone do navegador:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-    console.log("  - Usuário:", usuarioAtual?.email);
-    console.log("  - Cargo:", usuarioAtual?.cargo);
-
     // CRÍTICO: usar formatarDataPura que usa métodos LOCAIS do Date
     const dataFormatada = formatarDataPura(dataAtual);
-
-    console.log("📅 DATA DO BLOQUEIO (formatada PURA):", dataFormatada);
 
     // Verificar se já existe um bloqueio neste exato horário
     const bloqueioExistente = agendamentos.find(ag => 
