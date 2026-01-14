@@ -451,7 +451,14 @@ export default function AgendaPage() {
 
   const { data: todasUnidades = [] } = useQuery({
     queryKey: ['unidades'],
-    queryFn: () => base44.entities.Unidade.list("nome"),
+    queryFn: async () => {
+      console.error("📥 CARREGANDO UNIDADES...");
+      const unidades = await base44.entities.Unidade.list("nome");
+      console.error("✅ UNIDADES CARREGADAS:", unidades.length, "unidades");
+      console.error("IDs das unidades:", unidades.map(u => u.id));
+      unidades.forEach(u => console.error(`  - ${u.nome} (${u.id})`));
+      return unidades;
+    },
     initialData: [],
   });
 
