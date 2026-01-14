@@ -435,9 +435,10 @@ export default function AgendaPage() {
   });
 
   // Filtrar unidades baseado no acesso do usuário
+  const unidadesAcesso = Array.isArray(usuarioAtual?.unidades_acesso) ? usuarioAtual.unidades_acesso : [];
   const unidades = (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin")
     ? todasUnidades
-    : todasUnidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
+    : todasUnidades.filter(u => unidadesAcesso.includes(u.id));
 
   const { data: servicos = [] } = useQuery({
     queryKey: ['servicos'],

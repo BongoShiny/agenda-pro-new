@@ -1,32 +1,32 @@
-import Administrador from './pages/Administrador';
-import Agenda from './pages/Agenda';
+import GerenciarProntuarios from './pages/GerenciarProntuarios';
+import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
+import RelatoriosAvancados from './pages/RelatoriosAvancados';
 import ConfiguracaoTerapeutas from './pages/ConfiguracaoTerapeutas';
+import HistoricoAgendamentos from './pages/HistoricoAgendamentos';
 import ConfiguracaoWhatsApp from './pages/ConfiguracaoWhatsApp';
 import ConfigurarUnidades from './pages/ConfigurarUnidades';
-import GerenciarContratos from './pages/GerenciarContratos';
-import GerenciarProntuarios from './pages/GerenciarProntuarios';
 import GerenciarUsuarios from './pages/GerenciarUsuarios';
-import HistoricoAgendamentos from './pages/HistoricoAgendamentos';
-import Home from './pages/Home';
-import RelatoriosAvancados from './pages/RelatoriosAvancados';
+import Administrador from './pages/Administrador';
 import RelatoriosClientes from './pages/RelatoriosClientes';
-import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
+import Home from './pages/Home';
+import Agenda from './pages/Agenda';
+import GerenciarContratos from './pages/GerenciarContratos';
 
 
 export const PAGES = {
-    "Administrador": Administrador,
-    "Agenda": Agenda,
+    "GerenciarProntuarios": GerenciarProntuarios,
+    "RelatoriosFinanceiros": RelatoriosFinanceiros,
+    "RelatoriosAvancados": RelatoriosAvancados,
     "ConfiguracaoTerapeutas": ConfiguracaoTerapeutas,
+    "HistoricoAgendamentos": HistoricoAgendamentos,
     "ConfiguracaoWhatsApp": ConfiguracaoWhatsApp,
     "ConfigurarUnidades": ConfigurarUnidades,
-    "GerenciarContratos": GerenciarContratos,
-    "GerenciarProntuarios": GerenciarProntuarios,
     "GerenciarUsuarios": GerenciarUsuarios,
-    "HistoricoAgendamentos": HistoricoAgendamentos,
-    "Home": Home,
-    "RelatoriosAvancados": RelatoriosAvancados,
+    "Administrador": Administrador,
     "RelatoriosClientes": RelatoriosClientes,
-    "RelatoriosFinanceiros": RelatoriosFinanceiros,
+    "Home": Home,
+    "Agenda": Agenda,
+    "GerenciarContratos": GerenciarContratos,
 }
 
 export const pagesConfig = {
