@@ -94,12 +94,6 @@ export default function AgendaPage() {
       dataLocal = addDays(dataLocal, 1);
     }
     
-    console.log("🚀🚀🚀 INICIALIZANDO PÁGINA 🚀🚀🚀");
-    console.log("Data agora (raw):", agora.toString());
-    console.log("Data local (12h):", dataLocal.toString());
-    console.log("Data formatada:", formatarDataPura(dataLocal));
-    console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-    
     return dataLocal;
   };
   
