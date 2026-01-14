@@ -437,7 +437,7 @@ export default function AgendaPage() {
   // Filtrar unidades baseado no acesso do usuário
   const unidades = (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin")
     ? todasUnidades
-    : todasUnidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
+    : todasUnidades.filter(u => Array.isArray(usuarioAtual?.unidades_acesso) && usuarioAtual.unidades_acesso.includes(u.id));
 
   const { data: servicos = [] } = useQuery({
     queryKey: ['servicos'],

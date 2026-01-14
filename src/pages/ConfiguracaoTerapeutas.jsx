@@ -170,7 +170,7 @@ export default function ConfiguracaoTerapeutasPage() {
   const getProfissionaisDisponiveis = (unidadeId) => {
     // Mostrar apenas terapeutas que NÃO estão em NENHUMA unidade
     const idsJaVinculados = configuracoes.map(c => c.profissional_id);
-    return profissionais.filter(p => !idsJaVinculados.includes(p.id));
+    return profissionais.filter(p => !idsJaVinculados.includes(p.id) && p.ativo);
   };
 
   const getUnidadesDoProfissional = (profissionalId) => {
