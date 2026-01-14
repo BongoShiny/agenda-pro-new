@@ -899,6 +899,23 @@ export default function AgendaPage() {
   };
 
   const handleSalvarAgendamento = async (dados) => {
+    // ✅ VALIDAÇÃO: Verificar permissão para salvar/editar agendamento
+    const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
+    const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
+    const isAdmin = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin";
+    const isGerencia = cargoLower === "gerencia_unidades";
+    const isVendedor = cargoLower === "vendedor";
+    const isRecepcao = cargoLower === "recepcao";
+    const isFuncionario = cargoLower === "funcionario" || cargoLower === "funcionário";
+    const isTerapeuta = cargoLower === "terapeuta" && profissionalDoUsuario?.id === dados.profissional_id;
+    
+    const temPermissao = isAdmin || isGerencia || isVendedor || isRecepcao || isFuncionario || (isTerapeuta && dados.id);
+    
+    if (!temPermissao) {
+      alert("❌ Você não tem permissão para salvar/editar agendamentos!");
+      return;
+    }
+
     // Verificar se há bloqueio no horário
     const horarioBloqueado = agendamentos.find(ag => 
       ag.data === dados.data &&
