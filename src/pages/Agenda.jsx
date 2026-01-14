@@ -475,7 +475,7 @@ export default function AgendaPage() {
           return todasUnidades;
         }
 
-        // GERENCIA_UNIDADES vê APENAS suas unidades específicas (sem lógica de admin)
+        // GERENCIA_UNIDADES e outros veem APENAS suas unidades de acesso
         let unidadesAcesso = usuarioAtual.unidades_acesso || [];
 
         // Garantir que é array
@@ -493,7 +493,16 @@ export default function AgendaPage() {
         }
 
         // Retornar APENAS as unidades que o usuário tem acesso
-        return todasUnidades.filter(u => unidadesAcesso.includes(u.id));
+        const unidadesFiltradas = todasUnidades.filter(u => unidadesAcesso.includes(u.id));
+
+        console.log("🏢 UNIDADES DISPONÍVEIS:", {
+          cargo: cargoLower,
+          unidades_acesso: unidadesAcesso,
+          filtradas: unidadesFiltradas.map(u => u.nome),
+          total: unidadesFiltradas.length
+        });
+
+        return unidadesFiltradas;
       }, [todasUnidades, usuarioAtual]);
 
   // Se unidadeSelecionada não estiver nas unidades filtradas, selecionar a primeira
@@ -505,7 +514,7 @@ export default function AgendaPage() {
         console.log("🔄 Unidade selecionada não está na lista filtrada, mudando para:", unidades[0].nome);
         setUnidadeSelecionada(unidades[0]);
       }
-    }, [unidades]);
+    }, [unidades, unidadeSelecionada]);
 
   const { data: servicos = [] } = useQuery({
     queryKey: ['servicos'],
