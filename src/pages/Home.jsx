@@ -84,6 +84,20 @@ export default function HomePage() {
     initialData: [],
   });
 
+  const { data: todasUnidades = [] } = useQuery({
+    queryKey: ['unidades-dashboard'],
+    queryFn: () => base44.entities.Unidade.list("nome"),
+    initialData: [],
+  });
+
+  // Filtrar agendamentos por unidades de acesso para gerentes de unidade
+  const agendamentosFiltrados = usuarioAtual?.cargo === "gerencia_unidades"
+    ? agendamentos.filter(ag => {
+        const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+        return unidadesAcesso.includes(ag.unidade_id);
+      })
+    : agendamentos;
+
   if (carregando) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -222,29 +236,29 @@ export default function HomePage() {
 
         {/* Métricas de Vendas - Topo */}
         {widgetsVisiveis.metricasVendas && (
-          <WidgetMetricasVendas agendamentos={agendamentos} dataInicio={dataInicioVendas} dataFim={dataFimVendas} />
+          <WidgetMetricasVendas agendamentos={agendamentosFiltrados} dataInicio={dataInicioVendas} dataFim={dataFimVendas} />
         )}
 
         {/* Grid de Widgets */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {widgetsVisiveis.faturamento && (
-            <WidgetFaturamento agendamentos={agendamentos} dataInicio={dataInicio} dataFim={dataFim} />
+            <WidgetFaturamento agendamentos={agendamentosFiltrados} dataInicio={dataInicio} dataFim={dataFim} />
           )}
           
           {widgetsVisiveis.proximosAgendamentos && (
-            <WidgetProximosAgendamentos agendamentos={agendamentos} />
+            <WidgetProximosAgendamentos agendamentos={agendamentosFiltrados} />
           )}
           
           {widgetsVisiveis.tarefasPendentes && (
-            <WidgetTarefasPendentes agendamentos={agendamentos} />
+            <WidgetTarefasPendentes agendamentos={agendamentosFiltrados} />
           )}
           
           {widgetsVisiveis.performanceVendedores && (
-            <WidgetPerformanceVendedores agendamentos={agendamentos} />
+            <WidgetPerformanceVendedores agendamentos={agendamentosFiltrados} />
           )}
           
           {widgetsVisiveis.contasReceber && (
-            <WidgetContasReceber agendamentos={agendamentos} />
+            <WidgetContasReceber agendamentos={agendamentosFiltrados} />
           )}
         </div>
 

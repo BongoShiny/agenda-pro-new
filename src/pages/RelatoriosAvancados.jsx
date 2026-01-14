@@ -63,14 +63,19 @@ export default function RelatoriosAvancadosPage() {
     initialData: [],
   });
 
-  const { data: unidades = [] } = useQuery({
+  const { data: todasUnidades = [] } = useQuery({
     queryKey: ['unidades'],
     queryFn: () => base44.entities.Unidade.list("nome"),
     initialData: [],
   });
 
+  // Filtrar unidades baseado no acesso do usuário
+  const unidades = (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin")
+    ? todasUnidades
+    : todasUnidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
+
   // Filtrar agendamentos
-  const agendamentosFiltrados = agendamentos
+  let agendamentosFiltrados = agendamentos
     .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
     .filter(ag => {
       const dataAg = ag.data;
@@ -81,6 +86,12 @@ export default function RelatoriosAvancadosPage() {
       if (statusFiltro !== "todos" && ag.status !== statusFiltro) return false;
       return true;
     });
+
+  // Filtrar por unidades de acesso para gerentes de unidade
+  if (usuarioAtual?.cargo === "gerencia_unidades") {
+    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+    agendamentosFiltrados = agendamentosFiltrados.filter(ag => unidadesAcesso.includes(ag.unidade_id));
+  }
 
   // Dados para gráficos
   const dadosPorProfissional = profissionais.map(prof => ({
