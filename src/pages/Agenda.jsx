@@ -141,6 +141,16 @@ export default function AgendaPage() {
 
       user.unidades_acesso = unidadesAcessoFinal;
 
+      // SINCRONIZAÇÃO: Converter cargos antigos de gerência para novo padrão
+      const cargoLower = (user?.cargo || "").toLowerCase().trim();
+      if (cargoLower.includes("gerencia_unidade_")) {
+        console.log(`🔄 [SINCRONIZAÇÃO AUTOMÁTICA] Migrando cargo: ${user.email}`);
+        await base44.entities.User.update(user.id, {
+          cargo: "gerencia_unidades"
+        });
+        user.cargo = "gerencia_unidades";
+      }
+
       setUsuarioAtual(user);
       
       // Verificar prontuários atrasados periodicamente (a cada 5 minutos)
