@@ -325,19 +325,39 @@ export default function AdministradorPage() {
               )}
               </div>
 
-        <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-          <div className="flex items-start gap-3">
-            <ShieldCheck className="w-5 h-5 text-yellow-600 mt-0.5" />
-            <div>
-              <h4 className="font-medium text-yellow-800">Área Restrita</h4>
-              <p className="text-sm text-yellow-700 mt-1">
-                {isFinanceiro 
-                  ? "Você tem acesso apenas ao Histórico de agendamentos e ações do sistema."
-                  : "Apenas administradores têm acesso a esta área. As alterações feitas aqui afetam todo o sistema."}
-              </p>
+        {isGerencia && (
+          <div className="mt-8 bg-purple-50 border border-purple-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="w-5 h-5 text-purple-600 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-purple-900">👤 Gerência de Unidades</h4>
+                <ul className="text-sm text-purple-800 mt-2 space-y-1">
+                  <li>✓ Acesso APENAS às unidades atribuídas</li>
+                  <li>✓ Pode gerenciar terapeutas de suas unidades</li>
+                  <li>✓ Pode ver histórico e relatórios de suas unidades</li>
+                  <li>✓ Pode editar agenda de suas unidades</li>
+                  <li>✓ Acesso limitado às unidades específicas</li>
+                </ul>
+              </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {!isGerencia && (
+          <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <ShieldCheck className="w-5 h-5 text-yellow-600 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-yellow-800">Área Restrita</h4>
+                <p className="text-sm text-yellow-700 mt-1">
+                  {isFinanceiro 
+                    ? "Você tem acesso apenas ao Histórico de agendamentos e ações do sistema."
+                    : "Apenas administradores têm acesso a esta área. As alterações feitas aqui afetam todo o sistema."}
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
