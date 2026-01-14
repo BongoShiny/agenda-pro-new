@@ -1219,8 +1219,8 @@ export default function AgendaPage() {
           <AgendaDiaView
             agendamentos={agendamentosFiltrados}
             unidadeSelecionada={unidadeAtual}
-            profissionais={profissionais}
-            configuracoes={configuracoes}
+            profissionais={isProfissional ? [profissionalDoUsuario].filter(Boolean) : profissionais}
+            configuracoes={isProfissional ? configuracoes.filter(c => c.profissional_id === profissionalDoUsuario?.id) : configuracoes}
             onAgendamentoClick={handleAgendamentoClick}
             onNovoAgendamento={handleNovoAgendamentoSlot}
             onBloquearHorario={handleBloquearHorario}
