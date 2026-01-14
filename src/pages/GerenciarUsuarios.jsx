@@ -179,7 +179,7 @@ export default function GerenciarUsuariosPage() {
   };
 
   const handleToggleUnidade = async (usuario, unidadeId) => {
-    const unidadesAtuais = usuario.unidades_acesso || [];
+    const unidadesAtuais = Array.isArray(usuario.unidades_acesso) ? usuario.unidades_acesso : [];
     const novasUnidades = unidadesAtuais.includes(unidadeId)
       ? unidadesAtuais.filter(id => id !== unidadeId)
       : [...unidadesAtuais, unidadeId];
