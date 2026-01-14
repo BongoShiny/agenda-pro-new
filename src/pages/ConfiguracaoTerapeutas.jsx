@@ -108,15 +108,15 @@ export default function ConfiguracaoTerapeutasPage() {
     
     // APENAS administradores e superiores veem todas
     if (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior") {
-      console.log("✅ ADMIN - mostrando todas:", todasUnidades.length);
+      console.log("✅ ADMIN/SUPERIOR - mostrando todas:", todasUnidades.length);
       return todasUnidades;
     }
     
-    // Gerentes e outros veem APENAS suas unidades
+    // Gerentes de unidades veem APENAS suas unidades específicas
     const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
     const unidadesFiltradas = todasUnidades.filter(u => unidadesAcesso.includes(u.id));
     
-    console.log("🔒 NÃO ADMIN - filtrando por acesso:", {
+    console.log("🔒 GERÊNCIA - filtrando por acesso:", {
       unidades_acesso: unidadesAcesso,
       unidades_filtradas: unidadesFiltradas.length,
       nomes: unidadesFiltradas.map(u => u.nome)

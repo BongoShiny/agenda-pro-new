@@ -136,8 +136,9 @@ export default function HistoricoAgendamentosPage() {
   });
 
   // Filtrar agendamentos para gerentes ANTES de extrair profissionais e unidades
+  // APENAS gerencia_unidades tem acesso restrito, superiores e admins veem tudo
   const agendamentosAcessiveis = agendamentos.filter(ag => {
-    if (usuarioAtual?.cargo === "gerencia_unidades") {
+    if (usuarioAtual?.cargo === "gerencia_unidades" && usuarioAtual?.cargo !== "superior" && usuarioAtual?.cargo !== "administrador") {
       const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
       if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
         return false;
@@ -154,8 +155,8 @@ export default function HistoricoAgendamentosPage() {
     // CRÍTICO: Aba "Agendamentos" mostra APENAS registros do sistema (sem criador_email)
     if (ag.criador_email) return false;
     
-    // Filtrar por unidades de acesso para gerentes de unidade
-    if (usuarioAtual?.cargo === "gerencia_unidades") {
+    // Filtrar por unidades de acesso APENAS para gerentes (não para superiores/admins)
+    if (usuarioAtual?.cargo === "gerencia_unidades" && usuarioAtual?.cargo !== "superior" && usuarioAtual?.cargo !== "administrador") {
       const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
       if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
         return false;
@@ -180,8 +181,8 @@ export default function HistoricoAgendamentosPage() {
   });
 
   const logsAcoesFiltrados = logsAcoes.filter(log => {
-    // Gerentes veem APENAS logs de suas unidades
-    if (usuarioAtual?.cargo === "gerencia_unidades" && log.entidade_tipo === "Agendamento" && log.entidade_id) {
+    // APENAS gerentes (não superiores/admins) veem logs filtrados por suas unidades
+    if (usuarioAtual?.cargo === "gerencia_unidades" && usuarioAtual?.cargo !== "superior" && usuarioAtual?.cargo !== "administrador" && log.entidade_tipo === "Agendamento" && log.entidade_id) {
       const agendamentoRelacionado = agendamentos.find(ag => ag.id === log.entidade_id);
       if (agendamentoRelacionado) {
         const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
