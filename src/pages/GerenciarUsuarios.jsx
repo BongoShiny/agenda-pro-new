@@ -695,6 +695,20 @@ export default function GerenciarUsuariosPage() {
                 </ul>
               </div>
 
+              <div className="p-4 bg-teal-50 rounded-lg border border-teal-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <User className="w-5 h-5 text-teal-600" />
+                  <h3 className="font-semibold text-teal-900">Terapeuta</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-teal-800">
+                  <li>• Acesso vinculado ao email da Configuração de Terapeutas</li>
+                  <li>• Vê apenas seus próprios agendamentos</li>
+                  <li>• Pode ver detalhes dos pacientes</li>
+                  <li>• Não pode bloquear agenda</li>
+                  <li>• Acesso limitado ao sistema</li>
+                </ul>
+              </div>
+
               <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="flex items-center gap-2 mb-3">
                   <User className="w-5 h-5 text-gray-600" />
