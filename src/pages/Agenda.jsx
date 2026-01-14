@@ -148,6 +148,12 @@ export default function AgendaPage() {
   useEffect(() => {
     const carregarUsuario = async () => {
       const user = await base44.auth.me();
+      console.error("👤👤👤 USUÁRIO CARREGADO 👤👤👤");
+      console.error("Email:", user.email);
+      console.error("Cargo:", user.cargo);
+      console.error("Unidades Acesso RAW:", JSON.stringify(user.unidades_acesso));
+      console.error("Tipo:", typeof user.unidades_acesso);
+      console.error("É array?", Array.isArray(user.unidades_acesso));
       setUsuarioAtual(user);
       
       // Verificar prontuários atrasados periodicamente (a cada 5 minutos)
