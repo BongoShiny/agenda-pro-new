@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { ArrowLeft, Download, BarChart3, PieChart, FileSpreadsheet, FileText } from "lucide-react";
-import { BarChart, Bar, PieChart as RechartsPie, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import * as XLSX from "xlsx";
@@ -372,7 +372,7 @@ export default function RelatoriosAvancadosPage() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <RechartsPie>
+                <PieChart>
                   <Pie
                     data={dadosPorStatus}
                     cx="50%"
@@ -388,7 +388,7 @@ export default function RelatoriosAvancadosPage() {
                     ))}
                   </Pie>
                   <Tooltip />
-                </RechartsPie>
+                </PieChart>
               </ResponsiveContainer>
             </CardContent>
           </Card>
