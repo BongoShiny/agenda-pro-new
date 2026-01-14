@@ -646,14 +646,22 @@ export default function ConfiguracaoTerapeutasPage() {
           </div>
         </div>
 
-        <Tabs defaultValue={unidades[0]?.id} onValueChange={setUnidadeSelecionada}>
-          <TabsList className="mb-6">
-            {unidades.map(unidade => (
-              <TabsTrigger key={unidade.id} value={unidade.id}>
-                {unidade.nome}
-              </TabsTrigger>
-            ))}
-          </TabsList>
+        {usuarioAtual?.cargo === "gerencia_unidades" ? (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <p className="text-sm font-medium text-blue-900 mb-2">Unidade:</p>
+            <div className="text-lg font-semibold text-blue-800">
+              {unidades.find(u => u.id === unidadeSelecionada)?.nome || "Nenhuma unidade atribuída"}
+            </div>
+          </div>
+        ) : (
+          <Tabs defaultValue={unidades[0]?.id} onValueChange={setUnidadeSelecionada}>
+            <TabsList className="mb-6">
+              {unidades.map(unidade => (
+                <TabsTrigger key={unidade.id} value={unidade.id}>
+                  {unidade.nome}
+                </TabsTrigger>
+              ))}
+            </TabsList>
 
           {unidades.map(unidade => {
             const configs = getConfiguracoesUnidade(unidade.id);
