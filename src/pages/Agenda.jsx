@@ -56,6 +56,15 @@ export const normalizarData = (valor) => {
     if (/^\d{4}-\d{2}-\d{2}$/.test(resultado)) {
       return resultado;
     }
+    // Se não conseguir extrair, tentar fazer parse completo
+    try {
+      const data = new Date(valor);
+      if (!isNaN(data.getTime())) {
+        return formatarDataPura(data);
+      }
+    } catch (e) {
+      // Continua
+    }
   }
   
   // É um Date object - usar métodos LOCAIS
