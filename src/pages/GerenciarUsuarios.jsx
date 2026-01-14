@@ -206,9 +206,11 @@ export default function GerenciarUsuariosPage() {
       dadosAtualizacao.role = "admin";
     }
     
-    // Se for gerência de unidade, atribuir apenas aquela unidade
-    if (unidadeParaAtribuir) {
-      dadosAtualizacao.unidades_acesso = [unidadeParaAtribuir];
+    // Se mudar para gerência de unidades, atribuir primeira unidade se não tiver
+    if (novoCargo === "gerencia_unidades" && (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0)) {
+      if (unidades.length > 0) {
+        dadosAtualizacao.unidades_acesso = [unidades[0].id];
+      }
     } else if (novoCargo === "funcionario" && (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0)) {
       // SINCRONIZAÇÃO: Se é funcionário e não tem unidade, atribuir a primeira unidade
       if (unidades.length > 0) {
