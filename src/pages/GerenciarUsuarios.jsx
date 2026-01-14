@@ -404,14 +404,20 @@ export default function GerenciarUsuariosPage() {
                               </SelectItem>
                             )}
                             <SelectItem value="recepcao">
-                             <div className="flex items-center gap-2">
-                               <User className="w-3 h-3" />
-                               Recepção
-                             </div>
+                              <div className="flex items-center gap-2">
+                                <User className="w-3 h-3" />
+                                Recepção
+                              </div>
+                             </SelectItem>
+                            <SelectItem value="terapeuta">
+                              <div className="flex items-center gap-2">
+                                <User className="w-3 h-3" />
+                                Terapeuta
+                              </div>
                             </SelectItem>
-                            {(usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin") && (
-                             <>
-                               <SelectItem value="gerencia_unidades">
+                             {(usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin") && (
+                              <>
+                                <SelectItem value="gerencia_unidades">
                                   <div className="flex items-center gap-2">
                                     <Building2 className="w-3 h-3" />
                                     Gerência de Unidades

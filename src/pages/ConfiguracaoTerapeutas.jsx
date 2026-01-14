@@ -192,11 +192,30 @@ export default function ConfiguracaoTerapeutasPage() {
       ativo: true
     });
 
+    // Se tem email, criar/atualizar user com cargo terapeuta
+    if (novoProfissional.email) {
+      try {
+        const usuariosExistentes = await base44.entities.User.filter({ email: novoProfissional.email.toLowerCase() });
+        
+        if (usuariosExistentes.length > 0) {
+          // Atualizar usuário existente
+          await base44.entities.User.update(usuariosExistentes[0].id, {
+            cargo: "terapeuta"
+          });
+        } else {
+          // Obs: Não podemos criar usuários diretamente, apenas admins podem convidar
+          console.log("ℹ️ Email registrado. Admin deve convidar o usuário em Gerenciar Usuários");
+        }
+      } catch (error) {
+        console.warn("Não foi possível sincronizar com usuários:", error);
+      }
+    }
+
     // Registrar log
     await base44.entities.LogAcao.create({
       tipo: "criou_terapeuta",
       usuario_email: usuarioAtual?.email || "sistema",
-      descricao: `Criou terapeuta: ${novoProfissional.nome}`,
+      descricao: `Criou terapeuta: ${novoProfissional.nome}${novoProfissional.email ? ` (${novoProfissional.email})` : ""}`,
       entidade_tipo: "Profissional",
       entidade_id: resultado.id,
       dados_novos: JSON.stringify(resultado)
