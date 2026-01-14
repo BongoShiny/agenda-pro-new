@@ -179,7 +179,7 @@ export default function GerenciarUsuariosPage() {
   };
 
   const handleToggleUnidade = async (usuario, unidadeId) => {
-    const unidadesAtuais = Array.isArray(usuario.unidades_acesso) ? usuario.unidades_acesso : [];
+    const unidadesAtuais = usuario.unidades_acesso || [];
     const novasUnidades = unidadesAtuais.includes(unidadeId)
       ? unidadesAtuais.filter(id => id !== unidadeId)
       : [...unidadesAtuais, unidadeId];
@@ -308,7 +308,6 @@ export default function GerenciarUsuariosPage() {
                             cargo === "gerencia_unidades" ? "bg-purple-100" : 
                             cargo === "financeiro" ? "bg-green-100" :
                             cargo === "vendedor" ? "bg-orange-100" :
-                            cargo === "terapeuta" ? "bg-teal-100" :
                             "bg-gray-100"
                           }`}>
                             {cargo === "administrador" || cargo === "superior" ? (
@@ -319,8 +318,6 @@ export default function GerenciarUsuariosPage() {
                               <FileSpreadsheet className="w-4 h-4 text-green-600" />
                             ) : cargo === "vendedor" ? (
                               <DollarSign className="w-4 h-4 text-orange-600" />
-                            ) : cargo === "terapeuta" ? (
-                              <User className="w-4 h-4 text-teal-600" />
                             ) : (
                               <User className="w-4 h-4 text-gray-600" />
                             )}
@@ -432,12 +429,6 @@ export default function GerenciarUsuariosPage() {
                                     Vendedor
                                   </div>
                                 </SelectItem>
-                                <SelectItem value="terapeuta">
-                                  <div className="flex items-center gap-2">
-                                    <User className="w-3 h-3" />
-                                    Terapeuta
-                                  </div>
-                                </SelectItem>
                                 <SelectItem value="funcionario">
                                   <div className="flex items-center gap-2">
                                     <User className="w-3 h-3" />
@@ -455,7 +446,7 @@ export default function GerenciarUsuariosPage() {
                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">
                            Todas as unidades
                          </Badge>
-                       ) : cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" || cargo === "terapeuta" ? (
+                       ) : cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" ? (
                           <Popover>
                             <PopoverTrigger asChild>
                               <Button variant="outline" size="sm" className="text-left justify-start">
@@ -589,12 +580,11 @@ export default function GerenciarUsuariosPage() {
 
                       <TableCell>
                         <Badge 
-                          variant={cargo === "administrador" || cargo === "superior" || cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" || cargo === "terapeuta" ? "default" : "secondary"} 
+                          variant={cargo === "administrador" || cargo === "superior" || cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" ? "default" : "secondary"} 
                           className={
                             cargo === "gerencia_unidades" ? "bg-purple-600" : 
                             cargo === "financeiro" ? "bg-green-600" : 
                             cargo === "vendedor" ? "bg-orange-600" :
-                            cargo === "terapeuta" ? "bg-teal-600" :
                             cargo === "superior" ? "bg-blue-500" : ""
                           }
                         >
@@ -602,7 +592,6 @@ export default function GerenciarUsuariosPage() {
                           cargo === "gerencia_unidades" ? "Gerência" : 
                           cargo === "financeiro" ? "Financeiro" : 
                           cargo === "vendedor" ? "Vendedor" :
-                          cargo === "terapeuta" ? "Terapeuta" :
                           "Funcionário"}
                         </Badge>
                       </TableCell>
@@ -695,20 +684,6 @@ export default function GerenciarUsuariosPage() {
                   <li>• Não pode editar quando bloqueada</li>
                   <li>• Acesso às unidades permitidas</li>
                   <li>• Acesso básico ao sistema</li>
-                </ul>
-              </div>
-
-              <div className="p-4 bg-teal-50 rounded-lg border border-teal-200">
-                <div className="flex items-center gap-2 mb-3">
-                  <User className="w-5 h-5 text-teal-600" />
-                  <h3 className="font-semibold text-teal-900">Terapeuta</h3>
-                </div>
-                <ul className="space-y-2 text-sm text-teal-800">
-                  <li>• Vê apenas seus próprios atendimentos</li>
-                  <li>• Pode editar seus agendamentos</li>
-                  <li>• Acesso às unidades onde atende</li>
-                  <li>• Foco no atendimento aos pacientes</li>
-                  <li>• Acesso restrito à sua agenda</li>
                 </ul>
               </div>
 

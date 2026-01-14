@@ -14,13 +14,6 @@ import { createPageUrl } from "@/utils";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-} from "@/components/ui/command";
-import {
   Dialog,
   DialogContent,
   DialogHeader,
@@ -81,8 +74,6 @@ export default function ConfiguracaoTerapeutasPage() {
     tipo: "horario" // "horario" ou "folga"
   });
   const [usuarioAtual, setUsuarioAtual] = useState(null);
-  const [emailPopoverAberto, setEmailPopoverAberto] = useState(false);
-  const [emailEditPopoverAberto, setEmailEditPopoverAberto] = useState(false);
 
   const { data: profissionais = [] } = useQuery({
     queryKey: ['profissionais'],
@@ -105,15 +96,6 @@ export default function ConfiguracaoTerapeutasPage() {
   const { data: excecoesHorario = [] } = useQuery({
     queryKey: ['excecoes-horario'],
     queryFn: () => base44.entities.HorarioExcecao.list("-data"),
-    initialData: [],
-  });
-
-  const { data: usuarios = [] } = useQuery({
-    queryKey: ['usuarios'],
-    queryFn: async () => {
-      const users = await base44.entities.User.list("email");
-      return users;
-    },
     initialData: [],
   });
 
@@ -210,23 +192,6 @@ export default function ConfiguracaoTerapeutasPage() {
       ativo: true
     });
 
-    // Se foi informado email, atualizar cargo do usuário para "terapeuta"
-    if (novoProfissional.email) {
-      try {
-        const usuario = usuarios.find(u => u.email === novoProfissional.email);
-        if (usuario) {
-          await base44.entities.User.update(usuario.id, {
-            cargo: "terapeuta"
-          });
-          console.log(`✅ Cargo atualizado para terapeuta: ${usuario.email}`);
-          alert(`✅ Cargo de ${usuario.full_name || usuario.email} atualizado para terapeuta!`);
-        }
-      } catch (error) {
-        console.error("Erro ao atualizar cargo do usuário:", error);
-        alert("⚠️ Terapeuta criado mas houve erro ao atualizar o cargo do usuário: " + error.message);
-      }
-    }
-
     // Registrar log
     await base44.entities.LogAcao.create({
       tipo: "criou_terapeuta",
@@ -236,8 +201,6 @@ export default function ConfiguracaoTerapeutasPage() {
       entidade_id: resultado.id,
       dados_novos: JSON.stringify(resultado)
     });
-    
-    queryClient.invalidateQueries({ queryKey: ['usuarios'] });
   };
 
   const handleAdicionarTerapeuta = async (unidadeId, profissionalId) => {
@@ -253,31 +216,6 @@ export default function ConfiguracaoTerapeutasPage() {
       ativo: true
     });
 
-    // Se o profissional tem email, atualizar o cargo e unidade do usuário
-    if (profissional?.email) {
-      try {
-        const usuario = usuarios.find(u => u.email === profissional.email);
-        if (usuario) {
-          // Obter unidades atuais e adicionar esta unidade
-          const unidadesAtuais = usuario.unidades_acesso || [];
-          const novasUnidades = unidadesAtuais.includes(unidadeId) 
-            ? unidadesAtuais 
-            : [...unidadesAtuais, unidadeId];
-          
-          // Atualizar cargo e unidades
-          await base44.entities.User.update(usuario.id, {
-            cargo: "terapeuta",
-            unidades_acesso: novasUnidades
-          });
-          console.log(`✅ Cargo atualizado para terapeuta e unidade adicionada: ${usuario.email}`);
-          alert(`✅ Cargo de ${usuario.full_name || usuario.email} atualizado para terapeuta!`);
-        }
-      } catch (error) {
-        console.error("Erro ao atualizar usuário:", error);
-        alert("⚠️ Terapeuta adicionado mas houve erro ao atualizar o cargo do usuário: " + error.message);
-      }
-    }
-
     // Registrar log
     await base44.entities.LogAcao.create({
       tipo: "editou_terapeuta",
@@ -286,8 +224,6 @@ export default function ConfiguracaoTerapeutasPage() {
       entidade_tipo: "ConfiguracaoTerapeuta",
       dados_novos: JSON.stringify({ profissional: profissional?.nome, unidade: unidade?.nome })
     });
-    
-    queryClient.invalidateQueries({ queryKey: ['usuarios'] });
   };
 
   const handleToggleAtivo = async (config) => {
@@ -428,11 +364,8 @@ export default function ConfiguracaoTerapeutasPage() {
 
   const handleSalvarProfissional = async (profissionalId) => {
     const profissional = profissionais.find(p => p.id === profissionalId);
-    const emailMudou = dadosEditados.email !== profissional.email;
-    
     const dadosAntigos = {
       nome: profissional.nome,
-      email: profissional.email,
       especialidade: profissional.especialidade,
       horario_inicio: profissional.horario_inicio,
       horario_fim: profissional.horario_fim
@@ -442,28 +375,6 @@ export default function ConfiguracaoTerapeutasPage() {
       id: profissionalId,
       dados: { ...profissional, ...dadosEditados }
     });
-
-    // Se o email mudou ou foi adicionado, atualizar cargo e unidades do usuário
-    if (emailMudou && dadosEditados.email) {
-      try {
-        const usuario = usuarios.find(u => u.email === dadosEditados.email);
-        if (usuario) {
-          // Buscar todas as unidades onde este terapeuta está configurado
-          const configsDoTerapeuta = configuracoes.filter(c => c.profissional_id === profissionalId);
-          const unidadesDoTerapeuta = [...new Set(configsDoTerapeuta.map(c => c.unidade_id))];
-          
-          await base44.entities.User.update(usuario.id, {
-            cargo: "terapeuta",
-            unidades_acesso: unidadesDoTerapeuta
-          });
-          console.log(`✅ Cargo e unidades atualizadas: ${usuario.email}`, unidadesDoTerapeuta);
-          alert(`✅ Cargo de ${usuario.full_name || usuario.email} atualizado para terapeuta!`);
-          queryClient.invalidateQueries({ queryKey: ['usuarios'] });
-        }
-      } catch (error) {
-        console.error("Erro ao atualizar cargo do usuário:", error);
-      }
-    }
 
     // Registrar log
     await base44.entities.LogAcao.create({
@@ -556,54 +467,6 @@ export default function ConfiguracaoTerapeutasPage() {
           </div>
 
           <div className="flex gap-2">
-            <Button 
-              onClick={async () => {
-                if (!confirm("Isso irá sincronizar TODOS os terapeutas com emails, atualizando seus cargos e unidades de acesso. Continuar?")) {
-                  return;
-                }
-                
-                try {
-                  let atualizados = 0;
-                  
-                  // Para cada profissional com email
-                  for (const prof of profissionais) {
-                    if (!prof.email) continue;
-                    
-                    // Buscar usuário correspondente
-                    const usuario = usuarios.find(u => u.email === prof.email);
-                    if (!usuario) continue;
-                    
-                    // Buscar unidades onde o terapeuta está configurado
-                    const configsDoTerapeuta = configuracoes.filter(c => c.profissional_id === prof.id);
-                    const unidadesDoTerapeuta = [...new Set(configsDoTerapeuta.map(c => c.unidade_id))];
-                    
-                    if (unidadesDoTerapeuta.length === 0) {
-                      console.log(`⚠️ ${prof.nome} não está em nenhuma unidade`);
-                      continue;
-                    }
-                    
-                    // Atualizar cargo e unidades
-                    await base44.entities.User.update(usuario.id, {
-                      cargo: "terapeuta",
-                      unidades_acesso: unidadesDoTerapeuta
-                    });
-                    
-                    console.log(`✅ ${prof.nome} (${prof.email}) atualizado:`, unidadesDoTerapeuta);
-                    atualizados++;
-                  }
-                  
-                  queryClient.invalidateQueries({ queryKey: ['usuarios'] });
-                  alert(`✅ ${atualizados} terapeutas sincronizados com sucesso!`);
-                } catch (error) {
-                  console.error("Erro ao sincronizar:", error);
-                  alert("❌ Erro ao sincronizar: " + error.message);
-                }
-              }}
-              variant="outline" 
-              className="border-green-600 text-green-600 hover:bg-green-50"
-            >
-              🔄 Sincronizar Todos os Terapeutas
-            </Button>
             <Button onClick={() => setDialogNovoAberto(true)} className="bg-blue-600 hover:bg-blue-700">
               <UserPlus className="w-4 h-4 mr-2" />
               Criar Novo Terapeuta
@@ -699,58 +562,12 @@ export default function ConfiguracaoTerapeutasPage() {
                                                   placeholder="Nome do terapeuta"
                                                   autoFocus
                                                 />
-                                                <Popover open={emailEditPopoverAberto} onOpenChange={setEmailEditPopoverAberto}>
-                                                  <PopoverTrigger asChild>
-                                                    <Input
-                                                      value={dadosEditados.email}
-                                                      onChange={(e) => {
-                                                        setDadosEditados(prev => ({ ...prev, email: e.target.value }));
-                                                        if (e.target.value.length > 0) {
-                                                          setEmailEditPopoverAberto(true);
-                                                        }
-                                                      }}
-                                                      onFocus={() => {
-                                                        if (dadosEditados.email.length > 0) {
-                                                          setEmailEditPopoverAberto(true);
-                                                        }
-                                                      }}
-                                                      placeholder="Email do terapeuta"
-                                                      type="email"
-                                                    />
-                                                  </PopoverTrigger>
-                                                  <PopoverContent className="w-[300px] p-0" align="start">
-                                                    <Command shouldFilter={false}>
-                                                      <CommandEmpty>Nenhum usuário encontrado</CommandEmpty>
-                                                      <CommandGroup className="max-h-[200px] overflow-y-auto">
-                                                        {usuarios
-                                                          .filter(u => {
-                                                            const busca = dadosEditados.email?.toLowerCase() || "";
-                                                            const email = u.email?.toLowerCase() || "";
-                                                            const nome = u.full_name?.toLowerCase() || "";
-                                                            return email.includes(busca) || nome.includes(busca);
-                                                          })
-                                                          .slice(0, 10)
-                                                          .map(usuario => (
-                                                            <CommandItem
-                                                              key={usuario.id}
-                                                              value={usuario.email}
-                                                              onSelect={() => {
-                                                                setDadosEditados(prev => ({ ...prev, email: usuario.email }));
-                                                                setEmailEditPopoverAberto(false);
-                                                              }}
-                                                            >
-                                                              <div className="flex flex-col">
-                                                                <span className="font-medium">{usuario.email}</span>
-                                                                {usuario.full_name && (
-                                                                  <span className="text-xs text-gray-500">{usuario.full_name}</span>
-                                                                )}
-                                                              </div>
-                                                            </CommandItem>
-                                                          ))}
-                                                      </CommandGroup>
-                                                    </Command>
-                                                  </PopoverContent>
-                                                </Popover>
+                                                <Input
+                                                  value={dadosEditados.email}
+                                                  onChange={(e) => setDadosEditados(prev => ({ ...prev, email: e.target.value }))}
+                                                  placeholder="Email do terapeuta"
+                                                  type="email"
+                                                />
                                                 <Input
                                                   value={dadosEditados.especialidade}
                                                   onChange={(e) => setDadosEditados(prev => ({ ...prev, especialidade: e.target.value }))}
@@ -912,58 +729,12 @@ export default function ConfiguracaoTerapeutasPage() {
 
             <div className="space-y-2">
               <Label>Email do Terapeuta</Label>
-              <Popover open={emailPopoverAberto} onOpenChange={setEmailPopoverAberto}>
-                <PopoverTrigger asChild>
-                  <Input
-                    type="email"
-                    value={novoProfissional.email}
-                    onChange={(e) => {
-                      setNovoProfissional(prev => ({ ...prev, email: e.target.value }));
-                      if (e.target.value.length > 0) {
-                        setEmailPopoverAberto(true);
-                      }
-                    }}
-                    onFocus={() => {
-                      if (novoProfissional.email.length > 0) {
-                        setEmailPopoverAberto(true);
-                      }
-                    }}
-                    placeholder="Ex: maria.silva@exemplo.com"
-                  />
-                </PopoverTrigger>
-                <PopoverContent className="w-[400px] p-0" align="start">
-                  <Command shouldFilter={false}>
-                    <CommandEmpty>Nenhum usuário encontrado</CommandEmpty>
-                    <CommandGroup className="max-h-[200px] overflow-y-auto">
-                      {usuarios
-                        .filter(u => {
-                          const busca = novoProfissional.email?.toLowerCase() || "";
-                          const email = u.email?.toLowerCase() || "";
-                          const nome = u.full_name?.toLowerCase() || "";
-                          return email.includes(busca) || nome.includes(busca);
-                        })
-                        .slice(0, 10)
-                        .map(usuario => (
-                          <CommandItem
-                            key={usuario.id}
-                            value={usuario.email}
-                            onSelect={() => {
-                              setNovoProfissional(prev => ({ ...prev, email: usuario.email }));
-                              setEmailPopoverAberto(false);
-                            }}
-                          >
-                            <div className="flex flex-col">
-                              <span className="font-medium">{usuario.email}</span>
-                              {usuario.full_name && (
-                                <span className="text-xs text-gray-500">{usuario.full_name}</span>
-                              )}
-                            </div>
-                          </CommandItem>
-                        ))}
-                    </CommandGroup>
-                  </Command>
-                </PopoverContent>
-              </Popover>
+              <Input
+                type="email"
+                value={novoProfissional.email}
+                onChange={(e) => setNovoProfissional(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="Ex: maria.silva@exemplo.com"
+              />
               <p className="text-xs text-gray-500">Se informado, o terapeuta poderá fazer login e ver apenas seus próprios pacientes</p>
             </div>
 

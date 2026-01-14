@@ -55,7 +55,7 @@ export default function RelatoriosClientesPage() {
       try {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
-        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro" || user?.cargo === "recepcao";
+        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro";
         if (!isAdmin) {
           navigate(createPageUrl("Agenda"));
         } else {
@@ -96,16 +96,11 @@ export default function RelatoriosClientesPage() {
     initialData: [],
   });
 
-  const { data: todasUnidades = [] } = useQuery({
+  const { data: unidades = [] } = useQuery({
     queryKey: ['unidades-relatorio'],
     queryFn: () => base44.entities.Unidade.list("nome"),
     initialData: [],
   });
-
-  // Filtrar unidades baseado no acesso do usuário
-  const unidades = (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades")
-    ? todasUnidades
-    : todasUnidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
 
   const { data: servicos = [] } = useQuery({
     queryKey: ['servicos-relatorio'],
@@ -123,32 +118,23 @@ export default function RelatoriosClientesPage() {
     "VOUCHER"
   ];
 
-  // Filtrar agendamentos baseado em acesso por unidade
-  const agendamentosFiltrados = agendamentos
-    .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
-    .filter(ag => {
-      // Se não for admin total ou gerência, filtrar por unidades de acesso
-      if (usuarioAtual?.cargo !== "administrador" && usuarioAtual?.cargo !== "superior" && usuarioAtual?.role !== "admin" && usuarioAtual?.cargo !== "gerencia_unidades") {
-        const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-        if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
-          return false;
-        }
-      }
-      
-      // Restante dos filtros normais
-      const matchBusca = !busca || 
-        ag.cliente_nome?.toLowerCase().includes(busca.toLowerCase()) ||
-        ag.cliente_telefone?.toLowerCase().includes(busca.toLowerCase()) ||
-        ag.profissional_nome?.toLowerCase().includes(busca.toLowerCase());
-      const matchStatus = filtroStatus === "todos" || ag.status === filtroStatus;
-      const matchProfissional = filtroProfissional === "todos" || ag.profissional_id === filtroProfissional;
-      const matchUnidade = filtroUnidade === "todos" || ag.unidade_id === filtroUnidade;
-      const matchServico = filtroServico === "todos" || ag.servico_id === filtroServico;
-      const matchEquipamento = filtroEquipamento === "todos" || ag.equipamento === filtroEquipamento;
-      // Filtro por aba de unidade
-      const matchUnidadeTab = unidadeTab === "todas" || ag.unidade_id === unidadeTab;
-      return matchBusca && matchStatus && matchProfissional && matchUnidade && matchServico && matchEquipamento && matchUnidadeTab;
-    })
+  // Filtrar agendamentos (excluir bloqueios)
+      const agendamentosFiltrados = agendamentos
+        .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
+        .filter(ag => {
+          const matchBusca = !busca || 
+            ag.cliente_nome?.toLowerCase().includes(busca.toLowerCase()) ||
+            ag.cliente_telefone?.toLowerCase().includes(busca.toLowerCase()) ||
+            ag.profissional_nome?.toLowerCase().includes(busca.toLowerCase());
+          const matchStatus = filtroStatus === "todos" || ag.status === filtroStatus;
+          const matchProfissional = filtroProfissional === "todos" || ag.profissional_id === filtroProfissional;
+          const matchUnidade = filtroUnidade === "todos" || ag.unidade_id === filtroUnidade;
+          const matchServico = filtroServico === "todos" || ag.servico_id === filtroServico;
+          const matchEquipamento = filtroEquipamento === "todos" || ag.equipamento === filtroEquipamento;
+          // Filtro por aba de unidade
+          const matchUnidadeTab = unidadeTab === "todas" || ag.unidade_id === unidadeTab;
+          return matchBusca && matchStatus && matchProfissional && matchUnidade && matchServico && matchEquipamento && matchUnidadeTab;
+        })
     .sort((a, b) => {
       let valorA, valorB;
       

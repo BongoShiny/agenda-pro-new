@@ -16,8 +16,8 @@ export default function AdministradorPage() {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
         
-        // Se não for admin, gerência, financeiro ou recepção, redireciona para agenda
-        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro" || user?.cargo === "recepcao";
+        // Se não for admin, gerência ou financeiro, redireciona para agenda
+        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro";
         if (!isAdmin) {
           navigate(createPageUrl("Agenda"));
         }
@@ -40,53 +40,12 @@ export default function AdministradorPage() {
   }
 
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
-    const isGerencia = usuarioAtual?.cargo === "gerencia_unidades";
-    const isFinanceiro = usuarioAtual?.cargo === "financeiro";
-    const isRecepcao = usuarioAtual?.cargo === "recepcao";
+  const isGerencia = usuarioAtual?.cargo === "gerencia_unidades";
+  const isFinanceiro = usuarioAtual?.cargo === "financeiro";
 
-    if (!isAdmin && !isGerencia && !isFinanceiro && !isRecepcao) {
-      return null;
-    }
-
-    // Se for recepção, mostrar apenas Relatórios/Planilha
-    if (isRecepcao) {
-      return (
-        <div className="min-h-screen bg-gray-50">
-          <div className="bg-white border-b border-gray-200 px-6 py-4">
-            <div className="max-w-4xl mx-auto flex items-center gap-4">
-              <Link to={createPageUrl("Agenda")}>
-                <Button variant="outline" size="icon">
-                  <ArrowLeft className="w-4 h-4" />
-                </Button>
-              </Link>
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                  <ShieldCheck className="w-5 h-5 text-red-600" />
-                </div>
-                <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Área dos Superiores</h1>
-                  <p className="text-sm text-gray-500">Acesso aos relatórios</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="max-w-4xl mx-auto p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              <Link to={createPageUrl("RelatoriosClientes")} className="block">
-                <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer h-full">
-                  <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">
-                    <FileSpreadsheet className="w-6 h-6 text-emerald-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-2">Relatórios / Planilha</h3>
-                  <p className="text-sm text-gray-500">Visualizar e exportar todos os clientes e agendamentos em formato de planilha</p>
-                </div>
-              </Link>
-            </div>
-          </div>
-        </div>
-      );
-    }
+  if (!isAdmin && !isGerencia && !isFinanceiro) {
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

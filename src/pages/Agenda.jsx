@@ -435,10 +435,9 @@ export default function AgendaPage() {
   });
 
   // Filtrar unidades baseado no acesso do usuário
-  const unidadesAcesso = Array.isArray(usuarioAtual?.unidades_acesso) ? usuarioAtual.unidades_acesso : [];
   const unidades = (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin")
     ? todasUnidades
-    : todasUnidades.filter(u => unidadesAcesso.includes(u.id));
+    : todasUnidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
 
   const { data: servicos = [] } = useQuery({
     queryKey: ['servicos'],
@@ -1051,28 +1050,16 @@ export default function AgendaPage() {
 
   // Filtrar por terapeuta se o usuário for um terapeuta
   const isProfissional = usuarioAtual?.cargo === "terapeuta";
-  const profissionalDoUsuario = profissionais.find(p => 
-    p.email && usuarioAtual?.email && p.email.toLowerCase() === usuarioAtual.email.toLowerCase()
-  );
-
-  console.log("🔍 DEBUG TERAPEUTA:", {
-    cargo: usuarioAtual?.cargo,
-    email: usuarioAtual?.email,
-    isProfissional: isProfissional,
-    profissionalEncontrado: profissionalDoUsuario?.nome,
-    profissionalId: profissionalDoUsuario?.id
-  });
+  const profissionalDoUsuario = profissionais.find(p => p.email === usuarioAtual?.email);
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
     // Se for terapeuta, mostrar apenas seus próprios agendamentos
     if (isProfissional && profissionalDoUsuario) {
-      const pertence = ag.profissional_id === profissionalDoUsuario.id;
-      console.log(`📋 Agendamento ${ag.id}: profissional_id=${ag.profissional_id}, meu_id=${profissionalDoUsuario.id}, mostrar=${pertence}`);
-      if (!pertence) {
+      if (ag.profissional_id !== profissionalDoUsuario.id) {
         return false;
       }
     }
-
+    
     // Restante dos filtros normais
     // Log detalhado para cada agendamento
     const isDataMatch = ag.data === dataFiltro;
