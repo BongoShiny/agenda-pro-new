@@ -53,11 +53,13 @@ export default function GerenciarContratosPage() {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
         
-        const temAcesso = user?.cargo === "administrador" || 
+        const cargoLower = (user?.cargo || "").toLowerCase();
+        const temAcesso = user?.email === 'lucagamerbr07@gmail.com' ||
                          user?.role === "admin" || 
-                         user?.cargo === "gerencia_unidades" ||
-                         user?.cargo === "financeiro";
-        
+                         cargoLower === "administrador" || 
+                         cargoLower.includes("gerencia") ||
+                         cargoLower === "financeiro";
+
         if (!temAcesso) {
           navigate(createPageUrl("Agenda"));
         } else {

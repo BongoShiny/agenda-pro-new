@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ArrowLeft, Plus, Trash2, Edit2, Check, X, MapPin } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import {
   Dialog,
@@ -28,11 +28,32 @@ export default function ConfigurarUnidadesPage() {
     ativa: true
   });
   const [dadosEditados, setDadosEditados] = useState({
-     nome: "",
-     endereco: "",
-     link_google_maps: "",
-     cor: "#3B82F6"
-   });
+    nome: "",
+    endereco: "",
+    link_google_maps: "",
+    cor: "#3B82F6"
+  });
+  const [usuarioAtual, setUsuarioAtual] = useState(null);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const carregarUsuario = async () => {
+      try {
+        const user = await base44.auth.me();
+        setUsuarioAtual(user);
+
+        const cargoLower = (user?.cargo || "").toLowerCase().trim();
+        const isAdmin = user.email === 'lucagamerbr07@gmail.com' || user.role === "admin" || cargoLower === "administrador";
+
+        if (!isAdmin) {
+          navigate(createPageUrl("Agenda"));
+        }
+      } catch (error) {
+        navigate(createPageUrl("Agenda"));
+      }
+    };
+    carregarUsuario();
+  }, [navigate]);
    const [usuarioAtual, setUsuarioAtual] = useState(null);
    const navigate = useNavigate();
 

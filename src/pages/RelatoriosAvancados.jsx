@@ -33,7 +33,8 @@ export default function RelatoriosAvancadosPage() {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
         // APENAS ADMINISTRADORES podem acessar Relatórios Avançados
-        const isAdmin = user?.cargo === "administrador" || user?.role === "admin";
+        const cargoLower = (user?.cargo || "").toLowerCase();
+        const isAdmin = user?.email === 'lucagamerbr07@gmail.com' || cargoLower === "administrador" || user?.role === "admin";
         if (!isAdmin) {
           navigate(createPageUrl("Agenda"));
         }

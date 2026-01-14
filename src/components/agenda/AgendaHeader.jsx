@@ -107,7 +107,13 @@ export default function AgendaHeader({
     onDataChange(hoje);
   };
 
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades" || usuarioAtual?.cargo === "financeiro" || usuarioAtual?.cargo === "recepcao";
+      const cargo = (usuarioAtual?.cargo || "").toLowerCase();
+    const canAccessAdminPanel = 
+        usuarioAtual?.email === 'lucagamerbr07@gmail.com' ||
+        cargo === "administrador" || 
+        usuarioAtual?.role === "admin" ||
+        cargo.includes("gerencia") ||
+        cargo === "financeiro";
 
   return (
     <div className="bg-white border-b border-gray-200">

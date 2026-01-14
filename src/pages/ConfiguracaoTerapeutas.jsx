@@ -42,21 +42,40 @@ import {
 export default function ConfiguracaoTerapeutasPage() {
   const queryClient = useQueryClient();
   const [unidadeSelecionada, setUnidadeSelecionada] = useState(null);
+  const [carregando, setCarregando] = useState(true);
+  const navigate = useNavigate();
 
   // Carregar usuário atual para verificar se é admin
   React.useEffect(() => {
     const carregarUsuario = async () => {
-      const user = await base44.auth.me();
-      setUsuarioAtual(user);
-      
-      // Se é gerência de unidades, selecionar a primeira unidade de acesso
-      if (user?.cargo === "gerencia_unidades" && user?.unidades_acesso?.length > 0) {
-        const unidadeId = Array.isArray(user.unidades_acesso) ? user.unidades_acesso[0] : user.unidades_acesso;
-        setUnidadeSelecionada(unidadeId);
+      try {
+        const user = await base44.auth.me();
+        setUsuarioAtual(user);
+        
+        const cargoLower = (user?.cargo || "").toLowerCase();
+        const temAcesso = user?.email === 'lucagamerbr07@gmail.com' ||
+                         user?.role === "admin" || 
+                         cargoLower === "administrador" || 
+                         cargoLower.includes("gerencia");
+
+        if (!temAcesso) {
+          navigate(createPageUrl("Agenda"));
+          return;
+        }
+        
+        // Se é gerência de unidades, selecionar a primeira unidade de acesso
+        if (cargoLower.includes("gerencia") && user?.unidades_acesso?.length > 0) {
+          const unidadeId = Array.isArray(user.unidades_acesso) ? user.unidades_acesso[0] : user.unidades_acesso;
+          setUnidadeSelecionada(unidadeId);
+        }
+      } catch (error) {
+        navigate(createPageUrl("Agenda"));
+      } finally {
+        setCarregando(false);
       }
     };
     carregarUsuario();
-  }, []);
+  }, [navigate]);
   const [editandoProfissional, setEditandoProfissional] = useState(null);
   const [dadosEditados, setDadosEditados] = useState({
     nome: "",

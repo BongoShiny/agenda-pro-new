@@ -57,7 +57,8 @@ export default function HomePage() {
         setUsuarioAtual(user);
         
         // APENAS ADMINISTRADORES podem acessar o Dashboard de Análises
-        const isAdmin = user?.cargo === "administrador" || user?.role === "admin";
+        const cargoLower = (user?.cargo || "").toLowerCase();
+        const isAdmin = user?.email === 'lucagamerbr07@gmail.com' || cargoLower === "administrador" || user?.role === "admin";
         if (!isAdmin) {
           navigate(createPageUrl("Agenda"));
         }

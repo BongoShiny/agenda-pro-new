@@ -34,8 +34,10 @@ export default function GerenciarUsuariosPage() {
       const user = await base44.auth.me();
       setUsuarioAtual(user);
       
-      // Redirecionar se não for admin
-      if (user.cargo !== "administrador" && user.role !== "admin") {
+      // Redirecionar se não for admin ou super admin
+      const cargoLower = (user?.cargo || "").toLowerCase();
+      const isAdmin = user.email === 'lucagamerbr07@gmail.com' || cargoLower === "administrador" || user.role === "admin";
+      if (!isAdmin) {
         window.location.href = createPageUrl("Agenda");
       }
     };

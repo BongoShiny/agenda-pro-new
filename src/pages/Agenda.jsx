@@ -411,9 +411,10 @@ export default function AgendaPage() {
         }
 
         const cargoLower = (usuarioAtual.cargo || "").toLowerCase().trim();
+        const isSuperAdmin = usuarioAtual.email === 'lucagamerbr07@gmail.com';
 
-        // ADMINISTRADOR vê TODAS as unidades
-        if (cargoLower === "administrador" || usuarioAtual.role === "admin") {
+        // ADMINISTRADOR e SUPER ADMIN veem TODAS as unidades
+        if (isSuperAdmin || cargoLower === "administrador" || usuarioAtual.role === "admin") {
           return todasUnidades;
         }
 
@@ -1016,7 +1017,7 @@ const agendamentosFiltrados = agendamentos.filter(ag => {
 
         // ADMINISTRADORES VEEM TUDO - sem nenhum filtro (case-insensitive)
         const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
-        const ehAdmin = cargoLower === "administrador" || usuarioAtual?.role === "admin";
+        const ehAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com' || cargoLower === "administrador" || usuarioAtual?.role === "admin";
 
         if (ehAdmin) {
           // Mesmo admin, filtrar por unidade se selecionada
@@ -1086,8 +1087,8 @@ const agendamentosFiltrados = agendamentos.filter(ag => {
 
   const unidadeAtual = unidadeFinal;
 
-  // Verificar se é admin ou gerência - ambos têm permissões administrativas
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
+    // Definição de papéis para controle de acesso
+  const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
 
   // Aguardar carregamento de dados críticos
   if (!usuarioAtual || unidadesCarregando) {
@@ -1104,7 +1105,7 @@ const agendamentosFiltrados = agendamentos.filter(ag => {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* PAINEL DE DEBUG - APENAS PARA ADMINISTRADORES */}
-      {isAdmin && (
+      {isSuperAdmin && (
         <div className="bg-yellow-100 border-b-2 border-yellow-400 p-3 text-xs font-mono">
           <div className="max-w-7xl mx-auto grid grid-cols-4 gap-4">
             <div>
