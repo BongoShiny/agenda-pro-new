@@ -45,8 +45,7 @@ export default function AdministradorPage() {
   }
 
   // CRÍTICO: Verificar gerência PRIMEIRO para evitar conflitos
-    const isGerencia = usuarioAtual?.cargo === "gerencia_unidades" || 
-                       (usuarioAtual?.cargo && usuarioAtual.cargo.includes("+ Gerência de Unidade"));
+    const isGerencia = usuarioAtual?.cargo === "gerencia_unidades";
     const isFinanceiro = usuarioAtual?.cargo === "financeiro";
     const isRecepcao = usuarioAtual?.cargo === "recepcao";
     // Admin APENAS se não for gerência, financeiro ou recepção
