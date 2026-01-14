@@ -65,11 +65,21 @@ export default function GerenciarUsuariosPage() {
   });
 
   const atualizarUsuarioMutation = useMutation({
-    mutationFn: ({ id, dados }) => base44.entities.User.update(id, dados),
+    mutationFn: async ({ id, dados }) => {
+      console.error("🔄 [MUTATION] Enviando dados para User.update:", { id, dados });
+      const resultado = await base44.entities.User.update(id, dados);
+      console.error("🔄 [MUTATION] Resultado da atualização:", resultado);
+      return resultado;
+    },
     onSuccess: async () => {
+      console.error("🔄 [MUTATION SUCCESS] Invalidando queries...");
       await queryClient.invalidateQueries({ queryKey: ['usuarios'] });
       await queryClient.refetchQueries({ queryKey: ['usuarios'] });
+      console.error("🔄 [MUTATION SUCCESS] Refetch concluído!");
     },
+    onError: (error) => {
+      console.error("🔄 [MUTATION ERROR]", error);
+    }
   });
 
   const handleAtualizarCargo = async (usuario, novoCargo) => {
