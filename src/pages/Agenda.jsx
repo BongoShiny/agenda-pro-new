@@ -1318,27 +1318,41 @@ const agendamentosFiltrados = agendamentos.filter(ag => {
 
 
       <div className="flex-1 flex overflow-hidden relative">
-                {/* Botão para abrir filtros */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="fixed bottom-4 left-4 z-50 bg-white shadow-lg border-blue-300"
-                  onClick={() => setMostrarFiltros(!mostrarFiltros)}
-                >
-                  {mostrarFiltros ? <X className="w-4 h-4 mr-2" /> : <Filter className="w-4 h-4 mr-2" />}
-                  {mostrarFiltros ? "Fechar" : "Filtros"}
-                </Button>
+                {/* Mensagem quando funcionário não tem unidades */}
+                {usuarioAtual?.cargo === "funcionario" && unidades.length === 0 && (
+                  <div className="flex-1 flex items-center justify-center bg-white">
+                    <div className="text-center">
+                      <p className="text-gray-500 text-lg">Nenhuma unidade atribuída</p>
+                      <p className="text-gray-400 text-sm mt-2">Aguarde a atribuição de uma unidade para acessar a agenda</p>
+                    </div>
+                  </div>
+                )}
 
-                {/* Botão para abrir menu de conta */}
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="fixed bottom-4 right-4 z-50 bg-white shadow-lg border-gray-300"
-                  onClick={() => setMenuContaAberto(!menuContaAberto)}
-                >
-                  <User className="w-4 h-4 mr-2" />
-                  Conta
-                </Button>
+                {usuarioAtual?.cargo !== "funcionario" || unidades.length > 0 ? (
+                  <>
+                    {/* Botão para abrir filtros */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="fixed bottom-4 left-4 z-50 bg-white shadow-lg border-blue-300"
+                      onClick={() => setMostrarFiltros(!mostrarFiltros)}
+                    >
+                      {mostrarFiltros ? <X className="w-4 h-4 mr-2" /> : <Filter className="w-4 h-4 mr-2" />}
+                      {mostrarFiltros ? "Fechar" : "Filtros"}
+                    </Button>
+
+                    {/* Botão para abrir menu de conta */}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="fixed bottom-4 right-4 z-50 bg-white shadow-lg border-gray-300"
+                      onClick={() => setMenuContaAberto(!menuContaAberto)}
+                    >
+                      <User className="w-4 h-4 mr-2" />
+                      Conta
+                    </Button>
+                  </>
+                ) : null}
 
                 {/* Filtros: Aparece apenas quando clicado */}
                 {mostrarFiltros && (
