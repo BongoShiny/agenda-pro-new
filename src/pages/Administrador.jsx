@@ -332,13 +332,14 @@ export default function AdministradorPage() {
             <div className="flex items-start gap-3">
               <ShieldCheck className="w-5 h-5 text-purple-600 mt-0.5" />
               <div>
-                <h4 className="font-medium text-purple-900">👤 Gerência de Unidades</h4>
+                <h4 className="font-medium text-purple-900">👤 Gerência de Unidade</h4>
                 <ul className="text-sm text-purple-800 mt-2 space-y-1">
-                  <li>✓ Acesso APENAS às unidades atribuídas</li>
-                  <li>✓ Pode gerenciar terapeutas de suas unidades</li>
-                  <li>✓ Pode ver histórico e relatórios de suas unidades</li>
-                  <li>✓ Pode editar agenda de suas unidades</li>
-                  <li>✓ Acesso limitado às unidades específicas</li>
+                  <li>✓ Acesso APENAS à unidade atribuída</li>
+                  <li>✓ Pode gerenciar terapeutas da sua unidade</li>
+                  <li>✓ Pode ver histórico e relatórios da sua unidade</li>
+                  <li>✓ Pode editar agenda da sua unidade</li>
+                  <li>✓ Autonomia total dentro do escopo permitido</li>
+                  <li>✓ Responsável pela organização operacional diária</li>
                 </ul>
               </div>
             </div>
