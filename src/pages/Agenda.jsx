@@ -1255,13 +1255,9 @@ export default function AgendaPage() {
         </div>
       )}
 
-      {/* CRÍTICO: Se usuário é gerência, filtrar unidades AQUI também */}
+      {/* Header já usa 'unidades' que está filtrado */}
       {usuarioAtual && (() => {
-        const cargoLower = (usuarioAtual.cargo || "").toLowerCase().trim();
-        const unidadesAcesso = usuarioAtual.unidades_acesso || [];
-        const unidadesParaMostrar = (cargoLower === "administrador" || usuarioAtual.role === "admin") 
-          ? unidades 
-          : unidades.filter(u => unidadesAcesso.includes(u.id));
+        const unidadesParaMostrar = unidades;
 
         console.error("🎯🎯🎯 ==================== DADOS DO USUÁRIO ATUAL ==================== 🎯🎯🎯");
         console.error("Email:", usuarioAtual?.email);
