@@ -1038,6 +1038,21 @@ export default function AgendaPage() {
   };
 
   const handleMudarStatus = async (agendamento, novoStatus) => {
+    // ✅ VALIDAÇÃO: Quem pode mudar status? Admin, Gerência, Recepção e Terapeuta (só seu próprio)
+    const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
+    const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
+    const isAdmin = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin";
+    const isGerencia = cargoLower === "gerencia_unidades";
+    const isRecepcao = cargoLower === "recepcao";
+    const isTerapeuta = cargoLower === "terapeuta" && profissionalDoUsuario?.id === agendamento.profissional_id;
+    
+    const temPermissao = isAdmin || isGerencia || isRecepcao || isTerapeuta;
+    
+    if (!temPermissao) {
+      alert("❌ Você não tem permissão para mudar status de agendamentos!");
+      return;
+    }
+
     const statusAntigo = agendamento.status;
 
     if (statusAntigo === novoStatus) return; // Nenhuma mudança
