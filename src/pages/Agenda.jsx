@@ -1377,7 +1377,7 @@ const agendamentosFiltrados = agendamentos.filter(ag => {
                   />
                 )}
 
-                {unidadeAtual && usuarioAtual?.cargo !== "funcionario" || (usuarioAtual?.cargo === "funcionario" && unidades.length > 0) ? (() => {
+                {(usuarioAtual?.cargo !== "funcionario" || (usuarioAtual?.cargo === "funcionario" && unidades.length > 0)) && unidadeAtual && (() => {
           // Filtro de profissionais por unidade da gerência
           let profissionaisPermitidos = profissionais;
           const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
@@ -1425,10 +1425,8 @@ const agendamentosFiltrados = agendamentos.filter(ag => {
               excecoesHorario={excecoesHorario}
             />
             );
-            })() : null}
+            })()}
             </div>
-            </>
-            ) : null}
 
       <NovoAgendamentoDialog
         open={dialogNovoAberto}
