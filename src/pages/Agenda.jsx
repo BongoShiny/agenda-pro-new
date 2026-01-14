@@ -1309,22 +1309,33 @@ export default function AgendaPage() {
                   />
                 )}
 
-        {unidadeAtual && (
-          <AgendaDiaView
-            agendamentos={agendamentosFiltrados}
-            unidadeSelecionada={unidadeAtual}
-            profissionais={profissionais}
-            configuracoes={configuracoes}
-            onAgendamentoClick={handleAgendamentoClick}
-            onNovoAgendamento={handleNovoAgendamentoSlot}
-            onBloquearHorario={handleBloquearHorario}
-            onStatusChange={handleMudarStatus}
-            onStatusPacienteChange={handleMudarStatusPaciente}
-            usuarioAtual={usuarioAtual}
-            dataAtual={dataAtual}
-            excecoesHorario={excecoesHorario}
-          />
-        )}
+        {unidadeAtual && (() => {
+          const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
+          const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+          const profissionaisPermitidos = cargoLower === "administrador" || usuarioAtual?.role === "admin"
+            ? profissionais
+            : profissionais.filter(p => {
+                const configs = configuracoes.filter(c => c.profissional_id === p.id);
+                return configs.some(c => unidadesAcesso.includes(c.unidade_id));
+              });
+
+          return (
+            <AgendaDiaView
+              agendamentos={agendamentosFiltrados}
+              unidadeSelecionada={unidadeAtual}
+              profissionais={profissionaisPermitidos}
+              configuracoes={configuracoes}
+              onAgendamentoClick={handleAgendamentoClick}
+              onNovoAgendamento={handleNovoAgendamentoSlot}
+              onBloquearHorario={handleBloquearHorario}
+              onStatusChange={handleMudarStatus}
+              onStatusPacienteChange={handleMudarStatusPaciente}
+              usuarioAtual={usuarioAtual}
+              dataAtual={dataAtual}
+              excecoesHorario={excecoesHorario}
+            />
+          );
+        })()}
       </div>
 
       <NovoAgendamentoDialog
