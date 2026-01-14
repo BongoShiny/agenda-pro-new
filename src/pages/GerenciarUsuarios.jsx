@@ -586,11 +586,12 @@ export default function GerenciarUsuariosPage() {
 
                       <TableCell>
                         <Badge 
-                          variant={cargo === "administrador" || cargo === "superior" || cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" ? "default" : "secondary"} 
+                          variant={cargo === "administrador" || cargo === "superior" || cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" || cargo === "terapeuta" ? "default" : "secondary"} 
                           className={
                             cargo === "gerencia_unidades" ? "bg-purple-600" : 
                             cargo === "financeiro" ? "bg-green-600" : 
                             cargo === "vendedor" ? "bg-orange-600" :
+                            cargo === "terapeuta" ? "bg-teal-600" :
                             cargo === "superior" ? "bg-blue-500" : ""
                           }
                         >
@@ -598,6 +599,7 @@ export default function GerenciarUsuariosPage() {
                           cargo === "gerencia_unidades" ? "Gerência" : 
                           cargo === "financeiro" ? "Financeiro" : 
                           cargo === "vendedor" ? "Vendedor" :
+                          cargo === "terapeuta" ? "Terapeuta" :
                           "Funcionário"}
                         </Badge>
                       </TableCell>
