@@ -1223,15 +1223,35 @@ export default function AgendaPage() {
         </div>
       )}
 
-      <AgendaHeader
-        dataAtual={dataAtual}
-        unidades={unidades}
-        unidadeSelecionada={unidadeSelecionada || unidades[0]}
-        onUnidadeChange={setUnidadeSelecionada}
-        onDataChange={setDataAtual}
-        onNovoAgendamento={handleNovoAgendamento}
-        usuarioAtual={usuarioAtual}
-      />
+      {/* CRÍTICO: Se usuário é gerência, filtrar unidades AQUI também */}
+      {usuarioAtual && (() => {
+        const cargoLower = (usuarioAtual.cargo || "").toLowerCase().trim();
+        const unidadesAcesso = usuarioAtual.unidades_acesso || [];
+        const unidadesParaMostrar = (cargoLower === "administrador" || usuarioAtual.role === "admin") 
+          ? unidades 
+          : unidades.filter(u => unidadesAcesso.includes(u.id));
+
+        console.log("🎯 PASSANDO PARA HEADER:", {
+          cargo: cargoLower,
+          unidadesAcesso: JSON.stringify(unidadesAcesso),
+          totalUnidades: unidades.length,
+          unidadesParaMostrar: unidadesParaMostrar.length,
+          nomes: unidadesParaMostrar.map(u => u.nome)
+        });
+
+        return (
+          <AgendaHeader
+            dataAtual={dataAtual}
+            unidades={unidadesParaMostrar}
+            unidadeSelecionada={unidadeSelecionada || unidadesParaMostrar[0]}
+            onUnidadeChange={setUnidadeSelecionada}
+            onDataChange={setDataAtual}
+            onNovoAgendamento={handleNovoAgendamento}
+            usuarioAtual={usuarioAtual}
+          />
+        );
+      })()}
+
 
       <div className="flex-1 flex overflow-hidden relative">
                 {/* Botão para abrir filtros */}
