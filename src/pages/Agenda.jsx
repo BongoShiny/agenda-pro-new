@@ -122,19 +122,29 @@ export default function AgendaPage() {
 
   useEffect(() => {
     (async () => {
-      try {
-        // 🔄 SINCRONIZAR: Buscar usuário ATUALIZADO do banco PELA EMAIL
-        const userSession = await base44.auth.me();
-        
-        // FONTE DE VERDADE: Banco de dados
-        const usuariosBanco = await base44.entities.User.list();
-        const usuarioBanco = usuariosBanco.find(u => u.email === userSession.email);
+        try {
+          // 🔄 SINCRONIZAR: Buscar usuário ATUALIZADO do banco PELA EMAIL
+          const userSession = await base44.auth.me();
 
-        if (!usuarioBanco) {
-          console.error("❌ Usuário não encontrado no banco:", userSession.email);
-          setUsuarioAtual(userSession);
-          return;
-        }
+          // VALIDAÇÃO: Usuário sem cargo ou sem unidades (exceto admin) é bloqueado
+          const cargo = userSession?.cargo || "";
+          const isAdmin = userSession?.email === 'lucagamerbr07@gmail.com' || userSession?.role === "admin";
+
+          if (!isAdmin && !cargo) {
+            alert("❌ Usuário não configurado. Aguarde o administrador configurar seu cargo e permissões.");
+            window.location.href = createPageUrl("Home");
+            return;
+          }
+
+          // FONTE DE VERDADE: Banco de dados
+          const usuariosBanco = await base44.entities.User.list();
+          const usuarioBanco = usuariosBanco.find(u => u.email === userSession.email);
+
+          if (!usuarioBanco) {
+            console.error("❌ Usuário não encontrado no banco:", userSession.email);
+            setUsuarioAtual(userSession);
+            return;
+          }
 
         // USAR DADOS DO BANCO COMO FONTE DE VERDADE
         let user = { ...userSession, ...usuarioBanco };
