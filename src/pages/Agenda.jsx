@@ -120,28 +120,26 @@ export default function AgendaPage() {
 
   const queryClient = useQueryClient();
 
-  // SINCRONIZAÇÃO DE CARGO - Executar imediatamente ao carregar
-  const sincronizarCargo = async (user) => {
-    const cargoLower = (user?.cargo || "").toLowerCase().trim();
-    if (cargoLower.includes("gerencia_unidade_")) {
-      console.log(`🔄 [SINCRONIZAÇÃO AUTOMÁTICA] Migrando cargo: ${user.email}`);
-      try {
-        await base44.entities.User.update(user.id, { cargo: "gerencia_unidades" });
-        user.cargo = "gerencia_unidades";
-      } catch (error) {
-        console.error("❌ Erro ao migrar cargo:", error);
-      }
-    }
-    return user;
-  };
-
   useEffect(() => {
     (async () => {
       try {
+        // 🔄 SINCRONIZAR: Buscar usuário ATUALIZADO do banco
         let user = await base44.auth.me();
+        const usuarioBanco = await base44.entities.User.list().then(users => 
+          users.find(u => u.email === user.email)
+        );
 
-        // SINCRONIZAR CARGO IMEDIATAMENTE
-        user = await sincronizarCargo(user);
+        if (usuarioBanco) {
+          user = { ...user, ...usuarioBanco };
+        }
+
+        // MIGRAR CARGOS ANTIGOS
+        const cargoLower = (user?.cargo || "").toLowerCase().trim();
+        if (cargoLower.includes("gerencia_unidade_")) {
+          console.log(`🔄 Migrando cargo de ${user.email}`);
+          await base44.entities.User.update(user.id, { cargo: "gerencia_unidades" });
+          user.cargo = "gerencia_unidades";
+        }
 
         // CRÍTICO: Garantir que unidades_acesso é um ARRAY
         let unidadesAcessoFinal = user.unidades_acesso || [];
