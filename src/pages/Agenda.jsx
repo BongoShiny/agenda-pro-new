@@ -737,9 +737,6 @@ export default function AgendaPage() {
       alert(`✅ Horário BLOQUEADO com sucesso!\n\n📅 Data: ${dataFormatada}\n⏰ Horário: ${horarioInicio} - ${horarioFim}\n👨‍⚕️ Profissional: ${profissional?.nome}`);
       
     } catch (error) {
-      console.error("❌❌❌ ERRO AO BLOQUEAR ❌❌❌");
-      console.error("Detalhes completos:", error);
-      console.error("Stack:", error.stack);
       alert("❌ Erro ao bloquear horário: " + error.message);
     }
   };
