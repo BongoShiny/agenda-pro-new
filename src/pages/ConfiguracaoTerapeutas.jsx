@@ -219,9 +219,11 @@ export default function ConfiguracaoTerapeutasPage() {
             cargo: "terapeuta"
           });
           console.log(`✅ Cargo atualizado para terapeuta: ${usuario.email}`);
+          alert(`✅ Cargo de ${usuario.full_name || usuario.email} atualizado para terapeuta!`);
         }
       } catch (error) {
         console.error("Erro ao atualizar cargo do usuário:", error);
+        alert("⚠️ Terapeuta criado mas houve erro ao atualizar o cargo do usuário: " + error.message);
       }
     }
 
@@ -251,19 +253,28 @@ export default function ConfiguracaoTerapeutasPage() {
       ativo: true
     });
 
-    // Se o profissional tem email, atualizar o cargo do usuário para "terapeuta"
+    // Se o profissional tem email, atualizar o cargo e unidade do usuário
     if (profissional?.email) {
       try {
         const usuario = usuarios.find(u => u.email === profissional.email);
         if (usuario) {
-          // Atualizar cargo do usuário para terapeuta
+          // Obter unidades atuais e adicionar esta unidade
+          const unidadesAtuais = usuario.unidades_acesso || [];
+          const novasUnidades = unidadesAtuais.includes(unidadeId) 
+            ? unidadesAtuais 
+            : [...unidadesAtuais, unidadeId];
+          
+          // Atualizar cargo e unidades
           await base44.entities.User.update(usuario.id, {
-            cargo: "terapeuta"
+            cargo: "terapeuta",
+            unidades_acesso: novasUnidades
           });
-          console.log(`✅ Cargo atualizado para terapeuta: ${usuario.email}`);
+          console.log(`✅ Cargo atualizado para terapeuta e unidade adicionada: ${usuario.email}`);
+          alert(`✅ Cargo de ${usuario.full_name || usuario.email} atualizado para terapeuta!`);
         }
       } catch (error) {
-        console.error("Erro ao atualizar cargo do usuário:", error);
+        console.error("Erro ao atualizar usuário:", error);
+        alert("⚠️ Terapeuta adicionado mas houve erro ao atualizar o cargo do usuário: " + error.message);
       }
     }
 
