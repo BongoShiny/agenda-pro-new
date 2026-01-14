@@ -556,6 +556,54 @@ export default function ConfiguracaoTerapeutasPage() {
           </div>
 
           <div className="flex gap-2">
+            <Button 
+              onClick={async () => {
+                if (!confirm("Isso irá sincronizar TODOS os terapeutas com emails, atualizando seus cargos e unidades de acesso. Continuar?")) {
+                  return;
+                }
+                
+                try {
+                  let atualizados = 0;
+                  
+                  // Para cada profissional com email
+                  for (const prof of profissionais) {
+                    if (!prof.email) continue;
+                    
+                    // Buscar usuário correspondente
+                    const usuario = usuarios.find(u => u.email === prof.email);
+                    if (!usuario) continue;
+                    
+                    // Buscar unidades onde o terapeuta está configurado
+                    const configsDoTerapeuta = configuracoes.filter(c => c.profissional_id === prof.id);
+                    const unidadesDoTerapeuta = [...new Set(configsDoTerapeuta.map(c => c.unidade_id))];
+                    
+                    if (unidadesDoTerapeuta.length === 0) {
+                      console.log(`⚠️ ${prof.nome} não está em nenhuma unidade`);
+                      continue;
+                    }
+                    
+                    // Atualizar cargo e unidades
+                    await base44.entities.User.update(usuario.id, {
+                      cargo: "terapeuta",
+                      unidades_acesso: unidadesDoTerapeuta
+                    });
+                    
+                    console.log(`✅ ${prof.nome} (${prof.email}) atualizado:`, unidadesDoTerapeuta);
+                    atualizados++;
+                  }
+                  
+                  queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+                  alert(`✅ ${atualizados} terapeutas sincronizados com sucesso!`);
+                } catch (error) {
+                  console.error("Erro ao sincronizar:", error);
+                  alert("❌ Erro ao sincronizar: " + error.message);
+                }
+              }}
+              variant="outline" 
+              className="border-green-600 text-green-600 hover:bg-green-50"
+            >
+              🔄 Sincronizar Todos os Terapeutas
+            </Button>
             <Button onClick={() => setDialogNovoAberto(true)} className="bg-blue-600 hover:bg-blue-700">
               <UserPlus className="w-4 h-4 mr-2" />
               Criar Novo Terapeuta
