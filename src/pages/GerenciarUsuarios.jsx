@@ -209,12 +209,12 @@ export default function GerenciarUsuariosPage() {
     // Se mudar para gerência de unidades, atribuir primeira unidade se não tiver
     if (novoCargo === "gerencia_unidades" && (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0)) {
       if (unidades.length > 0) {
-        dadosAtualizacao.unidades_acesso = [unidades[0].id];
+        dadosAtualizacao.unidades_acesso = JSON.stringify([unidades[0].id]);
       }
     } else if (novoCargo === "funcionario" && (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0)) {
       // SINCRONIZAÇÃO: Se é funcionário e não tem unidade, atribuir a primeira unidade
       if (unidades.length > 0) {
-        dadosAtualizacao.unidades_acesso = [unidades[0].id];
+        dadosAtualizacao.unidades_acesso = JSON.stringify([unidades[0].id]);
       }
     }
     
@@ -269,8 +269,8 @@ export default function GerenciarUsuariosPage() {
     console.error("  Tipo de unidadesIds:", typeof unidadesIdsFinal);
     console.error("  É array?", Array.isArray(unidadesIdsFinal));
     
-    const dados = { unidades_acesso: unidadesIdsFinal };
-    console.error("📦 OBJETO A SER ENVIADO:", JSON.stringify(dados));
+    const dados = { unidades_acesso: JSON.stringify(unidadesIdsFinal) };
+    console.error("📦 OBJETO A SER ENVIADO (STRING JSON):", JSON.stringify(dados));
     
     await atualizarUsuarioMutation.mutateAsync({
       id: usuario.id,
