@@ -72,7 +72,7 @@ export default function AdministradorPage() {
                   <ShieldCheck className="w-5 h-5 text-red-600" />
                 </div>
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Área dos Superiores</h1>
+                  <h1 className="text-2xl font-bold text-gray-900">Área Administrativa</h1>
                   <p className="text-sm text-gray-500">Acesso aos relatórios</p>
                 </div>
               </div>

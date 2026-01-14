@@ -34,20 +34,8 @@ export default function GerenciarUsuariosPage() {
       const user = await base44.auth.me();
       setUsuarioAtual(user);
       
-      // Se o usuário tem cargo superior mas não tem role admin, atualizar
-      if (user.cargo === "superior" && user.role !== "admin") {
-        try {
-          await base44.entities.User.update(user.id, { role: "admin" });
-          // Recarregar a página para aplicar as mudanças
-          window.location.reload();
-          return;
-        } catch (error) {
-          console.error("Erro ao atualizar role:", error);
-        }
-      }
-      
-      // Redirecionar se não for admin ou superior
-      if (user.cargo !== "administrador" && user.cargo !== "superior" && user.role !== "admin") {
+      // Redirecionar se não for admin
+      if (user.cargo !== "administrador" && user.role !== "admin") {
         window.location.href = createPageUrl("Agenda");
       }
     };
@@ -58,19 +46,7 @@ export default function GerenciarUsuariosPage() {
     queryKey: ['usuarios'],
     queryFn: async () => {
       const users = await base44.entities.User.list("full_name");
-      
-      // Garantir que todos os usuários com cargo "superior" tenham role="admin"
-      for (const u of users) {
-        if (u.cargo === "superior" && u.role !== "admin") {
-          try {
-            await base44.entities.User.update(u.id, { role: "admin" });
-          } catch (error) {
-            console.error(`Erro ao atualizar role do usuário ${u.email}:`, error);
-          }
-        }
-      }
-      
-      return base44.entities.User.list("full_name");
+      return users;
     },
     initialData: [],
     enabled: !!usuarioAtual,
@@ -116,9 +92,9 @@ export default function GerenciarUsuariosPage() {
       }
     }
     
-    // Se mudou para "superior", garantir que tem role admin
+    // Se mudou para "administrador", garantir que tem role admin
     const dadosAtualizacao = { cargo: novoCargo };
-    if (novoCargo === "superior") {
+    if (novoCargo === "administrador") {
       dadosAtualizacao.role = "admin";
     }
     
@@ -398,11 +374,11 @@ export default function GerenciarUsuariosPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {(usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin") && (
-                              <SelectItem value="superior">
+                            {(usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin") && (
+                              <SelectItem value="administrador">
                                 <div className="flex items-center gap-2">
                                   <Shield className="w-3 h-3" />
-                                  Superior
+                                  Administrador
                                 </div>
                               </SelectItem>
                             )}
@@ -412,7 +388,7 @@ export default function GerenciarUsuariosPage() {
                                Recepção
                              </div>
                             </SelectItem>
-                            {(usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin") && (
+                            {(usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin") && (
                              <>
                                <SelectItem value="gerencia_unidades">
                                   <div className="flex items-center gap-2">
@@ -451,7 +427,7 @@ export default function GerenciarUsuariosPage() {
                       </TableCell>
 
                       <TableCell>
-                       {cargo === "administrador" || cargo === "superior" ? (
+                       {cargo === "administrador" ? (
                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">
                            Todas as unidades
                          </Badge>
@@ -589,16 +565,16 @@ export default function GerenciarUsuariosPage() {
 
                       <TableCell>
                         <Badge 
-                          variant={cargo === "administrador" || cargo === "superior" || cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" || cargo === "terapeuta" ? "default" : "secondary"} 
+                          variant={cargo === "administrador" || cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" || cargo === "terapeuta" ? "default" : "secondary"} 
                           className={
                             cargo === "gerencia_unidades" ? "bg-purple-600" : 
                             cargo === "financeiro" ? "bg-green-600" : 
                             cargo === "vendedor" ? "bg-orange-600" :
                             cargo === "terapeuta" ? "bg-teal-600" :
-                            cargo === "superior" ? "bg-blue-500" : ""
+                            cargo === "administrador" ? "bg-blue-500" : ""
                           }
                         >
-                          {cargo === "administrador" || cargo === "superior" ? "Superior" : 
+                          {cargo === "administrador" ? "Administrador" : 
                           cargo === "gerencia_unidades" ? "Gerência" : 
                           cargo === "financeiro" ? "Financeiro" : 
                           cargo === "vendedor" ? "Vendedor" :
@@ -631,11 +607,11 @@ export default function GerenciarUsuariosPage() {
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2 mb-3">
                   <Shield className="w-5 h-5 text-blue-600" />
-                  <h3 className="font-semibold text-blue-900">Superior</h3>
+                  <h3 className="font-semibold text-blue-900">Administrador</h3>
                 </div>
                 <ul className="space-y-2 text-sm text-blue-800">
                   <li>• Pode gerenciar usuários</li>
-                  <li>• Pode trocar cargos (exceto Admin/Superior)</li>
+                  <li>• Pode trocar todos os cargos</li>
                   <li>• Acesso a todas as unidades</li>
                   <li>• Pode bloquear/desbloquear agenda</li>
                   <li>• Acesso completo ao sistema</li>
@@ -648,11 +624,11 @@ export default function GerenciarUsuariosPage() {
                   <h3 className="font-semibold text-purple-900">Gerência de Unidades</h3>
                 </div>
                 <ul className="space-y-2 text-sm text-purple-800">
-                  <li>• Pode bloquear e desbloquear a agenda</li>
-                  <li>• Acesso às unidades permitidas</li>
-                  <li>• Pode gerenciar usuários e terapeutas</li>
-                  <li>• Pode editar agenda mesmo bloqueada</li>
-                  <li>• Permissões de superior nas unidades</li>
+                  <li>• Acesso APENAS às unidades atribuídas</li>
+                  <li>• Pode gerenciar terapeutas de suas unidades</li>
+                  <li>• Pode ver histórico e relatórios de suas unidades</li>
+                  <li>• Pode editar agenda de suas unidades</li>
+                  <li>• Acesso limitado às unidades específicas</li>
                 </ul>
               </div>
 
@@ -662,11 +638,11 @@ export default function GerenciarUsuariosPage() {
                   <h3 className="font-semibold text-green-900">Financeiro</h3>
                 </div>
                 <ul className="space-y-2 text-sm text-green-800">
-                  <li>• Acesso ao botão Superior</li>
-                  <li>• Pode ver apenas o Histórico</li>
+                  <li>• Acesso ao botão Administrador</li>
+                  <li>• Pode ver Histórico e Relatórios Financeiros</li>
                   <li>• Acesso às unidades permitidas</li>
-                  <li>• Não pode editar agendamentos</li>
-                  <li>• Apenas visualização de dados</li>
+                  <li>• Pode editar dados financeiros</li>
+                  <li>• Foco em análise financeira</li>
                 </ul>
               </div>
 

@@ -78,7 +78,7 @@ export default function RelatoriosFinanceirosPage() {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
         
-        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin";
+        const isAdmin = user?.cargo === "administrador" || user?.role === "admin";
         const hasAccess = isAdmin || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro";
         if (!hasAccess) {
           navigate(createPageUrl("Agenda"));
@@ -131,7 +131,7 @@ export default function RelatoriosFinanceirosPage() {
   });
 
   // Filtrar unidades baseado no acesso do usuário
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
   const unidadesFiltradas = isAdmin ? unidades : unidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
 
   // Calcular data inicial e final baseado no período

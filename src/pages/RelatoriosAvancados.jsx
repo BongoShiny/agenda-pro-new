@@ -33,7 +33,7 @@ export default function RelatoriosAvancadosPage() {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
         // APENAS ADMINISTRADORES podem acessar Relatórios Avançados
-        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin";
+        const isAdmin = user?.cargo === "administrador" || user?.role === "admin";
         if (!isAdmin) {
           navigate(createPageUrl("Agenda"));
         }
@@ -72,7 +72,7 @@ export default function RelatoriosAvancadosPage() {
 
   // Filtrar unidades baseado no acesso do usuário - gerentes veem APENAS suas unidades
   const unidades = React.useMemo(() => {
-    if (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin") {
+    if (usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin") {
       return todasUnidades;
     }
     const unidadesAcesso = usuarioAtual?.unidades_acesso || [];

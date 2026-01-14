@@ -54,7 +54,6 @@ export default function GerenciarContratosPage() {
         setUsuarioAtual(user);
         
         const temAcesso = user?.cargo === "administrador" || 
-                         user?.cargo === "superior" || 
                          user?.role === "admin" || 
                          user?.cargo === "gerencia_unidades" ||
                          user?.cargo === "financeiro";

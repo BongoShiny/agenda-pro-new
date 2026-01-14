@@ -57,7 +57,7 @@ export default function HomePage() {
         setUsuarioAtual(user);
         
         // APENAS ADMINISTRADORES podem acessar o Dashboard de Análises
-        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin";
+        const isAdmin = user?.cargo === "administrador" || user?.role === "admin";
         if (!isAdmin) {
           navigate(createPageUrl("Agenda"));
         }
@@ -109,7 +109,7 @@ export default function HomePage() {
     );
   }
 
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
   const isGerencia = usuarioAtual?.cargo === "gerencia_unidades";
 
   const widgets = [
