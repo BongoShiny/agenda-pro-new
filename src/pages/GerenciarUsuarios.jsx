@@ -719,9 +719,9 @@ export default function GerenciarUsuariosPage() {
                            <Popover>
                              <PopoverTrigger asChild>
                                <Button variant="outline" size="sm" className="text-left justify-start">
-                                 {usuario.unidades_acesso?.length > 0 ? (
+                                 {unidadesDoUsuario?.length > 0 ? (
                                    <>
-                                     {usuario.unidades_acesso.map(uid => {
+                                     {unidadesDoUsuario.map(uid => {
                                        const unidade = unidades.find(u => u.id === uid);
                                        return unidade?.nome;
                                      }).filter(Boolean).join(", ") || "Selecionar unidades"}
