@@ -371,6 +371,9 @@ export default function AgendaPage() {
       // NORMALIZAR TODAS AS DATAS NA ENTRADA
       return lista.map(ag => {
         const dataNormalizada = normalizarData(ag.data);
+        if (dataNormalizada !== ag.data) {
+          console.warn(`⚠️ Data normalizada para agendamento ${ag.id}: "${ag.data}" → "${dataNormalizada}"`);
+        }
         return { ...ag, data: dataNormalizada };
       });
     },
