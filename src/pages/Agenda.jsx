@@ -1181,6 +1181,9 @@ export default function AgendaPage() {
   });
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
+    // Validação básica
+    if (!ag || !ag.unidade_id) return false;
+
     // ADMINISTRADORES VEEM TUDO - sem nenhum filtro (case-insensitive)
     const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
     if (cargoLower === "administrador" || usuarioAtual?.role === "admin") {
@@ -1188,19 +1191,20 @@ export default function AgendaPage() {
     }
 
     // CRÍTICO: Todos os OUTROS (gerencia_unidades, financeiro, etc) veem APENAS suas unidades
-    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+    let unidadesAcesso = usuarioAtual?.unidades_acesso || [];
 
-    console.error(`🔍 Filtrando agendamento ${ag.id}:`);
-    console.error(`  Unidade: "${ag.unidade_nome}" (${ag.unidade_id})`);
-    console.error(`  Unidades acesso: ${JSON.stringify(unidadesAcesso)}`);
-    console.error(`  Tem acesso? ${unidadesAcesso.includes(ag.unidade_id)}`);
-
-    if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
-      console.error(`  ❌ FILTRADO - sem acesso a essa unidade`);
-      return false;
+    // Garantir que é array
+    if (typeof unidadesAcesso === 'object' && !Array.isArray(unidadesAcesso)) {
+      unidadesAcesso = Object.keys(unidadesAcesso);
+    }
+    if (!Array.isArray(unidadesAcesso)) {
+      unidadesAcesso = [];
     }
 
-    console.error(`  ✅ PASSANDO NO FILTRO`);
+    // Filtro de unidade - obrigatório para não-admin
+    if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
+      return false;
+    }
 
     // Se for terapeuta, mostrar apenas seus próprios agendamentos
     if (isProfissional && profissionalDoUsuario) {
