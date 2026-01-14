@@ -467,6 +467,7 @@ export default function AgendaPage() {
     queryKey: ['unidades'],
     queryFn: () => base44.entities.Unidade.list("nome"),
     initialData: [],
+    staleTime: Infinity,  // Não refetch automático
   });
 
   // CRÍTICO: Filtragem de unidades por cargo
