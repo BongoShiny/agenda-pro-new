@@ -108,12 +108,13 @@ export default function AgendaHeader({
   };
 
       const cargo = (usuarioAtual?.cargo || "").toLowerCase();
+    // ✅ VALIDAÇÃO: Funcionário NÃO pode ver o botão Administrador
     const canAccessAdminPanel = 
         usuarioAtual?.email === 'lucagamerbr07@gmail.com' ||
         cargo === "administrador" || 
         usuarioAtual?.role === "admin" ||
         cargo.includes("gerencia") ||
-        cargo === "financeiro";
+        (cargo === "financeiro" && cargo !== "funcionario" && cargo !== "funcionário");
 
   return (
     <div className="bg-white border-b border-gray-200">
