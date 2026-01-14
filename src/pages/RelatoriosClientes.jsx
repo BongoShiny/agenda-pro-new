@@ -53,11 +53,17 @@ export default function RelatoriosClientesPage() {
   useEffect(() => {
     const carregarUsuario = async () => {
       try {
-        const user = await base44.auth.me();
-        setUsuarioAtual(user);
-        const isAdmin = user?.cargo === "administrador" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro" || user?.cargo === "recepcao";
-        if (!isAdmin) {
-          navigate(createPageUrl("Agenda"));
+         const user = await base44.auth.me();
+         setUsuarioAtual(user);
+         // APENAS admin, gerência e financeiro - BLOQUEIA vendedor, recepção, terapeuta, funcionário
+         const cargoLower = (user?.cargo || "").toLowerCase().trim();
+         const isPermitido = user?.role === "admin" || 
+                            cargoLower === "administrador" || 
+                            cargoLower === "gerencia_unidades" || 
+                            (user?.cargo && user.cargo.includes("+ Gerência de Unidade")) ||
+                            cargoLower === "financeiro";
+         if (!isPermitido) {
+           navigate(createPageUrl("Agenda"));
         } else {
           // Registrar acesso aos relatórios
           await base44.entities.LogAcao.create({
