@@ -119,6 +119,18 @@ export default function HistoricoAgendamentosPage() {
     const carregarUsuario = async () => {
       const user = await base44.auth.me();
       setUsuarioAtual(user);
+
+      const cargoLower = (user?.cargo || "").toLowerCase().trim();
+      const temAcesso = user.role === "admin" || 
+                     cargoLower === "administrador" || 
+                     cargoLower === "gerencia_unidades" ||
+                     (user?.cargo && user.cargo.includes("+ Gerência de Unidade")) ||
+                     cargoLower === "financeiro";
+
+      if (!temAcesso) {
+      navigate(createPageUrl("Agenda"));
+      return;
+      }
     };
     carregarUsuario();
   }, []);

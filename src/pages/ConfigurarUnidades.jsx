@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -28,11 +28,32 @@ export default function ConfigurarUnidadesPage() {
     ativa: true
   });
   const [dadosEditados, setDadosEditados] = useState({
-    nome: "",
-    endereco: "",
-    link_google_maps: "",
-    cor: "#3B82F6"
-  });
+     nome: "",
+     endereco: "",
+     link_google_maps: "",
+     cor: "#3B82F6"
+   });
+   const [usuarioAtual, setUsuarioAtual] = useState(null);
+   const navigate = useNavigate();
+
+  useEffect(() => {
+    const carregarUsuario = async () => {
+      try {
+        const user = await base44.auth.me();
+        setUsuarioAtual(user);
+
+        const cargoLower = (user?.cargo || "").toLowerCase().trim();
+        const isAdmin = user.role === "admin" || cargoLower === "administrador";
+
+        if (!isAdmin) {
+          navigate(createPageUrl("Agenda"));
+        }
+      } catch (error) {
+        navigate(createPageUrl("Agenda"));
+      }
+    };
+    carregarUsuario();
+  }, [navigate]);
 
   const { data: unidades = [] } = useQuery({
     queryKey: ['unidades'],
