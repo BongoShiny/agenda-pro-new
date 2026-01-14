@@ -20,8 +20,7 @@ export default function AdministradorPage() {
         const cargoLower = (user?.cargo || "").toLowerCase().trim();
         const temAcesso = user?.role === "admin" || 
                          cargoLower === "administrador" || 
-                         cargoLower === "gerencia_unidades" || 
-                         (user?.cargo && user.cargo.includes("+ Gerência de Unidade")) ||
+                         cargoLower === "gerencia_unidades" ||
                          cargoLower === "financeiro";
         
         if (!temAcesso) {
