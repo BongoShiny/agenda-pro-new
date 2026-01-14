@@ -1007,21 +1007,23 @@ export default function AgendaPage() {
 
 
 
-  const agendamentosFiltrados = agendamentos.filter(ag => {
-    // Validação básica
-    if (!ag || !ag.unidade_id) return false;
+const agendamentosFiltrados = agendamentos.filter(ag => {
+  // Validação básica
+  if (!ag || !ag.unidade_id) return false;
 
-    // Garantir que data está normalizada
-    if (!ag.data || typeof ag.data !== 'string') return false;
+  // Garantir que data está normalizada
+  if (!ag.data || typeof ag.data !== 'string') return false;
 
-    // ADMINISTRADORES VEEM TUDO - sem nenhum filtro (case-insensitive)
-    const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
-    if (cargoLower === "administrador" || usuarioAtual?.role === "admin") {
-      // Mesmo admin, filtrar por unidade se selecionada
-      const isDataMatch = ag.data === dataFiltro;
-      const isUnidadeMatch = !unidadeFinal || ag.unidade_id === unidadeFinal.id;
-      return isDataMatch && isUnidadeMatch;
-    }
+  // ADMINISTRADORES VEEM TUDO - sem nenhum filtro (case-insensitive)
+  const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
+  const ehAdmin = cargoLower === "administrador" || usuarioAtual?.role === "admin";
+
+  if (ehAdmin) {
+    // Mesmo admin, filtrar por unidade se selecionada
+    const isDataMatch = ag.data === dataFiltro;
+    const isUnidadeMatch = !unidadeFinal || ag.unidade_id === unidadeFinal.id;
+    return isDataMatch && isUnidadeMatch;
+  }
 
     // CRÍTICO: Todos os OUTROS (gerencia_unidades, financeiro, etc) veem APENAS suas unidades
     let unidadesAcesso = usuarioAtual?.unidades_acesso || [];
