@@ -455,12 +455,14 @@ export default function AgendaPage() {
     queryKey: ['clientes'],
     queryFn: () => base44.entities.Cliente.list("nome"),
     initialData: [],
+    staleTime: Infinity,
   });
 
   const { data: profissionais = [] } = useQuery({
     queryKey: ['profissionais'],
     queryFn: () => base44.entities.Profissional.list("nome"),
     initialData: [],
+    staleTime: Infinity,
   });
 
   const { data: todasUnidades = [], isLoading: unidadesCarregando } = useQuery({
