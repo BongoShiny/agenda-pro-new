@@ -466,8 +466,8 @@ export default function AgendaPage() {
     console.log("🔒 Quantidade de unidades permitidas:", unidadesAcesso.length);
     
     if (unidadesAcesso.length === 0) {
-      console.log("⚠️⚠️⚠️ USUÁRIO SEM UNIDADES DE ACESSO - MOSTRANDO TODAS (fallback) ⚠️⚠️⚠️");
-      return todasUnidades;
+      console.log("⚠️⚠️⚠️ USUÁRIO SEM UNIDADES DE ACESSO - MOSTRANDO NENHUMA ⚠️⚠️⚠️");
+      return [];
     }
     
     const unidadesFiltradas = todasUnidades.filter(u => {
