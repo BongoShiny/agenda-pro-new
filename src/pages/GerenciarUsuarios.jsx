@@ -44,69 +44,34 @@ export default function GerenciarUsuariosPage() {
     carregarUsuario();
   }, []);
 
-  // SINCRONIZAÇÃO COMPLETA: Sincronizar todos os cargos automaticamente quando dados carregam
+  // SINCRONIZAÇÃO: Apenas converter cargos antigos e criar registros de Vendedor
   useEffect(() => {
     const sincronizar = async () => {
       const usuariosList = await base44.entities.User.list("full_name");
-      const unidadesList = await base44.entities.Unidade.list("nome");
       const vendedoresList = await base44.entities.Vendedor.list("nome");
 
-      if (!Array.isArray(usuariosList) || usuariosList.length === 0 || !Array.isArray(unidadesList) || unidadesList.length === 0) {
+      if (!Array.isArray(usuariosList) || usuariosList.length === 0) {
         return;
       }
 
       for (const usuario of usuariosList) {
-        const cargo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "funcionario");
-        
-        // Normalizar unidades_acesso para array
-        let unidadesAtuais = [];
-        if (typeof usuario.unidades_acesso === 'string') {
-          try {
-            const parsed = JSON.parse(usuario.unidades_acesso);
-            unidadesAtuais = Array.isArray(parsed) ? parsed : [];
-          } catch (e) {
-            unidadesAtuais = [];
-          }
-        } else if (Array.isArray(usuario.unidades_acesso)) {
-          unidadesAtuais = usuario.unidades_acesso;
-        }
+        const cargo = usuario.cargo || "";
         
         try {
-          // FUNCIONÁRIO, RECEPÇÃO, TERAPEUTA, FINANCEIRO: Atribuir primeira unidade se sem unidade
-          if ((cargo === "funcionario" || cargo === "recepcao" || cargo === "terapeuta" || cargo === "financeiro") && 
-              unidadesAtuais.length === 0) {
-            console.log(`🔄 SINCRONIZANDO ${cargo.toUpperCase()}: ${usuario.full_name} - atribuindo unidade`);
-
-            await base44.entities.User.update(usuario.id, {
-              unidades_acesso: JSON.stringify([unidadesList[0].id])
-            });
-          }
-
-          // GERÊNCIA DE UNIDADE: Atribuir UMA unidade se sem unidade + converter cargo antigo para novo
-          if ((cargo === "gerencia_unidades" || cargo.includes("gerencia_unidade_")) && 
-              unidadesAtuais.length === 0) {
-            console.log(`🔄 SINCRONIZANDO GERÊNCIA: ${usuario.full_name} - atribuindo primeira unidade + unificando cargo`);
-
-            await base44.entities.User.update(usuario.id, {
-              cargo: "gerencia_unidades",
-              unidades_acesso: JSON.stringify([unidadesList[0].id])
-            });
-          }
-          
-          // MIGRAÇÃO: Converter cargos antigos (moema, londrina, paulista) para novo padrão
+          // MIGRAÇÃO: Converter cargos antigos para novo padrão
           if (cargo.includes("gerencia_unidade_")) {
-            console.log(`🔄 MIGRANDO CARGO: ${usuario.full_name} - convertendo para novo padrão`);
+            console.log(`🔄 MIGRANDO CARGO: ${usuario.full_name} - convertendo para gerencia_unidades`);
             
             await base44.entities.User.update(usuario.id, {
               cargo: "gerencia_unidades"
             });
           }
 
-          // VENDEDOR: Criar registro de Vendedor se não existir
+          // VENDEDOR: Criar registro automaticamente se não existir
           if (cargo === "vendedor") {
             const vendedorExistente = vendedoresList.find(v => v.email === usuario.email);
             if (!vendedorExistente) {
-              console.log(`🔄 SINCRONIZANDO VENDEDOR: ${usuario.full_name} - criando registro`);
+              console.log(`🔄 CRIANDO REGISTRO: ${usuario.full_name} - Vendedor`);
               
               await base44.entities.Vendedor.create({
                 nome: usuario.full_name,
@@ -116,27 +81,6 @@ export default function GerenciarUsuariosPage() {
                 valor_combinado_total: 0,
                 valor_recebido_total: 0,
                 a_receber_total: 0
-              });
-            }
-
-            // Também atribuir unidade se sem unidade
-            if (unidadesAtuais.length === 0) {
-              console.log(`🔄 SINCRONIZANDO VENDEDOR: ${usuario.full_name} - atribuindo unidade`);
-
-              await base44.entities.User.update(usuario.id, {
-                unidades_acesso: JSON.stringify([unidadesList[0].id])
-              });
-            }
-          }
-
-          // ADMINISTRADOR: Garantir role="admin" e sem unidades_acesso (acesso total)
-          if (cargo === "administrador") {
-            if (usuario.role !== "admin") {
-              console.log(`🔄 SINCRONIZANDO ADMIN: ${usuario.full_name} - ajustando role`);
-              
-              await base44.entities.User.update(usuario.id, {
-                role: "admin",
-                unidades_acesso: []
               });
             }
           }
