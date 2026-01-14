@@ -531,18 +531,21 @@ export default function AgendaPage() {
     queryKey: ['servicos'],
     queryFn: () => base44.entities.Servico.list("nome"),
     initialData: [],
+    staleTime: Infinity,
   });
 
   const { data: configuracoes = [] } = useQuery({
     queryKey: ['configuracoes'],
     queryFn: () => base44.entities.ConfiguracaoTerapeuta.list("ordem"),
     initialData: [],
+    staleTime: Infinity,
   });
 
   const { data: excecoesHorario = [] } = useQuery({
     queryKey: ['excecoes-horario'],
     queryFn: () => base44.entities.HorarioExcecao.list("-data"),
     initialData: [],
+    staleTime: Infinity,
   });
 
   const criarAgendamentoMutation = useMutation({
