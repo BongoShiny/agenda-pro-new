@@ -1106,6 +1106,16 @@ export default function AgendaPage() {
   };
 
   const handleMudarStatusPaciente = async (agendamento, novoStatusPaciente) => {
+    // ✅ VALIDAÇÃO: Apenas ADMIN, GERÊNCIA, VENDEDOR e RECEPÇÃO podem mudar status do paciente
+    const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
+    const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
+    const temPermissao = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin" || cargoLower === "gerencia_unidades" || cargoLower === "vendedor" || cargoLower === "recepcao";
+    
+    if (!temPermissao) {
+      alert("❌ Você não tem permissão para mudar status do paciente!");
+      return;
+    }
+
     const statusAntigo = agendamento.status_paciente;
 
     if (statusAntigo === novoStatusPaciente) return;
