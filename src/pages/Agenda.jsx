@@ -1009,13 +1009,7 @@ export default function AgendaPage() {
     p.email && usuarioAtual?.email && p.email.toLowerCase() === usuarioAtual.email.toLowerCase()
   );
 
-  console.log("🔍 DEBUG TERAPEUTA:", {
-    cargo: usuarioAtual?.cargo,
-    email: usuarioAtual?.email,
-    isProfissional: isProfissional,
-    profissionalEncontrado: profissionalDoUsuario?.nome,
-    profissionalId: profissionalDoUsuario?.id
-  });
+
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
     // Validação básica
