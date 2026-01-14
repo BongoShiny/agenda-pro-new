@@ -65,43 +65,39 @@ export const criarDataPura = (dataString) => {
 // FUNÇÃO CRÍTICA: Normaliza qualquer formato de data para YYYY-MM-DD
 export const normalizarData = (valor) => {
   if (!valor) {
-    console.log("⚠️ normalizarData: valor vazio");
     return null;
   }
-  
-  console.log("🔧 normalizarData INPUT:", valor, "| Tipo:", typeof valor);
   
   // Já está no formato correto YYYY-MM-DD
   if (typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valor)) {
-    console.log("✅ normalizarData: já está correto:", valor);
     return valor;
   }
   
-  // String com timestamp (ex: "2025-11-13T00:00:00.000Z")
+  // String com timestamp (ex: "2025-11-13T00:00:00.000Z" ou "2025-11-13T00:00:00")
   if (typeof valor === 'string' && valor.includes('T')) {
     const resultado = valor.split('T')[0];
-    console.log("✅ normalizarData: extraído de timestamp:", resultado);
-    return resultado;
+    // Validar se é YYYY-MM-DD
+    if (/^\d{4}-\d{2}-\d{2}$/.test(resultado)) {
+      return resultado;
+    }
   }
   
   // É um Date object - usar métodos LOCAIS
-  if (valor instanceof Date) {
-    const resultado = formatarDataPura(valor);
-    console.log("✅ normalizarData: convertido de Date:", resultado);
-    return resultado;
+  if (valor instanceof Date && !isNaN(valor.getTime())) {
+    return formatarDataPura(valor);
   }
   
-  // Último recurso: tentar parsear
+  // Último recurso: tentar parsear como Date
   try {
-    // Forçar interpretação LOCAL adicionando horário meio-dia
-    const data = new Date(valor + 'T12:00:00');
-    const resultado = formatarDataPura(data);
-    console.log("✅ normalizarData: parseado:", resultado);
-    return resultado;
+    const data = new Date(valor);
+    if (!isNaN(data.getTime())) {
+      return formatarDataPura(data);
+    }
   } catch (e) {
-    console.error("❌ normalizarData ERRO:", valor, e);
-    return null;
+    // Silent fail
   }
+  
+  return null;
 };
 
 // ============================================
