@@ -42,8 +42,9 @@ export default function AdministradorPage() {
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
   const isGerencia = usuarioAtual?.cargo === "gerencia_unidades";
   const isFinanceiro = usuarioAtual?.cargo === "financeiro";
+  const isRecepcao = usuarioAtual?.cargo === "recepcao";
 
-  if (!isAdmin && !isGerencia && !isFinanceiro) {
+  if (!isAdmin && !isGerencia && !isFinanceiro && !isRecepcao) {
     return null;
   }
 
@@ -128,7 +129,7 @@ export default function AdministradorPage() {
             </div>
           </Link>
 
-          {(isAdmin || isGerencia) && (
+          {(isAdmin || isGerencia || isRecepcao) && (
           <Link to={createPageUrl("RelatoriosClientes")} className="block">
             <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer h-full">
               <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">

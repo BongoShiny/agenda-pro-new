@@ -210,6 +210,21 @@ export default function ConfiguracaoTerapeutasPage() {
       ativo: true
     });
 
+    // Se foi informado email, atualizar cargo do usuário para "terapeuta"
+    if (novoProfissional.email) {
+      try {
+        const usuario = usuarios.find(u => u.email === novoProfissional.email);
+        if (usuario) {
+          await base44.entities.User.update(usuario.id, {
+            cargo: "terapeuta"
+          });
+          console.log(`✅ Cargo atualizado para terapeuta: ${usuario.email}`);
+        }
+      } catch (error) {
+        console.error("Erro ao atualizar cargo do usuário:", error);
+      }
+    }
+
     // Registrar log
     await base44.entities.LogAcao.create({
       tipo: "criou_terapeuta",
@@ -219,6 +234,8 @@ export default function ConfiguracaoTerapeutasPage() {
       entidade_id: resultado.id,
       dados_novos: JSON.stringify(resultado)
     });
+    
+    queryClient.invalidateQueries({ queryKey: ['usuarios'] });
   };
 
   const handleAdicionarTerapeuta = async (unidadeId, profissionalId) => {
@@ -234,6 +251,22 @@ export default function ConfiguracaoTerapeutasPage() {
       ativo: true
     });
 
+    // Se o profissional tem email, atualizar o cargo do usuário para "terapeuta"
+    if (profissional?.email) {
+      try {
+        const usuario = usuarios.find(u => u.email === profissional.email);
+        if (usuario) {
+          // Atualizar cargo do usuário para terapeuta
+          await base44.entities.User.update(usuario.id, {
+            cargo: "terapeuta"
+          });
+          console.log(`✅ Cargo atualizado para terapeuta: ${usuario.email}`);
+        }
+      } catch (error) {
+        console.error("Erro ao atualizar cargo do usuário:", error);
+      }
+    }
+
     // Registrar log
     await base44.entities.LogAcao.create({
       tipo: "editou_terapeuta",
@@ -242,6 +275,8 @@ export default function ConfiguracaoTerapeutasPage() {
       entidade_tipo: "ConfiguracaoTerapeuta",
       dados_novos: JSON.stringify({ profissional: profissional?.nome, unidade: unidade?.nome })
     });
+    
+    queryClient.invalidateQueries({ queryKey: ['usuarios'] });
   };
 
   const handleToggleAtivo = async (config) => {
