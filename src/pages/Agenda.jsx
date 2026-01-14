@@ -1021,10 +1021,16 @@ export default function AgendaPage() {
     // Validação básica
     if (!ag || !ag.unidade_id) return false;
 
+    // Garantir que data está normalizada
+    if (!ag.data || typeof ag.data !== 'string') return false;
+
     // ADMINISTRADORES VEEM TUDO - sem nenhum filtro (case-insensitive)
     const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
     if (cargoLower === "administrador" || usuarioAtual?.role === "admin") {
-      return true;
+      // Mesmo admin, filtrar por unidade se selecionada
+      const isDataMatch = ag.data === dataFiltro;
+      const isUnidadeMatch = !unidadeFinal || ag.unidade_id === unidadeFinal.id;
+      return isDataMatch && isUnidadeMatch;
     }
 
     // CRÍTICO: Todos os OUTROS (gerencia_unidades, financeiro, etc) veem APENAS suas unidades
@@ -1051,18 +1057,8 @@ export default function AgendaPage() {
       }
     }
 
-    // Restante dos filtros normais
-    // Log detalhado para cada agendamento
-    // CRÍTICO: Mostrar APENAS agendamentos do dia CORRETO
+    // Filtros principais
     const isDataMatch = ag.data === dataFiltro;
-    
-    console.log("🔍 FILTRAGEM:", {
-      agendamento_id: ag.id,
-      cliente: ag.cliente_nome,
-      ag_data: ag.data,
-      dataFiltro: dataFiltro,
-      isDataMatch: isDataMatch
-    });
     const isUnidadeMatch = !unidadeFinal || ag.unidade_id === unidadeFinal.id;
     const isClienteMatch = !filters.cliente || (
       (ag.cliente_nome && ag.cliente_nome.toLowerCase().includes(filters.cliente.toLowerCase())) ||
@@ -1073,22 +1069,7 @@ export default function AgendaPage() {
     const isServicoMatch = !filters.servico || ag.servico_id === filters.servico;
     const isStatusMatch = !filters.status || ag.status === filters.status;
     const isDataFilterMatch = !filters.data || ag.data === filters.data;
-    
-    const isBloqueio = ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO";
-    
-    if (isBloqueio) {
-      console.log(`🔒 BLOQUEIO ENCONTRADO:`, {
-        id: ag.id,
-        data: ag.data,
-        dataMatch: isDataMatch,
-        horario: ag.hora_inicio,
-        profissional: ag.profissional_nome,
-        unidade: ag.unidade_nome,
-        unidadeMatch: isUnidadeMatch,
-        passaNoFiltro: isDataMatch && isUnidadeMatch
-      });
-    }
-    
+
     // Retornar apenas se TODOS os filtros passarem
     if (!isDataMatch) return false;
     if (!isUnidadeMatch) return false;
@@ -1098,7 +1079,7 @@ export default function AgendaPage() {
     if (!isServicoMatch) return false;
     if (!isStatusMatch) return false;
     if (!isDataFilterMatch) return false;
-    
+
     return true;
   });
 
