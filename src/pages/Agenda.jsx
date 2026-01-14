@@ -1231,13 +1231,17 @@ export default function AgendaPage() {
           ? unidades 
           : unidades.filter(u => unidadesAcesso.includes(u.id));
 
-        console.log("🎯 PASSANDO PARA HEADER:", {
-          cargo: cargoLower,
-          unidadesAcesso: JSON.stringify(unidadesAcesso),
-          totalUnidades: unidades.length,
-          unidadesParaMostrar: unidadesParaMostrar.length,
-          nomes: unidadesParaMostrar.map(u => u.nome)
-        });
+        console.error("🎯🎯🎯 ==================== DADOS DO USUÁRIO ATUAL ==================== 🎯🎯🎯");
+        console.error("Email:", usuarioAtual?.email);
+        console.error("Cargo RAW:", usuarioAtual?.cargo);
+        console.error("Cargo LOWER:", cargoLower);
+        console.error("Role:", usuarioAtual?.role);
+        console.error("Unidades Acesso RAW:", JSON.stringify(usuarioAtual.unidades_acesso));
+        console.error("Tipo do campo unidades_acesso:", typeof usuarioAtual.unidades_acesso);
+        console.error("É array?:", Array.isArray(usuarioAtual.unidades_acesso));
+        console.error("Todas as unidades do sistema:", todasUnidades.map(u => `${u.nome} (${u.id})`));
+        console.error("Unidades para mostrar:", unidadesParaMostrar.map(u => u.nome));
+        console.error("🎯🎯🎯 ==================== FIM DADOS ==================== 🎯🎯🎯");
 
         return (
           <AgendaHeader
