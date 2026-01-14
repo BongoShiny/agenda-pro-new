@@ -152,14 +152,6 @@ export default function AgendaPage() {
       const intervalo = setInterval(verificarAtrasados, 5 * 60 * 1000);
       
       return () => clearInterval(intervalo);
-      console.log("👤👤👤 USUÁRIO CARREGADO 👤👤👤");
-      console.log("Email:", user.email);
-      console.log("Cargo:", user.cargo);
-      console.log("Role:", user.role);
-      console.log("É Admin?:", user.cargo === "administrador" || user.role === "admin");
-      console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-      console.log("Data atual:", dataAtual.toString());
-      console.log("Data formatada:", formatarDataPura(dataAtual));
 
       // Gerenciar sessão única
       await gerenciarSessaoUnica(user);
