@@ -44,6 +44,30 @@ export default function GerenciarUsuariosPage() {
     carregarUsuario();
   }, []);
 
+  // SINCRONIZAÇÃO: Detectar usuários funcionários sem unidade e atribuir automaticamente
+  useEffect(() => {
+    const sincronizarFuncionarios = async () => {
+      if (usuarios.length === 0 || unidades.length === 0) return;
+
+      for (const usuario of usuarios) {
+        const cargo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "funcionario");
+        
+        // Se é funcionário e não tem unidade de acesso
+        if (cargo === "funcionario" && (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0)) {
+          console.log(`🔄 SINCRONIZANDO: ${usuario.full_name} (${usuario.email}) sem unidade`);
+          
+          // Atribuir a primeira unidade disponível
+          await atualizarUsuarioMutation.mutateAsync({
+            id: usuario.id,
+            dados: { unidades_acesso: [unidades[0].id] }
+          });
+        }
+      }
+    };
+
+    sincronizarFuncionarios();
+  }, [usuarios, unidades]);
+
   const { data: usuarios = [] } = useQuery({
     queryKey: ['usuarios'],
     queryFn: async () => {
@@ -134,6 +158,11 @@ export default function GerenciarUsuariosPage() {
     // Se for gerência de unidade, atribuir apenas aquela unidade
     if (unidadeParaAtribuir) {
       dadosAtualizacao.unidades_acesso = [unidadeParaAtribuir];
+    } else if (novoCargo === "funcionario" && (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0)) {
+      // SINCRONIZAÇÃO: Se é funcionário e não tem unidade, atribuir a primeira unidade
+      if (unidades.length > 0) {
+        dadosAtualizacao.unidades_acesso = [unidades[0].id];
+      }
     }
     
     await atualizarUsuarioMutation.mutateAsync({
