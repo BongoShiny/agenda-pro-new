@@ -462,7 +462,7 @@ export default function AgendaPage() {
     initialData: [],
   });
 
-  // CRÍTICO: APENAS administradores veem TODAS as unidades
+  // CRÍTICO: Filtragem de unidades por cargo
       const unidades = React.useMemo(() => {
         if (!usuarioAtual || todasUnidades.length === 0) {
           return [];
@@ -470,15 +470,15 @@ export default function AgendaPage() {
 
         const cargoLower = (usuarioAtual.cargo || "").toLowerCase().trim();
 
-        // Admin vê TUDO
+        // ADMINISTRADOR vê TODAS as unidades
         if (cargoLower === "administrador" || usuarioAtual.role === "admin") {
           return todasUnidades;
         }
 
-        // TODOS OS OUTROS (gerencia, financeiro, etc) veem APENAS unidades no unidades_acesso
+        // GERENCIA_UNIDADES vê APENAS suas unidades específicas (sem lógica de admin)
         let unidadesAcesso = usuarioAtual.unidades_acesso || [];
 
-        // Converter para array em qualquer formato
+        // Garantir que é array
         if (typeof unidadesAcesso === 'string') {
           try {
             const parsed = JSON.parse(unidadesAcesso);
