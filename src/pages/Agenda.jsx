@@ -716,9 +716,6 @@ export default function AgendaPage() {
     const unidade = unidades.find(u => u.id === unidadeId);
     const profissional = profissionais.find(p => p.id === profissionalId);
     
-    console.log("👨‍⚕️ PROFISSIONAL:", profissional?.nome, "(ID:", profissionalId, ")");
-    console.log("🏢 UNIDADE:", unidade?.nome, "(ID:", unidadeId, ")");
-    
     const bloqueio = {
       cliente_nome: "FECHADO",
       profissional_id: profissionalId,
