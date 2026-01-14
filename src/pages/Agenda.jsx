@@ -471,29 +471,15 @@ export default function AgendaPage() {
 
   // CRÍTICO: APENAS administradores veem TODAS as unidades, gerência vé apenas suas unidades
     const unidades = React.useMemo(() => {
-      console.error("🏢🏢🏢 ==================== FILTRANDO UNIDADES AGENDA ==================== 🏢🏢🏢");
-
       // CRÍTICO: Se usuário ainda não carregou, não mostrar nada
-      if (!usuarioAtual) {
-        console.error("⚠️ USUÁRIO AINDA NÃO CARREGADO");
+      if (!usuarioAtual || todasUnidades.length === 0) {
         return [];
       }
-
-      console.error("📊 ESTADO ATUAL:");
-      console.error("  Email:", usuarioAtual?.email);
-      console.error("  Cargo:", usuarioAtual?.cargo);
-      console.error("  Role:", usuarioAtual?.role);
-      console.error("  Unidades Acesso RAW:", usuarioAtual?.unidades_acesso);
-      console.error("  Tipo:", typeof usuarioAtual?.unidades_acesso);
-      console.error("  É Array?:", Array.isArray(usuarioAtual?.unidades_acesso));
-      console.error("  Total de unidades do sistema:", todasUnidades.length);
-      todasUnidades.forEach(u => console.error(`    - ${u.nome} (${u.id})`));
 
       // APENAS administrador vê TODAS (case-insensitive)
       const cargoLower = (usuarioAtual.cargo || "").toLowerCase().trim();
 
       if (cargoLower === "administrador" || usuarioAtual.role === "admin") {
-        console.error("✅ ADMINISTRADOR - MOSTRANDO TODAS as unidades");
         return todasUnidades;
       }
 
@@ -502,48 +488,26 @@ export default function AgendaPage() {
 
       // CRÍTICO: Converter para array em QUALQUER formato
       if (typeof unidadesAcesso === 'string') {
-        console.error("⚠️ unidades_acesso veio como STRING! Convertendo...");
         try {
           const parsed = JSON.parse(unidadesAcesso);
           unidadesAcesso = Array.isArray(parsed) ? parsed : Object.keys(parsed);
         } catch (e) {
-          console.error("❌ Erro ao parsear");
           unidadesAcesso = [];
         }
       } else if (typeof unidadesAcesso === 'object' && !Array.isArray(unidadesAcesso)) {
-        console.error("⚠️ unidades_acesso é OBJETO (não array)! Convertendo para array...");
         unidadesAcesso = Object.keys(unidadesAcesso);
       }
 
       // Garantir que é um array
       if (!Array.isArray(unidadesAcesso)) {
-        console.error("❌ AINDA NÃO É ARRAY! Forçando array vazio");
         unidadesAcesso = [];
       }
 
-      console.error("🔒 NÃO É ADMINISTRADOR");
-      console.error("  Cargo:", cargoLower);
-      console.error("  Unidades Acesso FINAL:", JSON.stringify(unidadesAcesso));
-      console.error("  Tipo FINAL:", typeof unidadesAcesso);
-      console.error("  É array?:", Array.isArray(unidadesAcesso));
-      console.error("  Quantidade permitida:", unidadesAcesso.length);
-
       if (unidadesAcesso.length === 0) {
-        console.error("❌ NENHUMA UNIDADE DE ACESSO");
         return [];
       }
 
-      const unidadesFiltradas = todasUnidades.filter(u => {
-        const temAcesso = unidadesAcesso.includes(u.id);
-        console.error(`  Verificando "${u.nome}" (${u.id}): ${temAcesso ? '✅ COM ACESSO' : '❌ SEM ACESSO'}`);
-        return temAcesso;
-      });
-
-      console.error("✅ UNIDADES DISPONÍVEIS PARA ESSE USUÁRIO:");
-      unidadesFiltradas.forEach(u => console.error(`  ✅ "${u.nome}" (${u.id})`));
-      console.error("🏢🏢🏢 ==================== FIM FILTRAGEM ==================== 🏢🏢🏢");
-
-      return unidadesFiltradas;
+      return todasUnidades.filter(u => unidadesAcesso.includes(u.id));
     }, [todasUnidades, usuarioAtual]);
 
   // Se unidadeSelecionada não estiver nas unidades filtradas, selecionar a primeira
