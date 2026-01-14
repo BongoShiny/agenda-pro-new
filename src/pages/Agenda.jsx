@@ -366,31 +366,13 @@ export default function AgendaPage() {
   const { data: agendamentos = [], refetch: refetchAgendamentos } = useQuery({
     queryKey: ['agendamentos'],
     queryFn: async () => {
-      console.log("📥📥📥 CARREGANDO AGENDAMENTOS DO BANCO 📥📥📥");
-      
       const lista = await base44.entities.Agendamento.list("-data");
       
-      console.log("📊 Total bruto do banco:", lista.length);
-      
       // NORMALIZAR TODAS AS DATAS NA ENTRADA
-      const listaNormalizada = lista.map(ag => {
+      return lista.map(ag => {
         const dataNormalizada = normalizarData(ag.data);
         return { ...ag, data: dataNormalizada };
       });
-      
-      console.log("✅ Todos os agendamentos normalizados:", listaNormalizada.length);
-      
-      // Mostrar todos os bloqueios
-      const bloqueios = listaNormalizada.filter(ag => 
-        ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO"
-      );
-      
-      console.log("🔒 BLOQUEIOS NO BANCO:", bloqueios.length);
-      bloqueios.forEach(b => {
-        console.log(`  🔒 ID: ${b.id} | Data: ${b.data} | Hora: ${b.hora_inicio} | Prof: ${b.profissional_nome} | Unidade: ${b.unidade_nome}`);
-      });
-      
-      return listaNormalizada;
     },
     initialData: [],
     refetchInterval: 3000,
