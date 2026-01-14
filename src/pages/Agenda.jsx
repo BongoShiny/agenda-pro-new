@@ -1155,16 +1155,10 @@ export default function AgendaPage() {
   };
 
   // FILTRAR AGENDAMENTOS PELA DATA ATUAL
-  console.log("🔍🔍🔍 ==================== INICIANDO FILTRO ==================== 🔍🔍🔍");
-  console.log("📊 ESTADO DO FILTRO:");
-  console.log("  - dataAtual (Date object):", dataAtual.toString());
-  console.log("  - Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-  
+  // Garantir que unidadeSelecionada está definida
+  const unidadeFinal = unidadeSelecionada || unidades[0];
+
   const dataFiltro = formatarDataPura(dataAtual);
-  
-  console.log("📅 DATA DO FILTRO (string pura):", dataFiltro);
-  console.log("📊 Total de agendamentos no banco:", agendamentos.length);
-  console.log("🏢 Unidade selecionada:", unidadeSelecionada?.nome, "(ID:", unidadeSelecionada?.id, ")");
 
   // Filtrar por terapeuta se o usuário for um terapeuta
   const isProfissional = usuarioAtual?.cargo === "terapeuta";
