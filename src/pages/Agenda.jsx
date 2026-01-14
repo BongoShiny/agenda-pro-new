@@ -249,24 +249,27 @@ export default function AgendaPage() {
         console.log("Não foi possível obter IP:", error);
       }
 
-      // Buscar e limpar dispositivos duplicados do mesmo IP+dispositivo
-      const todosDispositivos = await base44.entities.DispositivoConectado.filter({ 
-        usuario_email: user.email,
-        dispositivo: dispositivo,
-        ip: ip
-      });
+      // Buscar e limpar dispositivos DUPLICADOS DO MESMO USUÁRIO no mesmo IP+dispositivo
+          // CRÍTICO: Filtrar por usuario_email para evitar misturar contas!
+          const todosDispositivos = await base44.entities.DispositivoConectado.filter({ 
+            usuario_email: user.email,  // ⚠️ ISOLADO POR USUÁRIO
+            dispositivo: dispositivo,
+            ip: ip,
+            sessao_ativa: true  // Apenas contar sessões ativas
+          });
 
-      if (todosDispositivos.length > 1) {
-        // Ordenar por data_login (mais recente primeiro)
-        const ordenados = todosDispositivos.sort((a, b) => 
-          new Date(b.data_login) - new Date(a.data_login)
-        );
+          if (todosDispositivos.length > 1) {
+            // Ordenar por data_login (mais recente primeiro)
+            const ordenados = todosDispositivos.sort((a, b) => 
+              new Date(b.data_login) - new Date(a.data_login)
+            );
 
-        // Manter apenas o mais recente, deletar os outros
-        for (let i = 1; i < ordenados.length; i++) {
-          await base44.entities.DispositivoConectado.delete(ordenados[i].id);
-        }
-      }
+            // Manter apenas o mais recente deste USUÁRIO, deletar os outros
+            for (let i = 1; i < ordenados.length; i++) {
+              console.log(`🗑️ Removendo dispositivo antigo de ${user.email}: ${ordenados[i].id}`);
+              await base44.entities.DispositivoConectado.delete(ordenados[i].id);
+            }
+          }
 
       // Buscar todas as sessões ativas do usuário
       const todasSessoes = await base44.entities.SessaoAtiva.filter({ 
