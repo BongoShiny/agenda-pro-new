@@ -1050,16 +1050,28 @@ export default function AgendaPage() {
 
   // Filtrar por terapeuta se o usuário for um terapeuta
   const isProfissional = usuarioAtual?.cargo === "terapeuta";
-  const profissionalDoUsuario = profissionais.find(p => p.email === usuarioAtual?.email);
+  const profissionalDoUsuario = profissionais.find(p => 
+    p.email && usuarioAtual?.email && p.email.toLowerCase() === usuarioAtual.email.toLowerCase()
+  );
+
+  console.log("🔍 DEBUG TERAPEUTA:", {
+    cargo: usuarioAtual?.cargo,
+    email: usuarioAtual?.email,
+    isProfissional: isProfissional,
+    profissionalEncontrado: profissionalDoUsuario?.nome,
+    profissionalId: profissionalDoUsuario?.id
+  });
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
     // Se for terapeuta, mostrar apenas seus próprios agendamentos
     if (isProfissional && profissionalDoUsuario) {
-      if (ag.profissional_id !== profissionalDoUsuario.id) {
+      const pertence = ag.profissional_id === profissionalDoUsuario.id;
+      console.log(`📋 Agendamento ${ag.id}: profissional_id=${ag.profissional_id}, meu_id=${profissionalDoUsuario.id}, mostrar=${pertence}`);
+      if (!pertence) {
         return false;
       }
     }
-    
+
     // Restante dos filtros normais
     // Log detalhado para cada agendamento
     const isDataMatch = ag.data === dataFiltro;
