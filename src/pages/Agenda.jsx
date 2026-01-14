@@ -446,38 +446,32 @@ export default function AgendaPage() {
 
           // ✅ VALIDAÇÃO: FUNCIONÁRIO DEVE VER APENAS SUAS UNIDADES ATRIBUÍDAS
           // Se é funcionário ou qualquer outro cargo, filtrar por unidades_acesso
-          let unidadesAcesso = usuarioAtual.unidades_acesso || [];
+          let unidadesAcesso = [];
 
-          console.log("🔍 DEBUG UNIDADES:", {
+          console.log("🔍 DEBUG UNIDADES AGENDA:", {
             cargo: cargoLower,
             unidades_acesso_raw: usuarioAtual.unidades_acesso,
             tipo: typeof usuarioAtual.unidades_acesso
           });
 
-          // Garantir que é array - MAIS ROBUSTO
-          if (typeof unidadesAcesso === 'string') {
-            // String JSON array ou object
+          // Sempre parsear como STRING JSON - formato único
+          if (typeof usuarioAtual.unidades_acesso === 'string') {
             try {
-              const parsed = JSON.parse(unidadesAcesso);
-              unidadesAcesso = Array.isArray(parsed) ? parsed : (typeof parsed === 'object' ? Object.keys(parsed) : []);
+              const parsed = JSON.parse(usuarioAtual.unidades_acesso);
+              unidadesAcesso = Array.isArray(parsed) ? parsed : [];
             } catch (e) {
-              // String simples, ignorar
+              console.warn("⚠️ Erro ao parsear unidades_acesso:", e);
               unidadesAcesso = [];
             }
-          } else if (typeof unidadesAcesso === 'object' && !Array.isArray(unidadesAcesso)) {
-            // Object com IDs como chaves
-            unidadesAcesso = Object.keys(unidadesAcesso);
-          } else if (!Array.isArray(unidadesAcesso)) {
-            // Qualquer outra coisa
-            unidadesAcesso = [];
+          } else if (Array.isArray(usuarioAtual.unidades_acesso)) {
+            unidadesAcesso = usuarioAtual.unidades_acesso;
           }
 
-          console.log("✅ UNIDADES_ACESSO FINAL:", unidadesAcesso);
+          console.log("✅ UNIDADES_ACESSO FINAL (ARRAY):", unidadesAcesso);
 
           // Retornar APENAS as unidades que o usuário tem acesso
-          // Se não tem unidades, retorna array vazio (não vê nada)
           const resultado = todasUnidades.filter(u => unidadesAcesso.includes(u.id));
-          console.log("📊 UNIDADES VISÍVEIS:", resultado.map(u => u.nome));
+          console.log("📊 UNIDADES VISÍVEIS AGENDA:", resultado.map(u => u.nome));
 
           return resultado;
         }, [todasUnidades, usuarioAtual]);
