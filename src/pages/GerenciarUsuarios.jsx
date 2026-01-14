@@ -680,7 +680,7 @@ export default function GerenciarUsuariosPage() {
                                    <div className="flex items-center space-x-2 pb-2 border-b">
                                      <Checkbox
                                        id={`${usuario.id}-todas`}
-                                       checked={usuario.unidades_acesso?.length === unidades.length && unidades.length > 0}
+                                       checked={unidadesDoUsuario?.length === unidades.length && unidades.length > 0}
                                        onCheckedChange={(checked) => {
                                          if (checked) {
                                            handleAtualizarUnidades(usuario, unidades.map(u => u.id));
@@ -700,7 +700,7 @@ export default function GerenciarUsuariosPage() {
                                      <div key={unidade.id} className="flex items-center space-x-2">
                                        <Checkbox
                                          id={`${usuario.id}-${unidade.id}`}
-                                         checked={usuario.unidades_acesso?.includes(unidade.id)}
+                                         checked={unidadesDoUsuario?.includes(unidade.id)}
                                          onCheckedChange={() => handleToggleUnidade(usuario, unidade.id)}
                                        />
                                        <label
@@ -738,7 +738,7 @@ export default function GerenciarUsuariosPage() {
                                    <div className="flex items-center space-x-2 pb-2 border-b">
                                      <Checkbox
                                        id={`${usuario.id}-todas`}
-                                       checked={usuario.unidades_acesso?.length === unidades.length && unidades.length > 0}
+                                       checked={unidadesDoUsuario?.length === unidades.length && unidades.length > 0}
                                        onCheckedChange={(checked) => {
                                          if (checked) {
                                            handleAtualizarUnidades(usuario, unidades.map(u => u.id));
@@ -758,7 +758,7 @@ export default function GerenciarUsuariosPage() {
                                      <div key={unidade.id} className="flex items-center space-x-2">
                                        <Checkbox
                                          id={`${usuario.id}-${unidade.id}`}
-                                         checked={usuario.unidades_acesso?.includes(unidade.id)}
+                                         checked={unidadesDoUsuario?.includes(unidade.id)}
                                          onCheckedChange={() => handleToggleUnidade(usuario, unidade.id)}
                                        />
                                        <label
