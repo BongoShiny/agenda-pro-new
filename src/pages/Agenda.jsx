@@ -438,7 +438,7 @@ export default function AgendaPage() {
     queryKey: ['agendamentos'],
     queryFn: async () => {
       const lista = await base44.entities.Agendamento.list("-data");
-      
+
       // NORMALIZAR TODAS AS DATAS NA ENTRADA
       return lista.map(ag => {
         const dataNormalizada = normalizarData(ag.data);
@@ -449,7 +449,6 @@ export default function AgendaPage() {
       });
     },
     initialData: [],
-    refetchInterval: 3000,
   });
 
   const { data: clientes = [] } = useQuery({
