@@ -1088,8 +1088,6 @@ const agendamentosFiltrados = agendamentos.filter(ag => {
   const unidadeAtual = unidadeFinal;
 
     // Definição de papéis para controle de acesso
-  const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
-
   // Aguardar carregamento de dados críticos
   if (!usuarioAtual || unidadesCarregando) {
     return (
@@ -1105,7 +1103,7 @@ const agendamentosFiltrados = agendamentos.filter(ag => {
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* PAINEL DE DEBUG - APENAS PARA ADMINISTRADORES */}
-      {isSuperAdmin && (
+      {usuarioAtual?.email === 'lucagamerbr07@gmail.com' && (
         <div className="bg-yellow-100 border-b-2 border-yellow-400 p-3 text-xs font-mono">
           <div className="max-w-7xl mx-auto grid grid-cols-4 gap-4">
             <div>
