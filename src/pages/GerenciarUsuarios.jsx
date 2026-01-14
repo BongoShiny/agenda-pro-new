@@ -257,16 +257,19 @@ export default function GerenciarUsuariosPage() {
   const handleAtualizarUnidades = async (usuario, unidadesIds) => {
     const unidadesAntigas = usuario.unidades_acesso || [];
     
+    // Garantir que unidadesIds é sempre um array
+    let unidadesIdsFinal = Array.isArray(unidadesIds) ? unidadesIds : [];
+    
     console.error("🔧🔧🔧 ==================== SALVANDO UNIDADES ==================== 🔧🔧🔧");
     console.error("PRE-SALVAR:");
     console.error("  usuario.id:", usuario.id);
     console.error("  usuario.email:", usuario.email);
     console.error("  usuario.unidades_acesso ANTES:", JSON.stringify(usuario.unidades_acesso));
-    console.error("  unidadesIds a salvar:", JSON.stringify(unidadesIds));
-    console.error("  Tipo de unidadesIds:", typeof unidadesIds);
-    console.error("  É array?", Array.isArray(unidadesIds));
+    console.error("  unidadesIds a salvar (FINAL):", JSON.stringify(unidadesIdsFinal));
+    console.error("  Tipo de unidadesIds:", typeof unidadesIdsFinal);
+    console.error("  É array?", Array.isArray(unidadesIdsFinal));
     
-    const dados = { unidades_acesso: unidadesIds };
+    const dados = { unidades_acesso: unidadesIdsFinal };
     console.error("📦 OBJETO A SER ENVIADO:", JSON.stringify(dados));
     
     await atualizarUsuarioMutation.mutateAsync({
