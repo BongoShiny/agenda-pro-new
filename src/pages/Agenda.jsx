@@ -331,13 +331,14 @@ export default function AgendaPage() {
           });
         }
       } else {
-        // Verificar limite de 3 dispositivos DIFERENTES
+        // Verificar limite de 3 dispositivos DIFERENTES POR USUÁRIO
+        // ⚠️ CRÍTICO: Apenas contar dispositivos deste usuário (usuario_email)
         const dispositivosAtivos = await base44.entities.DispositivoConectado.filter({ 
-          usuario_email: user.email,
+          usuario_email: user.email,  // Isolado por usuário
           sessao_ativa: true
         });
 
-        // Contar dispositivos únicos (por IP + dispositivo)
+        // Contar dispositivos únicos (por IP + dispositivo) DO MESMO USUÁRIO
         const dispositivosUnicos = new Map();
         dispositivosAtivos.forEach(d => {
           const chave = `${d.ip}-${d.dispositivo}`;
@@ -346,21 +347,24 @@ export default function AgendaPage() {
           }
         });
 
+        console.log(`📊 ${user.email} tem ${dispositivosUnicos.size} dispositivos ativos`);
+
         if (dispositivosUnicos.size >= 3) {
-          // Se já tem 3 dispositivos DIFERENTES, remover o mais antigo
+          // Se já tem 3 dispositivos DIFERENTES deste usuário, remover o mais antigo
           const dispositivos = Array.from(dispositivosUnicos.values());
           const maisAntigo = dispositivos.sort((a, b) => 
             new Date(a.data_login) - new Date(b.data_login)
           )[0];
 
           if (maisAntigo) {
+            console.log(`🗑️ Removendo dispositivo antigo de ${user.email}: ${maisAntigo.dispositivo}`);
             await base44.entities.DispositivoConectado.update(maisAntigo.id, {
               sessao_ativa: false
             });
 
-            // Remover sessão ativa correspondente
+            // Remover sessão ativa correspondente (APENAS do mesmo usuário)
             const sessaoAntiga = await base44.entities.SessaoAtiva.filter({
-              usuario_email: user.email,
+              usuario_email: user.email,  // Isolado por usuário
               dispositivo: maisAntigo.dispositivo,
               ip: maisAntigo.ip
             });
