@@ -16,13 +16,13 @@ export default function AdministradorPage() {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
         
-        // Permitir acesso para admin, gerência, financeiro ou recepção
-        const temAcesso = user?.cargo === "administrador" || 
-                         user?.role === "admin" || 
-                         user?.cargo === "gerencia_unidades" || 
+        // APENAS admin, gerência e financeiro têm acesso - BLOQUEIA vendedor, terapeuta, funcionário, recepção
+        const cargoLower = (user?.cargo || "").toLowerCase().trim();
+        const temAcesso = user?.role === "admin" || 
+                         cargoLower === "administrador" || 
+                         cargoLower === "gerencia_unidades" || 
                          (user?.cargo && user.cargo.includes("+ Gerência de Unidade")) ||
-                         user?.cargo === "financeiro" || 
-                         user?.cargo === "recepcao";
+                         cargoLower === "financeiro";
         
         if (!temAcesso) {
           navigate(createPageUrl("Agenda"));
