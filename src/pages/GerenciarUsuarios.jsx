@@ -159,7 +159,7 @@ export default function GerenciarUsuariosPage() {
   };
 
   const handleAtualizarUnidades = async (usuario, unidadesIds) => {
-    const unidadesAntigas = usuario.unidades_acesso || [];
+    const unidadesAntigas = Array.isArray(usuario.unidades_acesso) ? usuario.unidades_acesso : [];
     await atualizarUsuarioMutation.mutateAsync({
       id: usuario.id,
       dados: { unidades_acesso: unidadesIds }
@@ -179,7 +179,7 @@ export default function GerenciarUsuariosPage() {
   };
 
   const handleToggleUnidade = async (usuario, unidadeId) => {
-    const unidadesAtuais = usuario.unidades_acesso || [];
+    const unidadesAtuais = Array.isArray(usuario.unidades_acesso) ? usuario.unidades_acesso : [];
     const novasUnidades = unidadesAtuais.includes(unidadeId)
       ? unidadesAtuais.filter(id => id !== unidadeId)
       : [...unidadesAtuais, unidadeId];
@@ -450,7 +450,7 @@ export default function GerenciarUsuariosPage() {
                           <Popover>
                             <PopoverTrigger asChild>
                               <Button variant="outline" size="sm" className="text-left justify-start">
-                                {usuario.unidades_acesso?.length > 0 ? (
+                                {Array.isArray(usuario.unidades_acesso) && usuario.unidades_acesso?.length > 0 ? (
                                   <>
                                     {usuario.unidades_acesso.map(uid => {
                                       const unidade = unidades.find(u => u.id === uid);
@@ -508,7 +508,7 @@ export default function GerenciarUsuariosPage() {
                           <Popover>
                             <PopoverTrigger asChild>
                               <Button variant="outline" size="sm" className="text-left justify-start">
-                                {usuario.unidades_acesso?.length > 0 ? (
+                                {Array.isArray(usuario.unidades_acesso) && usuario.unidades_acesso?.length > 0 ? (
                                   <>
                                     {usuario.unidades_acesso.map(uid => {
                                       const unidade = unidades.find(u => u.id === uid);
@@ -527,7 +527,7 @@ export default function GerenciarUsuariosPage() {
                                   <div className="flex items-center space-x-2 pb-2 border-b">
                                     <Checkbox
                                       id={`${usuario.id}-todas`}
-                                      checked={usuario.unidades_acesso?.length === unidades.length && unidades.length > 0}
+                                      checked={Array.isArray(usuario.unidades_acesso) && usuario.unidades_acesso?.length === unidades.length && unidades.length > 0}
                                       onCheckedChange={(checked) => {
                                         if (checked) {
                                           handleAtualizarUnidades(usuario, unidades.map(u => u.id));
@@ -547,7 +547,7 @@ export default function GerenciarUsuariosPage() {
                                     <div key={unidade.id} className="flex items-center space-x-2">
                                       <Checkbox
                                         id={`${usuario.id}-${unidade.id}`}
-                                        checked={usuario.unidades_acesso?.includes(unidade.id)}
+                                        checked={Array.isArray(usuario.unidades_acesso) && usuario.unidades_acesso?.includes(unidade.id)}
                                         onCheckedChange={() => handleToggleUnidade(usuario, unidade.id)}
                                       />
                                       <label
@@ -558,12 +558,12 @@ export default function GerenciarUsuariosPage() {
                                       </label>
                                     </div>
                                   ))}
-                                </div>
-                              </div>
-                            </PopoverContent>
-                          </Popover>
-                        )}
-                      </TableCell>
+                                  </div>
+                                  </div>
+                                  </PopoverContent>
+                                  </Popover>
+                                  )}
+                                  </TableCell>
 
                       <TableCell>
                         <div className="flex items-center gap-2">
