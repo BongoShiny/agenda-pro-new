@@ -1326,13 +1326,7 @@ export default function AgendaPage() {
                       clientes={clientes}
                       profissionais={profissionais}
                       servicos={servicos}
-                      unidades={(() => {
-                        const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
-                        const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-                        return (cargoLower === "administrador" || usuarioAtual?.role === "admin") 
-                          ? todasUnidades 
-                          : todasUnidades.filter(u => unidadesAcesso.includes(u.id));
-                      })()}
+                      unidades={unidades}
                       agendamentos={agendamentos}
                     />
                   </div>
