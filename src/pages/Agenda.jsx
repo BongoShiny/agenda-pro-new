@@ -462,31 +462,24 @@ export default function AgendaPage() {
     initialData: [],
   });
 
-  // CRÍTICO: APENAS administradores veem TODAS as unidades, gerência vé apenas suas unidades
+  // CRÍTICO: APENAS administradores veem TODAS as unidades
       const unidades = React.useMemo(() => {
-        console.log("🏢 CALCULANDO UNIDADES VISÍVEIS");
-        console.log("  usuarioAtual:", usuarioAtual?.email);
-        console.log("  todasUnidades.length:", todasUnidades.length);
-
         if (!usuarioAtual || todasUnidades.length === 0) {
-          console.log("  ❌ Retornando vazio - usuário ou unidades não carregadas");
           return [];
         }
 
         const cargoLower = (usuarioAtual.cargo || "").toLowerCase().trim();
-        console.log("  cargo:", cargoLower);
 
+        // Admin vê TUDO
         if (cargoLower === "administrador" || usuarioAtual.role === "admin") {
-          console.log("  ✅ Admin - retornando TODAS as unidades:", todasUnidades.map(u => u.nome));
           return todasUnidades;
         }
 
+        // TODOS OS OUTROS (gerencia, financeiro, etc) veem APENAS unidades no unidades_acesso
         let unidadesAcesso = usuarioAtual.unidades_acesso || [];
-        console.log("  unidades_acesso bruto:", unidadesAcesso);
-        console.log("  tipo bruto:", typeof unidadesAcesso);
 
+        // Converter para array em qualquer formato
         if (typeof unidadesAcesso === 'string') {
-          console.log("  📝 Convertendo STRING para array");
           try {
             const parsed = JSON.parse(unidadesAcesso);
             unidadesAcesso = Array.isArray(parsed) ? parsed : Object.keys(parsed);
@@ -494,28 +487,13 @@ export default function AgendaPage() {
             unidadesAcesso = [];
           }
         } else if (typeof unidadesAcesso === 'object' && !Array.isArray(unidadesAcesso)) {
-          console.log("  🔑 Convertendo OBJECT para array (keys)");
           unidadesAcesso = Object.keys(unidadesAcesso);
         } else if (!Array.isArray(unidadesAcesso)) {
-          console.log("  ❌ Não é array, setando vazio");
           unidadesAcesso = [];
         }
 
-        console.log("  unidades_acesso após conversão:", unidadesAcesso);
-
-        if (unidadesAcesso.length === 0) {
-          console.log("  ❌ Nenhuma unidade de acesso");
-          return [];
-        }
-
-        const result = todasUnidades.filter(u => {
-          const temAcesso = unidadesAcesso.includes(u.id);
-          console.log(`  Unidade "${u.nome}" (${u.id}): ${temAcesso ? '✅ MOSTRA' : '❌ ESCONDE'}`);
-          return temAcesso;
-        });
-
-        console.log("  ✅ Resultado final:", result.map(u => u.nome));
-        return result;
+        // Retornar APENAS as unidades que o usuário tem acesso
+        return todasUnidades.filter(u => unidadesAcesso.includes(u.id));
       }, [todasUnidades, usuarioAtual]);
 
   // Se unidadeSelecionada não estiver nas unidades filtradas, selecionar a primeira
