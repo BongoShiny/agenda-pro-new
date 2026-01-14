@@ -31,24 +31,11 @@ export const formatarDataPura = (data) => {
 // Criar data com new Date(ano, mes, dia) - isso cria no timezone LOCAL do navegador
 export const criarDataPura = (dataString) => {
   if (!dataString || !/^\d{4}-\d{2}-\d{2}$/.test(dataString)) {
-    console.warn("⚠️ criarDataPura: string inválida, usando data atual");
     return new Date();
   }
   
   const [ano, mes, dia] = dataString.split('-').map(Number);
-  // Criar às 12h LOCAL para evitar problemas de exibição
-  const resultado = new Date(ano, mes - 1, dia, 12, 0, 0);
-  
-  console.log("🔧 FUNÇÃO criarDataPura:", {
-    input: dataString,
-    output: resultado.toString(),
-    ano: ano,
-    mes: mes,
-    dia: dia,
-    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
-  });
-  
-  return resultado;
+  return new Date(ano, mes - 1, dia, 12, 0, 0);
 };
 
 // FUNÇÃO CRÍTICA: Normaliza qualquer formato de data para YYYY-MM-DD
