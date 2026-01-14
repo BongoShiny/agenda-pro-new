@@ -120,14 +120,31 @@ export default function AgendaPage() {
 
   const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const carregarUsuario = async () => {
+  // SINCRONIZAÇÃO DE CARGO - Executar imediatamente ao carregar
+  const sincronizarCargo = async (user) => {
+    const cargoLower = (user?.cargo || "").toLowerCase().trim();
+    if (cargoLower.includes("gerencia_unidade_")) {
+      console.log(`🔄 [SINCRONIZAÇÃO AUTOMÁTICA] Migrando cargo: ${user.email}`);
       try {
-        const user = await base44.auth.me();
+        await base44.entities.User.update(user.id, { cargo: "gerencia_unidades" });
+        user.cargo = "gerencia_unidades";
+      } catch (error) {
+        console.error("❌ Erro ao migrar cargo:", error);
+      }
+    }
+    return user;
+  };
+
+  useEffect(() => {
+    (async () => {
+      try {
+        let user = await base44.auth.me();
+
+        // SINCRONIZAR CARGO IMEDIATAMENTE
+        user = await sincronizarCargo(user);
 
         // CRÍTICO: Garantir que unidades_acesso é um ARRAY
         let unidadesAcessoFinal = user.unidades_acesso || [];
-
         if (typeof unidadesAcessoFinal === 'string') {
           try {
             unidadesAcessoFinal = JSON.parse(unidadesAcessoFinal);
@@ -139,47 +156,30 @@ export default function AgendaPage() {
         } else if (!Array.isArray(unidadesAcessoFinal)) {
           unidadesAcessoFinal = [];
         }
-
         user.unidades_acesso = unidadesAcessoFinal;
 
-        // SINCRONIZAÇÃO: Converter cargos antigos de gerência para novo padrão
-        const cargoLower = (user?.cargo || "").toLowerCase().trim();
-        if (cargoLower.includes("gerencia_unidade_")) {
-          console.log(`🔄 [SINCRONIZAÇÃO AUTOMÁTICA] Migrando cargo: ${user.email}`);
-          try {
-            await base44.entities.User.update(user.id, {
-              cargo: "gerencia_unidades"
-            });
-            user.cargo = "gerencia_unidades";
-          } catch (error) {
-            console.error("❌ Erro ao migrar cargo:", error);
-          }
-        }
-
         setUsuarioAtual(user);
-      
-      // Verificar prontuários atrasados periodicamente (a cada 5 minutos)
-      const verificarAtrasados = async () => {
-        try {
-          await base44.functions.invoke('verificarProntuariosAtrasados', {});
-        } catch (error) {
-          console.error("Erro ao verificar prontuários atrasados:", error);
-        }
-      };
-      
-      // Executar imediatamente e depois a cada 5 minutos
-      verificarAtrasados();
-      const intervalo = setInterval(verificarAtrasados, 5 * 60 * 1000);
-      
-      return () => clearInterval(intervalo);
+
+        // Verificar prontuários atrasados
+        const verificarAtrasados = async () => {
+          try {
+            await base44.functions.invoke('verificarProntuariosAtrasados', {});
+          } catch (error) {
+            console.error("Erro ao verificar prontuários atrasados:", error);
+          }
+        };
+
+        verificarAtrasados();
+        const intervalo = setInterval(verificarAtrasados, 5 * 60 * 1000);
 
         // Gerenciar sessão única
         await gerenciarSessaoUnica(user);
+
+        return () => clearInterval(intervalo);
       } catch (error) {
         console.error("❌ Erro ao carregar usuário:", error);
       }
-    };
-    carregarUsuario();
+    })();
   }, []);
 
   // Função para gerenciar sessão única
