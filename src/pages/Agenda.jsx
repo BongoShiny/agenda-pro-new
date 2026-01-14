@@ -999,6 +999,16 @@ export default function AgendaPage() {
   };
 
   const handleConfirmarAgendamento = async (agendamento) => {
+    // ✅ VALIDAÇÃO: Apenas ADMIN, GERÊNCIA e RECEPÇÃO podem confirmar
+    const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
+    const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
+    const temPermissao = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin" || cargoLower === "gerencia_unidades" || cargoLower === "recepcao";
+    
+    if (!temPermissao) {
+      alert("❌ Você não tem permissão para confirmar agendamentos!");
+      return;
+    }
+
     console.log("✅ CONFIRMANDO AGENDAMENTO:", agendamento.id);
     
     try {
