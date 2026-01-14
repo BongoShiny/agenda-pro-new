@@ -1347,14 +1347,29 @@ export default function AgendaPage() {
                 )}
 
         {unidadeAtual && (() => {
-          const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
-          const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-          const profissionaisPermitidos = cargoLower === "administrador" || usuarioAtual?.role === "admin"
-            ? profissionais
-            : profissionais.filter(p => {
-                const configs = configuracoes.filter(c => c.profissional_id === p.id);
-                return configs.some(c => unidadesAcesso.includes(c.unidade_id));
-              });
+          // Filtro de profissionais por unidade da gerência
+          let profissionaisPermitidos = profissionais;
+
+          if (usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin") {
+            profissionaisPermitidos = profissionais;
+          } else {
+            // Para gerência e outros, filtrar por unidades de acesso
+            let unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+            if (typeof unidadesAcesso === 'string') {
+              try {
+                unidadesAcesso = JSON.parse(unidadesAcesso);
+              } catch (e) {
+                unidadesAcesso = [];
+              }
+            } else if (!Array.isArray(unidadesAcesso)) {
+              unidadesAcesso = [];
+            }
+
+            profissionaisPermitidos = profissionais.filter(p => {
+              const configs = configuracoes.filter(c => c.profissional_id === p.id);
+              return configs.some(c => unidadesAcesso.includes(c.unidade_id));
+            });
+          }
 
           return (
             <AgendaDiaView
