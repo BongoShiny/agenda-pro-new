@@ -1377,7 +1377,7 @@ const agendamentosFiltrados = agendamentos.filter(ag => {
                   />
                 )}
 
-        {unidadeAtual && (() => {
+                {unidadeAtual && usuarioAtual?.cargo !== "funcionario" || (usuarioAtual?.cargo === "funcionario" && unidades.length > 0) ? (() => {
           // Filtro de profissionais por unidade da gerência
           let profissionaisPermitidos = profissionais;
           const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
