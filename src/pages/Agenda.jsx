@@ -464,27 +464,18 @@ export default function AgendaPage() {
 
   // CRÍTICO: APENAS administradores veem TODAS as unidades, gerência vé apenas suas unidades
       const unidades = React.useMemo(() => {
-        // CRÍTICO: Se usuário ainda não carregou, não mostrar nada
         if (!usuarioAtual || todasUnidades.length === 0) {
           return [];
         }
 
-        // APENAS administrador vê TODAS (case-insensitive)
         const cargoLower = (usuarioAtual.cargo || "").toLowerCase().trim();
 
         if (cargoLower === "administrador" || usuarioAtual.role === "admin") {
           return todasUnidades;
         }
 
-        // TODOS OS OUTROS (incluindo gerencia_unidades) veem APENAS suas unidades
         let unidadesAcesso = usuarioAtual.unidades_acesso || [];
 
-        console.error("🔍 DEBUG UNIDADES ACESSO:");
-        console.error("  Valor bruto:", unidadesAcesso);
-        console.error("  Tipo bruto:", typeof unidadesAcesso);
-        console.error("  É array?:", Array.isArray(unidadesAcesso));
-
-        // CRÍTICO: Converter para array em QUALQUER formato
         if (typeof unidadesAcesso === 'string') {
           try {
             const parsed = JSON.parse(unidadesAcesso);
@@ -494,32 +485,15 @@ export default function AgendaPage() {
           }
         } else if (typeof unidadesAcesso === 'object' && !Array.isArray(unidadesAcesso)) {
           unidadesAcesso = Object.keys(unidadesAcesso);
-        } else if (Array.isArray(unidadesAcesso)) {
-          // Já é array, manter como está
-        } else {
+        } else if (!Array.isArray(unidadesAcesso)) {
           unidadesAcesso = [];
         }
-
-        console.error("  Após conversão:", unidadesAcesso);
-        console.error("  Tipo após:", typeof unidadesAcesso);
-        console.error("  É array após?:", Array.isArray(unidadesAcesso));
 
         if (unidadesAcesso.length === 0) {
           return [];
         }
 
-        console.error("  IDs do usuario:", unidadesAcesso);
-        console.error("  IDs do sistema:", todasUnidades.map(u => u.id));
-
-        const filtered = todasUnidades.filter(u => {
-          const temAcesso = unidadesAcesso.includes(u.id);
-          console.error(`    ${u.nome} (${u.id}): ${temAcesso ? '✅' : '❌'}`);
-          return temAcesso;
-        });
-
-        console.error("  Unidades finais para mostrar:", filtered.map(u => u.nome));
-
-        return filtered;
+        return todasUnidades.filter(u => unidadesAcesso.includes(u.id));
       }, [todasUnidades, usuarioAtual]);
 
   // Se unidadeSelecionada não estiver nas unidades filtradas, selecionar a primeira
