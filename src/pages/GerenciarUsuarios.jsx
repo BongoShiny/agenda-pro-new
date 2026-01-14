@@ -774,7 +774,10 @@ export default function GerenciarUsuariosPage() {
                              </PopoverContent>
                            </Popover>
                          )}
-                       </TableCell>
+                           </>
+                          );
+                         })()}
+                         </TableCell>
 
                       <TableCell>
                         <div className="flex items-center gap-2">
