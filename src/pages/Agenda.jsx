@@ -1169,7 +1169,16 @@ export default function AgendaPage() {
 
     // Restante dos filtros normais
     // Log detalhado para cada agendamento
+    // CRÍTICO: Mostrar APENAS agendamentos do dia CORRETO
     const isDataMatch = ag.data === dataFiltro;
+    
+    console.log("🔍 FILTRAGEM:", {
+      agendamento_id: ag.id,
+      cliente: ag.cliente_nome,
+      ag_data: ag.data,
+      dataFiltro: dataFiltro,
+      isDataMatch: isDataMatch
+    });
     const isUnidadeMatch = !unidadeFinal || ag.unidade_id === unidadeFinal.id;
     const isClienteMatch = !filters.cliente || (
       (ag.cliente_nome && ag.cliente_nome.toLowerCase().includes(filters.cliente.toLowerCase())) ||
