@@ -50,7 +50,7 @@ export default function AdministradorPage() {
     const isRecepcao = usuarioAtual?.cargo === "recepcao";
     // Admin APENAS se não for gerência, financeiro ou recepção
     const isAdmin = !isGerencia && !isFinanceiro && !isRecepcao && 
-                    (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin");
+                    (usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin");
 
     if (!isAdmin && !isGerencia && !isFinanceiro && !isRecepcao) {
       return null;
@@ -333,7 +333,7 @@ export default function AdministradorPage() {
               <p className="text-sm text-yellow-700 mt-1">
                 {isFinanceiro 
                   ? "Você tem acesso apenas ao Histórico de agendamentos e ações do sistema."
-                  : "Apenas superiores têm acesso a esta área. As alterações feitas aqui afetam todo o sistema."}
+                  : "Apenas administradores têm acesso a esta área. As alterações feitas aqui afetam todo o sistema."}
               </p>
             </div>
           </div>
