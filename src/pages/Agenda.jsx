@@ -431,15 +431,13 @@ export default function AgendaPage() {
       }, [todasUnidades, usuarioAtual]);
 
   // Se unidadeSelecionada não estiver nas unidades filtradas, selecionar a primeira
-    React.useEffect(() => {
-      if (unidades.length > 0 && !unidadeSelecionada) {
-        console.log("🔄 Definindo primeira unidade como padrão:", unidades[0].nome);
-        setUnidadeSelecionada(unidades[0]);
-      } else if (unidades.length > 0 && unidadeSelecionada && !unidades.find(u => u.id === unidadeSelecionada.id)) {
-        console.log("🔄 Unidade selecionada não está na lista filtrada, mudando para:", unidades[0].nome);
-        setUnidadeSelecionada(unidades[0]);
-      }
-    }, [unidades, unidadeSelecionada]);
+  React.useEffect(() => {
+    if (unidades.length > 0 && !unidadeSelecionada) {
+      setUnidadeSelecionada(unidades[0]);
+    } else if (unidades.length > 0 && unidadeSelecionada && !unidades.find(u => u.id === unidadeSelecionada.id)) {
+      setUnidadeSelecionada(unidades[0]);
+    }
+  }, [unidades, unidadeSelecionada]);
 
   const { data: servicos = [] } = useQuery({
     queryKey: ['servicos'],
