@@ -33,15 +33,16 @@ const criarDataPura = (dataString) => {
 };
 
 export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendamento, onDelete, onEdit, usuarioAtual, onConfirmar }) {
-  const [abaAtiva, setAbaAtiva] = useState("detalhes");
-  
-  if (!agendamento) return null;
+   const [abaAtiva, setAbaAtiva] = useState("detalhes");
 
-  const statusInfo = statusLabels[agendamento.status] || statusLabels.agendado;
-  const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio" || agendamento.cliente_nome === "FECHADO";
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
-  const temAcessoProntuario = isAdmin || usuarioAtual?.cargo === "financeiro" || usuarioAtual?.cargo === "recepcao";
-  const podeConfirmar = agendamento.status === "agendado";
+   if (!agendamento) return null;
+
+   const statusInfo = statusLabels[agendamento.status] || statusLabels.agendado;
+   const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio" || agendamento.cliente_nome === "FECHADO";
+   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
+   const isTerapia = usuarioAtual?.cargo === "terapeuta";
+   const temAcessoProntuario = isAdmin || usuarioAtual?.cargo === "financeiro" || usuarioAtual?.cargo === "recepcao";
+   const podeConfirmar = agendamento.status === "agendado";
 
   const handleDelete = () => {
     console.log("🗑️🗑️🗑️ DELETANDO BLOQUEIO 🗑️🗑️🗑️");
@@ -151,15 +152,15 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
             <TabsContent value="detalhes" className="flex-1 overflow-y-auto">
               <div className="space-y-4 py-4">
                 <div className="flex items-start gap-3">
-              <User className="w-5 h-5 text-gray-500 mt-0.5" />
-              <div>
-                <div className="text-sm text-gray-500">Cliente</div>
-                <div className="font-semibold text-lg">{agendamento.cliente_nome}</div>
-                {agendamento.cliente_telefone && (
-                  <div className="text-sm text-gray-600 mt-1">📱 {agendamento.cliente_telefone}</div>
-                )}
-              </div>
-            </div>
+                <User className="w-5 h-5 text-gray-500 mt-0.5" />
+                <div>
+                 <div className="text-sm text-gray-500">Cliente</div>
+                 <div className="font-semibold text-lg">{agendamento.cliente_nome}</div>
+                 {agendamento.cliente_telefone && !isTerapia && (
+                   <div className="text-sm text-gray-600 mt-1">📱 {agendamento.cliente_telefone}</div>
+                 )}
+                </div>
+                </div>
 
             <div className="flex items-start gap-3">
               <Briefcase className="w-5 h-5 text-gray-500 mt-0.5" />
@@ -300,7 +301,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
           <div>
             <div className="text-sm text-gray-500">Cliente</div>
             <div className="font-semibold text-lg">{agendamento.cliente_nome}</div>
-            {agendamento.cliente_telefone && (
+            {agendamento.cliente_telefone && !isTerapia && (
               <div className="text-sm text-gray-600 mt-1">📱 {agendamento.cliente_telefone}</div>
             )}
           </div>
