@@ -52,7 +52,8 @@ export default function NovoAgendamentoDialog({
   unidades = [],
   servicos = [],
   modoEdicao = false,
-  agendamentos = []
+  agendamentos = [],
+  isTerapeuta = false
 }) {
   const [formData, setFormData] = useState({
     cliente_id: "",
@@ -410,14 +411,24 @@ export default function NovoAgendamentoDialog({
             </Popover>
           </div>
 
-          <div className="space-y-2">
-            <Label>Telefone do Cliente</Label>
-            <Input
-              value={formData.cliente_telefone || ""}
-              onChange={(e) => setFormData(prev => ({ ...prev, cliente_telefone: e.target.value }))}
-              placeholder="(00) 00000-0000"
-            />
-          </div>
+          {!isTerapeuta && (
+            <div className="space-y-2">
+              <Label>Telefone do Cliente</Label>
+              <Input
+                value={formData.cliente_telefone || ""}
+                onChange={(e) => setFormData(prev => ({ ...prev, cliente_telefone: e.target.value }))}
+                placeholder="(00) 00000-0000"
+              />
+            </div>
+          )}
+          {isTerapeuta && (
+            <div className="space-y-2">
+              <Label>Telefone do Cliente</Label>
+              <div className="p-2 bg-gray-100 rounded border border-gray-300 text-gray-700">
+                {formData.cliente_telefone || "Não informado"}
+              </div>
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Profissional *</Label>
