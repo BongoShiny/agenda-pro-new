@@ -672,8 +672,8 @@ export default function ConfiguracaoTerapeutasPage() {
             const configs = getConfiguracoesUnidade(unidade.id);
             const disponiveis = getProfissionaisDisponiveis(unidade.id);
 
-            const cardContent = (
-              <Card>
+            return usuarioAtual?.cargo === "gerencia_unidades" ? (
+              <Card key={unidade.id}>
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <span>Terapeutas da Unidade {unidade.nome}</span>
