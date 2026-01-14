@@ -1424,9 +1424,11 @@ const agendamentosFiltrados = agendamentos.filter(ag => {
               dataAtual={dataAtual}
               excecoesHorario={excecoesHorario}
             />
-          );
-        })()}
-      </div>
+            );
+            })() : null}
+            </div>
+            </>
+            ) : null}
 
       <NovoAgendamentoDialog
         open={dialogNovoAberto}
