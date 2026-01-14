@@ -431,41 +431,56 @@ export default function AgendaPage() {
   });
 
   // CRÍTICO: Filtragem de unidades por cargo
-      const unidades = React.useMemo(() => {
-        if (!usuarioAtual || todasUnidades.length === 0) {
-          return [];
-        }
+        const unidades = React.useMemo(() => {
+          if (!usuarioAtual || todasUnidades.length === 0) {
+            return [];
+          }
 
-        const cargoLower = (usuarioAtual.cargo || "").toLowerCase().trim();
-        const isSuperAdmin = usuarioAtual.email === 'lucagamerbr07@gmail.com';
+          const cargoLower = (usuarioAtual.cargo || "").toLowerCase().trim();
+          const isSuperAdmin = usuarioAtual.email === 'lucagamerbr07@gmail.com';
 
-        // ADMINISTRADOR e SUPER ADMIN veem TODAS as unidades
-        if (isSuperAdmin || cargoLower === "administrador" || usuarioAtual.role === "admin") {
-          return todasUnidades;
-        }
+          // ADMINISTRADOR e SUPER ADMIN veem TODAS as unidades
+          if (isSuperAdmin || cargoLower === "administrador" || usuarioAtual.role === "admin") {
+            return todasUnidades;
+          }
 
-        // ✅ VALIDAÇÃO: FUNCIONÁRIO DEVE VER APENAS SUAS UNIDADES ATRIBUÍDAS
-        // Se é funcionário ou qualquer outro cargo, filtrar por unidades_acesso
-        let unidadesAcesso = usuarioAtual.unidades_acesso || [];
+          // ✅ VALIDAÇÃO: FUNCIONÁRIO DEVE VER APENAS SUAS UNIDADES ATRIBUÍDAS
+          // Se é funcionário ou qualquer outro cargo, filtrar por unidades_acesso
+          let unidadesAcesso = usuarioAtual.unidades_acesso || [];
 
-        // Garantir que é array
-        if (typeof unidadesAcesso === 'string') {
-          try {
-            const parsed = JSON.parse(unidadesAcesso);
-            unidadesAcesso = Array.isArray(parsed) ? parsed : Object.keys(parsed);
-          } catch (e) {
+          console.log("🔍 DEBUG UNIDADES:", {
+            cargo: cargoLower,
+            unidades_acesso_raw: usuarioAtual.unidades_acesso,
+            tipo: typeof usuarioAtual.unidades_acesso
+          });
+
+          // Garantir que é array - MAIS ROBUSTO
+          if (typeof unidadesAcesso === 'string') {
+            // String JSON array ou object
+            try {
+              const parsed = JSON.parse(unidadesAcesso);
+              unidadesAcesso = Array.isArray(parsed) ? parsed : (typeof parsed === 'object' ? Object.keys(parsed) : []);
+            } catch (e) {
+              // String simples, ignorar
+              unidadesAcesso = [];
+            }
+          } else if (typeof unidadesAcesso === 'object' && !Array.isArray(unidadesAcesso)) {
+            // Object com IDs como chaves
+            unidadesAcesso = Object.keys(unidadesAcesso);
+          } else if (!Array.isArray(unidadesAcesso)) {
+            // Qualquer outra coisa
             unidadesAcesso = [];
           }
-        } else if (typeof unidadesAcesso === 'object' && !Array.isArray(unidadesAcesso)) {
-          unidadesAcesso = Object.keys(unidadesAcesso);
-        } else if (!Array.isArray(unidadesAcesso)) {
-          unidadesAcesso = [];
-        }
 
-        // Retornar APENAS as unidades que o usuário tem acesso
-        // Se não tem unidades, retorna array vazio (não vê nada)
-        return todasUnidades.filter(u => unidadesAcesso.includes(u.id));
-      }, [todasUnidades, usuarioAtual]);
+          console.log("✅ UNIDADES_ACESSO FINAL:", unidadesAcesso);
+
+          // Retornar APENAS as unidades que o usuário tem acesso
+          // Se não tem unidades, retorna array vazio (não vê nada)
+          const resultado = todasUnidades.filter(u => unidadesAcesso.includes(u.id));
+          console.log("📊 UNIDADES VISÍVEIS:", resultado.map(u => u.nome));
+
+          return resultado;
+        }, [todasUnidades, usuarioAtual]);
 
   // Se unidadeSelecionada não estiver nas unidades filtradas, selecionar a primeira
   React.useEffect(() => {
