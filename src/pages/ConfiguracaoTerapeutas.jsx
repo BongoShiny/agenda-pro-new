@@ -102,7 +102,7 @@ export default function ConfiguracaoTerapeutasPage() {
     initialData: [],
   });
 
-  // CRÍTICO: APENAS superiores/admins veem TODAS as unidades, todos os outros têm restrições
+  // CRÍTICO: Filtragem correta - gerencia_unidades vê APENAS unidades atribuídas
   const unidades = React.useMemo(() => {
     console.log("🏢 FILTRANDO UNIDADES ConfigTerapeutas:", {
       usuario: usuarioAtual?.email,
@@ -112,15 +112,30 @@ export default function ConfiguracaoTerapeutasPage() {
       total_unidades: todasUnidades.length
     });
     
-    // APENAS administradores veem TODAS as unidades (case-insensitive)
+    // ADMINISTRADOR vê TODAS as unidades
     const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
     if (cargoLower === "administrador" || usuarioAtual?.role === "admin") {
       console.log("✅ ADMINISTRADOR - mostrando TODAS:", todasUnidades.length);
       return todasUnidades;
     }
     
-    // Todos os outros veem apenas suas unidades de acesso
-    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+    // GERENCIA_UNIDADES vê APENAS suas unidades (sem nenhuma exceção)
+    let unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+    
+    // Garantir que é array
+    if (typeof unidadesAcesso === 'string') {
+      try {
+        const parsed = JSON.parse(unidadesAcesso);
+        unidadesAcesso = Array.isArray(parsed) ? parsed : Object.keys(parsed);
+      } catch (e) {
+        unidadesAcesso = [];
+      }
+    } else if (typeof unidadesAcesso === 'object' && !Array.isArray(unidadesAcesso)) {
+      unidadesAcesso = Object.keys(unidadesAcesso);
+    } else if (!Array.isArray(unidadesAcesso)) {
+      unidadesAcesso = [];
+    }
+    
     const unidadesFiltradas = todasUnidades.filter(u => unidadesAcesso.includes(u.id));
     console.log("🔒 ACESSO LIMITADO - filtrando:", unidadesFiltradas.length);
     return unidadesFiltradas;
