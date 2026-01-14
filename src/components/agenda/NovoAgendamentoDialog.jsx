@@ -151,6 +151,9 @@ export default function NovoAgendamentoDialog({
           status: agendamentoInicial?.status || "agendado",
           tipo: agendamentoInicial?.tipo || "consulta",
           observacoes: agendamentoInicial?.observacoes || "",
+          observacoes_vendedores: agendamentoInicial?.observacoes_vendedores || "",
+          observacoes_terapeuta: agendamentoInicial?.observacoes_terapeuta || "",
+          observacoes_recepcionista: agendamentoInicial?.observacoes_recepcionista || "",
           sala: agendamentoInicial?.sala || "",
           equipamento: agendamentoInicial?.equipamento || "",
           status_paciente: agendamentoInicial?.status_paciente || "",
@@ -746,7 +749,37 @@ export default function NovoAgendamentoDialog({
               value={formData.observacoes || ""}
               onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
               placeholder="Observações adicionais"
-              rows={3}
+              rows={2}
+            />
+          </div>
+
+          <div className="col-span-2 space-y-2">
+            <Label>Observações Vendedores</Label>
+            <Textarea
+              value={formData.observacoes_vendedores || ""}
+              onChange={(e) => setFormData(prev => ({ ...prev, observacoes_vendedores: e.target.value }))}
+              placeholder="Observações exclusivas dos vendedores"
+              rows={2}
+            />
+          </div>
+
+          <div className="col-span-2 space-y-2">
+            <Label>Observações Terapeuta</Label>
+            <Textarea
+              value={formData.observacoes_terapeuta || ""}
+              onChange={(e) => setFormData(prev => ({ ...prev, observacoes_terapeuta: e.target.value }))}
+              placeholder="Observações exclusivas do terapeuta"
+              rows={2}
+            />
+          </div>
+
+          <div className="col-span-2 space-y-2">
+            <Label>Observações Recepcionista</Label>
+            <Textarea
+              value={formData.observacoes_recepcionista || ""}
+              onChange={(e) => setFormData(prev => ({ ...prev, observacoes_recepcionista: e.target.value }))}
+              placeholder="Observações exclusivas da recepcionista"
+              rows={2}
             />
           </div>
         </div>

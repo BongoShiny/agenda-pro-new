@@ -1048,7 +1048,19 @@ export default function AgendaPage() {
   console.log("📊 Total de agendamentos no banco:", agendamentos.length);
   console.log("🏢 Unidade selecionada:", unidadeSelecionada?.nome, "(ID:", unidadeSelecionada?.id, ")");
 
+  // Filtrar por terapeuta se o usuário for um terapeuta
+  const isProfissional = usuarioAtual?.cargo === "terapeuta";
+  const profissionalDoUsuario = profissionais.find(p => p.email === usuarioAtual?.email);
+
   const agendamentosFiltrados = agendamentos.filter(ag => {
+    // Se for terapeuta, mostrar apenas seus próprios agendamentos
+    if (isProfissional && profissionalDoUsuario) {
+      if (ag.profissional_id !== profissionalDoUsuario.id) {
+        return false;
+      }
+    }
+    
+    // Restante dos filtros normais
     // Log detalhado para cada agendamento
     const isDataMatch = ag.data === dataFiltro;
     const isUnidadeMatch = !unidadeSelecionada || ag.unidade_id === unidadeSelecionada.id;

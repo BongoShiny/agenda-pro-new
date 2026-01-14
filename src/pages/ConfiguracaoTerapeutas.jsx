@@ -47,6 +47,7 @@ export default function ConfiguracaoTerapeutasPage() {
   const [editandoProfissional, setEditandoProfissional] = useState(null);
   const [dadosEditados, setDadosEditados] = useState({
     nome: "",
+    email: "",
     especialidade: "",
     horario_inicio: "",
     horario_fim: ""
@@ -56,6 +57,7 @@ export default function ConfiguracaoTerapeutasPage() {
   const [profissionalParaExcluir, setProfissionalParaExcluir] = useState(null);
   const [novoProfissional, setNovoProfissional] = useState({
     nome: "",
+    email: "",
     especialidade: "",
     horario_inicio: "08:00",
     horario_fim: "18:00"
@@ -102,7 +104,7 @@ export default function ConfiguracaoTerapeutasPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profissionais'] });
       setDialogNovoAberto(false);
-      setNovoProfissional({ nome: "", especialidade: "", horario_inicio: "08:00", horario_fim: "18:00" });
+      setNovoProfissional({ nome: "", email: "", especialidade: "", horario_inicio: "08:00", horario_fim: "18:00" });
     },
   });
 
@@ -183,6 +185,7 @@ export default function ConfiguracaoTerapeutasPage() {
     
     const resultado = await criarProfissionalMutation.mutateAsync({
       nome: novoProfissional.nome,
+      email: novoProfissional.email || "",
       especialidade: novoProfissional.especialidade || "Terapeuta",
       horario_inicio: novoProfissional.horario_inicio || "08:00",
       horario_fim: novoProfissional.horario_fim || "18:00",
@@ -352,6 +355,7 @@ export default function ConfiguracaoTerapeutasPage() {
     setEditandoProfissional(profissional.id);
     setDadosEditados({
       nome: profissional.nome,
+      email: profissional.email || "",
       especialidade: profissional.especialidade || "",
       horario_inicio: profissional.horario_inicio || "08:00",
       horario_fim: profissional.horario_fim || "18:00"
@@ -386,7 +390,7 @@ export default function ConfiguracaoTerapeutasPage() {
 
   const handleCancelarEdicao = () => {
     setEditandoProfissional(null);
-    setDadosEditados({ nome: "", especialidade: "", horario_inicio: "", horario_fim: "" });
+    setDadosEditados({ nome: "", email: "", especialidade: "", horario_inicio: "", horario_fim: "" });
   };
 
   const handleAbrirDialogExcecao = (profissional) => {
@@ -559,6 +563,12 @@ export default function ConfiguracaoTerapeutasPage() {
                                                   autoFocus
                                                 />
                                                 <Input
+                                                  value={dadosEditados.email}
+                                                  onChange={(e) => setDadosEditados(prev => ({ ...prev, email: e.target.value }))}
+                                                  placeholder="Email do terapeuta"
+                                                  type="email"
+                                                />
+                                                <Input
                                                   value={dadosEditados.especialidade}
                                                   onChange={(e) => setDadosEditados(prev => ({ ...prev, especialidade: e.target.value }))}
                                                   placeholder="Especialidade"
@@ -597,6 +607,11 @@ export default function ConfiguracaoTerapeutasPage() {
                                                 <Edit2 className="w-3 h-3 text-gray-400" />
                                               </Button>
                                             </div>
+                                            {profissional.email && (
+                                              <div className="text-xs text-blue-600 mt-1">
+                                                ✉️ {profissional.email}
+                                              </div>
+                                            )}
                                             <div className="flex items-center gap-2 mt-1">
                                               <span className="text-sm text-gray-500">{profissional.especialidade}</span>
                                               {unidadesDoProfissional.length > 1 && (
@@ -710,6 +725,17 @@ export default function ConfiguracaoTerapeutasPage() {
                 placeholder="Ex: Dra. Maria Silva"
                 autoFocus
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Email do Terapeuta</Label>
+              <Input
+                type="email"
+                value={novoProfissional.email}
+                onChange={(e) => setNovoProfissional(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="Ex: maria.silva@exemplo.com"
+              />
+              <p className="text-xs text-gray-500">Se informado, o terapeuta poderá fazer login e ver apenas seus próprios pacientes</p>
             </div>
 
             <div className="space-y-2">
