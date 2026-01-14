@@ -444,7 +444,8 @@ export default function AgendaPage() {
           return todasUnidades;
         }
 
-        // GERÊNCIA_UNIDADES vê APENAS sua unidade de acesso (UMA única)
+        // ✅ VALIDAÇÃO: FUNCIONÁRIO DEVE VER APENAS SUAS UNIDADES ATRIBUÍDAS
+        // Se é funcionário ou qualquer outro cargo, filtrar por unidades_acesso
         let unidadesAcesso = usuarioAtual.unidades_acesso || [];
 
         // Garantir que é array
@@ -462,6 +463,7 @@ export default function AgendaPage() {
         }
 
         // Retornar APENAS as unidades que o usuário tem acesso
+        // Se não tem unidades, retorna array vazio (não vê nada)
         return todasUnidades.filter(u => unidadesAcesso.includes(u.id));
       }, [todasUnidades, usuarioAtual]);
 
