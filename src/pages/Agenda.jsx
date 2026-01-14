@@ -401,22 +401,23 @@ export default function AgendaPage() {
         });
       }
 
-      // Verificar periodicamente se a sessão ainda é válida
+      // Verificar periodicamente se a sessão DESTE USUÁRIO ainda é válida
+      // ⚠️ CRÍTICO: Verificar APENAS se a sessão deste usuário foi removida (não confundir com outro usuário)
       const verificarSessao = setInterval(async () => {
         try {
           const sessoesAtuais = await base44.entities.SessaoAtiva.filter({ 
-            usuario_email: user.email,
+            usuario_email: user.email,  // Isolado por usuário
             sessao_id: sessaoId
           });
 
-          // Se não encontrar a sessão, significa que foi desconectada
+          // Se não encontrar a sessão deste usuário, significa que foi desconectada
           if (sessoesAtuais.length === 0) {
-            console.log("⚠️ Sessão desconectada em outro dispositivo");
+            console.log(`⚠️ Sessão de ${user.email} foi removida (limite de 3 dispositivos excedido)`);
             clearInterval(verificarSessao);
-            alert("Sua conta foi acessada em outro dispositivo. Você será desconectado.");
+            alert("Você foi desconectado porque acessou em mais de 3 dispositivos diferentes.");
             base44.auth.logout();
           } else {
-            // Atualizar última atividade
+            // Atualizar última atividade apenas da sessão deste usuário
             await base44.entities.SessaoAtiva.update(sessoesAtuais[0].id, {
               ultima_atividade: new Date().toISOString()
             });
