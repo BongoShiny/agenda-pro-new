@@ -292,7 +292,19 @@ export default function GerenciarUsuariosPage() {
 
   const handleToggleUnidade = async (usuario, unidadeId) => {
     const cargo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "funcionario");
-    const unidadesAtuais = usuario.unidades_acesso || [];
+    
+    // Normalizar unidades_acesso para array
+    let unidadesAtuais = [];
+    if (typeof usuario.unidades_acesso === 'string') {
+      try {
+        const parsed = JSON.parse(usuario.unidades_acesso);
+        unidadesAtuais = Array.isArray(parsed) ? parsed : [];
+      } catch (e) {
+        unidadesAtuais = [];
+      }
+    } else if (Array.isArray(usuario.unidades_acesso)) {
+      unidadesAtuais = usuario.unidades_acesso;
+    }
     
     // VALIDAÇÃO: Gerência só pode ter 1 unidade
     if (cargo === "gerencia_unidades" && !unidadesAtuais.includes(unidadeId)) {
@@ -572,32 +584,48 @@ export default function GerenciarUsuariosPage() {
                       </TableCell>
 
                       <TableCell>
-                        {cargo === "administrador" ? (
-                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                            Todas as unidades
-                          </Badge>
-                        ) : (cargo === "gerencia_unidades" || cargo.includes("gerencia_unidade_")) ? (
-                          // GERÊNCIA DE UNIDADES: Obrigatório selecionar APENAS UMA unidade
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                className={`text-left justify-start ${!usuario.unidades_acesso?.length ? 'border-red-300 bg-red-50' : ''}`}
-                              >
-                                {usuario.unidades_acesso?.length === 1 ? (
-                                  <span className="text-green-700 font-medium">
-                                    {unidades.find(u => u.id === usuario.unidades_acesso[0])?.nome}
-                                  </span>
-                                ) : usuario.unidades_acesso?.length > 0 ? (
-                                  <span className="text-orange-700 font-medium">
-                                    ⚠️ {usuario.unidades_acesso.length} unidades (selecionar apenas 1)
-                                  </span>
-                                ) : (
-                                  <span className="text-red-600 font-semibold">⚠️ Selecionar unidade</span>
-                                )}
-                              </Button>
-                            </PopoverTrigger>
+                        {(() => {
+                          // Normalizar unidades_acesso para array
+                          let unidadesDoUsuario = [];
+                          if (typeof usuario.unidades_acesso === 'string') {
+                            try {
+                              const parsed = JSON.parse(usuario.unidades_acesso);
+                              unidadesDoUsuario = Array.isArray(parsed) ? parsed : [];
+                            } catch (e) {
+                              unidadesDoUsuario = [];
+                            }
+                          } else if (Array.isArray(usuario.unidades_acesso)) {
+                            unidadesDoUsuario = usuario.unidades_acesso;
+                          }
+
+                          return (
+                            <>
+                              {cargo === "administrador" ? (
+                                <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                                  Todas as unidades
+                                </Badge>
+                              ) : (cargo === "gerencia_unidades" || cargo.includes("gerencia_unidade_")) ? (
+                                // GERÊNCIA DE UNIDADES: Obrigatório selecionar APENAS UMA unidade
+                                <Popover>
+                                  <PopoverTrigger asChild>
+                                    <Button 
+                                      variant="outline" 
+                                      size="sm" 
+                                      className={`text-left justify-start ${!unidadesDoUsuario?.length ? 'border-red-300 bg-red-50' : ''}`}
+                                    >
+                                      {unidadesDoUsuario?.length === 1 ? (
+                                        <span className="text-green-700 font-medium">
+                                          {unidades.find(u => u.id === unidadesDoUsuario[0])?.nome}
+                                        </span>
+                                      ) : unidadesDoUsuario?.length > 0 ? (
+                                        <span className="text-orange-700 font-medium">
+                                          ⚠️ {unidadesDoUsuario.length} unidades (selecionar apenas 1)
+                                        </span>
+                                      ) : (
+                                        <span className="text-red-600 font-semibold">⚠️ Selecionar unidade</span>
+                                      )}
+                                    </Button>
+                                  </PopoverTrigger>
                             <PopoverContent className="w-64" align="start">
                               <div className="space-y-3">
                                 <Label className="text-sm font-semibold text-red-900">Selecione UMA Clínica para Gerenciar</Label>
