@@ -421,14 +421,6 @@ export default function NovoAgendamentoDialog({
               />
             </div>
           )}
-          {isTerapeuta && (
-            <div className="space-y-2">
-              <Label>Telefone do Cliente</Label>
-              <div className="p-2 bg-gray-100 rounded border border-gray-300 text-gray-700">
-                {formData.cliente_telefone || "Não informado"}
-              </div>
-            </div>
-          )}
 
           <div className="space-y-2">
             <Label>Profissional *</Label>
