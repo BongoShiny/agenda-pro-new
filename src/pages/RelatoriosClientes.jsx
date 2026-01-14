@@ -53,17 +53,11 @@ export default function RelatoriosClientesPage() {
   useEffect(() => {
     const carregarUsuario = async () => {
       try {
-         const user = await base44.auth.me();
-         setUsuarioAtual(user);
-         // APENAS admin, gerência e financeiro - BLOQUEIA vendedor, recepção, terapeuta, funcionário
-         const cargoLower = (user?.cargo || "").toLowerCase().trim();
-         const isPermitido = user?.role === "admin" || 
-                            cargoLower === "administrador" || 
-                            cargoLower === "gerencia_unidades" || 
-                            (user?.cargo && user.cargo.includes("+ Gerência de Unidade")) ||
-                            cargoLower === "financeiro";
-         if (!isPermitido) {
-           navigate(createPageUrl("Agenda"));
+        const user = await base44.auth.me();
+        setUsuarioAtual(user);
+        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro" || user?.cargo === "recepcao";
+        if (!isAdmin) {
+          navigate(createPageUrl("Agenda"));
         } else {
           // Registrar acesso aos relatórios
           await base44.entities.LogAcao.create({
@@ -108,42 +102,10 @@ export default function RelatoriosClientesPage() {
     initialData: [],
   });
 
-  // CRÍTICO: Filtragem correta por cargo
-  const unidades = React.useMemo(() => {
-    console.log("🏢 FILTRANDO UNIDADES Relatórios:", {
-      usuario: usuarioAtual?.email,
-      cargo: usuarioAtual?.cargo,
-      role: usuarioAtual?.role,
-      unidades_acesso: usuarioAtual?.unidades_acesso,
-      total_unidades: todasUnidades.length
-    });
-    
-    // ADMINISTRADOR vê TODAS as unidades
-    const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
-    if (cargoLower === "administrador" || usuarioAtual?.role === "admin") {
-      console.log("✅ ADMINISTRADOR - mostrando TODAS:", todasUnidades.length);
-      return todasUnidades;
-    }
-    
-    // GERENCIA_UNIDADES vê APENAS sua unidade (uma única)
-    let unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-    if (typeof unidadesAcesso === 'string') {
-      try {
-        const parsed = JSON.parse(unidadesAcesso);
-        unidadesAcesso = Array.isArray(parsed) ? parsed : Object.keys(parsed);
-      } catch (e) {
-        unidadesAcesso = [];
-      }
-    } else if (typeof unidadesAcesso === 'object' && !Array.isArray(unidadesAcesso)) {
-      unidadesAcesso = Object.keys(unidadesAcesso);
-    } else if (!Array.isArray(unidadesAcesso)) {
-      unidadesAcesso = [];
-    }
-    
-    const unidadesFiltradas = todasUnidades.filter(u => unidadesAcesso.includes(u.id));
-    console.log("🔒 ACESSO LIMITADO - filtrando:", unidadesFiltradas.length);
-    return unidadesFiltradas;
-  }, [todasUnidades, usuarioAtual]);
+  // Filtrar unidades baseado no acesso do usuário
+  const unidades = (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades")
+    ? todasUnidades
+    : todasUnidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
 
   const { data: servicos = [] } = useQuery({
     queryKey: ['servicos-relatorio'],
@@ -165,20 +127,8 @@ export default function RelatoriosClientesPage() {
   const agendamentosFiltrados = agendamentos
     .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
     .filter(ag => {
-      // ADMINISTRADORES VEEM TUDO
-      const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
-      if (cargoLower === "administrador" || usuarioAtual?.role === "admin") {
-        return true;
-      }
-      
-      // GERENCIA_UNIDADES vê APENAS sua unidade (não há abas)
-      if (cargoLower === "gerencia_unidades") {
-        const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-        if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
-          return false;
-        }
-      } else {
-        // Todos os outros veem suas unidades permitidas
+      // Se não for admin total ou gerência, filtrar por unidades de acesso
+      if (usuarioAtual?.cargo !== "administrador" && usuarioAtual?.cargo !== "superior" && usuarioAtual?.role !== "admin" && usuarioAtual?.cargo !== "gerencia_unidades") {
         const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
         if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
           return false;
@@ -192,14 +142,11 @@ export default function RelatoriosClientesPage() {
         ag.profissional_nome?.toLowerCase().includes(busca.toLowerCase());
       const matchStatus = filtroStatus === "todos" || ag.status === filtroStatus;
       const matchProfissional = filtroProfissional === "todos" || ag.profissional_id === filtroProfissional;
-      
-      // Para gerente, não mostrar filtro de unidade (já filtrado)
-      const matchUnidade = cargoLower === "gerencia_unidades" ? true : (filtroUnidade === "todos" || ag.unidade_id === filtroUnidade);
-      
+      const matchUnidade = filtroUnidade === "todos" || ag.unidade_id === filtroUnidade;
       const matchServico = filtroServico === "todos" || ag.servico_id === filtroServico;
       const matchEquipamento = filtroEquipamento === "todos" || ag.equipamento === filtroEquipamento;
-      // Filtro por aba de unidade - gerente não tem abas
-      const matchUnidadeTab = cargoLower === "gerencia_unidades" ? true : (unidadeTab === "todas" || ag.unidade_id === unidadeTab);
+      // Filtro por aba de unidade
+      const matchUnidadeTab = unidadeTab === "todas" || ag.unidade_id === unidadeTab;
       return matchBusca && matchStatus && matchProfissional && matchUnidade && matchServico && matchEquipamento && matchUnidadeTab;
     })
     .sort((a, b) => {
@@ -659,23 +606,14 @@ export default function RelatoriosClientesPage() {
         )}
 
                     {/* Tabs por Unidade */}
-                    {(usuarioAtual?.cargo === "gerencia_unidades" || (usuarioAtual?.cargo && usuarioAtual.cargo.includes("+ Gerência de Unidade"))) ? (
-                       // Gerente: mostra apenas sua unidade como informação
-                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                         <div className="text-sm font-medium text-blue-800">Unidade Atribuída:</div>
-                         <div className="text-lg font-bold text-blue-600 mt-1">{unidades[0]?.nome}</div>
-                       </div>
-                     ) : (
-                      // Admin e outros: abas para navegar entre unidades
-                      <Tabs value={unidadeTab} onValueChange={setUnidadeTab} className="mb-4">
-                        <TabsList className="flex-wrap h-auto">
-                          <TabsTrigger value="todas">Todas as Unidades</TabsTrigger>
-                          {unidades.map(u => (
-                            <TabsTrigger key={u.id} value={u.id}>{u.nome}</TabsTrigger>
-                          ))}
-                        </TabsList>
-                      </Tabs>
-                    )}
+                    <Tabs value={unidadeTab} onValueChange={setUnidadeTab} className="mb-4">
+                      <TabsList className="flex-wrap h-auto">
+                        <TabsTrigger value="todas">Todas as Unidades</TabsTrigger>
+                        {unidades.map(u => (
+                          <TabsTrigger key={u.id} value={u.id}>{u.nome}</TabsTrigger>
+                        ))}
+                      </TabsList>
+                    </Tabs>
 
                     {/* Filtros */}
                     <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">

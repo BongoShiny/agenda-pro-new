@@ -53,13 +53,12 @@ export default function GerenciarContratosPage() {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
         
-        const cargoLower = (user?.cargo || "").toLowerCase();
-        const temAcesso = user?.email === 'lucagamerbr07@gmail.com' ||
+        const temAcesso = user?.cargo === "administrador" || 
+                         user?.cargo === "superior" || 
                          user?.role === "admin" || 
-                         cargoLower === "administrador" || 
-                         cargoLower.includes("gerencia") ||
-                         cargoLower === "financeiro";
-
+                         user?.cargo === "gerencia_unidades" ||
+                         user?.cargo === "financeiro";
+        
         if (!temAcesso) {
           navigate(createPageUrl("Agenda"));
         } else {
@@ -106,28 +105,11 @@ export default function GerenciarContratosPage() {
   const recepcionistas = usuarios.filter(u => u.cargo === "recepcao");
 
   // Filtrar agendamentos válidos
-  let agendamentosValidos = agendamentos.filter(ag => 
+  const agendamentosValidos = agendamentos.filter(ag => 
     ag.status !== "bloqueio" && 
     ag.tipo !== "bloqueio" && 
     ag.cliente_nome !== "FECHADO"
   );
-
-  // Filtrar por unidades de acesso para gerentes de unidade
-  let unidadesAcessoFinal = [];
-  if (usuarioAtual?.cargo === "gerencia_unidades") {
-    let unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-    if (typeof unidadesAcesso === 'string') {
-      try {
-        unidadesAcesso = JSON.parse(unidadesAcesso);
-      } catch (e) {
-        unidadesAcesso = [];
-      }
-    } else if (!Array.isArray(unidadesAcesso)) {
-      unidadesAcesso = [];
-    }
-    unidadesAcessoFinal = unidadesAcesso;
-    agendamentosValidos = agendamentosValidos.filter(ag => unidadesAcesso.includes(ag.unidade_id));
-  }
 
   // Separar com e sem contrato
   const agendamentosComContrato = agendamentosValidos.filter(ag => ag.contrato_termo_url);

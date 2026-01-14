@@ -107,16 +107,7 @@ export default function AgendaHeader({
     onDataChange(hoje);
   };
 
-      const cargo = (usuarioAtual?.cargo || "").toLowerCase().trim();
-      // ✅ VALIDAÇÃO: Funcionário NÃO pode ver o botão Administrador
-      const isFuncionario = cargo === "funcionario" || cargo === "funcionário";
-      const canAccessAdminPanel = !isFuncionario && (
-        usuarioAtual?.email === 'lucagamerbr07@gmail.com' ||
-        cargo === "administrador" || 
-        usuarioAtual?.role === "admin" ||
-        cargo.includes("gerencia") ||
-        cargo === "financeiro"
-      );
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades" || usuarioAtual?.cargo === "financeiro" || usuarioAtual?.cargo === "recepcao";
 
   return (
     <div className="bg-white border-b border-gray-200">
@@ -180,12 +171,12 @@ export default function AgendaHeader({
             {format(dataAtual, "EEE, dd/MM/yyyy", { locale: ptBR })}
           </div>
 
-          {canAccessAdminPanel && (
+          {isAdmin && (
             <div className="flex items-center gap-2">
               <Link to={createPageUrl("Administrador")}>
                 <Button variant="outline" size="sm" className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100">
                   <ShieldCheck className="w-4 h-4 mr-1" />
-                  Administrador
+                  Superior
                 </Button>
               </Link>
             </div>
@@ -244,11 +235,11 @@ export default function AgendaHeader({
           </div>
 
           <div className="flex items-center gap-3">
-            {canAccessAdminPanel && (
+            {isAdmin && (
               <Link to={createPageUrl("Administrador")}>
                 <Button variant="outline" className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100">
                   <ShieldCheck className="w-4 h-4 mr-2" />
-                  Administrador
+                  Superior
                 </Button>
               </Link>
             )}
@@ -263,44 +254,22 @@ export default function AgendaHeader({
           </div>
         </div>
 
-        {unidades.length > 0 && (() => {
-          // Verificar se usuário é global (admin) ou restrito
-          const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
-          const isGlobal = cargoLower === "administrador" || usuarioAtual?.role === "admin";
-
-          // Se usuário é restrito (tem apenas 1 unidade de acesso)
-          const isRestrito = !isGlobal && unidades.length === 1;
-
-          if (isRestrito) {
-            // Usuário restrito vê apenas sua unidade - sem abas
-            return (
-              <div className="bg-gray-100 p-3 rounded-md border border-gray-200">
-                <div className="text-sm font-medium text-gray-600">Unidade Atribuída:</div>
-                <div className="text-lg font-bold text-blue-600 mt-1">{unidades[0]?.nome}</div>
-              </div>
-            );
-          }
-
-          // Usuário global vê abas de todas as unidades
-          return (
-            <Tabs value={unidadeSelecionada?.id || unidades[0]?.id} onValueChange={(value) => {
-              const unidade = unidades.find(u => u.id === value);
-              onUnidadeChange(unidade);
-            }}>
-              <TabsList className="bg-gray-100 p-1 h-auto w-full overflow-x-auto flex">
-                {unidades.map(unidade => (
-                  <TabsTrigger 
-                    key={unidade.id} 
-                    value={unidade.id}
-                    className="px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-sm font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white whitespace-nowrap"
-                  >
-                    {unidade.nome}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
-          );
-        })()}
+        <Tabs value={unidadeSelecionada?.id || unidades[0]?.id} onValueChange={(value) => {
+          const unidade = unidades.find(u => u.id === value);
+          onUnidadeChange(unidade);
+        }}>
+          <TabsList className="bg-gray-100 p-1 h-auto w-full overflow-x-auto flex">
+            {unidades.map(unidade => (
+              <TabsTrigger 
+                key={unidade.id} 
+                value={unidade.id}
+                className="px-4 md:px-6 py-2 md:py-2.5 text-xs md:text-sm font-medium data-[state=active]:bg-blue-600 data-[state=active]:text-white whitespace-nowrap"
+              >
+                {unidade.nome}
+              </TabsTrigger>
+            ))}
+          </TabsList>
+        </Tabs>
       </div>
     </div>
   );

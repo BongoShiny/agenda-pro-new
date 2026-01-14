@@ -26,12 +26,9 @@ export default function ConfiguracaoWhatsAppPage() {
       try {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
-
-        // APENAS administradores têm acesso
-        const cargoLower = (user?.cargo || "").toLowerCase().trim();
-        const isAdmin = user.role === "admin" || cargoLower === "administrador";
-
-        if (!isAdmin) {
+        // Apenas superior tem acesso
+        const isSuperior = user?.cargo === "superior" || user?.role === "admin";
+        if (!isSuperior) {
           navigate(createPageUrl("Agenda"));
         }
       } catch (error) {

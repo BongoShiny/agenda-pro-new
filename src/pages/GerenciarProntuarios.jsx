@@ -55,14 +55,14 @@ export default function GerenciarProntuariosPage() {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
         
-        const cargoLower = (user?.cargo || "").toLowerCase();
-        const temAcesso = user?.email === 'lucagamerbr07@gmail.com' ||
+        const temAcesso = user?.cargo === "administrador" || 
+                         user?.cargo === "superior" || 
                          user?.role === "admin" || 
-                         cargoLower === "administrador" || 
-                         cargoLower.includes("gerencia") ||
-                         cargoLower === "financeiro";
-
-        if (!temAcesso) {
+                         user?.cargo === "gerencia_unidades" ||
+                         user?.cargo === "financeiro";
+        
+        // Bloquear acesso para recepcionistas
+        if (!temAcesso || user?.cargo === "recepcao") {
           navigate(createPageUrl("Agenda"));
         } else {
           // Registrar entrada na área de prontuários
@@ -122,26 +122,9 @@ export default function GerenciarProntuariosPage() {
   const recepcionistas = usuarios.filter(u => u.cargo === "recepcao");
 
   // Filtrar agendamentos não bloqueados
-  let agendamentosValidos = agendamentos.filter(ag => 
+  const agendamentosValidos = agendamentos.filter(ag => 
     ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO"
   );
-
-  // Filtrar por unidades de acesso para gerentes de unidade
-  let unidadesAcessoFinal = [];
-  if (usuarioAtual?.cargo === "gerencia_unidades") {
-    let unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-    if (typeof unidadesAcesso === 'string') {
-      try {
-        unidadesAcesso = JSON.parse(unidadesAcesso);
-      } catch (e) {
-        unidadesAcesso = [];
-      }
-    } else if (!Array.isArray(unidadesAcesso)) {
-      unidadesAcesso = [];
-    }
-    unidadesAcessoFinal = unidadesAcesso;
-    agendamentosValidos = agendamentosValidos.filter(ag => unidadesAcesso.includes(ag.unidade_id));
-  }
 
   // Separar agendamentos com e sem prontuário
   const agendamentosComProntuario = agendamentosValidos.filter(ag =>

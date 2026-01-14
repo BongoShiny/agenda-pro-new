@@ -56,10 +56,9 @@ export default function HomePage() {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
         
-        // APENAS ADMINISTRADORES podem acessar o Dashboard de Análises
-        const cargoLower = (user?.cargo || "").toLowerCase();
-        const isAdmin = user?.email === 'lucagamerbr07@gmail.com' || cargoLower === "administrador" || user?.role === "admin";
-        if (!isAdmin) {
+        // Verificar se é superior/admin
+        const isSuperior = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades";
+        if (!isSuperior) {
           navigate(createPageUrl("Agenda"));
         }
       } catch (error) {
@@ -85,32 +84,6 @@ export default function HomePage() {
     initialData: [],
   });
 
-  const { data: todasUnidades = [] } = useQuery({
-    queryKey: ['unidades-dashboard'],
-    queryFn: () => base44.entities.Unidade.list("nome"),
-    initialData: [],
-  });
-
-  // Filtrar unidades baseado no acesso
-  const unidades = React.useMemo(() => {
-    const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
-    if (cargoLower === "administrador" || usuarioAtual?.role === "admin") {
-      return todasUnidades;
-    }
-    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-    return todasUnidades.filter(u => unidadesAcesso.includes(u.id));
-  }, [todasUnidades, usuarioAtual]);
-
-  // Filtrar agendamentos por unidades de acesso
-  const agendamentosFiltrados = React.useMemo(() => {
-    const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
-    if (cargoLower === "administrador" || usuarioAtual?.role === "admin") {
-      return agendamentos;
-    }
-    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-    return agendamentos.filter(ag => unidadesAcesso.includes(ag.unidade_id));
-  }, [agendamentos, usuarioAtual]);
-
   if (carregando) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -122,7 +95,7 @@ export default function HomePage() {
     );
   }
 
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
   const isGerencia = usuarioAtual?.cargo === "gerencia_unidades";
 
   const widgets = [
@@ -249,29 +222,29 @@ export default function HomePage() {
 
         {/* Métricas de Vendas - Topo */}
         {widgetsVisiveis.metricasVendas && (
-          <WidgetMetricasVendas agendamentos={agendamentosFiltrados} dataInicio={dataInicioVendas} dataFim={dataFimVendas} />
+          <WidgetMetricasVendas agendamentos={agendamentos} dataInicio={dataInicioVendas} dataFim={dataFimVendas} />
         )}
 
         {/* Grid de Widgets */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {widgetsVisiveis.faturamento && (
-            <WidgetFaturamento agendamentos={agendamentosFiltrados} dataInicio={dataInicio} dataFim={dataFim} />
+            <WidgetFaturamento agendamentos={agendamentos} dataInicio={dataInicio} dataFim={dataFim} />
           )}
           
           {widgetsVisiveis.proximosAgendamentos && (
-            <WidgetProximosAgendamentos agendamentos={agendamentosFiltrados} />
+            <WidgetProximosAgendamentos agendamentos={agendamentos} />
           )}
           
           {widgetsVisiveis.tarefasPendentes && (
-            <WidgetTarefasPendentes agendamentos={agendamentosFiltrados} />
+            <WidgetTarefasPendentes agendamentos={agendamentos} />
           )}
           
           {widgetsVisiveis.performanceVendedores && (
-            <WidgetPerformanceVendedores agendamentos={agendamentosFiltrados} />
+            <WidgetPerformanceVendedores agendamentos={agendamentos} />
           )}
           
           {widgetsVisiveis.contasReceber && (
-            <WidgetContasReceber agendamentos={agendamentosFiltrados} />
+            <WidgetContasReceber agendamentos={agendamentos} />
           )}
         </div>
 

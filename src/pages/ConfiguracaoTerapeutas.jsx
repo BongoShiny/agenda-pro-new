@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Switch } from "@/components/ui/switch";
 import { ArrowLeft, Plus, GripVertical, Trash2, Edit2, Check, X, UserPlus, AlertTriangle, UserMinus, Calendar } from "lucide-react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -42,40 +42,15 @@ import {
 export default function ConfiguracaoTerapeutasPage() {
   const queryClient = useQueryClient();
   const [unidadeSelecionada, setUnidadeSelecionada] = useState(null);
-  const [carregando, setCarregando] = useState(true);
-  const navigate = useNavigate();
 
   // Carregar usuário atual para verificar se é admin
   React.useEffect(() => {
     const carregarUsuario = async () => {
-      try {
-        const user = await base44.auth.me();
-        setUsuarioAtual(user);
-        
-        const cargoLower = (user?.cargo || "").toLowerCase();
-        const temAcesso = user?.email === 'lucagamerbr07@gmail.com' ||
-                         user?.role === "admin" || 
-                         cargoLower === "administrador" || 
-                         cargoLower.includes("gerencia");
-
-        if (!temAcesso) {
-          navigate(createPageUrl("Agenda"));
-          return;
-        }
-        
-        // Se é gerência de unidades, selecionar a primeira unidade de acesso
-        if (cargoLower.includes("gerencia") && user?.unidades_acesso?.length > 0) {
-          const unidadeId = Array.isArray(user.unidades_acesso) ? user.unidades_acesso[0] : user.unidades_acesso;
-          setUnidadeSelecionada(unidadeId);
-        }
-      } catch (error) {
-        navigate(createPageUrl("Agenda"));
-      } finally {
-        setCarregando(false);
-      }
+      const user = await base44.auth.me();
+      setUsuarioAtual(user);
     };
     carregarUsuario();
-  }, [navigate]);
+  }, []);
   const [editandoProfissional, setEditandoProfissional] = useState(null);
   const [dadosEditados, setDadosEditados] = useState({
     nome: "",
@@ -115,50 +90,11 @@ export default function ConfiguracaoTerapeutasPage() {
     initialData: [],
   });
 
-  const { data: todasUnidades = [] } = useQuery({
+  const { data: unidades = [] } = useQuery({
     queryKey: ['unidades'],
     queryFn: () => base44.entities.Unidade.list("nome"),
     initialData: [],
   });
-
-  // CRÍTICO: Filtragem correta - gerencia_unidades vê APENAS unidades atribuídas
-  const unidades = React.useMemo(() => {
-    console.log("🏢 FILTRANDO UNIDADES ConfigTerapeutas:", {
-      usuario: usuarioAtual?.email,
-      cargo: usuarioAtual?.cargo,
-      role: usuarioAtual?.role,
-      unidades_acesso: usuarioAtual?.unidades_acesso,
-      total_unidades: todasUnidades.length
-    });
-    
-    // ADMINISTRADOR vê TODAS as unidades
-    const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
-    if (cargoLower === "administrador" || usuarioAtual?.role === "admin") {
-      console.log("✅ ADMINISTRADOR - mostrando TODAS:", todasUnidades.length);
-      return todasUnidades;
-    }
-    
-    // GERENCIA_UNIDADES vê APENAS suas unidades (sem nenhuma exceção)
-    let unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-    
-    // Garantir que é array
-    if (typeof unidadesAcesso === 'string') {
-      try {
-        const parsed = JSON.parse(unidadesAcesso);
-        unidadesAcesso = Array.isArray(parsed) ? parsed : Object.keys(parsed);
-      } catch (e) {
-        unidadesAcesso = [];
-      }
-    } else if (typeof unidadesAcesso === 'object' && !Array.isArray(unidadesAcesso)) {
-      unidadesAcesso = Object.keys(unidadesAcesso);
-    } else if (!Array.isArray(unidadesAcesso)) {
-      unidadesAcesso = [];
-    }
-    
-    const unidadesFiltradas = todasUnidades.filter(u => unidadesAcesso.includes(u.id));
-    console.log("🔒 ACESSO LIMITADO - filtrando:", unidadesFiltradas.length);
-    return unidadesFiltradas;
-  }, [todasUnidades, usuarioAtual]);
 
   const { data: configuracoes = [] } = useQuery({
     queryKey: ['configuracoes'],
@@ -680,34 +616,22 @@ export default function ConfiguracaoTerapeutasPage() {
           </div>
         </div>
 
-        {usuarioAtual?.cargo === "gerencia_unidades" ? (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <p className="text-sm font-medium text-blue-900 mb-2">Unidade:</p>
-            <div className="text-lg font-semibold text-blue-800">
-              {unidades.find(u => u.id === unidadeSelecionada)?.nome || "Nenhuma unidade atribuída"}
-            </div>
-          </div>
-        ) : (
-          <Tabs defaultValue={unidades[0]?.id} onValueChange={setUnidadeSelecionada}>
-            <TabsList className="mb-6">
-              {unidades.map(unidade => (
-                <TabsTrigger key={unidade.id} value={unidade.id}>
-                  {unidade.nome}
-                </TabsTrigger>
-              ))}
-            </TabsList>
+        <Tabs defaultValue={unidades[0]?.id} onValueChange={setUnidadeSelecionada}>
+          <TabsList className="mb-6">
+            {unidades.map(unidade => (
+              <TabsTrigger key={unidade.id} value={unidade.id}>
+                {unidade.nome}
+              </TabsTrigger>
+            ))}
+          </TabsList>
 
           {unidades.map(unidade => {
-            // Se for gerência, mostrar apenas se for a unidade de acesso
-            if (usuarioAtual?.cargo === "gerencia_unidades" && unidade.id !== unidadeSelecionada) {
-              return null;
-            }
-
             const configs = getConfiguracoesUnidade(unidade.id);
             const disponiveis = getProfissionaisDisponiveis(unidade.id);
 
-            return usuarioAtual?.cargo === "gerencia_unidades" ? (
-              <Card key={unidade.id}>
+            return (
+              <TabsContent key={unidade.id} value={unidade.id}>
+                <Card>
                   <CardHeader>
                     <CardTitle className="flex items-center justify-between">
                       <span>Terapeutas da Unidade {unidade.nome}</span>
@@ -962,266 +886,10 @@ export default function ConfiguracaoTerapeutasPage() {
                     )}
                   </CardContent>
                 </Card>
-            ) : (
-              <TabsContent key={unidade.id} value={unidade.id}>
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center justify-between">
-                      <span>Terapeutas da Unidade {unidade.nome}</span>
-                      <span className="text-sm font-normal text-gray-500">
-                        {configs.filter(c => c.ativo).length} terapeutas ativos
-                      </span>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    {disponiveis.length > 0 && (
-                      <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                        <Label className="text-sm font-semibold mb-2 block">Adicionar Terapeuta Existente</Label>
-                        <div className="flex gap-2">
-                          <Select 
-                            key={`select-${unidade.id}-${configs.length}`}
-                            onValueChange={(value) => handleAdicionarTerapeuta(unidade.id, value)}
-                          >
-                            <SelectTrigger className="bg-white">
-                              <SelectValue placeholder="Selecione um terapeuta" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {disponiveis.map(prof => (
-                                <SelectItem key={prof.id} value={prof.id}>
-                                  {prof.nome} - {prof.especialidade}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      </div>
-                    )}
-
-                    <DragDropContext onDragEnd={(result) => handleDragEnd(result, unidade.id)}>
-                      <Droppable droppableId="terapeutas">
-                        {(provided) => (
-                          <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
-                            {configs.map((config, index) => {
-                              const profissional = profissionais.find(p => p.id === config.profissional_id);
-                              if (!profissional) return null;
-
-                              const unidadesDoProfissional = getUnidadesDoProfissional(profissional.id);
-
-                              return (
-                                <Draggable key={config.id} draggableId={config.id} index={index}>
-                                  {(provided) => (
-                                    <div
-                                      ref={provided.innerRef}
-                                      {...provided.draggableProps}
-                                      className="flex items-center gap-3 p-4 bg-white border border-gray-200 rounded-lg hover:shadow-md transition-shadow"
-                                    >
-                                      <div {...provided.dragHandleProps}>
-                                        <GripVertical className="w-5 h-5 text-gray-400 cursor-grab" />
-                                      </div>
-
-                                      <div className="flex-1">
-                                        {editandoProfissional === profissional.id ? (
-                                          <div className="space-y-2">
-                                            <div className="flex items-center gap-2">
-                                              <div className="flex-1 space-y-2">
-                                                <Input
-                                                  value={dadosEditados.nome}
-                                                  onChange={(e) => setDadosEditados(prev => ({ ...prev, nome: e.target.value }))}
-                                                  placeholder="Nome do terapeuta"
-                                                  autoFocus
-                                                />
-                                                <Popover open={emailEditPopoverAberto} onOpenChange={setEmailEditPopoverAberto}>
-                                                  <PopoverTrigger asChild>
-                                                    <Input
-                                                      value={dadosEditados.email}
-                                                      onChange={(e) => {
-                                                        setDadosEditados(prev => ({ ...prev, email: e.target.value }));
-                                                        if (e.target.value.length > 0) {
-                                                          setEmailEditPopoverAberto(true);
-                                                        }
-                                                      }}
-                                                      onFocus={() => {
-                                                        if (dadosEditados.email.length > 0) {
-                                                          setEmailEditPopoverAberto(true);
-                                                        }
-                                                      }}
-                                                      placeholder="Email do terapeuta"
-                                                      type="email"
-                                                    />
-                                                  </PopoverTrigger>
-                                                  <PopoverContent className="w-[300px] p-0" align="start">
-                                                    <Command shouldFilter={false}>
-                                                      <CommandEmpty>Nenhum usuário encontrado</CommandEmpty>
-                                                      <CommandGroup className="max-h-[200px] overflow-y-auto">
-                                                        {usuarios
-                                                          .filter(u => {
-                                                            const busca = dadosEditados.email?.toLowerCase() || "";
-                                                            const email = u.email?.toLowerCase() || "";
-                                                            const nome = u.full_name?.toLowerCase() || "";
-                                                            return email.includes(busca) || nome.includes(busca);
-                                                          })
-                                                          .slice(0, 10)
-                                                          .map(usuario => (
-                                                            <CommandItem
-                                                              key={usuario.id}
-                                                              value={usuario.email}
-                                                              onSelect={() => {
-                                                                setDadosEditados(prev => ({ ...prev, email: usuario.email }));
-                                                                setEmailEditPopoverAberto(false);
-                                                              }}
-                                                            >
-                                                              <div className="flex flex-col">
-                                                                <span className="font-medium">{usuario.email}</span>
-                                                                {usuario.full_name && (
-                                                                  <span className="text-xs text-gray-500">{usuario.full_name}</span>
-                                                                )}
-                                                              </div>
-                                                            </CommandItem>
-                                                          ))}
-                                                      </CommandGroup>
-                                                    </Command>
-                                                  </PopoverContent>
-                                                </Popover>
-                                                <Input
-                                                  value={dadosEditados.especialidade}
-                                                  onChange={(e) => setDadosEditados(prev => ({ ...prev, especialidade: e.target.value }))}
-                                                  placeholder="Especialidade"
-                                                />
-                                                <div className="flex gap-2 items-center">
-                                                  <Input
-                                                    type="time"
-                                                    value={dadosEditados.horario_inicio}
-                                                    onChange={(e) => setDadosEditados(prev => ({ ...prev, horario_inicio: e.target.value }))}
-                                                    className="flex-1"
-                                                  />
-                                                  <span className="text-gray-500 text-sm">até</span>
-                                                  <Input
-                                                    type="time"
-                                                    value={dadosEditados.horario_fim}
-                                                    onChange={(e) => setDadosEditados(prev => ({ ...prev, horario_fim: e.target.value }))}
-                                                    className="flex-1"
-                                                  />
-                                                </div>
-                                              </div>
-                                              <div className="flex flex-col gap-1">
-                                                <Button size="icon" variant="ghost" onClick={() => handleSalvarProfissional(profissional.id)}>
-                                                  <Check className="w-4 h-4 text-green-600" />
-                                                </Button>
-                                                <Button size="icon" variant="ghost" onClick={handleCancelarEdicao}>
-                                                  <X className="w-4 h-4 text-red-600" />
-                                                </Button>
-                                              </div>
-                                            </div>
-                                          </div>
-                                        ) : (
-                                          <div>
-                                            <div className="flex items-center gap-2">
-                                              <span className="font-semibold text-lg">{profissional.nome}</span>
-                                              <Button size="icon" variant="ghost" onClick={() => handleEditarProfissional(profissional)} className="h-7 w-7">
-                                                <Edit2 className="w-3 h-3 text-gray-400" />
-                                              </Button>
-                                            </div>
-                                            {profissional.email && (
-                                              <div className="text-xs text-blue-600 mt-1">
-                                                ✉️ {profissional.email}
-                                              </div>
-                                            )}
-                                            <div className="flex items-center gap-2 mt-1">
-                                              <span className="text-sm text-gray-500">{profissional.especialidade}</span>
-                                              {unidadesDoProfissional.length > 1 && (
-                                                <Popover>
-                                                  <PopoverTrigger asChild>
-                                                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded cursor-pointer hover:bg-blue-200">
-                                                      Em {unidadesDoProfissional.length} unidades
-                                                    </span>
-                                                  </PopoverTrigger>
-                                                  <PopoverContent className="w-auto p-3">
-                                                    <div className="text-sm font-semibold mb-2">Unidades:</div>
-                                                    <ul className="space-y-1">
-                                                      {unidadesDoProfissional.map(u => (
-                                                        <li key={u.id} className="text-sm text-gray-700">• {u.nome}</li>
-                                                      ))}
-                                                    </ul>
-                                                  </PopoverContent>
-                                                </Popover>
-                                              )}
-                                            </div>
-                                            <div className="text-xs text-gray-400 mt-1">
-                                             Horário padrão: {profissional.horario_inicio || "08:00"} - {profissional.horario_fim || "18:00"}
-                                            </div>
-                                            {getExcecoesDoProfissional(profissional.id).length > 0 && (
-                                             <div className="text-xs text-blue-600 mt-1">
-                                               📅 {getExcecoesDoProfissional(profissional.id).length} exceção(ões) configurada(s)
-                                             </div>
-                                            )}
-                                          </div>
-                                        )}
-                                      </div>
-
-                                      <div className="flex items-center gap-2">
-                                        <div className="flex items-center gap-2 mr-2">
-                                          <Label className="text-sm text-gray-600">Ativo</Label>
-                                          <Switch
-                                            checked={config.ativo}
-                                            onCheckedChange={() => handleToggleAtivo(config)}
-                                          />
-                                        </div>
-                                        
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() => handleAbrirDialogExcecao(profissional)}
-                                          className="hover:bg-blue-50"
-                                          title="Configurar horários específicos"
-                                        >
-                                          <Calendar className="w-4 h-4 text-blue-500" />
-                                        </Button>
-
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() => handleRemoverDaUnidade(profissional.id, unidade.id)}
-                                          className="hover:bg-orange-50"
-                                          title="Remover desta unidade"
-                                        >
-                                          <UserMinus className="w-4 h-4 text-orange-500" />
-                                        </Button>
-
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() => handleAbrirDialogExcluir(profissional)}
-                                          className="hover:bg-red-50"
-                                          title="Excluir permanentemente"
-                                        >
-                                          <Trash2 className="w-4 h-4 text-red-500" />
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  )}
-                                </Draggable>
-                              );
-                            })}
-                            {provided.placeholder}
-                          </div>
-                        )}
-                      </Droppable>
-                    </DragDropContext>
-
-                    {configs.length === 0 && (
-                      <div className="text-center py-12 text-gray-500">
-                        <UserPlus className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                        <p className="font-medium">Nenhum terapeuta configurado para esta unidade</p>
-                        <p className="text-sm mt-2">Adicione terapeutas existentes ou crie novos usando o botão acima</p>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
               </TabsContent>
             );
           })}
         </Tabs>
-        )}
       </div>
 
       {/* Dialog para criar novo profissional */}

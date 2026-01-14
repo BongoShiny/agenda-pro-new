@@ -6,8 +6,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { ArrowLeft, Download, BarChart3, FileSpreadsheet, FileText } from "lucide-react";
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
+import { ArrowLeft, Download, BarChart3, PieChart, FileSpreadsheet, FileText } from "lucide-react";
+import { BarChart, Bar, PieChart as RechartsPie, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { format, startOfMonth, endOfMonth, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import * as XLSX from "xlsx";
@@ -32,9 +32,7 @@ export default function RelatoriosAvancadosPage() {
       try {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
-        // APENAS ADMINISTRADORES podem acessar Relatórios Avançados
-        const cargoLower = (user?.cargo || "").toLowerCase();
-        const isAdmin = user?.email === 'lucagamerbr07@gmail.com' || cargoLower === "administrador" || user?.role === "admin";
+        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades";
         if (!isAdmin) {
           navigate(createPageUrl("Agenda"));
         }
@@ -65,23 +63,14 @@ export default function RelatoriosAvancadosPage() {
     initialData: [],
   });
 
-  const { data: todasUnidades = [] } = useQuery({
+  const { data: unidades = [] } = useQuery({
     queryKey: ['unidades'],
     queryFn: () => base44.entities.Unidade.list("nome"),
     initialData: [],
   });
 
-  // Filtrar unidades baseado no acesso do usuário - gerentes veem APENAS suas unidades
-  const unidades = React.useMemo(() => {
-    if (usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin") {
-      return todasUnidades;
-    }
-    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-    return todasUnidades.filter(u => unidadesAcesso.includes(u.id));
-  }, [todasUnidades, usuarioAtual]);
-
   // Filtrar agendamentos
-  let agendamentosFiltrados = agendamentos
+  const agendamentosFiltrados = agendamentos
     .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
     .filter(ag => {
       const dataAg = ag.data;
@@ -92,12 +81,6 @@ export default function RelatoriosAvancadosPage() {
       if (statusFiltro !== "todos" && ag.status !== statusFiltro) return false;
       return true;
     });
-
-  // Filtrar por unidades de acesso para gerentes de unidade
-  if (usuarioAtual?.cargo === "gerencia_unidades") {
-    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-    agendamentosFiltrados = agendamentosFiltrados.filter(ag => unidadesAcesso.includes(ag.unidade_id));
-  }
 
   // Dados para gráficos
   const dadosPorProfissional = profissionais.map(prof => ({
@@ -372,7 +355,7 @@ export default function RelatoriosAvancadosPage() {
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
-                <PieChart>
+                <RechartsPie>
                   <Pie
                     data={dadosPorStatus}
                     cx="50%"
@@ -388,7 +371,7 @@ export default function RelatoriosAvancadosPage() {
                     ))}
                   </Pie>
                   <Tooltip />
-                </PieChart>
+                </RechartsPie>
               </ResponsiveContainer>
             </CardContent>
           </Card>

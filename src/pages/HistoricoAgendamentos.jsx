@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -113,27 +113,6 @@ export default function HistoricoAgendamentosPage() {
   const [unidadeFiltro, setUnidadeFiltro] = useState("");
   const [buscaLogs, setBuscaLogs] = useState("");
   const [tipoAcaoFiltro, setTipoAcaoFiltro] = useState("");
-  const [usuarioAtual, setUsuarioAtual] = useState(null);
-
-  React.useEffect(() => {
-    const carregarUsuario = async () => {
-      const user = await base44.auth.me();
-      setUsuarioAtual(user);
-
-      const cargoLower = (user?.cargo || "").toLowerCase().trim();
-      const temAcesso = user.role === "admin" || 
-                     cargoLower === "administrador" || 
-                     cargoLower === "gerencia_unidades" ||
-                     (user?.cargo && user.cargo.includes("+ Gerência de Unidade")) ||
-                     cargoLower === "financeiro";
-
-      if (!temAcesso) {
-      navigate(createPageUrl("Agenda"));
-      return;
-      }
-    };
-    carregarUsuario();
-  }, []);
 
   const { data: agendamentos = [] } = useQuery({
     queryKey: ['agendamentos-historico'],
@@ -147,38 +126,13 @@ export default function HistoricoAgendamentosPage() {
     initialData: [],
   });
 
-  // Filtrar agendamentos - APENAS administradores veem tudo, todos os outros têm limitações
-  const agendamentosAcessiveis = agendamentos.filter(ag => {
-    // APENAS administradores veem todos os agendamentos (case-insensitive)
-    const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
-    if (cargoLower === "administrador" || usuarioAtual?.role === "admin") {
-      return true;
-    }
-    
-    // Todos os outros veem apenas suas unidades de acesso
-    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-    if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
-      return false;
-    }
-    return true;
-  });
-
-  // Extrair lista única de profissionais e unidades dos agendamentos acessíveis
-  const profissionaisUnicos = [...new Set(agendamentosAcessiveis.map(ag => ag.profissional_nome).filter(Boolean))].sort();
-  const unidadesUnicas = [...new Set(agendamentosAcessiveis.map(ag => ag.unidade_nome).filter(Boolean))].sort();
+  // Extrair lista única de profissionais e unidades
+  const profissionaisUnicos = [...new Set(agendamentos.map(ag => ag.profissional_nome).filter(Boolean))].sort();
+  const unidadesUnicas = [...new Set(agendamentos.map(ag => ag.unidade_nome).filter(Boolean))].sort();
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
     // CRÍTICO: Aba "Agendamentos" mostra APENAS registros do sistema (sem criador_email)
     if (ag.criador_email) return false;
-    
-    // APENAS administradores veem tudo (case-insensitive)
-    const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
-    if (cargoLower !== "administrador" && usuarioAtual?.role !== "admin") {
-      const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-      if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
-        return false;
-      }
-    }
     
     const buscaLower = busca.toLowerCase();
     
@@ -198,18 +152,6 @@ export default function HistoricoAgendamentosPage() {
   });
 
   const logsAcoesFiltrados = logsAcoes.filter(log => {
-    // APENAS administradores veem todos os logs (case-insensitive)
-    const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
-    if (cargoLower !== "administrador" && usuarioAtual?.role !== "admin" && log.entidade_tipo === "Agendamento" && log.entidade_id) {
-      const agendamentoRelacionado = agendamentos.find(ag => ag.id === log.entidade_id);
-      if (agendamentoRelacionado) {
-        const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-        if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(agendamentoRelacionado.unidade_id)) {
-          return false;
-        }
-      }
-    }
-    
     const buscaLower = buscaLogs.toLowerCase();
     const matchBusca = !buscaLogs || (
       log.usuario_email?.toLowerCase().includes(buscaLower) ||

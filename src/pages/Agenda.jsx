@@ -24,65 +24,84 @@ export const formatarDataPura = (data) => {
   const ano = data.getFullYear(); // LOCAL time
   const mes = String(data.getMonth() + 1).padStart(2, '0'); // LOCAL time
   const dia = String(data.getDate()).padStart(2, '0'); // LOCAL time
-  return `${ano}-${mes}-${dia}`;
+  const resultado = `${ano}-${mes}-${dia}`;
+  
+  console.log("🔧 FUNÇÃO formatarDataPura:", {
+    input: data.toString(),
+    ano: ano,
+    mes: mes,
+    dia: dia,
+    output: resultado,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+  });
+  
+  return resultado;
 };
 
 // FUNÇÃO CRÍTICA: Converte string YYYY-MM-DD para Date object LOCAL
 // Criar data com new Date(ano, mes, dia) - isso cria no timezone LOCAL do navegador
 export const criarDataPura = (dataString) => {
   if (!dataString || !/^\d{4}-\d{2}-\d{2}$/.test(dataString)) {
+    console.warn("⚠️ criarDataPura: string inválida, usando data atual");
     return new Date();
   }
   
   const [ano, mes, dia] = dataString.split('-').map(Number);
-  return new Date(ano, mes - 1, dia, 12, 0, 0);
+  // Criar às 12h LOCAL para evitar problemas de exibição
+  const resultado = new Date(ano, mes - 1, dia, 12, 0, 0);
+  
+  console.log("🔧 FUNÇÃO criarDataPura:", {
+    input: dataString,
+    output: resultado.toString(),
+    ano: ano,
+    mes: mes,
+    dia: dia,
+    timezone: Intl.DateTimeFormat().resolvedOptions().timeZone
+  });
+  
+  return resultado;
 };
 
 // FUNÇÃO CRÍTICA: Normaliza qualquer formato de data para YYYY-MM-DD
 export const normalizarData = (valor) => {
   if (!valor) {
+    console.log("⚠️ normalizarData: valor vazio");
     return null;
   }
   
+  console.log("🔧 normalizarData INPUT:", valor, "| Tipo:", typeof valor);
+  
   // Já está no formato correto YYYY-MM-DD
   if (typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+    console.log("✅ normalizarData: já está correto:", valor);
     return valor;
   }
   
-  // String com timestamp (ex: "2025-11-13T00:00:00.000Z" ou "2025-11-13T00:00:00")
+  // String com timestamp (ex: "2025-11-13T00:00:00.000Z")
   if (typeof valor === 'string' && valor.includes('T')) {
     const resultado = valor.split('T')[0];
-    // Validar se é YYYY-MM-DD
-    if (/^\d{4}-\d{2}-\d{2}$/.test(resultado)) {
-      return resultado;
-    }
-    // Se não conseguir extrair, tentar fazer parse completo
-    try {
-      const data = new Date(valor);
-      if (!isNaN(data.getTime())) {
-        return formatarDataPura(data);
-      }
-    } catch (e) {
-      // Continua
-    }
+    console.log("✅ normalizarData: extraído de timestamp:", resultado);
+    return resultado;
   }
   
   // É um Date object - usar métodos LOCAIS
-  if (valor instanceof Date && !isNaN(valor.getTime())) {
-    return formatarDataPura(valor);
+  if (valor instanceof Date) {
+    const resultado = formatarDataPura(valor);
+    console.log("✅ normalizarData: convertido de Date:", resultado);
+    return resultado;
   }
   
-  // Último recurso: tentar parsear como Date
+  // Último recurso: tentar parsear
   try {
-    const data = new Date(valor);
-    if (!isNaN(data.getTime())) {
-      return formatarDataPura(data);
-    }
+    // Forçar interpretação LOCAL adicionando horário meio-dia
+    const data = new Date(valor + 'T12:00:00');
+    const resultado = formatarDataPura(data);
+    console.log("✅ normalizarData: parseado:", resultado);
+    return resultado;
   } catch (e) {
-    // Silent fail
+    console.error("❌ normalizarData ERRO:", valor, e);
+    return null;
   }
-  
-  return null;
 };
 
 // ============================================
@@ -103,6 +122,12 @@ export default function AgendaPage() {
       dataLocal = addDays(dataLocal, 1);
     }
     
+    console.log("🚀🚀🚀 INICIALIZANDO PÁGINA 🚀🚀🚀");
+    console.log("Data agora (raw):", agora.toString());
+    console.log("Data local (12h):", dataLocal.toString());
+    console.log("Data formatada:", formatarDataPura(dataLocal));
+    console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+    
     return dataLocal;
   };
   
@@ -121,104 +146,37 @@ export default function AgendaPage() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    (async () => {
+    const carregarUsuario = async () => {
+      const user = await base44.auth.me();
+      setUsuarioAtual(user);
+      
+      // Verificar prontuários atrasados periodicamente (a cada 5 minutos)
+      const verificarAtrasados = async () => {
         try {
-          // 🔄 SINCRONIZAR: Buscar usuário ATUALIZADO do banco PELA EMAIL
-          const userSession = await base44.auth.me();
-
-          // VALIDAÇÃO: Usuário sem cargo OU (não-admin sem unidades) é bloqueado
-          const cargo = userSession?.cargo || "";
-          const isAdmin = userSession?.email === 'lucagamerbr07@gmail.com' || userSession?.role === "admin";
-
-          if (!isAdmin && !cargo) {
-            alert("❌ Usuário não configurado. Aguarde o administrador configurar seu cargo e permissões.");
-            window.location.href = createPageUrl("Home");
-            return;
-          }
-
-          // VALIDAÇÃO: Não-admin sem unidades atribuídas é bloqueado
-          if (!isAdmin && cargo) {
-            const usuariosBanco = await base44.entities.User.list();
-            const usuarioBanco = usuariosBanco.find(u => u.email === userSession.email);
-            
-            let unidadesAcesso = usuarioBanco?.unidades_acesso || [];
-            if (typeof unidadesAcesso === 'string') {
-              try {
-                unidadesAcesso = JSON.parse(unidadesAcesso);
-              } catch (e) {
-                unidadesAcesso = [];
-              }
-            }
-            
-            if (!Array.isArray(unidadesAcesso) || unidadesAcesso.length === 0) {
-              alert("❌ Nenhuma unidade atribuída. Aguarde o administrador atribuir permissões de unidade.");
-              window.location.href = createPageUrl("Home");
-              return;
-            }
-          }
-
-          // FONTE DE VERDADE: Banco de dados
-          const usuariosBanco = await base44.entities.User.list();
-          const usuarioBanco = usuariosBanco.find(u => u.email === userSession.email);
-
-          if (!usuarioBanco) {
-            console.error("❌ Usuário não encontrado no banco:", userSession.email);
-            setUsuarioAtual(userSession);
-            return;
-          }
-
-        // USAR DADOS DO BANCO COMO FONTE DE VERDADE
-        let user = { ...userSession, ...usuarioBanco };
-
-        console.log(`✅ Sincronizado ${user.email}:`, { 
-          cargo: user.cargo, 
-          unidades: user.unidades_acesso 
-        });
-
-        // MIGRAR CARGOS ANTIGOS
-        const cargoLower = (user?.cargo || "").toLowerCase().trim();
-        if (cargoLower.includes("gerencia_unidade_")) {
-          console.log(`🔄 Migrando cargo de ${user.email}: ${user.cargo} → gerencia_unidades`);
-          await base44.entities.User.update(user.id, { cargo: "gerencia_unidades" });
-          user.cargo = "gerencia_unidades";
+          await base44.functions.invoke('verificarProntuariosAtrasados', {});
+        } catch (error) {
+          console.error("Erro ao verificar prontuários atrasados:", error);
         }
+      };
+      
+      // Executar imediatamente e depois a cada 5 minutos
+      verificarAtrasados();
+      const intervalo = setInterval(verificarAtrasados, 5 * 60 * 1000);
+      
+      return () => clearInterval(intervalo);
+      console.log("👤👤👤 USUÁRIO CARREGADO 👤👤👤");
+      console.log("Email:", user.email);
+      console.log("Cargo:", user.cargo);
+      console.log("Role:", user.role);
+      console.log("É Admin?:", user.cargo === "administrador" || user.role === "admin");
+      console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+      console.log("Data atual:", dataAtual.toString());
+      console.log("Data formatada:", formatarDataPura(dataAtual));
 
-        // GARANTIR ARRAY
-        let unidadesAcessoFinal = user.unidades_acesso || [];
-        if (typeof unidadesAcessoFinal === 'string') {
-          try {
-            unidadesAcessoFinal = JSON.parse(unidadesAcessoFinal);
-          } catch (e) {
-            unidadesAcessoFinal = [];
-          }
-        }
-        if (!Array.isArray(unidadesAcessoFinal)) {
-          unidadesAcessoFinal = [];
-        }
-        user.unidades_acesso = unidadesAcessoFinal;
-
-        setUsuarioAtual(user);
-
-        // Verificar prontuários atrasados
-        const verificarAtrasados = async () => {
-          try {
-            await base44.functions.invoke('verificarProntuariosAtrasados', {});
-          } catch (error) {
-            console.error("Erro ao verificar prontuários atrasados:", error);
-          }
-        };
-
-        verificarAtrasados();
-        const intervalo = setInterval(verificarAtrasados, 5 * 60 * 1000);
-
-        // Gerenciar sessão única
-        await gerenciarSessaoUnica(user);
-
-        return () => clearInterval(intervalo);
-      } catch (error) {
-        console.error("❌ Erro ao carregar usuário:", error);
-      }
-    })();
+      // Gerenciar sessão única
+      await gerenciarSessaoUnica(user);
+    };
+    carregarUsuario();
   }, []);
 
   // Função para gerenciar sessão única
@@ -249,27 +207,24 @@ export default function AgendaPage() {
         console.log("Não foi possível obter IP:", error);
       }
 
-      // Buscar e limpar dispositivos DUPLICADOS DO MESMO USUÁRIO no mesmo IP+dispositivo
-          // CRÍTICO: Filtrar por usuario_email para evitar misturar contas!
-          const todosDispositivos = await base44.entities.DispositivoConectado.filter({ 
-            usuario_email: user.email,  // ⚠️ ISOLADO POR USUÁRIO
-            dispositivo: dispositivo,
-            ip: ip,
-            sessao_ativa: true  // Apenas contar sessões ativas
-          });
+      // Buscar e limpar dispositivos duplicados do mesmo IP+dispositivo
+      const todosDispositivos = await base44.entities.DispositivoConectado.filter({ 
+        usuario_email: user.email,
+        dispositivo: dispositivo,
+        ip: ip
+      });
 
-          if (todosDispositivos.length > 1) {
-            // Ordenar por data_login (mais recente primeiro)
-            const ordenados = todosDispositivos.sort((a, b) => 
-              new Date(b.data_login) - new Date(a.data_login)
-            );
+      if (todosDispositivos.length > 1) {
+        // Ordenar por data_login (mais recente primeiro)
+        const ordenados = todosDispositivos.sort((a, b) => 
+          new Date(b.data_login) - new Date(a.data_login)
+        );
 
-            // Manter apenas o mais recente deste USUÁRIO, deletar os outros
-            for (let i = 1; i < ordenados.length; i++) {
-              console.log(`🗑️ Removendo dispositivo antigo de ${user.email}: ${ordenados[i].id}`);
-              await base44.entities.DispositivoConectado.delete(ordenados[i].id);
-            }
-          }
+        // Manter apenas o mais recente, deletar os outros
+        for (let i = 1; i < ordenados.length; i++) {
+          await base44.entities.DispositivoConectado.delete(ordenados[i].id);
+        }
+      }
 
       // Buscar todas as sessões ativas do usuário
       const todasSessoes = await base44.entities.SessaoAtiva.filter({ 
@@ -289,13 +244,12 @@ export default function AgendaPage() {
         }
       }
 
-      // Buscar sessões ativas DO MESMO USUÁRIO (isolado por email)
+      // Buscar sessões ativas do usuário
       const sessoesAtivas = await base44.entities.SessaoAtiva.filter({ 
-        usuario_email: user.email  // ⚠️ ISOLADO POR USUÁRIO
+        usuario_email: user.email 
       });
 
-      // Verificar se já existe sessão COM MESMO DISPOSITIVO E IP (mesmo navegador/máquina)
-      // Mas APENAS para este usuário (filtro de email já garante)
+      // Verificar se já existe sessão com mesmo dispositivo e IP (mesmo navegador/máquina)
       const sessaoExistente = sessoesAtivas.find(s => 
         s.dispositivo === dispositivo && s.ip === ip
       );
@@ -331,14 +285,13 @@ export default function AgendaPage() {
           });
         }
       } else {
-        // Verificar limite de 3 dispositivos DIFERENTES POR USUÁRIO
-        // ⚠️ CRÍTICO: Apenas contar dispositivos deste usuário (usuario_email)
+        // Verificar limite de 3 dispositivos DIFERENTES
         const dispositivosAtivos = await base44.entities.DispositivoConectado.filter({ 
-          usuario_email: user.email,  // Isolado por usuário
+          usuario_email: user.email,
           sessao_ativa: true
         });
 
-        // Contar dispositivos únicos (por IP + dispositivo) DO MESMO USUÁRIO
+        // Contar dispositivos únicos (por IP + dispositivo)
         const dispositivosUnicos = new Map();
         dispositivosAtivos.forEach(d => {
           const chave = `${d.ip}-${d.dispositivo}`;
@@ -347,24 +300,21 @@ export default function AgendaPage() {
           }
         });
 
-        console.log(`📊 ${user.email} tem ${dispositivosUnicos.size} dispositivos ativos`);
-
         if (dispositivosUnicos.size >= 3) {
-          // Se já tem 3 dispositivos DIFERENTES deste usuário, remover o mais antigo
+          // Se já tem 3 dispositivos DIFERENTES, remover o mais antigo
           const dispositivos = Array.from(dispositivosUnicos.values());
           const maisAntigo = dispositivos.sort((a, b) => 
             new Date(a.data_login) - new Date(b.data_login)
           )[0];
 
           if (maisAntigo) {
-            console.log(`🗑️ Removendo dispositivo antigo de ${user.email}: ${maisAntigo.dispositivo}`);
             await base44.entities.DispositivoConectado.update(maisAntigo.id, {
               sessao_ativa: false
             });
 
-            // Remover sessão ativa correspondente (APENAS do mesmo usuário)
+            // Remover sessão ativa correspondente
             const sessaoAntiga = await base44.entities.SessaoAtiva.filter({
-              usuario_email: user.email,  // Isolado por usuário
+              usuario_email: user.email,
               dispositivo: maisAntigo.dispositivo,
               ip: maisAntigo.ip
             });
@@ -401,23 +351,22 @@ export default function AgendaPage() {
         });
       }
 
-      // Verificar periodicamente se a sessão DESTE USUÁRIO ainda é válida
-      // ⚠️ CRÍTICO: Verificar APENAS se a sessão deste usuário foi removida (não confundir com outro usuário)
+      // Verificar periodicamente se a sessão ainda é válida
       const verificarSessao = setInterval(async () => {
         try {
           const sessoesAtuais = await base44.entities.SessaoAtiva.filter({ 
-            usuario_email: user.email,  // Isolado por usuário
+            usuario_email: user.email,
             sessao_id: sessaoId
           });
 
-          // Se não encontrar a sessão deste usuário, significa que foi desconectada
+          // Se não encontrar a sessão, significa que foi desconectada
           if (sessoesAtuais.length === 0) {
-            console.log(`⚠️ Sessão de ${user.email} foi removida (limite de 3 dispositivos excedido)`);
+            console.log("⚠️ Sessão desconectada em outro dispositivo");
             clearInterval(verificarSessao);
-            alert("Você foi desconectado porque acessou em mais de 3 dispositivos diferentes.");
+            alert("Sua conta foi acessada em outro dispositivo. Você será desconectado.");
             base44.auth.logout();
           } else {
-            // Atualizar última atividade apenas da sessão deste usuário
+            // Atualizar última atividade
             await base44.entities.SessaoAtiva.update(sessoesAtuais[0].id, {
               ultima_atividade: new Date().toISOString()
             });
@@ -437,115 +386,75 @@ export default function AgendaPage() {
   const { data: agendamentos = [], refetch: refetchAgendamentos } = useQuery({
     queryKey: ['agendamentos'],
     queryFn: async () => {
+      console.log("📥📥📥 CARREGANDO AGENDAMENTOS DO BANCO 📥📥📥");
+      
       const lista = await base44.entities.Agendamento.list("-data");
-
+      
+      console.log("📊 Total bruto do banco:", lista.length);
+      
       // NORMALIZAR TODAS AS DATAS NA ENTRADA
-      return lista.map(ag => {
+      const listaNormalizada = lista.map(ag => {
         const dataNormalizada = normalizarData(ag.data);
-        if (dataNormalizada !== ag.data) {
-          console.warn(`⚠️ Data normalizada para agendamento ${ag.id}: "${ag.data}" → "${dataNormalizada}"`);
-        }
         return { ...ag, data: dataNormalizada };
       });
+      
+      console.log("✅ Todos os agendamentos normalizados:", listaNormalizada.length);
+      
+      // Mostrar todos os bloqueios
+      const bloqueios = listaNormalizada.filter(ag => 
+        ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO"
+      );
+      
+      console.log("🔒 BLOQUEIOS NO BANCO:", bloqueios.length);
+      bloqueios.forEach(b => {
+        console.log(`  🔒 ID: ${b.id} | Data: ${b.data} | Hora: ${b.hora_inicio} | Prof: ${b.profissional_nome} | Unidade: ${b.unidade_nome}`);
+      });
+      
+      return listaNormalizada;
     },
     initialData: [],
+    refetchInterval: 3000,
   });
 
   const { data: clientes = [] } = useQuery({
     queryKey: ['clientes'],
     queryFn: () => base44.entities.Cliente.list("nome"),
     initialData: [],
-    staleTime: Infinity,
   });
 
   const { data: profissionais = [] } = useQuery({
     queryKey: ['profissionais'],
     queryFn: () => base44.entities.Profissional.list("nome"),
     initialData: [],
-    staleTime: Infinity,
   });
 
-  const { data: todasUnidades = [], isLoading: unidadesCarregando } = useQuery({
+  const { data: todasUnidades = [] } = useQuery({
     queryKey: ['unidades'],
     queryFn: () => base44.entities.Unidade.list("nome"),
     initialData: [],
-    staleTime: Infinity,  // Não refetch automático
   });
 
-  // CRÍTICO: Filtragem de unidades por cargo
-        const unidades = React.useMemo(() => {
-          if (!usuarioAtual || todasUnidades.length === 0) {
-            return [];
-          }
-
-          const cargoLower = (usuarioAtual.cargo || "").toLowerCase().trim();
-          const isSuperAdmin = usuarioAtual.email === 'lucagamerbr07@gmail.com';
-
-          // ADMINISTRADOR e SUPER ADMIN veem TODAS as unidades
-          if (isSuperAdmin || cargoLower === "administrador" || usuarioAtual.role === "admin") {
-            return todasUnidades;
-          }
-
-          // ✅ VALIDAÇÃO: FUNCIONÁRIO DEVE VER APENAS SUAS UNIDADES ATRIBUÍDAS
-          // Se é funcionário ou qualquer outro cargo, filtrar por unidades_acesso
-          let unidadesAcesso = [];
-
-          console.log("🔍 DEBUG UNIDADES AGENDA:", {
-            cargo: cargoLower,
-            unidades_acesso_raw: usuarioAtual.unidades_acesso,
-            tipo: typeof usuarioAtual.unidades_acesso
-          });
-
-          // Sempre parsear como STRING JSON - formato único
-          if (typeof usuarioAtual.unidades_acesso === 'string') {
-            try {
-              const parsed = JSON.parse(usuarioAtual.unidades_acesso);
-              unidadesAcesso = Array.isArray(parsed) ? parsed : [];
-            } catch (e) {
-              console.warn("⚠️ Erro ao parsear unidades_acesso:", e);
-              unidadesAcesso = [];
-            }
-          } else if (Array.isArray(usuarioAtual.unidades_acesso)) {
-            unidadesAcesso = usuarioAtual.unidades_acesso;
-          }
-
-          console.log("✅ UNIDADES_ACESSO FINAL (ARRAY):", unidadesAcesso);
-
-          // Retornar APENAS as unidades que o usuário tem acesso
-          const resultado = todasUnidades.filter(u => unidadesAcesso.includes(u.id));
-          console.log("📊 UNIDADES VISÍVEIS AGENDA:", resultado.map(u => u.nome));
-
-          return resultado;
-        }, [todasUnidades, usuarioAtual]);
-
-  // Se unidadeSelecionada não estiver nas unidades filtradas, selecionar a primeira
-  React.useEffect(() => {
-    if (unidades.length > 0 && !unidadeSelecionada) {
-      setUnidadeSelecionada(unidades[0]);
-    } else if (unidades.length > 0 && unidadeSelecionada && !unidades.find(u => u.id === unidadeSelecionada.id)) {
-      setUnidadeSelecionada(unidades[0]);
-    }
-  }, [unidades, unidadeSelecionada]);
+  // Filtrar unidades baseado no acesso do usuário
+  const unidades = (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin")
+    ? todasUnidades
+    : todasUnidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
 
   const { data: servicos = [] } = useQuery({
     queryKey: ['servicos'],
     queryFn: () => base44.entities.Servico.list("nome"),
     initialData: [],
-    staleTime: Infinity,
   });
 
   const { data: configuracoes = [] } = useQuery({
     queryKey: ['configuracoes'],
     queryFn: () => base44.entities.ConfiguracaoTerapeuta.list("ordem"),
     initialData: [],
-    staleTime: Infinity,
   });
 
   const { data: excecoesHorario = [] } = useQuery({
     queryKey: ['excecoes-horario'],
     queryFn: () => base44.entities.HorarioExcecao.list("-data"),
     initialData: [],
-    staleTime: Infinity,
   });
 
   const criarAgendamentoMutation = useMutation({
@@ -745,43 +654,11 @@ export default function AgendaPage() {
   };
 
   const handleNovoAgendamento = () => {
-    // ✅ VALIDAÇÃO: Verificar permissão para criar agendamento
-    const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
-    const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
-    const isAdmin = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin";
-    const isGerencia = cargoLower === "gerencia_unidades";
-    const isVendedor = cargoLower === "vendedor";
-    const isRecepcao = cargoLower === "recepcao";
-    const isFuncionario = cargoLower === "funcionario" || cargoLower === "funcionário";
-    
-    const temPermissao = isAdmin || isGerencia || isVendedor || isRecepcao || isFuncionario;
-    
-    if (!temPermissao) {
-      alert("❌ Você não tem permissão para criar agendamentos!");
-      return;
-    }
-
     setAgendamentoInicial({});
     setDialogNovoAberto(true);
   };
 
   const handleNovoAgendamentoSlot = (unidadeId, profissionalId, horario) => {
-    // ✅ VALIDAÇÃO: Verificar permissão para criar agendamento
-    const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
-    const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
-    const isAdmin = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin";
-    const isGerencia = cargoLower === "gerencia_unidades";
-    const isVendedor = cargoLower === "vendedor";
-    const isRecepcao = cargoLower === "recepcao";
-    const isFuncionario = cargoLower === "funcionario" || cargoLower === "funcionário";
-    
-    const temPermissao = isAdmin || isGerencia || isVendedor || isRecepcao || isFuncionario;
-    
-    if (!temPermissao) {
-      alert("❌ Você não tem permissão para criar agendamentos!");
-      return;
-    }
-
     const unidade = unidades.find(u => u.id === unidadeId);
     const profissional = profissionais.find(p => p.id === profissionalId);
     
@@ -789,6 +666,8 @@ export default function AgendaPage() {
     const horaFim = `${(hora + 1).toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
     
     const dataFormatada = formatarDataPura(dataAtual);
+    
+    console.log("🆕 NOVO AGENDAMENTO SLOT:", dataFormatada, horario);
     
     setAgendamentoInicial({
       unidade_id: unidadeId,
@@ -803,16 +682,6 @@ export default function AgendaPage() {
   };
 
   const handleBloquearHorario = async (unidadeId, profissionalId, horarioInicio, horarioFim) => {
-    // ✅ VALIDAÇÃO: Apenas ADMIN e GERÊNCIA podem bloquear
-    const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
-    const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
-    const temPermissao = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin" || cargoLower === "gerencia_unidades";
-    
-    if (!temPermissao) {
-      alert("❌ Você não tem permissão para bloquear horários!");
-      return;
-    }
-
     // Se horarioFim não foi passado (chamada com 3 parâmetros - bloqueio único)
     if (typeof horarioFim === 'undefined') {
       const horario = horarioInicio;
@@ -822,7 +691,16 @@ export default function AgendaPage() {
     }
     
     // Novo comportamento - bloquear período de horários
+    console.log("🔒🔒🔒 ==================== INICIANDO BLOQUEIO DE PERÍODO ==================== 🔒🔒🔒");
+    console.log("📊 ESTADO ATUAL:");
+    console.log("  - dataAtual (Date object):", dataAtual.toString());
+    console.log("  - Timezone do navegador:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+    console.log("  - Usuário:", usuarioAtual?.email);
+    console.log("  - Horário início:", horarioInicio);
+    console.log("  - Horário fim:", horarioFim);
+    
     const dataFormatada = formatarDataPura(dataAtual);
+    console.log("📅 DATA DO BLOQUEIO (formatada PURA):", dataFormatada);
 
     // Verificar se o horário já passou
     const agora = new Date();
@@ -849,6 +727,9 @@ export default function AgendaPage() {
     const unidade = unidades.find(u => u.id === unidadeId);
     const profissional = profissionais.find(p => p.id === profissionalId);
     
+    console.log("👨‍⚕️ PROFISSIONAL:", profissional?.nome, "(ID:", profissionalId, ")");
+    console.log("🏢 UNIDADE:", unidade?.nome, "(ID:", unidadeId, ")");
+    
     const bloqueio = {
       cliente_nome: "FECHADO",
       profissional_id: profissionalId,
@@ -864,29 +745,39 @@ export default function AgendaPage() {
       observacoes: "Horário fechado para atendimentos"
     };
     
+    console.log("📦 OBJETO COMPLETO A SER SALVO:");
+    console.log(JSON.stringify(bloqueio, null, 2));
+    
     try {
+      console.log("📤 ENVIANDO PARA O BANCO...");
       const resultado = await criarAgendamentoMutation.mutateAsync(bloqueio);
+      
+      console.log("✅✅✅ BLOQUEIO SALVO NO BANCO ✅✅✅");
+      console.log("🆔 ID retornado:", resultado.id);
+      console.log("🔒🔒🔒 ==================== FIM DO BLOQUEIO ==================== 🔒🔒🔒");
       
       alert(`✅ Horário BLOQUEADO com sucesso!\n\n📅 Data: ${dataFormatada}\n⏰ Horário: ${horarioInicio} - ${horarioFim}\n👨‍⚕️ Profissional: ${profissional?.nome}`);
       
     } catch (error) {
+      console.error("❌❌❌ ERRO AO BLOQUEAR ❌❌❌");
+      console.error("Detalhes completos:", error);
+      console.error("Stack:", error.stack);
       alert("❌ Erro ao bloquear horário: " + error.message);
     }
   };
   
   const handleBloquearHorarioUnico = async (unidadeId, profissionalId, horario) => {
-    // ✅ VALIDAÇÃO: Apenas ADMIN e GERÊNCIA podem bloquear
-    const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
-    const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
-    const temPermissao = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin" || cargoLower === "gerencia_unidades";
-    
-    if (!temPermissao) {
-      alert("❌ Você não tem permissão para bloquear horários!");
-      return;
-    }
+    console.log("🔒🔒🔒 ==================== INICIANDO BLOQUEIO ==================== 🔒🔒🔒");
+    console.log("📊 ESTADO ATUAL:");
+    console.log("  - dataAtual (Date object):", dataAtual.toString());
+    console.log("  - Timezone do navegador:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+    console.log("  - Usuário:", usuarioAtual?.email);
+    console.log("  - Cargo:", usuarioAtual?.cargo);
 
     // CRÍTICO: usar formatarDataPura que usa métodos LOCAIS do Date
     const dataFormatada = formatarDataPura(dataAtual);
+
+    console.log("📅 DATA DO BLOQUEIO (formatada PURA):", dataFormatada);
 
     // Verificar se já existe um bloqueio neste exato horário
     const bloqueioExistente = agendamentos.find(ag => 
@@ -923,6 +814,10 @@ export default function AgendaPage() {
     // Corrigir cálculo da hora fim para bloqueio de 1 hora completa
     const horaFim = `${(hora + 1).toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
 
+    console.log("⏰ HORÁRIO:", horario, "até", horaFim);
+    console.log("👨‍⚕️ PROFISSIONAL:", profissional?.nome, "(ID:", profissionalId, ")");
+    console.log("🏢 UNIDADE:", unidade?.nome, "(ID:", unidadeId, ")");
+    
     // OBJETO BLOQUEIO - data como STRING PURA
     const bloqueio = {
       cliente_nome: "FECHADO",
@@ -939,12 +834,25 @@ export default function AgendaPage() {
       observacoes: "Horário fechado para atendimentos"
     };
     
+    console.log("📦 OBJETO COMPLETO A SER SALVO:");
+    console.log(JSON.stringify(bloqueio, null, 2));
+    
     try {
+      console.log("📤 ENVIANDO PARA O BANCO...");
       const resultado = await criarAgendamentoMutation.mutateAsync(bloqueio);
+      
+      console.log("✅✅✅ BLOQUEIO SALVO NO BANCO ✅✅✅");
+      console.log("🆔 ID retornado:", resultado.id);
+      console.log("📅 Data retornada (bruta):", resultado.data);
+      console.log("📅 Data normalizada:", normalizarData(resultado.data));
+      console.log("🔒🔒🔒 ==================== FIM DO BLOQUEIO ==================== 🔒🔒🔒");
       
       alert(`✅ Horário BLOQUEADO com sucesso!\n\n📅 Data: ${dataFormatada}\n⏰ Horário: ${horario}\n👨‍⚕️ Profissional: ${profissional?.nome}`);
       
     } catch (error) {
+      console.error("❌❌❌ ERRO AO BLOQUEAR ❌❌❌");
+      console.error("Detalhes completos:", error);
+      console.error("Stack:", error.stack);
       alert("❌ Erro ao bloquear horário: " + error.message);
     }
   };
@@ -955,23 +863,6 @@ export default function AgendaPage() {
   };
 
   const handleSalvarAgendamento = async (dados) => {
-    // ✅ VALIDAÇÃO: Verificar permissão para salvar/editar agendamento
-    const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
-    const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
-    const isAdmin = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin";
-    const isGerencia = cargoLower === "gerencia_unidades";
-    const isVendedor = cargoLower === "vendedor";
-    const isRecepcao = cargoLower === "recepcao";
-    const isFuncionario = cargoLower === "funcionario" || cargoLower === "funcionário";
-    const isTerapeuta = cargoLower === "terapeuta" && profissionalDoUsuario?.id === dados.profissional_id;
-    
-    const temPermissao = isAdmin || isGerencia || isVendedor || isRecepcao || isFuncionario || (isTerapeuta && dados.id);
-    
-    if (!temPermissao) {
-      alert("❌ Você não tem permissão para salvar/editar agendamentos!");
-      return;
-    }
-
     // Verificar se há bloqueio no horário
     const horarioBloqueado = agendamentos.find(ag => 
       ag.data === dados.data &&
@@ -999,38 +890,12 @@ export default function AgendaPage() {
   };
 
   const handleEditarAgendamento = (agendamento) => {
-    // ✅ VALIDAÇÃO: Verificar permissão para editar
-    const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
-    const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
-    const isAdmin = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin";
-    const isGerencia = cargoLower === "gerencia_unidades";
-    const isRecepcao = cargoLower === "recepcao";
-    const isFuncionario = cargoLower === "funcionario" || cargoLower === "funcionário";
-    const isTerapeuta = cargoLower === "terapeuta" && profissionalDoUsuario?.id === agendamento.profissional_id;
-    
-    const temPermissao = isAdmin || isGerencia || isRecepcao || isFuncionario || isTerapeuta;
-    
-    if (!temPermissao) {
-      alert("❌ Você não tem permissão para editar este agendamento!");
-      return;
-    }
-
     console.log("✏️ EDITANDO AGENDAMENTO:", agendamento.id);
     setAgendamentoInicial(agendamento);
     setDialogNovoAberto(true);
   };
 
   const handleDeletarAgendamento = async (id) => {
-    // ✅ VALIDAÇÃO: Apenas ADMIN e GERÊNCIA podem deletar
-    const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
-    const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
-    const temPermissao = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin" || cargoLower === "gerencia_unidades";
-    
-    if (!temPermissao) {
-      alert("❌ Você não tem permissão para deletar agendamentos!");
-      return;
-    }
-
     console.log("🗑️🗑️🗑️ PROCESSANDO DELEÇÃO 🗑️🗑️🗑️");
     console.log("🆔 ID a deletar:", id);
     
@@ -1055,16 +920,6 @@ export default function AgendaPage() {
   };
 
   const handleConfirmarAgendamento = async (agendamento) => {
-    // ✅ VALIDAÇÃO: Apenas ADMIN, GERÊNCIA e RECEPÇÃO podem confirmar
-    const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
-    const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
-    const temPermissao = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin" || cargoLower === "gerencia_unidades" || cargoLower === "recepcao";
-    
-    if (!temPermissao) {
-      alert("❌ Você não tem permissão para confirmar agendamentos!");
-      return;
-    }
-
     console.log("✅ CONFIRMANDO AGENDAMENTO:", agendamento.id);
     
     try {
@@ -1094,21 +949,6 @@ export default function AgendaPage() {
   };
 
   const handleMudarStatus = async (agendamento, novoStatus) => {
-    // ✅ VALIDAÇÃO: Quem pode mudar status? Admin, Gerência, Recepção e Terapeuta (só seu próprio)
-    const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
-    const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
-    const isAdmin = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin";
-    const isGerencia = cargoLower === "gerencia_unidades";
-    const isRecepcao = cargoLower === "recepcao";
-    const isTerapeuta = cargoLower === "terapeuta" && profissionalDoUsuario?.id === agendamento.profissional_id;
-    
-    const temPermissao = isAdmin || isGerencia || isRecepcao || isTerapeuta;
-    
-    if (!temPermissao) {
-      alert("❌ Você não tem permissão para mudar status de agendamentos!");
-      return;
-    }
-
     const statusAntigo = agendamento.status;
 
     if (statusAntigo === novoStatus) return; // Nenhuma mudança
@@ -1162,16 +1002,6 @@ export default function AgendaPage() {
   };
 
   const handleMudarStatusPaciente = async (agendamento, novoStatusPaciente) => {
-    // ✅ VALIDAÇÃO: Apenas ADMIN, GERÊNCIA, VENDEDOR e RECEPÇÃO podem mudar status do paciente
-    const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
-    const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
-    const temPermissao = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin" || cargoLower === "gerencia_unidades" || cargoLower === "vendedor" || cargoLower === "recepcao";
-    
-    if (!temPermissao) {
-      alert("❌ Você não tem permissão para mudar status do paciente!");
-      return;
-    }
-
     const statusAntigo = agendamento.status_paciente;
 
     if (statusAntigo === novoStatusPaciente) return;
@@ -1207,68 +1037,45 @@ export default function AgendaPage() {
   };
 
   // FILTRAR AGENDAMENTOS PELA DATA ATUAL
-  // Garantir que unidadeSelecionada está definida
-  const unidadeFinal = unidadeSelecionada || unidades[0];
-
+  console.log("🔍🔍🔍 ==================== INICIANDO FILTRO ==================== 🔍🔍🔍");
+  console.log("📊 ESTADO DO FILTRO:");
+  console.log("  - dataAtual (Date object):", dataAtual.toString());
+  console.log("  - Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+  
   const dataFiltro = formatarDataPura(dataAtual);
+  
+  console.log("📅 DATA DO FILTRO (string pura):", dataFiltro);
+  console.log("📊 Total de agendamentos no banco:", agendamentos.length);
+  console.log("🏢 Unidade selecionada:", unidadeSelecionada?.nome, "(ID:", unidadeSelecionada?.id, ")");
 
   // Filtrar por terapeuta se o usuário for um terapeuta
+  const isProfissional = usuarioAtual?.cargo === "terapeuta";
   const profissionalDoUsuario = profissionais.find(p => 
     p.email && usuarioAtual?.email && p.email.toLowerCase() === usuarioAtual.email.toLowerCase()
   );
-  const isProfissional = usuarioAtual?.cargo === "terapeuta" && !!profissionalDoUsuario;
 
+  console.log("🔍 DEBUG TERAPEUTA:", {
+    cargo: usuarioAtual?.cargo,
+    email: usuarioAtual?.email,
+    isProfissional: isProfissional,
+    profissionalEncontrado: profissionalDoUsuario?.nome,
+    profissionalId: profissionalDoUsuario?.id
+  });
 
-
-const agendamentosFiltrados = agendamentos.filter(ag => {
-        // Validação básica
-        if (!ag || !ag.unidade_id) return false;
-
-        // Garantir que data está normalizada
-        if (!ag.data || typeof ag.data !== 'string') return false;
-
-        // ADMINISTRADORES E SUPER ADMIN VEEM TUDO
-        const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
-        const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
-        const ehAdmin = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin";
-
-        if (ehAdmin) {
-          // Mesmo admin, filtrar por unidade se selecionada
-          const isDataMatch = ag.data === dataFiltro;
-          const isUnidadeMatch = !unidadeFinal || ag.unidade_id === unidadeFinal.id;
-          return isDataMatch && isUnidadeMatch;
-        }
-
-        // CRÍTICO: Todos os OUTROS (gerencia_unidades, financeiro, etc) veem APENAS suas unidades
-        let unidadesAcesso = [];
-
-        if (typeof usuarioAtual?.unidades_acesso === 'string') {
-          try {
-            const parsed = JSON.parse(usuarioAtual.unidades_acesso);
-            unidadesAcesso = Array.isArray(parsed) ? parsed : [];
-          } catch (e) {
-            unidadesAcesso = [];
-          }
-        } else if (Array.isArray(usuarioAtual?.unidades_acesso)) {
-          unidadesAcesso = usuarioAtual.unidades_acesso;
-        }
-
-        // Filtro de unidade - obrigatório para não-admin
-        if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
-          return false;
-        }
-
+  const agendamentosFiltrados = agendamentos.filter(ag => {
     // Se for terapeuta, mostrar apenas seus próprios agendamentos
     if (isProfissional && profissionalDoUsuario) {
       const pertence = ag.profissional_id === profissionalDoUsuario.id;
+      console.log(`📋 Agendamento ${ag.id}: profissional_id=${ag.profissional_id}, meu_id=${profissionalDoUsuario.id}, mostrar=${pertence}`);
       if (!pertence) {
         return false;
       }
     }
 
-    // Filtros principais
+    // Restante dos filtros normais
+    // Log detalhado para cada agendamento
     const isDataMatch = ag.data === dataFiltro;
-    const isUnidadeMatch = !unidadeFinal || ag.unidade_id === unidadeFinal.id;
+    const isUnidadeMatch = !unidadeSelecionada || ag.unidade_id === unidadeSelecionada.id;
     const isClienteMatch = !filters.cliente || (
       (ag.cliente_nome && ag.cliente_nome.toLowerCase().includes(filters.cliente.toLowerCase())) ||
       (ag.cliente_telefone && ag.cliente_telefone.toLowerCase().includes(filters.cliente.toLowerCase()))
@@ -1278,7 +1085,22 @@ const agendamentosFiltrados = agendamentos.filter(ag => {
     const isServicoMatch = !filters.servico || ag.servico_id === filters.servico;
     const isStatusMatch = !filters.status || ag.status === filters.status;
     const isDataFilterMatch = !filters.data || ag.data === filters.data;
-
+    
+    const isBloqueio = ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO";
+    
+    if (isBloqueio) {
+      console.log(`🔒 BLOQUEIO ENCONTRADO:`, {
+        id: ag.id,
+        data: ag.data,
+        dataMatch: isDataMatch,
+        horario: ag.hora_inicio,
+        profissional: ag.profissional_nome,
+        unidade: ag.unidade_nome,
+        unidadeMatch: isUnidadeMatch,
+        passaNoFiltro: isDataMatch && isUnidadeMatch
+      });
+    }
+    
     // Retornar apenas se TODOS os filtros passarem
     if (!isDataMatch) return false;
     if (!isUnidadeMatch) return false;
@@ -1288,31 +1110,29 @@ const agendamentosFiltrados = agendamentos.filter(ag => {
     if (!isServicoMatch) return false;
     if (!isStatusMatch) return false;
     if (!isDataFilterMatch) return false;
-
+    
     return true;
   });
 
+  console.log("📊 TOTAL APÓS FILTRO:", agendamentosFiltrados.length);
+  
+  const bloqueiosFiltrados = agendamentosFiltrados.filter(ag => 
+    ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO"
+  );
+  console.log("🔒 BLOQUEIOS NO FILTRO:", bloqueiosFiltrados.length);
+  bloqueiosFiltrados.forEach(b => {
+    console.log(`  🔒 ${b.hora_inicio} | ${b.profissional_nome} | Data: ${b.data}`);
+  });
 
+  const unidadeAtual = unidadeSelecionada || unidades[0];
 
-  const unidadeAtual = unidadeFinal;
-
-    // Definição de papéis para controle de acesso
-  // Aguardar carregamento de dados críticos
-  if (!usuarioAtual || unidadesCarregando) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Carregando dados...</p>
-        </div>
-      </div>
-    );
-  }
+  // Verificar se é admin ou gerência - ambos têm permissões administrativas
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* PAINEL DE DEBUG - APENAS PARA ADMINISTRADORES */}
-      {usuarioAtual?.email === 'lucagamerbr07@gmail.com' && (
+      {isAdmin && (
         <div className="bg-yellow-100 border-b-2 border-yellow-400 p-3 text-xs font-mono">
           <div className="max-w-7xl mx-auto grid grid-cols-4 gap-4">
             <div>
@@ -1337,72 +1157,38 @@ const agendamentosFiltrados = agendamentos.filter(ag => {
         </div>
       )}
 
-      {/* Header já usa 'unidades' que está filtrado */}
-      {usuarioAtual && (() => {
-       const unidadesParaMostrar = unidades;
-       const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
-
-
-
-        // Se não tem unidades permitidas, não renderizar nada
-        if (unidadesParaMostrar.length === 0) {
-          return (
-            <div className="bg-white border-b border-gray-200 px-6 py-4">
-              <div className="text-red-600 font-semibold">❌ Você não tem acesso a nenhuma unidade.</div>
-            </div>
-          );
-        }
-
-        return (
-          <AgendaHeader
-            dataAtual={dataAtual}
-            unidades={unidadesParaMostrar}
-            unidadeSelecionada={unidadeSelecionada || unidadesParaMostrar[0]}
-            onUnidadeChange={setUnidadeSelecionada}
-            onDataChange={setDataAtual}
-            onNovoAgendamento={handleNovoAgendamento}
-            usuarioAtual={usuarioAtual}
-          />
-        );
-      })()}
-
+      <AgendaHeader
+        dataAtual={dataAtual}
+        unidades={unidades}
+        unidadeSelecionada={unidadeSelecionada}
+        onUnidadeChange={setUnidadeSelecionada}
+        onDataChange={setDataAtual}
+        onNovoAgendamento={handleNovoAgendamento}
+        usuarioAtual={usuarioAtual}
+      />
 
       <div className="flex-1 flex overflow-hidden relative">
-                {/* Mensagem quando funcionário não tem unidades */}
-                {usuarioAtual?.cargo === "funcionario" && unidades.length === 0 && (
-                  <div className="flex-1 flex items-center justify-center bg-white">
-                    <div className="text-center">
-                      <p className="text-gray-500 text-lg">Nenhuma unidade atribuída</p>
-                      <p className="text-gray-400 text-sm mt-2">Aguarde a atribuição de uma unidade para acessar a agenda</p>
-                    </div>
-                  </div>
-                )}
+                {/* Botão para abrir filtros */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="fixed bottom-4 left-4 z-50 bg-white shadow-lg border-blue-300"
+                  onClick={() => setMostrarFiltros(!mostrarFiltros)}
+                >
+                  {mostrarFiltros ? <X className="w-4 h-4 mr-2" /> : <Filter className="w-4 h-4 mr-2" />}
+                  {mostrarFiltros ? "Fechar" : "Filtros"}
+                </Button>
 
-                {usuarioAtual?.cargo !== "funcionario" || unidades.length > 0 ? (
-                  <>
-                    {/* Botão para abrir filtros */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="fixed bottom-4 left-4 z-50 bg-white shadow-lg border-blue-300"
-                      onClick={() => setMostrarFiltros(!mostrarFiltros)}
-                    >
-                      {mostrarFiltros ? <X className="w-4 h-4 mr-2" /> : <Filter className="w-4 h-4 mr-2" />}
-                      {mostrarFiltros ? "Fechar" : "Filtros"}
-                    </Button>
-
-                    {/* Botão para abrir menu de conta */}
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="fixed bottom-4 right-4 z-50 bg-white shadow-lg border-gray-300"
-                      onClick={() => setMenuContaAberto(!menuContaAberto)}
-                    >
-                      <User className="w-4 h-4 mr-2" />
-                      Conta
-                    </Button>
-                  </>
-                ) : null}
+                {/* Botão para abrir menu de conta */}
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="fixed bottom-4 right-4 z-50 bg-white shadow-lg border-gray-300"
+                  onClick={() => setMenuContaAberto(!menuContaAberto)}
+                >
+                  <User className="w-4 h-4 mr-2" />
+                  Conta
+                </Button>
 
                 {/* Filtros: Aparece apenas quando clicado */}
                 {mostrarFiltros && (
@@ -1427,56 +1213,23 @@ const agendamentosFiltrados = agendamentos.filter(ag => {
                   />
                 )}
 
-                {(usuarioAtual?.cargo !== "funcionario" || (usuarioAtual?.cargo === "funcionario" && unidades.length > 0)) && unidadeAtual && (() => {
-          // Filtro de profissionais por unidade da gerência
-          let profissionaisPermitidos = profissionais;
-          const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
-          const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
-          const isAdmin = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin";
-
-          // ✅ VALIDAÇÃO: Se for TERAPEUTA, mostra APENAS a si mesmo
-          if (cargoLower === "terapeuta" && profissionalDoUsuario) {
-            profissionaisPermitidos = [profissionalDoUsuario];
-          } else if (isAdmin) {
-            // Admin vê TODOS os profissionais
-            profissionaisPermitidos = profissionais;
-          } else {
-            // Para gerência e outros, filtrar por unidades de acesso
-            let unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-            if (typeof unidadesAcesso === 'string') {
-              try {
-                unidadesAcesso = JSON.parse(unidadesAcesso);
-              } catch (e) {
-                unidadesAcesso = [];
-              }
-            } else if (!Array.isArray(unidadesAcesso)) {
-              unidadesAcesso = [];
-            }
-
-            profissionaisPermitidos = profissionais.filter(p => {
-              const configs = configuracoes.filter(c => c.profissional_id === p.id);
-              return configs.some(c => unidadesAcesso.includes(c.unidade_id));
-            });
-          }
-
-          return (
-            <AgendaDiaView
-              agendamentos={agendamentosFiltrados}
-              unidadeSelecionada={unidadeAtual}
-              profissionais={profissionaisPermitidos}
-              configuracoes={configuracoes}
-              onAgendamentoClick={handleAgendamentoClick}
-              onNovoAgendamento={handleNovoAgendamentoSlot}
-              onBloquearHorario={handleBloquearHorario}
-              onStatusChange={handleMudarStatus}
-              onStatusPacienteChange={handleMudarStatusPaciente}
-              usuarioAtual={usuarioAtual}
-              dataAtual={dataAtual}
-              excecoesHorario={excecoesHorario}
-            />
-            );
-            })()}
-            </div>
+        {unidadeAtual && (
+          <AgendaDiaView
+            agendamentos={agendamentosFiltrados}
+            unidadeSelecionada={unidadeAtual}
+            profissionais={profissionais}
+            configuracoes={configuracoes}
+            onAgendamentoClick={handleAgendamentoClick}
+            onNovoAgendamento={handleNovoAgendamentoSlot}
+            onBloquearHorario={handleBloquearHorario}
+            onStatusChange={handleMudarStatus}
+            onStatusPacienteChange={handleMudarStatusPaciente}
+            usuarioAtual={usuarioAtual}
+            dataAtual={dataAtual}
+            excecoesHorario={excecoesHorario}
+          />
+        )}
+      </div>
 
       <NovoAgendamentoDialog
         open={dialogNovoAberto}

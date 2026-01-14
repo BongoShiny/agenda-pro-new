@@ -34,72 +34,43 @@ export default function GerenciarUsuariosPage() {
       const user = await base44.auth.me();
       setUsuarioAtual(user);
       
-      // Redirecionar se não for admin ou super admin
-      const cargoLower = (user?.cargo || "").toLowerCase();
-      const isAdmin = user.email === 'lucagamerbr07@gmail.com' || cargoLower === "administrador" || user.role === "admin";
-      if (!isAdmin) {
+      // Se o usuário tem cargo superior mas não tem role admin, atualizar
+      if (user.cargo === "superior" && user.role !== "admin") {
+        try {
+          await base44.entities.User.update(user.id, { role: "admin" });
+          // Recarregar a página para aplicar as mudanças
+          window.location.reload();
+          return;
+        } catch (error) {
+          console.error("Erro ao atualizar role:", error);
+        }
+      }
+      
+      // Redirecionar se não for admin ou superior
+      if (user.cargo !== "administrador" && user.cargo !== "superior" && user.role !== "admin") {
         window.location.href = createPageUrl("Agenda");
       }
     };
     carregarUsuario();
   }, []);
 
-  // SINCRONIZAÇÃO: Apenas converter cargos antigos e criar registros de Vendedor
-  useEffect(() => {
-    const sincronizar = async () => {
-      const usuariosList = await base44.entities.User.list("full_name");
-      const vendedoresList = await base44.entities.Vendedor.list("nome");
-
-      if (!Array.isArray(usuariosList) || usuariosList.length === 0) {
-        return;
-      }
-
-      for (const usuario of usuariosList) {
-        const cargo = usuario.cargo || "";
-        
-        try {
-          // MIGRAÇÃO: Converter cargos antigos para novo padrão
-          if (cargo.includes("gerencia_unidade_")) {
-            console.log(`🔄 MIGRANDO CARGO: ${usuario.full_name} - convertendo para gerencia_unidades`);
-            
-            await base44.entities.User.update(usuario.id, {
-              cargo: "gerencia_unidades"
-            });
-          }
-
-          // VENDEDOR: Criar registro automaticamente se não existir
-          if (cargo === "vendedor") {
-            const vendedorExistente = vendedoresList.find(v => v.email === usuario.email);
-            if (!vendedorExistente) {
-              console.log(`🔄 CRIANDO REGISTRO: ${usuario.full_name} - Vendedor`);
-              
-              await base44.entities.Vendedor.create({
-                nome: usuario.full_name,
-                email: usuario.email,
-                ativo: true,
-                comissao_percentual: 0,
-                valor_combinado_total: 0,
-                valor_recebido_total: 0,
-                a_receber_total: 0
-              });
-            }
-          }
-        } catch (error) {
-          console.error(`Erro ao sincronizar ${usuario.full_name}:`, error);
-        }
-      }
-    };
-
-    if (usuarioAtual) {
-      sincronizar();
-    }
-  }, [usuarioAtual]);
-
   const { data: usuarios = [] } = useQuery({
     queryKey: ['usuarios'],
     queryFn: async () => {
       const users = await base44.entities.User.list("full_name");
-      return users;
+      
+      // Garantir que todos os usuários com cargo "superior" tenham role="admin"
+      for (const u of users) {
+        if (u.cargo === "superior" && u.role !== "admin") {
+          try {
+            await base44.entities.User.update(u.id, { role: "admin" });
+          } catch (error) {
+            console.error(`Erro ao atualizar role do usuário ${u.email}:`, error);
+          }
+        }
+      }
+      
+      return base44.entities.User.list("full_name");
     },
     initialData: [],
     enabled: !!usuarioAtual,
@@ -118,27 +89,15 @@ export default function GerenciarUsuariosPage() {
   });
 
   const atualizarUsuarioMutation = useMutation({
-    mutationFn: async ({ id, dados }) => {
-      console.error("🔄 [MUTATION] Enviando dados para User.update:", { id, dados });
-      const resultado = await base44.entities.User.update(id, dados);
-      console.error("🔄 [MUTATION] Resultado da atualização:", resultado);
-      return resultado;
-    },
+    mutationFn: ({ id, dados }) => base44.entities.User.update(id, dados),
     onSuccess: async () => {
-      console.error("🔄 [MUTATION SUCCESS] Invalidando queries...");
       await queryClient.invalidateQueries({ queryKey: ['usuarios'] });
       await queryClient.refetchQueries({ queryKey: ['usuarios'] });
-      console.error("🔄 [MUTATION SUCCESS] Refetch concluído!");
     },
-    onError: (error) => {
-      console.error("🔄 [MUTATION ERROR]", error);
-    }
   });
 
   const handleAtualizarCargo = async (usuario, novoCargo) => {
     const cargoAntigo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "funcionario");
-    
-    // Se mudou para "gerencia_unidades", não precisa de unidade no cargo, só nas unidades_acesso
     
     // Se mudou para "vendedor", criar registro automaticamente
     if (novoCargo === "vendedor" && cargoAntigo !== "vendedor") {
@@ -157,13 +116,11 @@ export default function GerenciarUsuariosPage() {
       }
     }
     
-    // Se mudou para "administrador", garantir que tem role admin
+    // Se mudou para "superior", garantir que tem role admin
     const dadosAtualizacao = { cargo: novoCargo };
-    if (novoCargo === "administrador") {
+    if (novoCargo === "superior") {
       dadosAtualizacao.role = "admin";
     }
-    
-    // CRÍTICO: NÃO AUTO-ATRIBUIR UNIDADES - ADM DEVE COLOCAR MANUALMENTE
     
     await atualizarUsuarioMutation.mutateAsync({
       id: usuario.id,
@@ -203,29 +160,13 @@ export default function GerenciarUsuariosPage() {
 
   const handleAtualizarUnidades = async (usuario, unidadesIds) => {
     const unidadesAntigas = usuario.unidades_acesso || [];
-    
-    // Garantir que unidadesIds é sempre um array
-    let unidadesIdsFinal = Array.isArray(unidadesIds) ? unidadesIds : [];
-    
-    console.error("🔧🔧🔧 ==================== SALVANDO UNIDADES ==================== 🔧🔧🔧");
-    console.error("PRE-SALVAR:");
-    console.error("  usuario.id:", usuario.id);
-    console.error("  usuario.email:", usuario.email);
-    console.error("  usuario.unidades_acesso ANTES:", JSON.stringify(usuario.unidades_acesso));
-    console.error("  unidadesIds a salvar (FINAL):", JSON.stringify(unidadesIdsFinal));
-    console.error("  Tipo de unidadesIds:", typeof unidadesIdsFinal);
-    console.error("  É array?", Array.isArray(unidadesIdsFinal));
-    
-    const dados = { unidades_acesso: JSON.stringify(unidadesIdsFinal) };
-    console.error("📦 OBJETO A SER ENVIADO (STRING JSON):", JSON.stringify(dados));
-    
     await atualizarUsuarioMutation.mutateAsync({
       id: usuario.id,
-      dados: dados
+      dados: { unidades_acesso: unidadesIds }
     });
     
     // Registrar no log
-    const nomesUnidadesNovas = unidadesIdsFinal.map(id => unidades.find(u => u.id === id)?.nome).filter(Boolean);
+    const nomesUnidadesNovas = unidadesIds.map(id => unidades.find(u => u.id === id)?.nome).filter(Boolean);
     await base44.entities.LogAcao.create({
       tipo: "editou_usuario",
       usuario_email: usuarioAtual?.email,
@@ -233,33 +174,12 @@ export default function GerenciarUsuariosPage() {
       entidade_tipo: "Usuario",
       entidade_id: usuario.id,
       dados_antigos: JSON.stringify({ unidades_acesso: unidadesAntigas }),
-      dados_novos: JSON.stringify({ unidades_acesso: unidadesIdsFinal })
+      dados_novos: JSON.stringify({ unidades_acesso: unidadesIds })
     });
   };
 
   const handleToggleUnidade = async (usuario, unidadeId) => {
-    const cargo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "funcionario");
-    
-    // Normalizar unidades_acesso para array
-    let unidadesAtuais = [];
-    if (typeof usuario.unidades_acesso === 'string') {
-      try {
-        const parsed = JSON.parse(usuario.unidades_acesso);
-        unidadesAtuais = Array.isArray(parsed) ? parsed : [];
-      } catch (e) {
-        unidadesAtuais = [];
-      }
-    } else if (Array.isArray(usuario.unidades_acesso)) {
-      unidadesAtuais = usuario.unidades_acesso;
-    }
-    
-    // VALIDAÇÃO: Gerência só pode ter 1 unidade
-    if (cargo === "gerencia_unidades" && !unidadesAtuais.includes(unidadeId)) {
-      alert("⚠️ Gerentes podem gerenciar apenas UMA unidade. Removendo unidades anteriores.");
-      await handleAtualizarUnidades(usuario, [unidadeId]);
-      return;
-    }
-    
+    const unidadesAtuais = usuario.unidades_acesso || [];
     const novasUnidades = unidadesAtuais.includes(unidadeId)
       ? unidadesAtuais.filter(id => id !== unidadeId)
       : [...unidadesAtuais, unidadeId];
@@ -393,7 +313,7 @@ export default function GerenciarUsuariosPage() {
                           }`}>
                             {cargo === "administrador" || cargo === "superior" ? (
                               <Shield className="w-4 h-4 text-blue-600" />
-                            ) : (cargo === "gerencia_unidades" || cargo.includes("gerencia_unidade_")) ? (
+                            ) : cargo === "gerencia_unidades" ? (
                               <Building2 className="w-4 h-4 text-purple-600" />
                             ) : cargo === "financeiro" ? (
                               <FileSpreadsheet className="w-4 h-4 text-green-600" />
@@ -478,11 +398,11 @@ export default function GerenciarUsuariosPage() {
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            {(usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin") && (
-                              <SelectItem value="administrador">
+                            {(usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin") && (
+                              <SelectItem value="superior">
                                 <div className="flex items-center gap-2">
                                   <Shield className="w-3 h-3" />
-                                  Administrador
+                                  Superior
                                 </div>
                               </SelectItem>
                             )}
@@ -492,14 +412,14 @@ export default function GerenciarUsuariosPage() {
                                Recepção
                              </div>
                             </SelectItem>
-                            {(usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin") && (
-                              <>
-                                <SelectItem value="gerencia_unidades">
-                                   <div className="flex items-center gap-2">
-                                     <Building2 className="w-3 h-3" />
-                                     Gerência de Unidades
-                                   </div>
-                                 </SelectItem>
+                            {(usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin") && (
+                             <>
+                               <SelectItem value="gerencia_unidades">
+                                  <div className="flex items-center gap-2">
+                                    <Building2 className="w-3 h-3" />
+                                    Gerência de Unidades
+                                  </div>
+                                </SelectItem>
                                 <SelectItem value="financeiro">
                                   <div className="flex items-center gap-2">
                                     <FileSpreadsheet className="w-3 h-3" />
@@ -531,66 +451,55 @@ export default function GerenciarUsuariosPage() {
                       </TableCell>
 
                       <TableCell>
-                        {(() => {
-                          // Normalizar unidades_acesso para array
-                          let unidadesDoUsuario = [];
-                          if (typeof usuario.unidades_acesso === 'string') {
-                            try {
-                              const parsed = JSON.parse(usuario.unidades_acesso);
-                              unidadesDoUsuario = Array.isArray(parsed) ? parsed : [];
-                            } catch (e) {
-                              unidadesDoUsuario = [];
-                            }
-                          } else if (Array.isArray(usuario.unidades_acesso)) {
-                            unidadesDoUsuario = usuario.unidades_acesso;
-                          }
-
-                          return (
-                            <>
-                              {cargo === "administrador" ? (
-                                <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                                  Todas as unidades
-                                </Badge>
-                              ) : (cargo === "gerencia_unidades" || cargo.includes("gerencia_unidade_")) ? (
-                                // GERÊNCIA DE UNIDADES: Obrigatório selecionar APENAS UMA unidade
-                                <Popover>
-                                  <PopoverTrigger asChild>
-                                    <Button 
-                                      variant="outline" 
-                                      size="sm" 
-                                      className={`text-left justify-start ${!unidadesDoUsuario?.length ? 'border-red-300 bg-red-50' : ''}`}
-                                    >
-                                      {unidadesDoUsuario?.length === 1 ? (
-                                        <span className="text-green-700 font-medium">
-                                          {unidades.find(u => u.id === unidadesDoUsuario[0])?.nome}
-                                        </span>
-                                      ) : unidadesDoUsuario?.length > 0 ? (
-                                        <span className="text-orange-700 font-medium">
-                                          ⚠️ {unidadesDoUsuario.length} unidades (selecionar apenas 1)
-                                        </span>
-                                      ) : (
-                                        <span className="text-red-600 font-semibold">⚠️ Selecionar unidade</span>
-                                      )}
-                                    </Button>
-                                  </PopoverTrigger>
+                       {cargo === "administrador" || cargo === "superior" ? (
+                         <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                           Todas as unidades
+                         </Badge>
+                       ) : cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" || cargo === "terapeuta" ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button variant="outline" size="sm" className="text-left justify-start">
+                                {usuario.unidades_acesso?.length > 0 ? (
+                                  <>
+                                    {usuario.unidades_acesso.map(uid => {
+                                      const unidade = unidades.find(u => u.id === uid);
+                                      return unidade?.nome;
+                                    }).filter(Boolean).join(", ") || "Selecionar unidades"}
+                                  </>
+                                ) : (
+                                  <span className="text-gray-400">Nenhuma unidade</span>
+                                )}
+                              </Button>
+                            </PopoverTrigger>
                             <PopoverContent className="w-64" align="start">
                               <div className="space-y-3">
-                                <Label className="text-sm font-semibold text-red-900">Selecione UMA Clínica para Gerenciar</Label>
-                                <p className="text-xs text-gray-500 mb-3">⚠️ Gerentes podem gerenciar apenas UMA unidade por vez</p>
+                                <Label className="text-sm font-semibold">Unidades Permitidas</Label>
                                 <div className="space-y-2">
+                                  <div className="flex items-center space-x-2 pb-2 border-b">
+                                    <Checkbox
+                                      id={`${usuario.id}-todas`}
+                                      checked={usuario.unidades_acesso?.length === unidades.length && unidades.length > 0}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          handleAtualizarUnidades(usuario, unidades.map(u => u.id));
+                                        } else {
+                                          handleAtualizarUnidades(usuario, []);
+                                        }
+                                      }}
+                                    />
+                                    <label
+                                      htmlFor={`${usuario.id}-todas`}
+                                      className="text-sm cursor-pointer flex-1 font-semibold"
+                                    >
+                                      Todas as unidades
+                                    </label>
+                                  </div>
                                   {unidades.map(unidade => (
                                     <div key={unidade.id} className="flex items-center space-x-2">
                                       <Checkbox
                                         id={`${usuario.id}-${unidade.id}`}
-                                        checked={unidadesDoUsuario?.includes(unidade.id)}
-                                        onCheckedChange={(checked) => {
-                                          // Sempre deselecionar outras e selecionar apenas a clicada
-                                          if (checked) {
-                                            handleAtualizarUnidades(usuario, [unidade.id]);
-                                          } else {
-                                            handleAtualizarUnidades(usuario, []);
-                                          }
-                                        }}
+                                        checked={usuario.unidades_acesso?.includes(unidade.id)}
+                                        onCheckedChange={() => handleToggleUnidade(usuario, unidade.id)}
                                       />
                                       <label
                                         htmlFor={`${usuario.id}-${unidade.id}`}
@@ -604,13 +513,13 @@ export default function GerenciarUsuariosPage() {
                               </div>
                             </PopoverContent>
                           </Popover>
-                        ) : cargo === "financeiro" || cargo === "vendedor" || cargo === "terapeuta" ? (
+                        ) : (
                           <Popover>
                             <PopoverTrigger asChild>
                               <Button variant="outline" size="sm" className="text-left justify-start">
-                                {unidadesDoUsuario?.length > 0 ? (
+                                {usuario.unidades_acesso?.length > 0 ? (
                                   <>
-                                    {unidadesDoUsuario.map(uid => {
+                                    {usuario.unidades_acesso.map(uid => {
                                       const unidade = unidades.find(u => u.id === uid);
                                       return unidade?.nome;
                                     }).filter(Boolean).join(", ") || "Selecionar unidades"}
@@ -620,111 +529,50 @@ export default function GerenciarUsuariosPage() {
                                 )}
                               </Button>
                             </PopoverTrigger>
-                             <PopoverContent className="w-64" align="start">
-                               <div className="space-y-3">
-                                 <Label className="text-sm font-semibold">Unidades Permitidas</Label>
-                                 <div className="space-y-2">
-                                   <div className="flex items-center space-x-2 pb-2 border-b">
-                                     <Checkbox
-                                       id={`${usuario.id}-todas`}
-                                       checked={unidadesDoUsuario?.length === unidades.length && unidades.length > 0}
-                                       onCheckedChange={(checked) => {
-                                         if (checked) {
-                                           handleAtualizarUnidades(usuario, unidades.map(u => u.id));
-                                         } else {
-                                           handleAtualizarUnidades(usuario, []);
-                                         }
-                                       }}
-                                     />
-                                     <label
-                                       htmlFor={`${usuario.id}-todas`}
-                                       className="text-sm cursor-pointer flex-1 font-semibold"
-                                     >
-                                       Todas as unidades
-                                     </label>
-                                   </div>
-                                   {unidades.map(unidade => (
-                                     <div key={unidade.id} className="flex items-center space-x-2">
-                                       <Checkbox
-                                         id={`${usuario.id}-${unidade.id}`}
-                                         checked={unidadesDoUsuario?.includes(unidade.id)}
-                                         onCheckedChange={() => handleToggleUnidade(usuario, unidade.id)}
-                                       />
-                                       <label
-                                         htmlFor={`${usuario.id}-${unidade.id}`}
-                                         className="text-sm cursor-pointer flex-1"
-                                       >
-                                         {unidade.nome}
-                                       </label>
-                                     </div>
-                                   ))}
-                                 </div>
-                               </div>
-                             </PopoverContent>
-                           </Popover>
-                         ) : (
-                           <Popover>
-                             <PopoverTrigger asChild>
-                               <Button variant="outline" size="sm" className="text-left justify-start">
-                                 {unidadesDoUsuario?.length > 0 ? (
-                                   <>
-                                     {unidadesDoUsuario.map(uid => {
-                                       const unidade = unidades.find(u => u.id === uid);
-                                       return unidade?.nome;
-                                     }).filter(Boolean).join(", ") || "Selecionar unidades"}
-                                   </>
-                                 ) : (
-                                   <span className="text-gray-400">Nenhuma unidade</span>
-                                 )}
-                               </Button>
-                             </PopoverTrigger>
-                             <PopoverContent className="w-64" align="start">
-                               <div className="space-y-3">
-                                 <Label className="text-sm font-semibold">Unidades Permitidas</Label>
-                                 <div className="space-y-2">
-                                   <div className="flex items-center space-x-2 pb-2 border-b">
-                                     <Checkbox
-                                       id={`${usuario.id}-todas`}
-                                       checked={unidadesDoUsuario?.length === unidades.length && unidades.length > 0}
-                                       onCheckedChange={(checked) => {
-                                         if (checked) {
-                                           handleAtualizarUnidades(usuario, unidades.map(u => u.id));
-                                         } else {
-                                           handleAtualizarUnidades(usuario, []);
-                                         }
-                                       }}
-                                     />
-                                     <label
-                                       htmlFor={`${usuario.id}-todas`}
-                                       className="text-sm cursor-pointer flex-1 font-semibold"
-                                     >
-                                       Todas as unidades
-                                     </label>
-                                   </div>
-                                   {unidades.map(unidade => (
-                                     <div key={unidade.id} className="flex items-center space-x-2">
-                                       <Checkbox
-                                         id={`${usuario.id}-${unidade.id}`}
-                                         checked={unidadesDoUsuario?.includes(unidade.id)}
-                                         onCheckedChange={() => handleToggleUnidade(usuario, unidade.id)}
-                                       />
-                                       <label
-                                         htmlFor={`${usuario.id}-${unidade.id}`}
-                                         className="text-sm cursor-pointer flex-1"
-                                       >
-                                         {unidade.nome}
-                                       </label>
-                                     </div>
-                                   ))}
-                                 </div>
-                               </div>
-                             </PopoverContent>
-                           </Popover>
-                         )}
-                           </>
-                          );
-                         })()}
-                         </TableCell>
+                            <PopoverContent className="w-64" align="start">
+                              <div className="space-y-3">
+                                <Label className="text-sm font-semibold">Unidades Permitidas</Label>
+                                <div className="space-y-2">
+                                  <div className="flex items-center space-x-2 pb-2 border-b">
+                                    <Checkbox
+                                      id={`${usuario.id}-todas`}
+                                      checked={usuario.unidades_acesso?.length === unidades.length && unidades.length > 0}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          handleAtualizarUnidades(usuario, unidades.map(u => u.id));
+                                        } else {
+                                          handleAtualizarUnidades(usuario, []);
+                                        }
+                                      }}
+                                    />
+                                    <label
+                                      htmlFor={`${usuario.id}-todas`}
+                                      className="text-sm cursor-pointer flex-1 font-semibold"
+                                    >
+                                      Todas as unidades
+                                    </label>
+                                  </div>
+                                  {unidades.map(unidade => (
+                                    <div key={unidade.id} className="flex items-center space-x-2">
+                                      <Checkbox
+                                        id={`${usuario.id}-${unidade.id}`}
+                                        checked={usuario.unidades_acesso?.includes(unidade.id)}
+                                        onCheckedChange={() => handleToggleUnidade(usuario, unidade.id)}
+                                      />
+                                      <label
+                                        htmlFor={`${usuario.id}-${unidade.id}`}
+                                        className="text-sm cursor-pointer flex-1"
+                                      >
+                                        {unidade.nome}
+                                      </label>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            </PopoverContent>
+                          </Popover>
+                        )}
+                      </TableCell>
 
                       <TableCell>
                         <div className="flex items-center gap-2">
@@ -741,16 +589,16 @@ export default function GerenciarUsuariosPage() {
 
                       <TableCell>
                         <Badge 
-                          variant={cargo === "administrador" || cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" || cargo === "terapeuta" ? "default" : "secondary"} 
+                          variant={cargo === "administrador" || cargo === "superior" || cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" || cargo === "terapeuta" ? "default" : "secondary"} 
                           className={
                             cargo === "gerencia_unidades" ? "bg-purple-600" : 
                             cargo === "financeiro" ? "bg-green-600" : 
                             cargo === "vendedor" ? "bg-orange-600" :
                             cargo === "terapeuta" ? "bg-teal-600" :
-                            cargo === "administrador" ? "bg-blue-500" : ""
+                            cargo === "superior" ? "bg-blue-500" : ""
                           }
                         >
-                          {cargo === "administrador" ? "Administrador" : 
+                          {cargo === "administrador" || cargo === "superior" ? "Superior" : 
                           cargo === "gerencia_unidades" ? "Gerência" : 
                           cargo === "financeiro" ? "Financeiro" : 
                           cargo === "vendedor" ? "Vendedor" :
@@ -783,11 +631,11 @@ export default function GerenciarUsuariosPage() {
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
                 <div className="flex items-center gap-2 mb-3">
                   <Shield className="w-5 h-5 text-blue-600" />
-                  <h3 className="font-semibold text-blue-900">Administrador</h3>
+                  <h3 className="font-semibold text-blue-900">Superior</h3>
                 </div>
                 <ul className="space-y-2 text-sm text-blue-800">
                   <li>• Pode gerenciar usuários</li>
-                  <li>• Pode trocar todos os cargos</li>
+                  <li>• Pode trocar cargos (exceto Admin/Superior)</li>
                   <li>• Acesso a todas as unidades</li>
                   <li>• Pode bloquear/desbloquear agenda</li>
                   <li>• Acesso completo ao sistema</li>
@@ -800,11 +648,11 @@ export default function GerenciarUsuariosPage() {
                   <h3 className="font-semibold text-purple-900">Gerência de Unidades</h3>
                 </div>
                 <ul className="space-y-2 text-sm text-purple-800">
-                  <li>• Acesso APENAS às unidades atribuídas</li>
-                  <li>• Pode gerenciar terapeutas de suas unidades</li>
-                  <li>• Pode ver histórico e relatórios de suas unidades</li>
-                  <li>• Pode editar agenda de suas unidades</li>
-                  <li>• Acesso limitado às unidades específicas</li>
+                  <li>• Pode bloquear e desbloquear a agenda</li>
+                  <li>• Acesso às unidades permitidas</li>
+                  <li>• Pode gerenciar usuários e terapeutas</li>
+                  <li>• Pode editar agenda mesmo bloqueada</li>
+                  <li>• Permissões de superior nas unidades</li>
                 </ul>
               </div>
 
@@ -814,11 +662,11 @@ export default function GerenciarUsuariosPage() {
                   <h3 className="font-semibold text-green-900">Financeiro</h3>
                 </div>
                 <ul className="space-y-2 text-sm text-green-800">
-                  <li>• Acesso ao botão Administrador</li>
-                  <li>• Pode ver Histórico e Relatórios Financeiros</li>
+                  <li>• Acesso ao botão Superior</li>
+                  <li>• Pode ver apenas o Histórico</li>
                   <li>• Acesso às unidades permitidas</li>
-                  <li>• Pode editar dados financeiros</li>
-                  <li>• Foco em análise financeira</li>
+                  <li>• Não pode editar agendamentos</li>
+                  <li>• Apenas visualização de dados</li>
                 </ul>
               </div>
 
