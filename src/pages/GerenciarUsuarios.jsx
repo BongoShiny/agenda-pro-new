@@ -450,55 +450,50 @@ export default function GerenciarUsuariosPage() {
                       </TableCell>
 
                       <TableCell>
-                       {cargo === "administrador" ? (
-                         <Badge variant="secondary" className="bg-blue-100 text-blue-700">
-                           Todas as unidades
-                         </Badge>
-                       ) : cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" || cargo === "terapeuta" ? (
+                        {cargo === "administrador" ? (
+                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                            Todas as unidades
+                          </Badge>
+                        ) : cargo === "gerencia_unidades" ? (
+                          // GERÊNCIA DE UNIDADES: Obrigatório selecionar APENAS UMA unidade
                           <Popover>
                             <PopoverTrigger asChild>
-                              <Button variant="outline" size="sm" className="text-left justify-start">
-                                {usuario.unidades_acesso?.length > 0 ? (
-                                  <>
-                                    {usuario.unidades_acesso.map(uid => {
-                                      const unidade = unidades.find(u => u.id === uid);
-                                      return unidade?.nome;
-                                    }).filter(Boolean).join(", ") || "Selecionar unidades"}
-                                  </>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className={`text-left justify-start ${!usuario.unidades_acesso?.length ? 'border-red-300 bg-red-50' : ''}`}
+                              >
+                                {usuario.unidades_acesso?.length === 1 ? (
+                                  <span className="text-green-700 font-medium">
+                                    {unidades.find(u => u.id === usuario.unidades_acesso[0])?.nome}
+                                  </span>
+                                ) : usuario.unidades_acesso?.length > 0 ? (
+                                  <span className="text-orange-700 font-medium">
+                                    ⚠️ {usuario.unidades_acesso.length} unidades (selecionar apenas 1)
+                                  </span>
                                 ) : (
-                                  <span className="text-gray-400">Nenhuma unidade</span>
+                                  <span className="text-red-600 font-semibold">⚠️ Selecionar unidade</span>
                                 )}
                               </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-64" align="start">
                               <div className="space-y-3">
-                                <Label className="text-sm font-semibold">Unidades Permitidas</Label>
+                                <Label className="text-sm font-semibold text-red-900">Selecione UMA Clínica para Gerenciar</Label>
+                                <p className="text-xs text-gray-500 mb-3">⚠️ Gerentes podem gerenciar apenas UMA unidade por vez</p>
                                 <div className="space-y-2">
-                                  <div className="flex items-center space-x-2 pb-2 border-b">
-                                    <Checkbox
-                                      id={`${usuario.id}-todas`}
-                                      checked={usuario.unidades_acesso?.length === unidades.length && unidades.length > 0}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          handleAtualizarUnidades(usuario, unidades.map(u => u.id));
-                                        } else {
-                                          handleAtualizarUnidades(usuario, []);
-                                        }
-                                      }}
-                                    />
-                                    <label
-                                      htmlFor={`${usuario.id}-todas`}
-                                      className="text-sm cursor-pointer flex-1 font-semibold"
-                                    >
-                                      Todas as unidades
-                                    </label>
-                                  </div>
                                   {unidades.map(unidade => (
                                     <div key={unidade.id} className="flex items-center space-x-2">
                                       <Checkbox
                                         id={`${usuario.id}-${unidade.id}`}
                                         checked={usuario.unidades_acesso?.includes(unidade.id)}
-                                        onCheckedChange={() => handleToggleUnidade(usuario, unidade.id)}
+                                        onCheckedChange={(checked) => {
+                                          // Sempre deselecionar outras e selecionar apenas a clicada
+                                          if (checked) {
+                                            handleAtualizarUnidades(usuario, [unidade.id]);
+                                          } else {
+                                            handleAtualizarUnidades(usuario, []);
+                                          }
+                                        }}
                                       />
                                       <label
                                         htmlFor={`${usuario.id}-${unidade.id}`}
@@ -512,66 +507,124 @@ export default function GerenciarUsuariosPage() {
                               </div>
                             </PopoverContent>
                           </Popover>
-                        ) : (
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <Button variant="outline" size="sm" className="text-left justify-start">
-                                {usuario.unidades_acesso?.length > 0 ? (
-                                  <>
-                                    {usuario.unidades_acesso.map(uid => {
-                                      const unidade = unidades.find(u => u.id === uid);
-                                      return unidade?.nome;
-                                    }).filter(Boolean).join(", ") || "Selecionar unidades"}
-                                  </>
-                                ) : (
-                                  <span className="text-gray-400">Nenhuma unidade</span>
-                                )}
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-64" align="start">
-                              <div className="space-y-3">
-                                <Label className="text-sm font-semibold">Unidades Permitidas</Label>
-                                <div className="space-y-2">
-                                  <div className="flex items-center space-x-2 pb-2 border-b">
-                                    <Checkbox
-                                      id={`${usuario.id}-todas`}
-                                      checked={usuario.unidades_acesso?.length === unidades.length && unidades.length > 0}
-                                      onCheckedChange={(checked) => {
-                                        if (checked) {
-                                          handleAtualizarUnidades(usuario, unidades.map(u => u.id));
-                                        } else {
-                                          handleAtualizarUnidades(usuario, []);
-                                        }
-                                      }}
-                                    />
-                                    <label
-                                      htmlFor={`${usuario.id}-todas`}
-                                      className="text-sm cursor-pointer flex-1 font-semibold"
-                                    >
-                                      Todas as unidades
-                                    </label>
-                                  </div>
-                                  {unidades.map(unidade => (
-                                    <div key={unidade.id} className="flex items-center space-x-2">
-                                      <Checkbox
-                                        id={`${usuario.id}-${unidade.id}`}
-                                        checked={usuario.unidades_acesso?.includes(unidade.id)}
-                                        onCheckedChange={() => handleToggleUnidade(usuario, unidade.id)}
-                                      />
-                                      <label
-                                        htmlFor={`${usuario.id}-${unidade.id}`}
-                                        className="text-sm cursor-pointer flex-1"
-                                      >
-                                        {unidade.nome}
-                                      </label>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                            </PopoverContent>
-                          </Popover>
-                        )}
-                      </TableCell>
+                        ) : cargo === "financeiro" || cargo === "vendedor" || cargo === "terapeuta" ? (
+                           <Popover>
+                             <PopoverTrigger asChild>
+                               <Button variant="outline" size="sm" className="text-left justify-start">
+                                 {usuario.unidades_acesso?.length > 0 ? (
+                                   <>
+                                     {usuario.unidades_acesso.map(uid => {
+                                       const unidade = unidades.find(u => u.id === uid);
+                                       return unidade?.nome;
+                                     }).filter(Boolean).join(", ") || "Selecionar unidades"}
+                                   </>
+                                 ) : (
+                                   <span className="text-gray-400">Nenhuma unidade</span>
+                                 )}
+                               </Button>
+                             </PopoverTrigger>
+                             <PopoverContent className="w-64" align="start">
+                               <div className="space-y-3">
+                                 <Label className="text-sm font-semibold">Unidades Permitidas</Label>
+                                 <div className="space-y-2">
+                                   <div className="flex items-center space-x-2 pb-2 border-b">
+                                     <Checkbox
+                                       id={`${usuario.id}-todas`}
+                                       checked={usuario.unidades_acesso?.length === unidades.length && unidades.length > 0}
+                                       onCheckedChange={(checked) => {
+                                         if (checked) {
+                                           handleAtualizarUnidades(usuario, unidades.map(u => u.id));
+                                         } else {
+                                           handleAtualizarUnidades(usuario, []);
+                                         }
+                                       }}
+                                     />
+                                     <label
+                                       htmlFor={`${usuario.id}-todas`}
+                                       className="text-sm cursor-pointer flex-1 font-semibold"
+                                     >
+                                       Todas as unidades
+                                     </label>
+                                   </div>
+                                   {unidades.map(unidade => (
+                                     <div key={unidade.id} className="flex items-center space-x-2">
+                                       <Checkbox
+                                         id={`${usuario.id}-${unidade.id}`}
+                                         checked={usuario.unidades_acesso?.includes(unidade.id)}
+                                         onCheckedChange={() => handleToggleUnidade(usuario, unidade.id)}
+                                       />
+                                       <label
+                                         htmlFor={`${usuario.id}-${unidade.id}`}
+                                         className="text-sm cursor-pointer flex-1"
+                                       >
+                                         {unidade.nome}
+                                       </label>
+                                     </div>
+                                   ))}
+                                 </div>
+                               </div>
+                             </PopoverContent>
+                           </Popover>
+                         ) : (
+                           <Popover>
+                             <PopoverTrigger asChild>
+                               <Button variant="outline" size="sm" className="text-left justify-start">
+                                 {usuario.unidades_acesso?.length > 0 ? (
+                                   <>
+                                     {usuario.unidades_acesso.map(uid => {
+                                       const unidade = unidades.find(u => u.id === uid);
+                                       return unidade?.nome;
+                                     }).filter(Boolean).join(", ") || "Selecionar unidades"}
+                                   </>
+                                 ) : (
+                                   <span className="text-gray-400">Nenhuma unidade</span>
+                                 )}
+                               </Button>
+                             </PopoverTrigger>
+                             <PopoverContent className="w-64" align="start">
+                               <div className="space-y-3">
+                                 <Label className="text-sm font-semibold">Unidades Permitidas</Label>
+                                 <div className="space-y-2">
+                                   <div className="flex items-center space-x-2 pb-2 border-b">
+                                     <Checkbox
+                                       id={`${usuario.id}-todas`}
+                                       checked={usuario.unidades_acesso?.length === unidades.length && unidades.length > 0}
+                                       onCheckedChange={(checked) => {
+                                         if (checked) {
+                                           handleAtualizarUnidades(usuario, unidades.map(u => u.id));
+                                         } else {
+                                           handleAtualizarUnidades(usuario, []);
+                                         }
+                                       }}
+                                     />
+                                     <label
+                                       htmlFor={`${usuario.id}-todas`}
+                                       className="text-sm cursor-pointer flex-1 font-semibold"
+                                     >
+                                       Todas as unidades
+                                     </label>
+                                   </div>
+                                   {unidades.map(unidade => (
+                                     <div key={unidade.id} className="flex items-center space-x-2">
+                                       <Checkbox
+                                         id={`${usuario.id}-${unidade.id}`}
+                                         checked={usuario.unidades_acesso?.includes(unidade.id)}
+                                         onCheckedChange={() => handleToggleUnidade(usuario, unidade.id)}
+                                       />
+                                       <label
+                                         htmlFor={`${usuario.id}-${unidade.id}`}
+                                         className="text-sm cursor-pointer flex-1"
+                                       >
+                                         {unidade.nome}
+                                       </label>
+                                     </div>
+                                   ))}
+                                 </div>
+                               </div>
+                             </PopoverContent>
+                           </Popover>
+                         )}
+                       </TableCell>
 
                       <TableCell>
                         <div className="flex items-center gap-2">
