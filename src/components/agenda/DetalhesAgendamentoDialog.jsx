@@ -140,14 +140,14 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               </div>
             )}
           </div>
-        ) : temAcessoProntuario ? (
-          <Tabs value={abaAtiva} onValueChange={setAbaAtiva} className="flex-1 flex flex-col overflow-hidden">
-            <TabsList className="grid w-full grid-cols-4">
-              <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
-              <TabsTrigger value="prontuario">Prontuário</TabsTrigger>
-              <TabsTrigger value="contrato">Contrato 30%</TabsTrigger>
-              <TabsTrigger value="avaliacao-termal">Aval. Termal</TabsTrigger>
-            </TabsList>
+        ) : temAcessoProntuario || isTerapia ? (
+           <Tabs value={abaAtiva} onValueChange={setAbaAtiva} className="flex-1 flex flex-col overflow-hidden">
+             <TabsList className="grid w-full grid-cols-4">
+               <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
+               <TabsTrigger value="prontuario">Prontuário</TabsTrigger>
+               <TabsTrigger value="contrato">Contrato 30%</TabsTrigger>
+               <TabsTrigger value="avaliacao-termal">Aval. Termal</TabsTrigger>
+             </TabsList>
             
             <TabsContent value="detalhes" className="flex-1 overflow-y-auto">
               <div className="space-y-4 py-4">
