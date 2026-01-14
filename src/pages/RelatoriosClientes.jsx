@@ -145,19 +145,15 @@ export default function RelatoriosClientesPage() {
   const agendamentosFiltrados = agendamentos
     .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
     .filter(ag => {
-      // Se for gerente de unidade, filtrar APENAS pelas unidades atribuídas
-      if (usuarioAtual?.cargo === "gerencia_unidades") {
-        const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-        if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
-          return false;
-        }
+      // SUPERIORES VEEM TUDO - sem nenhum filtro
+      if (usuarioAtual?.cargo === "superior") {
+        return true;
       }
-      // Se não for admin total, superior ou gerência, filtrar por unidades de acesso
-      else if (usuarioAtual?.cargo !== "administrador" && usuarioAtual?.cargo !== "superior" && usuarioAtual?.role !== "admin") {
-        const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-        if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
-          return false;
-        }
+      
+      // Todos os outros (exceto superiores) veem apenas suas unidades de acesso
+      const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+      if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
+        return false;
       }
       
       // Restante dos filtros normais
