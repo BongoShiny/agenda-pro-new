@@ -1211,7 +1211,7 @@ export default function AgendaPage() {
     // Restante dos filtros normais
     // Log detalhado para cada agendamento
     const isDataMatch = ag.data === dataFiltro;
-    const isUnidadeMatch = !unidadeSelecionada || ag.unidade_id === unidadeSelecionada.id;
+    const isUnidadeMatch = !unidadeFinal || ag.unidade_id === unidadeFinal.id;
     const isClienteMatch = !filters.cliente || (
       (ag.cliente_nome && ag.cliente_nome.toLowerCase().includes(filters.cliente.toLowerCase())) ||
       (ag.cliente_telefone && ag.cliente_telefone.toLowerCase().includes(filters.cliente.toLowerCase()))
