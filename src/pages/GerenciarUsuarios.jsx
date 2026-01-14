@@ -120,7 +120,7 @@ export default function GerenciarUsuariosPage() {
             }
 
             // Também atribuir unidade se sem unidade
-            if (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0) {
+            if (unidadesAtuais.length === 0) {
               console.log(`🔄 SINCRONIZANDO VENDEDOR: ${usuario.full_name} - atribuindo unidade`);
 
               await base44.entities.User.update(usuario.id, {
