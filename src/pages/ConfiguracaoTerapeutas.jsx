@@ -90,11 +90,16 @@ export default function ConfiguracaoTerapeutasPage() {
     initialData: [],
   });
 
-  const { data: unidades = [] } = useQuery({
+  const { data: todasUnidades = [] } = useQuery({
     queryKey: ['unidades'],
     queryFn: () => base44.entities.Unidade.list("nome"),
     initialData: [],
   });
+
+  // Filtrar unidades baseado no acesso do usuário
+  const unidades = (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin")
+    ? todasUnidades
+    : todasUnidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
 
   const { data: configuracoes = [] } = useQuery({
     queryKey: ['configuracoes'],

@@ -113,6 +113,15 @@ export default function HistoricoAgendamentosPage() {
   const [unidadeFiltro, setUnidadeFiltro] = useState("");
   const [buscaLogs, setBuscaLogs] = useState("");
   const [tipoAcaoFiltro, setTipoAcaoFiltro] = useState("");
+  const [usuarioAtual, setUsuarioAtual] = useState(null);
+
+  React.useEffect(() => {
+    const carregarUsuario = async () => {
+      const user = await base44.auth.me();
+      setUsuarioAtual(user);
+    };
+    carregarUsuario();
+  }, []);
 
   const { data: agendamentos = [] } = useQuery({
     queryKey: ['agendamentos-historico'],
@@ -133,6 +142,14 @@ export default function HistoricoAgendamentosPage() {
   const agendamentosFiltrados = agendamentos.filter(ag => {
     // CRÍTICO: Aba "Agendamentos" mostra APENAS registros do sistema (sem criador_email)
     if (ag.criador_email) return false;
+    
+    // Filtrar por unidades de acesso para gerentes de unidade
+    if (usuarioAtual?.cargo === "gerencia_unidades") {
+      const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+      if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
+        return false;
+      }
+    }
     
     const buscaLower = busca.toLowerCase();
     
