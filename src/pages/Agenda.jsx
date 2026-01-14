@@ -434,20 +434,23 @@ export default function AgendaPage() {
     initialData: [],
   });
 
-  // Filtrar unidades baseado no acesso do usuário - gerentes veem APENAS suas unidades
+  // CRÍTICO: Filtrar unidades baseado no acesso do usuário - gerentes veem APENAS suas unidades
   const unidades = React.useMemo(() => {
-    console.log("🏢 FILTRANDO UNIDADES:", {
+    console.log("🏢 FILTRANDO UNIDADES Agenda:", {
       usuario: usuarioAtual?.email,
       cargo: usuarioAtual?.cargo,
+      role: usuarioAtual?.role,
       unidades_acesso: usuarioAtual?.unidades_acesso,
       total_unidades: todasUnidades.length
     });
     
-    if (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin") {
-      console.log("✅ ADMIN - mostrando todas as unidades:", todasUnidades.length);
+    // APENAS administradores e superiores veem todas
+    if (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior") {
+      console.log("✅ ADMIN - mostrando todas:", todasUnidades.length);
       return todasUnidades;
     }
     
+    // Gerentes e outros veem APENAS suas unidades
     const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
     const unidadesFiltradas = todasUnidades.filter(u => unidadesAcesso.includes(u.id));
     
