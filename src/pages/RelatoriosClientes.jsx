@@ -102,7 +102,7 @@ export default function RelatoriosClientesPage() {
     initialData: [],
   });
 
-  // CRÍTICO: Filtrar unidades baseado no acesso do usuário - gerentes veem APENAS suas unidades
+  // CRÍTICO: Filtrar unidades - superiores/admins veem TODAS, gerentes veem apenas suas
   const unidades = React.useMemo(() => {
     console.log("🏢 FILTRANDO UNIDADES Relatórios:", {
       usuario: usuarioAtual?.email,
@@ -112,23 +112,25 @@ export default function RelatoriosClientesPage() {
       total_unidades: todasUnidades.length
     });
     
-    // APENAS administradores e superiores veem todas
-    if (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior") {
-      console.log("✅ ADMIN/SUPERIOR - mostrando todas:", todasUnidades.length);
+    // Superiores, administradores e role admin = TODAS AS UNIDADES SEM FILTRO
+    if (usuarioAtual?.cargo === "administrador" || 
+        usuarioAtual?.cargo === "superior" || 
+        usuarioAtual?.role === "admin") {
+      console.log("✅ SUPERIOR/ADMIN - mostrando TODAS:", todasUnidades.length);
       return todasUnidades;
     }
     
-    // Gerentes de unidades e outros veem APENAS suas unidades específicas
-    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-    const unidadesFiltradas = todasUnidades.filter(u => unidadesAcesso.includes(u.id));
+    // Apenas gerentes de unidades têm filtro
+    if (usuarioAtual?.cargo === "gerencia_unidades") {
+      const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+      const unidadesFiltradas = todasUnidades.filter(u => unidadesAcesso.includes(u.id));
+      console.log("🔒 GERÊNCIA - filtrando:", unidadesFiltradas.length);
+      return unidadesFiltradas;
+    }
     
-    console.log("🔒 GERÊNCIA - filtrando por acesso:", {
-      unidades_acesso: unidadesAcesso,
-      unidades_filtradas: unidadesFiltradas.length,
-      nomes: unidadesFiltradas.map(u => u.nome)
-    });
-    
-    return unidadesFiltradas;
+    // Outros cargos - sem filtro
+    console.log("✅ Outro cargo - mostrando todas:", todasUnidades.length);
+    return todasUnidades;
   }, [todasUnidades, usuarioAtual]);
 
   const { data: servicos = [] } = useQuery({
