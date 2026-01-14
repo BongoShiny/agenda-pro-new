@@ -102,7 +102,7 @@ export default function RelatoriosClientesPage() {
     initialData: [],
   });
 
-  // CRÍTICO: Filtrar unidades - superiores/admins veem TODAS, gerentes veem apenas suas
+  // CRÍTICO: APENAS superiores veem TODAS as unidades, todos os outros têm restrições
   const unidades = React.useMemo(() => {
     console.log("🏢 FILTRANDO UNIDADES Relatórios:", {
       usuario: usuarioAtual?.email,
@@ -112,25 +112,17 @@ export default function RelatoriosClientesPage() {
       total_unidades: todasUnidades.length
     });
     
-    // Superiores, administradores e role admin = TODAS AS UNIDADES SEM FILTRO
-    if (usuarioAtual?.cargo === "administrador" || 
-        usuarioAtual?.cargo === "superior" || 
-        usuarioAtual?.role === "admin") {
-      console.log("✅ SUPERIOR/ADMIN - mostrando TODAS:", todasUnidades.length);
+    // APENAS superiores veem TODAS as unidades
+    if (usuarioAtual?.cargo === "superior") {
+      console.log("✅ SUPERIOR - mostrando TODAS:", todasUnidades.length);
       return todasUnidades;
     }
     
-    // Apenas gerentes de unidades têm filtro
-    if (usuarioAtual?.cargo === "gerencia_unidades") {
-      const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-      const unidadesFiltradas = todasUnidades.filter(u => unidadesAcesso.includes(u.id));
-      console.log("🔒 GERÊNCIA - filtrando:", unidadesFiltradas.length);
-      return unidadesFiltradas;
-    }
-    
-    // Outros cargos - sem filtro
-    console.log("✅ Outro cargo - mostrando todas:", todasUnidades.length);
-    return todasUnidades;
+    // Todos os outros (incluindo gerencia, administrador, etc) veem apenas suas unidades de acesso
+    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+    const unidadesFiltradas = todasUnidades.filter(u => unidadesAcesso.includes(u.id));
+    console.log("🔒 ACESSO LIMITADO - filtrando:", unidadesFiltradas.length);
+    return unidadesFiltradas;
   }, [todasUnidades, usuarioAtual]);
 
   const { data: servicos = [] } = useQuery({

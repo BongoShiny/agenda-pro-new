@@ -135,14 +135,17 @@ export default function HistoricoAgendamentosPage() {
     initialData: [],
   });
 
-  // Filtrar agendamentos para gerentes ANTES de extrair profissionais e unidades
-  // APENAS gerencia_unidades tem acesso restrito, superiores e admins veem tudo
+  // Filtrar agendamentos - APENAS superiores veem tudo, todos os outros têm limitações
   const agendamentosAcessiveis = agendamentos.filter(ag => {
-    if (usuarioAtual?.cargo === "gerencia_unidades" && usuarioAtual?.cargo !== "superior" && usuarioAtual?.cargo !== "administrador") {
-      const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
-      if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
-        return false;
-      }
+    // APENAS superiores veem todos os agendamentos
+    if (usuarioAtual?.cargo === "superior") {
+      return true;
+    }
+    
+    // Todos os outros veem apenas suas unidades de acesso
+    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+    if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
+      return false;
     }
     return true;
   });
@@ -155,8 +158,8 @@ export default function HistoricoAgendamentosPage() {
     // CRÍTICO: Aba "Agendamentos" mostra APENAS registros do sistema (sem criador_email)
     if (ag.criador_email) return false;
     
-    // Filtrar por unidades de acesso APENAS para gerentes (não para superiores/admins)
-    if (usuarioAtual?.cargo === "gerencia_unidades" && usuarioAtual?.cargo !== "superior" && usuarioAtual?.cargo !== "administrador") {
+    // APENAS superiores veem tudo, todos os outros têm filtro por unidade
+    if (usuarioAtual?.cargo !== "superior") {
       const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
       if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
         return false;
@@ -181,8 +184,8 @@ export default function HistoricoAgendamentosPage() {
   });
 
   const logsAcoesFiltrados = logsAcoes.filter(log => {
-    // APENAS gerentes (não superiores/admins) veem logs filtrados por suas unidades
-    if (usuarioAtual?.cargo === "gerencia_unidades" && usuarioAtual?.cargo !== "superior" && usuarioAtual?.cargo !== "administrador" && log.entidade_tipo === "Agendamento" && log.entidade_id) {
+    // APENAS superiores veem todos os logs, todos os outros têm filtro
+    if (usuarioAtual?.cargo !== "superior" && log.entidade_tipo === "Agendamento" && log.entidade_id) {
       const agendamentoRelacionado = agendamentos.find(ag => ag.id === log.entidade_id);
       if (agendamentoRelacionado) {
         const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
