@@ -731,16 +731,8 @@ export default function AgendaPage() {
       observacoes: "Horário fechado para atendimentos"
     };
     
-    console.log("📦 OBJETO COMPLETO A SER SALVO:");
-    console.log(JSON.stringify(bloqueio, null, 2));
-    
     try {
-      console.log("📤 ENVIANDO PARA O BANCO...");
       const resultado = await criarAgendamentoMutation.mutateAsync(bloqueio);
-      
-      console.log("✅✅✅ BLOQUEIO SALVO NO BANCO ✅✅✅");
-      console.log("🆔 ID retornado:", resultado.id);
-      console.log("🔒🔒🔒 ==================== FIM DO BLOQUEIO ==================== 🔒🔒🔒");
       
       alert(`✅ Horário BLOQUEADO com sucesso!\n\n📅 Data: ${dataFormatada}\n⏰ Horário: ${horarioInicio} - ${horarioFim}\n👨‍⚕️ Profissional: ${profissional?.nome}`);
       
