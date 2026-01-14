@@ -111,8 +111,19 @@ export default function GerenciarContratosPage() {
   );
 
   // Filtrar por unidades de acesso para gerentes de unidade
+  let unidadesAcessoFinal = [];
   if (usuarioAtual?.cargo === "gerencia_unidades") {
-    const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+    let unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+    if (typeof unidadesAcesso === 'string') {
+      try {
+        unidadesAcesso = JSON.parse(unidadesAcesso);
+      } catch (e) {
+        unidadesAcesso = [];
+      }
+    } else if (!Array.isArray(unidadesAcesso)) {
+      unidadesAcesso = [];
+    }
+    unidadesAcessoFinal = unidadesAcesso;
     agendamentosValidos = agendamentosValidos.filter(ag => unidadesAcesso.includes(ag.unidade_id));
   }
 
