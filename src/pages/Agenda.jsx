@@ -1244,6 +1244,7 @@ export default function AgendaPage() {
         servicos={servicos}
         modoEdicao={!!agendamentoInicial?.id}
         agendamentos={agendamentos}
+        isTerapeuta={isProfissional}
       />
 
       <DetalhesAgendamentoDialog
