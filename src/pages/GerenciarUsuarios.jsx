@@ -412,13 +412,31 @@ export default function GerenciarUsuariosPage() {
                              </div>
                             </SelectItem>
                             {(usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin") && (
-                             <>
-                               <SelectItem value="gerencia_unidades">
-                                  <div className="flex items-center gap-2">
-                                    <Building2 className="w-3 h-3" />
-                                    Gerência de Unidades
-                                  </div>
-                                </SelectItem>
+                              <>
+                                <SelectItem value="gerencia_unidade_moema">
+                                   <div className="flex items-center gap-2">
+                                     <Building2 className="w-3 h-3" />
+                                     Moema + Gerência de Unidade
+                                   </div>
+                                 </SelectItem>
+                                 <SelectItem value="gerencia_unidade_londrina">
+                                   <div className="flex items-center gap-2">
+                                     <Building2 className="w-3 h-3" />
+                                     Londrina + Gerência de Unidade
+                                   </div>
+                                 </SelectItem>
+                                 <SelectItem value="gerencia_unidade_paulista">
+                                   <div className="flex items-center gap-2">
+                                     <Building2 className="w-3 h-3" />
+                                     Paulista + Gerência de Unidade
+                                   </div>
+                                 </SelectItem>
+                                <SelectItem value="gerencia_unidades">
+                                   <div className="flex items-center gap-2">
+                                     <Building2 className="w-3 h-3" />
+                                     Gerência de Unidades (Antigo)
+                                   </div>
+                                 </SelectItem>
                                 <SelectItem value="financeiro">
                                   <div className="flex items-center gap-2">
                                     <FileSpreadsheet className="w-3 h-3" />
