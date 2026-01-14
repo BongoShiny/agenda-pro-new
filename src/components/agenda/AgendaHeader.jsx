@@ -254,15 +254,26 @@ export default function AgendaHeader({
           </div>
         </div>
 
-        {unidades.length > 0 && (
-          usuarioAtual?.cargo === "gerencia_unidades" ? (
-            // Gerentes veem APENAS sua unidade - sem abas
-            <div className="bg-gray-100 p-3 rounded-md border border-gray-200">
-              <div className="text-sm font-medium text-gray-600">Unidade Atribuída:</div>
-              <div className="text-lg font-bold text-blue-600 mt-1">{unidadeSelecionada?.nome || unidades[0]?.nome}</div>
-            </div>
-          ) : (
-            // Admin e outros cargos veem abas de todas as suas unidades
+        {unidades.length > 0 && (() => {
+          // Verificar se usuário é global (admin) ou restrito
+          const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
+          const isGlobal = cargoLower === "administrador" || usuarioAtual?.role === "admin";
+
+          // Se usuário é restrito (tem apenas 1 unidade de acesso)
+          const isRestrito = !isGlobal && unidades.length === 1;
+
+          if (isRestrito) {
+            // Usuário restrito vê apenas sua unidade - sem abas
+            return (
+              <div className="bg-gray-100 p-3 rounded-md border border-gray-200">
+                <div className="text-sm font-medium text-gray-600">Unidade Atribuída:</div>
+                <div className="text-lg font-bold text-blue-600 mt-1">{unidades[0]?.nome}</div>
+              </div>
+            );
+          }
+
+          // Usuário global vê abas de todas as unidades
+          return (
             <Tabs value={unidadeSelecionada?.id || unidades[0]?.id} onValueChange={(value) => {
               const unidade = unidades.find(u => u.id === value);
               onUnidadeChange(unidade);
@@ -279,8 +290,8 @@ export default function AgendaHeader({
                 ))}
               </TabsList>
             </Tabs>
-          )
-        )}
+          );
+        })()}
       </div>
     </div>
   );
