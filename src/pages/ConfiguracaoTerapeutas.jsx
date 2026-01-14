@@ -664,6 +664,11 @@ export default function ConfiguracaoTerapeutasPage() {
             </TabsList>
 
           {unidades.map(unidade => {
+            // Se for gerência, mostrar apenas se for a unidade de acesso
+            if (usuarioAtual?.cargo === "gerencia_unidades" && unidade.id !== unidadeSelecionada) {
+              return null;
+            }
+
             const configs = getConfiguracoesUnidade(unidade.id);
             const disponiveis = getProfissionaisDisponiveis(unidade.id);
 
