@@ -146,9 +146,22 @@ export default function GerenciarUsuariosPage() {
 
   const handleAtualizarUnidades = async (usuario, unidadesIds) => {
     const unidadesAntigas = usuario.unidades_acesso || [];
+    
+    console.error("🔧🔧🔧 ==================== SALVANDO UNIDADES ==================== 🔧🔧🔧");
+    console.error("PRE-SALVAR:");
+    console.error("  usuario.id:", usuario.id);
+    console.error("  usuario.email:", usuario.email);
+    console.error("  usuario.unidades_acesso ANTES:", JSON.stringify(usuario.unidades_acesso));
+    console.error("  unidadesIds a salvar:", JSON.stringify(unidadesIds));
+    console.error("  Tipo de unidadesIds:", typeof unidadesIds);
+    console.error("  É array?", Array.isArray(unidadesIds));
+    
+    const dados = { unidades_acesso: unidadesIds };
+    console.error("📦 OBJETO A SER ENVIADO:", JSON.stringify(dados));
+    
     await atualizarUsuarioMutation.mutateAsync({
       id: usuario.id,
-      dados: { unidades_acesso: unidadesIds }
+      dados: dados
     });
     
     // Registrar no log
