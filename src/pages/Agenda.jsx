@@ -1052,6 +1052,19 @@ export default function AgendaPage() {
   const isProfissional = usuarioAtual?.cargo === "terapeuta";
   const profissionalDoUsuario = profissionais.find(p => p.email === usuarioAtual?.email);
 
+  // Se for terapeuta e não tem profissional vinculado, redirecionar
+  if (isProfissional && !profissionalDoUsuario) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 text-lg font-bold mb-2">⚠️ Erro de Acesso</div>
+          <p className="text-gray-600">Seu email não está vinculado a nenhum terapeuta.</p>
+          <p className="text-sm text-gray-500 mt-2">Entre em contato com o administrador.</p>
+        </div>
+      </div>
+    );
+  }
+
   const agendamentosFiltrados = agendamentos.filter(ag => {
     // Se for terapeuta, mostrar apenas seus próprios agendamentos
     if (isProfissional && profissionalDoUsuario) {
@@ -1151,8 +1164,9 @@ export default function AgendaPage() {
         unidadeSelecionada={unidadeSelecionada}
         onUnidadeChange={setUnidadeSelecionada}
         onDataChange={setDataAtual}
-        onNovoAgendamento={handleNovoAgendamento}
+        onNovoAgendamento={isProfissional ? null : handleNovoAgendamento}
         usuarioAtual={usuarioAtual}
+        isProfissional={isProfissional}
       />
 
       <div className="flex-1 flex overflow-hidden relative">
