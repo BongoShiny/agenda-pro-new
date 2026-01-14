@@ -498,7 +498,7 @@ export default function GerenciarUsuariosPage() {
                           <Badge variant="secondary" className="bg-blue-100 text-blue-700">
                             Todas as unidades
                           </Badge>
-                        ) : cargo === "gerencia_unidades" ? (
+                        ) : (cargo === "gerencia_unidades" || cargo.includes("gerencia_unidade_")) ? (
                           // GERÊNCIA DE UNIDADES: Obrigatório selecionar APENAS UMA unidade
                           <Popover>
                             <PopoverTrigger asChild>
