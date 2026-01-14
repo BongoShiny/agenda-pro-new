@@ -135,9 +135,20 @@ export default function HistoricoAgendamentosPage() {
     initialData: [],
   });
 
-  // Extrair lista única de profissionais e unidades
-  const profissionaisUnicos = [...new Set(agendamentos.map(ag => ag.profissional_nome).filter(Boolean))].sort();
-  const unidadesUnicas = [...new Set(agendamentos.map(ag => ag.unidade_nome).filter(Boolean))].sort();
+  // Filtrar agendamentos para gerentes ANTES de extrair profissionais e unidades
+  const agendamentosAcessiveis = agendamentos.filter(ag => {
+    if (usuarioAtual?.cargo === "gerencia_unidades") {
+      const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+      if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
+        return false;
+      }
+    }
+    return true;
+  });
+
+  // Extrair lista única de profissionais e unidades dos agendamentos acessíveis
+  const profissionaisUnicos = [...new Set(agendamentosAcessiveis.map(ag => ag.profissional_nome).filter(Boolean))].sort();
+  const unidadesUnicas = [...new Set(agendamentosAcessiveis.map(ag => ag.unidade_nome).filter(Boolean))].sort();
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
     // CRÍTICO: Aba "Agendamentos" mostra APENAS registros do sistema (sem criador_email)
@@ -169,6 +180,17 @@ export default function HistoricoAgendamentosPage() {
   });
 
   const logsAcoesFiltrados = logsAcoes.filter(log => {
+    // Gerentes veem APENAS logs de suas unidades
+    if (usuarioAtual?.cargo === "gerencia_unidades" && log.entidade_tipo === "Agendamento" && log.entidade_id) {
+      const agendamentoRelacionado = agendamentos.find(ag => ag.id === log.entidade_id);
+      if (agendamentoRelacionado) {
+        const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+        if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(agendamentoRelacionado.unidade_id)) {
+          return false;
+        }
+      }
+    }
+    
     const buscaLower = buscaLogs.toLowerCase();
     const matchBusca = !buscaLogs || (
       log.usuario_email?.toLowerCase().includes(buscaLower) ||
