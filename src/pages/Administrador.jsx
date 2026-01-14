@@ -18,7 +18,6 @@ export default function AdministradorPage() {
         
         // Permitir acesso para admin, gerência, financeiro ou recepção
         const temAcesso = user?.cargo === "administrador" || 
-                         user?.cargo === "superior" || 
                          user?.role === "admin" || 
                          user?.cargo === "gerencia_unidades" || 
                          user?.cargo === "financeiro" || 
@@ -111,8 +110,8 @@ export default function AdministradorPage() {
               <ShieldCheck className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Área dos Superiores</h1>
-              <p className="text-sm text-gray-500">{isFinanceiro ? "Acesso ao histórico" : "Acesso restrito a superiores"}</p>
+              <h1 className="text-2xl font-bold text-gray-900">Área Administrativa</h1>
+              <p className="text-sm text-gray-500">{isFinanceiro ? "Acesso ao histórico" : "Acesso restrito a administradores"}</p>
             </div>
           </div>
         </div>

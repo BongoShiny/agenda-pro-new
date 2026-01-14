@@ -112,10 +112,10 @@ export default function RelatoriosClientesPage() {
       total_unidades: todasUnidades.length
     });
     
-    // APENAS superiores/admins veem TODAS as unidades (case-insensitive)
+    // APENAS administradores veem TODAS as unidades (case-insensitive)
     const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
-    if (cargoLower === "superior" || cargoLower === "administrador" || usuarioAtual?.role === "admin") {
-      console.log("✅ SUPERIOR/ADMIN - mostrando TODAS:", todasUnidades.length);
+    if (cargoLower === "administrador" || usuarioAtual?.role === "admin") {
+      console.log("✅ ADMINISTRADOR - mostrando TODAS:", todasUnidades.length);
       return todasUnidades;
     }
     
@@ -146,9 +146,9 @@ export default function RelatoriosClientesPage() {
   const agendamentosFiltrados = agendamentos
     .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
     .filter(ag => {
-      // SUPERIORES/ADMINS VEEM TUDO - sem nenhum filtro (case-insensitive)
+      // ADMINISTRADORES VEEM TUDO - sem nenhum filtro (case-insensitive)
       const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
-      if (cargoLower === "superior" || cargoLower === "administrador" || usuarioAtual?.role === "admin") {
+      if (cargoLower === "administrador" || usuarioAtual?.role === "admin") {
         return true;
       }
       

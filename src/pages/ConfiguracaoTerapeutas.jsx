@@ -106,10 +106,10 @@ export default function ConfiguracaoTerapeutasPage() {
       total_unidades: todasUnidades.length
     });
     
-    // APENAS superiores/admins veem TODAS as unidades (case-insensitive)
+    // APENAS administradores veem TODAS as unidades (case-insensitive)
     const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
-    if (cargoLower === "superior" || cargoLower === "administrador" || usuarioAtual?.role === "admin") {
-      console.log("✅ SUPERIOR/ADMIN - mostrando TODAS:", todasUnidades.length);
+    if (cargoLower === "administrador" || usuarioAtual?.role === "admin") {
+      console.log("✅ ADMINISTRADOR - mostrando TODAS:", todasUnidades.length);
       return todasUnidades;
     }
     

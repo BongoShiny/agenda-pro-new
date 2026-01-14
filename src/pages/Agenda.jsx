@@ -443,12 +443,12 @@ export default function AgendaPage() {
     console.log("Unidades Acesso:", usuarioAtual?.unidades_acesso);
     console.log("Total Unidades:", todasUnidades.length);
     
-    // APENAS superior e administrador veem TODAS (case-insensitive)
+    // APENAS administrador vê TODAS (case-insensitive)
     const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
     console.log("Cargo LOWERCASE:", cargoLower);
     
-    if (cargoLower === "superior" || cargoLower === "administrador") {
-      console.log("✅✅✅ SUPERIOR/ADMIN DETECTADO - MOSTRANDO TODAS:", todasUnidades.length);
+    if (cargoLower === "administrador" || usuarioAtual?.role === "admin") {
+      console.log("✅✅✅ ADMINISTRADOR DETECTADO - MOSTRANDO TODAS:", todasUnidades.length);
       return todasUnidades;
     }
     
@@ -1099,9 +1099,9 @@ export default function AgendaPage() {
   });
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
-    // SUPERIORES/ADMINS VEEM TUDO - sem nenhum filtro (case-insensitive)
+    // ADMINISTRADORES VEEM TUDO - sem nenhum filtro (case-insensitive)
     const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
-    if (cargoLower === "superior" || cargoLower === "administrador" || usuarioAtual?.role === "admin") {
+    if (cargoLower === "administrador" || usuarioAtual?.role === "admin") {
       return true;
     }
 
@@ -1116,7 +1116,7 @@ export default function AgendaPage() {
 
     // Todos os outros veem apenas suas unidades de acesso
     const cargoLowerCheck = usuarioAtual?.cargo?.toLowerCase() || "";
-    if (cargoLowerCheck !== "superior" && cargoLowerCheck !== "administrador" && usuarioAtual?.role !== "admin") {
+    if (cargoLowerCheck !== "administrador" && usuarioAtual?.role !== "admin") {
       const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
       if (unidadesAcesso.length > 0 && !unidadesAcesso.includes(ag.unidade_id)) {
         return false;
@@ -1178,7 +1178,7 @@ export default function AgendaPage() {
   const unidadeAtual = unidadeSelecionada || unidades[0];
 
   // Verificar se é admin ou gerência - ambos têm permissões administrativas
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
