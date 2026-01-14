@@ -780,10 +780,6 @@ export default function AgendaPage() {
     // Corrigir cálculo da hora fim para bloqueio de 1 hora completa
     const horaFim = `${(hora + 1).toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
 
-    console.log("⏰ HORÁRIO:", horario, "até", horaFim);
-    console.log("👨‍⚕️ PROFISSIONAL:", profissional?.nome, "(ID:", profissionalId, ")");
-    console.log("🏢 UNIDADE:", unidade?.nome, "(ID:", unidadeId, ")");
-    
     // OBJETO BLOQUEIO - data como STRING PURA
     const bloqueio = {
       cliente_nome: "FECHADO",
@@ -800,25 +796,12 @@ export default function AgendaPage() {
       observacoes: "Horário fechado para atendimentos"
     };
     
-    console.log("📦 OBJETO COMPLETO A SER SALVO:");
-    console.log(JSON.stringify(bloqueio, null, 2));
-    
     try {
-      console.log("📤 ENVIANDO PARA O BANCO...");
       const resultado = await criarAgendamentoMutation.mutateAsync(bloqueio);
-      
-      console.log("✅✅✅ BLOQUEIO SALVO NO BANCO ✅✅✅");
-      console.log("🆔 ID retornado:", resultado.id);
-      console.log("📅 Data retornada (bruta):", resultado.data);
-      console.log("📅 Data normalizada:", normalizarData(resultado.data));
-      console.log("🔒🔒🔒 ==================== FIM DO BLOQUEIO ==================== 🔒🔒🔒");
       
       alert(`✅ Horário BLOQUEADO com sucesso!\n\n📅 Data: ${dataFormatada}\n⏰ Horário: ${horario}\n👨‍⚕️ Profissional: ${profissional?.nome}`);
       
     } catch (error) {
-      console.error("❌❌❌ ERRO AO BLOQUEAR ❌❌❌");
-      console.error("Detalhes completos:", error);
-      console.error("Stack:", error.stack);
       alert("❌ Erro ao bloquear horário: " + error.message);
     }
   };
