@@ -1178,7 +1178,7 @@ export default function AgendaPage() {
       <AgendaHeader
         dataAtual={dataAtual}
         unidades={unidades}
-        unidadeSelecionada={unidadeSelecionada}
+        unidadeSelecionada={unidadeSelecionada || unidades[0]}
         onUnidadeChange={setUnidadeSelecionada}
         onDataChange={setDataAtual}
         onNovoAgendamento={handleNovoAgendamento}
