@@ -463,57 +463,71 @@ export default function AgendaPage() {
   });
 
   // CRÍTICO: APENAS administradores veem TODAS as unidades, gerência vé apenas suas unidades
-  const unidades = React.useMemo(() => {
-    console.error("🏢🏢🏢 ==================== FILTRANDO UNIDADES AGENDA ==================== 🏢🏢🏢");
+    const unidades = React.useMemo(() => {
+      console.error("🏢🏢🏢 ==================== FILTRANDO UNIDADES AGENDA ==================== 🏢🏢🏢");
 
-    // CRÍTICO: Se usuário ainda não carregou, não mostrar nada
-    if (!usuarioAtual) {
-      console.error("⚠️ USUÁRIO AINDA NÃO CARREGADO");
-      return [];
-    }
-
-    console.error("📊 ESTADO ATUAL:");
-    console.error("  Email:", usuarioAtual?.email);
-    console.error("  Cargo:", usuarioAtual?.cargo);
-    console.error("  Role:", usuarioAtual?.role);
-    console.error("  Unidades Acesso:", JSON.stringify(usuarioAtual?.unidades_acesso));
-    console.error("  Total de unidades do sistema:", todasUnidades.length);
-
-    // APENAS administrador vê TODAS (case-insensitive)
-    const cargoLower = (usuarioAtual.cargo || "").toLowerCase().trim();
-
-    if (cargoLower === "administrador" || usuarioAtual.role === "admin") {
-      console.error("✅ ADMINISTRADOR - MOSTRANDO TODAS as unidades");
-      return todasUnidades;
-    }
-
-    // TODOS OS OUTROS (incluindo gerencia_unidades) veem APENAS suas unidades
-    const unidadesAcesso = usuarioAtual.unidades_acesso || [];
-
-    console.error("🔒 NÃO É ADMINISTRADOR");
-    console.error("  Cargo:", cargoLower);
-    console.error("  Unidades Acesso (array):", JSON.stringify(unidadesAcesso));
-    console.error("  Quantidade permitida:", unidadesAcesso.length);
-
-    if (unidadesAcesso.length === 0) {
-      console.error("❌ NENHUMA UNIDADE DE ACESSO");
-      return [];
-    }
-
-    const unidadesFiltradas = todasUnidades.filter(u => {
-      const temAcesso = unidadesAcesso.includes(u.id);
-      if (!temAcesso) {
-        console.error(`  ❌ "${u.nome}" (${u.id}) - SEM ACESSO`);
+      // CRÍTICO: Se usuário ainda não carregou, não mostrar nada
+      if (!usuarioAtual) {
+        console.error("⚠️ USUÁRIO AINDA NÃO CARREGADO");
+        return [];
       }
-      return temAcesso;
-    });
 
-    console.error("✅ UNIDADES DISPONÍVEIS PARA ESSE USUÁRIO:");
-    unidadesFiltradas.forEach(u => console.error(`  ✅ "${u.nome}" (${u.id})`));
-    console.error("🏢🏢🏢 ==================== FIM FILTRAGEM ==================== 🏢🏢🏢");
+      console.error("📊 ESTADO ATUAL:");
+      console.error("  Email:", usuarioAtual?.email);
+      console.error("  Cargo:", usuarioAtual?.cargo);
+      console.error("  Role:", usuarioAtual?.role);
+      console.error("  Unidades Acesso RAW:", usuarioAtual?.unidades_acesso);
+      console.error("  Tipo:", typeof usuarioAtual?.unidades_acesso);
+      console.error("  É Array?:", Array.isArray(usuarioAtual?.unidades_acesso));
+      console.error("  Total de unidades do sistema:", todasUnidades.length);
+      todasUnidades.forEach(u => console.error(`    - ${u.nome} (${u.id})`));
 
-    return unidadesFiltradas;
-  }, [todasUnidades, usuarioAtual]);
+      // APENAS administrador vê TODAS (case-insensitive)
+      const cargoLower = (usuarioAtual.cargo || "").toLowerCase().trim();
+
+      if (cargoLower === "administrador" || usuarioAtual.role === "admin") {
+        console.error("✅ ADMINISTRADOR - MOSTRANDO TODAS as unidades");
+        return todasUnidades;
+      }
+
+      // TODOS OS OUTROS (incluindo gerencia_unidades) veem APENAS suas unidades
+      let unidadesAcesso = usuarioAtual.unidades_acesso || [];
+
+      // CRÍTICO: Se vier como string, converter para array
+      if (typeof unidadesAcesso === 'string') {
+        console.error("⚠️ unidades_acesso veio como STRING! Convertendo...", unidadesAcesso);
+        try {
+          unidadesAcesso = JSON.parse(unidadesAcesso);
+        } catch (e) {
+          console.error("❌ Erro ao parsear unidades_acesso");
+          unidadesAcesso = [];
+        }
+      }
+
+      console.error("🔒 NÃO É ADMINISTRADOR");
+      console.error("  Cargo:", cargoLower);
+      console.error("  Unidades Acesso FINAL:", JSON.stringify(unidadesAcesso));
+      console.error("  Tipo FINAL:", typeof unidadesAcesso);
+      console.error("  É array?:", Array.isArray(unidadesAcesso));
+      console.error("  Quantidade permitida:", unidadesAcesso.length);
+
+      if (unidadesAcesso.length === 0) {
+        console.error("❌ NENHUMA UNIDADE DE ACESSO");
+        return [];
+      }
+
+      const unidadesFiltradas = todasUnidades.filter(u => {
+        const temAcesso = unidadesAcesso.includes(u.id);
+        console.error(`  Verificando "${u.nome}" (${u.id}): ${temAcesso ? '✅ COM ACESSO' : '❌ SEM ACESSO'}`);
+        return temAcesso;
+      });
+
+      console.error("✅ UNIDADES DISPONÍVEIS PARA ESSE USUÁRIO:");
+      unidadesFiltradas.forEach(u => console.error(`  ✅ "${u.nome}" (${u.id})`));
+      console.error("🏢🏢🏢 ==================== FIM FILTRAGEM ==================== 🏢🏢🏢");
+
+      return unidadesFiltradas;
+    }, [todasUnidades, usuarioAtual]);
 
   // Se unidadeSelecionada não estiver nas unidades filtradas, selecionar a primeira
   React.useEffect(() => {
