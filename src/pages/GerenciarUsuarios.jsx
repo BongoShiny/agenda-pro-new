@@ -288,7 +288,16 @@ export default function GerenciarUsuariosPage() {
   };
 
   const handleToggleUnidade = async (usuario, unidadeId) => {
+    const cargo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "funcionario");
     const unidadesAtuais = usuario.unidades_acesso || [];
+    
+    // VALIDAÇÃO: Gerência só pode ter 1 unidade
+    if (cargo === "gerencia_unidades" && !unidadesAtuais.includes(unidadeId)) {
+      alert("⚠️ Gerentes podem gerenciar apenas UMA unidade. Removendo unidades anteriores.");
+      await handleAtualizarUnidades(usuario, [unidadeId]);
+      return;
+    }
+    
     const novasUnidades = unidadesAtuais.includes(unidadeId)
       ? unidadesAtuais.filter(id => id !== unidadeId)
       : [...unidadesAtuais, unidadeId];
