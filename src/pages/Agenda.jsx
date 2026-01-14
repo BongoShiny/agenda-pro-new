@@ -1292,6 +1292,15 @@ export default function AgendaPage() {
         console.error("Unidades para mostrar:", unidadesParaMostrar.map(u => u.nome));
         console.error("🎯🎯🎯 ==================== FIM DADOS ==================== 🎯🎯🎯");
 
+        // Se não tem unidades permitidas, não renderizar nada
+        if (unidadesParaMostrar.length === 0) {
+          return (
+            <div className="bg-white border-b border-gray-200 px-6 py-4">
+              <div className="text-red-600 font-semibold">❌ Você não tem acesso a nenhuma unidade.</div>
+            </div>
+          );
+        }
+
         return (
           <AgendaHeader
             dataAtual={dataAtual}
