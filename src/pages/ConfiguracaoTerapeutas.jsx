@@ -96,7 +96,7 @@ export default function ConfiguracaoTerapeutasPage() {
     initialData: [],
   });
 
-  // CRÍTICO: APENAS superiores veem TODAS as unidades, todos os outros têm restrições
+  // CRÍTICO: APENAS superiores/admins veem TODAS as unidades, todos os outros têm restrições
   const unidades = React.useMemo(() => {
     console.log("🏢 FILTRANDO UNIDADES ConfigTerapeutas:", {
       usuario: usuarioAtual?.email,
@@ -106,13 +106,14 @@ export default function ConfiguracaoTerapeutasPage() {
       total_unidades: todasUnidades.length
     });
     
-    // APENAS superiores veem TODAS as unidades
-    if (usuarioAtual?.cargo === "superior") {
-      console.log("✅ SUPERIOR - mostrando TODAS:", todasUnidades.length);
+    // APENAS superiores/admins veem TODAS as unidades (case-insensitive)
+    const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
+    if (cargoLower === "superior" || cargoLower === "administrador" || usuarioAtual?.role === "admin") {
+      console.log("✅ SUPERIOR/ADMIN - mostrando TODAS:", todasUnidades.length);
       return todasUnidades;
     }
     
-    // Todos os outros (incluindo gerencia, administrador, etc) veem apenas suas unidades de acesso
+    // Todos os outros veem apenas suas unidades de acesso
     const unidadesAcesso = usuarioAtual?.unidades_acesso || [];
     const unidadesFiltradas = todasUnidades.filter(u => unidadesAcesso.includes(u.id));
     console.log("🔒 ACESSO LIMITADO - filtrando:", unidadesFiltradas.length);
