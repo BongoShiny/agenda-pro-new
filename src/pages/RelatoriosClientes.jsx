@@ -659,13 +659,13 @@ export default function RelatoriosClientesPage() {
         )}
 
                     {/* Tabs por Unidade */}
-                    {usuarioAtual?.cargo === "gerencia_unidades" ? (
-                      // Gerente: mostra apenas sua unidade como informação
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                        <div className="text-sm font-medium text-blue-800">Unidade Atribuída:</div>
-                        <div className="text-lg font-bold text-blue-600 mt-1">{unidades[0]?.nome}</div>
-                      </div>
-                    ) : (
+                    {(usuarioAtual?.cargo === "gerencia_unidades" || (usuarioAtual?.cargo && usuarioAtual.cargo.includes("+ Gerência de Unidade"))) ? (
+                       // Gerente: mostra apenas sua unidade como informação
+                       <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                         <div className="text-sm font-medium text-blue-800">Unidade Atribuída:</div>
+                         <div className="text-lg font-bold text-blue-600 mt-1">{unidades[0]?.nome}</div>
+                       </div>
+                     ) : (
                       // Admin e outros: abas para navegar entre unidades
                       <Tabs value={unidadeTab} onValueChange={setUnidadeTab} className="mb-4">
                         <TabsList className="flex-wrap h-auto">
