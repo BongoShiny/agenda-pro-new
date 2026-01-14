@@ -84,7 +84,7 @@ export default function GerenciarUsuariosPage() {
 
           // GERÊNCIA DE UNIDADE: Atribuir UMA unidade se sem unidade + converter cargo antigo para novo
           if ((cargo === "gerencia_unidades" || cargo.includes("gerencia_unidade_")) && 
-              (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0)) {
+              unidadesAtuais.length === 0) {
             console.log(`🔄 SINCRONIZANDO GERÊNCIA: ${usuario.full_name} - atribuindo primeira unidade + unificando cargo`);
 
             await base44.entities.User.update(usuario.id, {
