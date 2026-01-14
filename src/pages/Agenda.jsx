@@ -787,6 +787,16 @@ export default function AgendaPage() {
   };
   
   const handleBloquearHorarioUnico = async (unidadeId, profissionalId, horario) => {
+    // ✅ VALIDAÇÃO: Apenas ADMIN e GERÊNCIA podem bloquear
+    const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
+    const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
+    const temPermissao = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin" || cargoLower === "gerencia_unidades";
+    
+    if (!temPermissao) {
+      alert("❌ Você não tem permissão para bloquear horários!");
+      return;
+    }
+
     // CRÍTICO: usar formatarDataPura que usa métodos LOCAIS do Date
     const dataFormatada = formatarDataPura(dataAtual);
 
