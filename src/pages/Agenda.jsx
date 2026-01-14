@@ -123,25 +123,36 @@ export default function AgendaPage() {
   useEffect(() => {
     (async () => {
       try {
-        // 🔄 SINCRONIZAR: Buscar usuário ATUALIZADO do banco
-        let user = await base44.auth.me();
-        const usuarioBanco = await base44.entities.User.list().then(users => 
-          users.find(u => u.email === user.email)
-        );
+        // 🔄 SINCRONIZAR: Buscar usuário ATUALIZADO do banco PELA EMAIL
+        const userSession = await base44.auth.me();
+        
+        // FONTE DE VERDADE: Banco de dados
+        const usuariosBanco = await base44.entities.User.list();
+        const usuarioBanco = usuariosBanco.find(u => u.email === userSession.email);
 
-        if (usuarioBanco) {
-          user = { ...user, ...usuarioBanco };
+        if (!usuarioBanco) {
+          console.error("❌ Usuário não encontrado no banco:", userSession.email);
+          setUsuarioAtual(userSession);
+          return;
         }
+
+        // USAR DADOS DO BANCO COMO FONTE DE VERDADE
+        let user = { ...userSession, ...usuarioBanco };
+
+        console.log(`✅ Sincronizado ${user.email}:`, { 
+          cargo: user.cargo, 
+          unidades: user.unidades_acesso 
+        });
 
         // MIGRAR CARGOS ANTIGOS
         const cargoLower = (user?.cargo || "").toLowerCase().trim();
         if (cargoLower.includes("gerencia_unidade_")) {
-          console.log(`🔄 Migrando cargo de ${user.email}`);
+          console.log(`🔄 Migrando cargo de ${user.email}: ${user.cargo} → gerencia_unidades`);
           await base44.entities.User.update(user.id, { cargo: "gerencia_unidades" });
           user.cargo = "gerencia_unidades";
         }
 
-        // CRÍTICO: Garantir que unidades_acesso é um ARRAY
+        // GARANTIR ARRAY
         let unidadesAcessoFinal = user.unidades_acesso || [];
         if (typeof unidadesAcessoFinal === 'string') {
           try {
@@ -149,9 +160,8 @@ export default function AgendaPage() {
           } catch (e) {
             unidadesAcessoFinal = [];
           }
-        } else if (typeof unidadesAcessoFinal === 'object' && !Array.isArray(unidadesAcessoFinal)) {
-          unidadesAcessoFinal = Object.keys(unidadesAcessoFinal);
-        } else if (!Array.isArray(unidadesAcessoFinal)) {
+        }
+        if (!Array.isArray(unidadesAcessoFinal)) {
           unidadesAcessoFinal = [];
         }
         user.unidades_acesso = unidadesAcessoFinal;
