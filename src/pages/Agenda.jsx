@@ -289,12 +289,13 @@ export default function AgendaPage() {
         }
       }
 
-      // Buscar sessões ativas do usuário
+      // Buscar sessões ativas DO MESMO USUÁRIO (isolado por email)
       const sessoesAtivas = await base44.entities.SessaoAtiva.filter({ 
-        usuario_email: user.email 
+        usuario_email: user.email  // ⚠️ ISOLADO POR USUÁRIO
       });
 
-      // Verificar se já existe sessão com mesmo dispositivo e IP (mesmo navegador/máquina)
+      // Verificar se já existe sessão COM MESMO DISPOSITIVO E IP (mesmo navegador/máquina)
+      // Mas APENAS para este usuário (filtro de email já garante)
       const sessaoExistente = sessoesAtivas.find(s => 
         s.dispositivo === dispositivo && s.ip === ip
       );
