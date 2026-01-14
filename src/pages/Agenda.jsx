@@ -128,24 +128,20 @@ export default function AgendaPage() {
       let unidadesAcessoFinal = user.unidades_acesso || [];
 
       if (typeof unidadesAcessoFinal === 'string') {
-        console.error("⚠️⚠️⚠️ unidades_acesso veio como STRING! Convertendo para ARRAY...");
         try {
           unidadesAcessoFinal = JSON.parse(unidadesAcessoFinal);
         } catch (e) {
-          console.error("❌ Erro ao fazer parse:", e);
           unidadesAcessoFinal = [];
         }
       } else if (typeof unidadesAcessoFinal === 'object' && !Array.isArray(unidadesAcessoFinal)) {
-        console.error("⚠️⚠️⚠️ unidades_acesso é OBJECT! Convertendo para ARRAY com Object.keys...");
         unidadesAcessoFinal = Object.keys(unidadesAcessoFinal);
       } else if (!Array.isArray(unidadesAcessoFinal)) {
-        console.error("⚠️⚠️⚠️ unidades_acesso não é array! Tipo:", typeof unidadesAcessoFinal);
         unidadesAcessoFinal = [];
       }
 
       user.unidades_acesso = unidadesAcessoFinal;
 
-        setUsuarioAtual(user);
+      setUsuarioAtual(user);
       
       // Verificar prontuários atrasados periodicamente (a cada 5 minutos)
       const verificarAtrasados = async () => {
