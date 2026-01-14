@@ -689,16 +689,7 @@ export default function AgendaPage() {
     }
     
     // Novo comportamento - bloquear período de horários
-    console.log("🔒🔒🔒 ==================== INICIANDO BLOQUEIO DE PERÍODO ==================== 🔒🔒🔒");
-    console.log("📊 ESTADO ATUAL:");
-    console.log("  - dataAtual (Date object):", dataAtual.toString());
-    console.log("  - Timezone do navegador:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-    console.log("  - Usuário:", usuarioAtual?.email);
-    console.log("  - Horário início:", horarioInicio);
-    console.log("  - Horário fim:", horarioFim);
-    
     const dataFormatada = formatarDataPura(dataAtual);
-    console.log("📅 DATA DO BLOQUEIO (formatada PURA):", dataFormatada);
 
     // Verificar se o horário já passou
     const agora = new Date();
