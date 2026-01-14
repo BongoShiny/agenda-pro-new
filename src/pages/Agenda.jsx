@@ -427,16 +427,7 @@ export default function AgendaPage() {
         }
 
         // Retornar APENAS as unidades que o usuário tem acesso
-        const unidadesFiltradas = todasUnidades.filter(u => unidadesAcesso.includes(u.id));
-
-        console.log("🏢 UNIDADES DISPONÍVEIS:", {
-          cargo: cargoLower,
-          unidades_acesso: unidadesAcesso,
-          filtradas: unidadesFiltradas.map(u => u.nome),
-          total: unidadesFiltradas.length
-        });
-
-        return unidadesFiltradas;
+        return todasUnidades.filter(u => unidadesAcesso.includes(u.id));
       }, [todasUnidades, usuarioAtual]);
 
   // Se unidadeSelecionada não estiver nas unidades filtradas, selecionar a primeira
