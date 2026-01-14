@@ -667,8 +667,6 @@ export default function AgendaPage() {
     
     const dataFormatada = formatarDataPura(dataAtual);
     
-    console.log("🆕 NOVO AGENDAMENTO SLOT:", dataFormatada, horario);
-    
     setAgendamentoInicial({
       unidade_id: unidadeId,
       unidade_nome: unidade?.nome || "",
