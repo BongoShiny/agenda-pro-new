@@ -126,7 +126,7 @@ export default function AgendaPage() {
           // 🔄 SINCRONIZAR: Buscar usuário ATUALIZADO do banco PELA EMAIL
           const userSession = await base44.auth.me();
 
-          // VALIDAÇÃO: Usuário sem cargo ou sem unidades (exceto admin) é bloqueado
+          // VALIDAÇÃO: Usuário sem cargo OU (não-admin sem unidades) é bloqueado
           const cargo = userSession?.cargo || "";
           const isAdmin = userSession?.email === 'lucagamerbr07@gmail.com' || userSession?.role === "admin";
 
@@ -134,6 +134,27 @@ export default function AgendaPage() {
             alert("❌ Usuário não configurado. Aguarde o administrador configurar seu cargo e permissões.");
             window.location.href = createPageUrl("Home");
             return;
+          }
+
+          // VALIDAÇÃO: Não-admin sem unidades atribuídas é bloqueado
+          if (!isAdmin && cargo) {
+            const usuariosBanco = await base44.entities.User.list();
+            const usuarioBanco = usuariosBanco.find(u => u.email === userSession.email);
+            
+            let unidadesAcesso = usuarioBanco?.unidades_acesso || [];
+            if (typeof unidadesAcesso === 'string') {
+              try {
+                unidadesAcesso = JSON.parse(unidadesAcesso);
+              } catch (e) {
+                unidadesAcesso = [];
+              }
+            }
+            
+            if (!Array.isArray(unidadesAcesso) || unidadesAcesso.length === 0) {
+              alert("❌ Nenhuma unidade atribuída. Aguarde o administrador atribuir permissões de unidade.");
+              window.location.href = createPageUrl("Home");
+              return;
+            }
           }
 
           // FONTE DE VERDADE: Banco de dados
