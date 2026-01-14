@@ -428,7 +428,7 @@ export default function AgendaPage() {
           return todasUnidades;
         }
 
-        // GERÊNCIA_UNIDADES veem APENAS suas unidades de acesso
+        // GERÊNCIA_UNIDADES vê APENAS sua unidade de acesso (UMA única)
         let unidadesAcesso = usuarioAtual.unidades_acesso || [];
 
         // Garantir que é array
@@ -1025,9 +1025,10 @@ const agendamentosFiltrados = agendamentos.filter(ag => {
         // Garantir que data está normalizada
         if (!ag.data || typeof ag.data !== 'string') return false;
 
-        // ADMINISTRADORES VEEM TUDO - sem nenhum filtro (case-insensitive)
-        const cargoLower = usuarioAtual?.cargo?.toLowerCase() || "";
-        const ehAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com' || cargoLower === "administrador" || usuarioAtual?.role === "admin";
+        // ADMINISTRADORES E SUPER ADMIN VEEM TUDO
+        const cargoLower = (usuarioAtual?.cargo || "").toLowerCase().trim();
+        const isSuperAdmin = usuarioAtual?.email === 'lucagamerbr07@gmail.com';
+        const ehAdmin = isSuperAdmin || cargoLower === "administrador" || usuarioAtual?.role === "admin";
 
         if (ehAdmin) {
           // Mesmo admin, filtrar por unidade se selecionada
