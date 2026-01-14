@@ -47,7 +47,9 @@ export default function GerenciarUsuariosPage() {
   // SINCRONIZAÇÃO: Detectar usuários funcionários sem unidade e atribuir automaticamente
   useEffect(() => {
     const sincronizarFuncionarios = async () => {
-      if (usuarios.length === 0 || unidades.length === 0) return;
+      if (!Array.isArray(usuarios) || usuarios.length === 0 || !Array.isArray(unidades) || unidades.length === 0) {
+        return;
+      }
 
       for (const usuario of usuarios) {
         const cargo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "funcionario");
@@ -57,16 +59,22 @@ export default function GerenciarUsuariosPage() {
           console.log(`🔄 SINCRONIZANDO: ${usuario.full_name} (${usuario.email}) sem unidade`);
           
           // Atribuir a primeira unidade disponível
-          await atualizarUsuarioMutation.mutateAsync({
-            id: usuario.id,
-            dados: { unidades_acesso: [unidades[0].id] }
-          });
+          try {
+            await atualizarUsuarioMutation.mutateAsync({
+              id: usuario.id,
+              dados: { unidades_acesso: [unidades[0].id] }
+            });
+          } catch (error) {
+            console.error("Erro ao sincronizar funcionário:", error);
+          }
         }
       }
     };
 
-    sincronizarFuncionarios();
-  }, [usuarios, unidades]);
+    if (usuarioAtual && usuarios.length > 0) {
+      sincronizarFuncionarios();
+    }
+  }, [usuarioAtual]);
 
   const { data: usuarios = [] } = useQuery({
     queryKey: ['usuarios'],
