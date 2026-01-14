@@ -163,17 +163,7 @@ export default function GerenciarUsuariosPage() {
       dadosAtualizacao.role = "admin";
     }
     
-    // Se mudar para gerência de unidades, atribuir primeira unidade se não tiver
-    if (novoCargo === "gerencia_unidades" && (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0)) {
-      if (unidades.length > 0) {
-        dadosAtualizacao.unidades_acesso = JSON.stringify([unidades[0].id]);
-      }
-    } else if (novoCargo === "funcionario" && (!usuario.unidades_acesso || usuario.unidades_acesso.length === 0)) {
-      // SINCRONIZAÇÃO: Se é funcionário e não tem unidade, atribuir a primeira unidade
-      if (unidades.length > 0) {
-        dadosAtualizacao.unidades_acesso = JSON.stringify([unidades[0].id]);
-      }
-    }
+    // CRÍTICO: NÃO AUTO-ATRIBUIR UNIDADES - ADM DEVE COLOCAR MANUALMENTE
     
     await atualizarUsuarioMutation.mutateAsync({
       id: usuario.id,
