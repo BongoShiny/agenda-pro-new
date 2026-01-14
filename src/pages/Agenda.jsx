@@ -1195,21 +1195,17 @@ const agendamentosFiltrados = agendamentos.filter(ag => {
         }
 
         // CRÍTICO: Todos os OUTROS (gerencia_unidades, financeiro, etc) veem APENAS suas unidades
-        let unidadesAcesso = usuarioAtual?.unidades_acesso || [];
+        let unidadesAcesso = [];
 
-        // Garantir que é array
-        if (typeof unidadesAcesso === 'string') {
+        if (typeof usuarioAtual?.unidades_acesso === 'string') {
           try {
-            const parsed = JSON.parse(unidadesAcesso);
-            unidadesAcesso = Array.isArray(parsed) ? parsed : Object.keys(parsed);
+            const parsed = JSON.parse(usuarioAtual.unidades_acesso);
+            unidadesAcesso = Array.isArray(parsed) ? parsed : [];
           } catch (e) {
             unidadesAcesso = [];
           }
-        } else if (typeof unidadesAcesso === 'object' && !Array.isArray(unidadesAcesso)) {
-          unidadesAcesso = Object.keys(unidadesAcesso);
-        }
-        if (!Array.isArray(unidadesAcesso)) {
-          unidadesAcesso = [];
+        } else if (Array.isArray(usuarioAtual?.unidades_acesso)) {
+          unidadesAcesso = usuarioAtual.unidades_acesso;
         }
 
         // Filtro de unidade - obrigatório para não-admin
