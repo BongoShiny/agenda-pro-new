@@ -162,6 +162,7 @@ export default function AgendaPage() {
       // Gerenciar sessão única
       await gerenciarSessaoUnica(user);
     };
+
     carregarUsuario();
   }, []);
 
