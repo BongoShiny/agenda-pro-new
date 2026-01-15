@@ -81,6 +81,10 @@ export default function AgendaDiaView({
   const getHorarioProfissional = (profissional) => {
     const dataFormatada = dataAtual.toISOString().split('T')[0];
     
+    // Verificar se é sábado (dia da semana 6)
+    const diaDaSemana = dataAtual.getDay();
+    const isSabado = diaDaSemana === 6;
+    
     // Procurar exceção para esta data
     const excecao = excecoesHorario.find(e => 
       e.profissional_id === profissional.id && 
@@ -96,6 +100,16 @@ export default function AgendaDiaView({
         isExcecao: true,
         isFolga: isFolga,
         motivo: excecao.motivo
+      };
+    }
+    
+    // Se for sábado, forçar horário 08:00 - 19:00
+    if (isSabado) {
+      return {
+        horario_inicio: "08:00",
+        horario_fim: "19:00",
+        isExcecao: false,
+        isFolga: false
       };
     }
     
