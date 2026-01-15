@@ -146,6 +146,8 @@ export default function AgendaPage() {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    let cleanup = null;
+
     const carregarUsuario = async () => {
       const user = await base44.auth.me();
       setUsuarioAtual(user);
@@ -160,10 +162,14 @@ export default function AgendaPage() {
       console.log("Data formatada:", formatarDataPura(dataAtual));
 
       // Gerenciar sessão única
-      await gerenciarSessaoUnica(user);
+      cleanup = await gerenciarSessaoUnica(user);
     };
 
     carregarUsuario();
+
+    return () => {
+      if (cleanup) cleanup();
+    };
   }, []);
 
   // Função para gerenciar sessão única
