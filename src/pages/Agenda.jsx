@@ -149,21 +149,7 @@ export default function AgendaPage() {
     const carregarUsuario = async () => {
       const user = await base44.auth.me();
       setUsuarioAtual(user);
-      
-      // Verificar prontuários atrasados periodicamente (a cada 5 minutos)
-      const verificarAtrasados = async () => {
-        try {
-          await base44.functions.invoke('verificarProntuariosAtrasados', {});
-        } catch (error) {
-          console.error("Erro ao verificar prontuários atrasados:", error);
-        }
-      };
-      
-      // Executar imediatamente e depois a cada 5 minutos
-      verificarAtrasados();
-      const intervalo = setInterval(verificarAtrasados, 5 * 60 * 1000);
-      
-      return () => clearInterval(intervalo);
+
       console.log("👤👤👤 USUÁRIO CARREGADO 👤👤👤");
       console.log("Email:", user.email);
       console.log("Cargo:", user.cargo);
