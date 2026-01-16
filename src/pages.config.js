@@ -1,5 +1,6 @@
 import Administrador from './pages/Administrador';
 import Agenda from './pages/Agenda';
+import ConfiguracaoSabado from './pages/ConfiguracaoSabado';
 import ConfiguracaoTerapeutas from './pages/ConfiguracaoTerapeutas';
 import ConfiguracaoWhatsApp from './pages/ConfiguracaoWhatsApp';
 import ConfigurarUnidades from './pages/ConfigurarUnidades';
@@ -11,12 +12,12 @@ import Home from './pages/Home';
 import RelatoriosAvancados from './pages/RelatoriosAvancados';
 import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
-import ConfiguracaoSabado from './pages/ConfiguracaoSabado';
 
 
 export const PAGES = {
     "Administrador": Administrador,
     "Agenda": Agenda,
+    "ConfiguracaoSabado": ConfiguracaoSabado,
     "ConfiguracaoTerapeutas": ConfiguracaoTerapeutas,
     "ConfiguracaoWhatsApp": ConfiguracaoWhatsApp,
     "ConfigurarUnidades": ConfigurarUnidades,
@@ -28,7 +29,6 @@ export const PAGES = {
     "RelatoriosAvancados": RelatoriosAvancados,
     "RelatoriosClientes": RelatoriosClientes,
     "RelatoriosFinanceiros": RelatoriosFinanceiros,
-    "ConfiguracaoSabado": ConfiguracaoSabado,
 }
 
 export const pagesConfig = {

@@ -200,43 +200,6 @@ export default function AgendaPage() {
         console.log("Não foi possível obter IP:", error);
       }
 
-      // Buscar e limpar dispositivos duplicados do mesmo IP+dispositivo
-      const todosDispositivos = await base44.entities.DispositivoConectado.filter({ 
-        usuario_email: user.email,
-        dispositivo: dispositivo,
-        ip: ip
-      });
-
-      if (todosDispositivos.length > 1) {
-        // Ordenar por data_login (mais recente primeiro)
-        const ordenados = todosDispositivos.sort((a, b) => 
-          new Date(b.data_login) - new Date(a.data_login)
-        );
-
-        // Manter apenas o mais recente, deletar os outros
-        for (let i = 1; i < ordenados.length; i++) {
-          await base44.entities.DispositivoConectado.delete(ordenados[i].id);
-        }
-      }
-
-      // Buscar todas as sessões ativas do usuário
-      const todasSessoes = await base44.entities.SessaoAtiva.filter({ 
-        usuario_email: user.email,
-        dispositivo: dispositivo,
-        ip: ip
-      });
-
-      if (todasSessoes.length > 1) {
-        // Manter apenas a mais recente, deletar as outras
-        const ordenadas = todasSessoes.sort((a, b) => 
-          new Date(b.ultima_atividade) - new Date(a.ultima_atividade)
-        );
-
-        for (let i = 1; i < ordenadas.length; i++) {
-          await base44.entities.SessaoAtiva.delete(ordenadas[i].id);
-        }
-      }
-
       // Buscar sessões ativas do usuário
       const sessoesAtivas = await base44.entities.SessaoAtiva.filter({ 
         usuario_email: user.email 
@@ -253,32 +216,8 @@ export default function AgendaPage() {
           sessao_id: sessaoId,
           ultima_atividade: new Date().toISOString()
         });
-
-        // Buscar dispositivo conectado correspondente (deve haver apenas 1 agora)
-        const dispositivosConectados = await base44.entities.DispositivoConectado.filter({ 
-          usuario_email: user.email,
-          dispositivo: dispositivo,
-          ip: ip,
-          sessao_ativa: true
-        });
-
-        if (dispositivosConectados.length > 0) {
-          // Atualizar apenas o primeiro (já limpamos duplicados acima)
-          await base44.entities.DispositivoConectado.update(dispositivosConectados[0].id, {
-            data_login: new Date().toISOString()
-          });
-        } else {
-          // Se não existe, criar um novo
-          await base44.entities.DispositivoConectado.create({
-            usuario_email: user.email,
-            dispositivo: dispositivo,
-            ip: ip,
-            data_login: new Date().toISOString(),
-            sessao_ativa: true
-          });
-        }
       } else {
-        // Criar nova sessão ativa (SEM LIMITE)
+        // Criar nova sessão ativa (permite múltiplas sessões simultâneas)
         await base44.entities.SessaoAtiva.create({
           usuario_email: user.email,
           sessao_id: sessaoId,
@@ -286,8 +225,23 @@ export default function AgendaPage() {
           ip: ip,
           ultima_atividade: new Date().toISOString()
         });
+      }
 
-        // Registrar dispositivo conectado
+      // Buscar dispositivo conectado correspondente
+      const dispositivosConectados = await base44.entities.DispositivoConectado.filter({ 
+        usuario_email: user.email,
+        dispositivo: dispositivo,
+        ip: ip,
+        sessao_ativa: true
+      });
+
+      if (dispositivosConectados.length > 0) {
+        // Atualizar a data de login
+        await base44.entities.DispositivoConectado.update(dispositivosConectados[0].id, {
+          data_login: new Date().toISOString()
+        });
+      } else {
+        // Criar novo registro de dispositivo
         await base44.entities.DispositivoConectado.create({
           usuario_email: user.email,
           dispositivo: dispositivo,
@@ -295,43 +249,38 @@ export default function AgendaPage() {
           data_login: new Date().toISOString(),
           sessao_ativa: true
         });
+      }
 
-        // Registrar login no log APENAS em novo dispositivo
+      // Registrar login no log
+      if (!sessaoExistente) {
         await base44.entities.LogAcao.create({
           tipo: "login",
           usuario_email: user.email,
-          descricao: `Login realizado em ${dispositivo}`,
+          descricao: `Login realizado em ${dispositivo} (IP: ${ip})`,
           entidade_tipo: "Usuario"
         });
       }
 
-      // Verificar periodicamente se a sessão ainda é válida
-      const verificarSessao = setInterval(async () => {
+      // Atualizar última atividade periodicamente (sem verificar desconexão)
+      const atualizarAtividade = setInterval(async () => {
         try {
           const sessoesAtuais = await base44.entities.SessaoAtiva.filter({ 
             usuario_email: user.email,
             sessao_id: sessaoId
           });
 
-          // Se não encontrar a sessão, significa que foi desconectada
-          if (sessoesAtuais.length === 0) {
-            console.log("⚠️ Sessão desconectada em outro dispositivo");
-            clearInterval(verificarSessao);
-            alert("Sua conta foi acessada em outro dispositivo. Você será desconectado.");
-            base44.auth.logout();
-          } else {
-            // Atualizar última atividade
+          if (sessoesAtuais.length > 0) {
             await base44.entities.SessaoAtiva.update(sessoesAtuais[0].id, {
               ultima_atividade: new Date().toISOString()
             });
           }
         } catch (error) {
-          console.error("Erro ao verificar sessão:", error);
+          console.error("Erro ao atualizar atividade:", error);
         }
-      }, 10000); // Verificar a cada 10 segundos
+      }, 30000); // Atualizar a cada 30 segundos
 
       // Limpar intervalo quando componente desmontar
-      return () => clearInterval(verificarSessao);
+      return () => clearInterval(atualizarAtividade);
     } catch (error) {
       console.error("Erro ao gerenciar sessão:", error);
     }
