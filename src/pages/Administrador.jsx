@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Settings, FileText, ShieldCheck, ArrowLeft, FileSpreadsheet, DollarSign, MessageCircle, BarChart3 } from "lucide-react";
+import { Users, Settings, FileText, ShieldCheck, ArrowLeft, FileSpreadsheet, DollarSign, MessageCircle, BarChart3, Calendar } from "lucide-react";
 
 export default function AdministradorPage() {
   const [usuarioAtual, setUsuarioAtual] = useState(null);
@@ -114,6 +114,18 @@ export default function AdministradorPage() {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Configurar Terapeutas</h3>
               <p className="text-sm text-gray-500">Gerenciar terapeutas, horários e configurações de atendimento</p>
+            </div>
+          </Link>
+          )}
+
+          {(isAdmin || isGerencia) && (
+          <Link to={createPageUrl("ConfiguracaoSabado")} className="block">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-cyan-300 transition-all cursor-pointer h-full">
+              <div className="w-12 h-12 bg-cyan-100 rounded-lg flex items-center justify-center mb-4">
+                <Calendar className="w-6 h-6 text-cyan-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Configurar Sábados</h3>
+              <p className="text-sm text-gray-500">Limite de atendimentos por hora aos sábados</p>
             </div>
           </Link>
           )}
