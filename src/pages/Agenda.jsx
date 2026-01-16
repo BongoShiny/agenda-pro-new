@@ -278,46 +278,7 @@ export default function AgendaPage() {
           });
         }
       } else {
-        // Verificar limite de 3 dispositivos DIFERENTES
-        const dispositivosAtivos = await base44.entities.DispositivoConectado.filter({ 
-          usuario_email: user.email,
-          sessao_ativa: true
-        });
-
-        // Contar dispositivos únicos (por IP + dispositivo)
-        const dispositivosUnicos = new Map();
-        dispositivosAtivos.forEach(d => {
-          const chave = `${d.ip}-${d.dispositivo}`;
-          if (!dispositivosUnicos.has(chave) || new Date(d.data_login) > new Date(dispositivosUnicos.get(chave).data_login)) {
-            dispositivosUnicos.set(chave, d);
-          }
-        });
-
-        if (dispositivosUnicos.size >= 3) {
-          // Se já tem 3 dispositivos DIFERENTES, remover o mais antigo
-          const dispositivos = Array.from(dispositivosUnicos.values());
-          const maisAntigo = dispositivos.sort((a, b) => 
-            new Date(a.data_login) - new Date(b.data_login)
-          )[0];
-
-          if (maisAntigo) {
-            await base44.entities.DispositivoConectado.update(maisAntigo.id, {
-              sessao_ativa: false
-            });
-
-            // Remover sessão ativa correspondente
-            const sessaoAntiga = await base44.entities.SessaoAtiva.filter({
-              usuario_email: user.email,
-              dispositivo: maisAntigo.dispositivo,
-              ip: maisAntigo.ip
-            });
-            if (sessaoAntiga.length > 0) {
-              await base44.entities.SessaoAtiva.delete(sessaoAntiga[0].id);
-            }
-          }
-        }
-
-        // Criar nova sessão ativa
+        // Criar nova sessão ativa (SEM LIMITE)
         await base44.entities.SessaoAtiva.create({
           usuario_email: user.email,
           sessao_id: sessaoId,

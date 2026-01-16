@@ -166,10 +166,10 @@ export default function MenuConta({ usuarioAtual, onClose }) {
             </div>
             
             <div className="space-y-2 max-h-60 overflow-y-auto">
-              {/* Alerta de limite de dispositivos */}
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-2 mb-2">
-                <div className="text-xs text-yellow-800">
-                  <strong>Limite:</strong> {dispositivos.filter(d => d.sessao_ativa).length}/3 dispositivos ativos
+              {/* Info de dispositivos conectados */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-2 mb-2">
+                <div className="text-xs text-blue-800">
+                  <strong>Total:</strong> {dispositivos.filter(d => d.sessao_ativa).length} dispositivos conectados
                 </div>
               </div>
 
@@ -262,7 +262,7 @@ export default function MenuConta({ usuarioAtual, onClose }) {
         </Button>
 
         <div className="text-xs text-gray-500 text-center pt-2 border-t border-gray-200">
-          Máximo de 3 dispositivos conectados por conta
+          Todos os dispositivos e IPs são registrados
         </div>
       </div>
     </div>
