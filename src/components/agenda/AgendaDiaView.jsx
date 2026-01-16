@@ -225,19 +225,28 @@ export default function AgendaDiaView({
       return false;
     }
     
-    // Contar TODOS os agendamentos deste horário em TODOS os terapeutas da unidade
+    // Converter horário para minutos para comparação
+    const [hHorario, mHorario] = horario.split(':').map(Number);
+    const minutosHorario = hHorario * 60 + mHorario;
+    
+    // Contar TODOS os agendamentos que OCUPAM este horário (incluindo os que começam antes e terminam depois)
     const totalAgendamentosHorario = agendamentos.filter(ag => {
       // Mesma unidade
       if (ag.unidade_id !== unidadeSelecionada.id) return false;
       // Mesma data
       if (ag.data !== dataFormatada) return false;
-      // Mesmo horário de início
-      if (ag.hora_inicio !== horario) return false;
       // Não contar ausências, cancelados e bloqueios
       if (ag.status === "ausencia" || ag.status === "cancelado") return false;
       if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
       
-      return true;
+      // Verificar se o horário está DENTRO do período do agendamento
+      const [hInicio, mInicio] = ag.hora_inicio.split(':').map(Number);
+      const [hFim, mFim] = ag.hora_fim.split(':').map(Number);
+      const minutosInicio = hInicio * 60 + mInicio;
+      const minutosFim = hFim * 60 + mFim;
+      
+      // O horário está ocupado se está entre início (inclusive) e fim (exclusive)
+      return minutosHorario >= minutosInicio && minutosHorario < minutosFim;
     }).length;
     
     const bloqueado = totalAgendamentosHorario >= configSabado.limite_atendimentos_por_hora;
