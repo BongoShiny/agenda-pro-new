@@ -198,11 +198,20 @@ export default function AgendaDiaView({
 
   // Verificar se um horário em sábado atingiu o limite de atendimentos
   const verificarLimiteSabado = (horario) => {
-    const dataFormatada = dataAtual.toISOString().split('T')[0];
     const diaDaSemana = dataAtual.getDay();
     
     // Se não for sábado, não tem limite
     if (diaDaSemana !== 6) return false;
+    
+    // Usar a mesma formatação de data do resto do sistema
+    const formatarDataPura = (data) => {
+      const ano = data.getFullYear();
+      const mes = String(data.getMonth() + 1).padStart(2, '0');
+      const dia = String(data.getDate()).padStart(2, '0');
+      return `${ano}-${mes}-${dia}`;
+    };
+    
+    const dataFormatada = formatarDataPura(dataAtual);
     
     // Buscar configuração do sábado para esta unidade e data
     const configSabado = configuracoesSabado.find(c => 
@@ -212,7 +221,10 @@ export default function AgendaDiaView({
     );
     
     // Se não tem configuração, não bloquear
-    if (!configSabado) return false;
+    if (!configSabado) {
+      console.log("⚠️ Sábado sem configuração:", dataFormatada, "- unidade:", unidadeSelecionada.nome);
+      return false;
+    }
     
     // Contar quantos agendamentos existem neste horário (todos os terapeutas)
     const totalAgendamentos = agendamentos.filter(ag => 
@@ -225,6 +237,12 @@ export default function AgendaDiaView({
       ag.tipo !== "bloqueio" &&
       ag.cliente_nome !== "FECHADO"
     ).length;
+    
+    console.log(`🔍 Limite Sábado - Horário ${horario}:`, {
+      total: totalAgendamentos,
+      limite: configSabado.limite_atendimentos_por_hora,
+      bloqueado: totalAgendamentos >= configSabado.limite_atendimentos_por_hora
+    });
     
     // Se atingiu o limite, bloquear
     return totalAgendamentos >= configSabado.limite_atendimentos_por_hora;
