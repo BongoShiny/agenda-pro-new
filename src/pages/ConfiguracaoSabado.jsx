@@ -117,16 +117,17 @@ export default function ConfiguracaoSabadoPage() {
     deletarConfigMutation.mutate(id);
   };
 
-  const gerarTodosSabados2025 = () => {
+  const gerarTodosSabadosAnoAtual = () => {
     if (!unidadeSelecionada) {
       alert("⚠️ Selecione uma unidade primeiro");
       return;
     }
 
     const unidade = unidades.find(u => u.id === unidadeSelecionada);
+    const anoAtual = new Date().getFullYear();
     const sabados = [];
-    let data = new Date(2025, 0, 1); // 1 de janeiro de 2025
-    const fimAno = new Date(2025, 11, 31); // 31 de dezembro de 2025
+    let data = new Date(anoAtual, 0, 1); // 1 de janeiro do ano atual
+    const fimAno = new Date(anoAtual, 11, 31); // 31 de dezembro do ano atual
 
     while (data <= fimAno) {
       if (isSaturday(data)) {
@@ -141,7 +142,7 @@ export default function ConfiguracaoSabadoPage() {
       data = addDays(data, 1);
     }
 
-    if (!window.confirm(`Gerar configuração para ${sabados.length} sábados de 2025?`)) return;
+    if (!window.confirm(`Gerar configuração para ${sabados.length} sábados de ${anoAtual}?`)) return;
 
     Promise.all(sabados.map(sab => criarConfigMutation.mutateAsync(sab)))
       .then(() => alert("✅ Configurações criadas com sucesso!"))
@@ -197,11 +198,11 @@ export default function ConfiguracaoSabadoPage() {
                   size="sm"
                   onClick={() => {
                     setUnidadeSelecionada(unidade.id);
-                    gerarTodosSabados2025();
+                    gerarTodosSabadosAnoAtual();
                   }}
                 >
                   <CalendarIcon className="w-4 h-4 mr-2" />
-                  Gerar Todos os Sábados 2025
+                  Gerar Todos os Sábados {new Date().getFullYear()}
                 </Button>
               </div>
             </CardHeader>
