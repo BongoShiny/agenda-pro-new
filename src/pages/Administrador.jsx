@@ -8,7 +8,6 @@ import { Users, Settings, FileText, ShieldCheck, ArrowLeft, FileSpreadsheet, Dol
 export default function AdministradorPage() {
   const [usuarioAtual, setUsuarioAtual] = useState(null);
   const [carregando, setCarregando] = useState(true);
-  const [bloqueandoSabados, setBloqueandoSabados] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -43,28 +42,6 @@ export default function AdministradorPage() {
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
   const isGerencia = usuarioAtual?.cargo === "gerencia_unidades";
   const isFinanceiro = usuarioAtual?.cargo === "financeiro";
-
-  const handleBloquearSabados = async () => {
-    if (!window.confirm("⚠️ Confirma o bloqueio automático de TODOS os sábados das 18:00 às 19:00 em TODAS as unidades?\n\nIsso criará bloqueios para todos os terapeutas em todos os sábados do ano atual e próximo.")) {
-      return;
-    }
-
-    setBloqueandoSabados(true);
-    try {
-      const response = await base44.functions.invoke('bloquearSabados1819', {});
-      
-      if (response.data.success) {
-        alert(`✅ ${response.data.mensagem}\n\nBloqueios criados: ${response.data.bloqueiosCriados}\nTotal de sábados processados: ${response.data.totalSabados}`);
-      } else {
-        alert('⚠️ Houve problemas durante o processo. Verifique os logs.');
-      }
-    } catch (error) {
-      console.error('Erro ao bloquear sábados:', error);
-      alert('❌ Erro ao executar bloqueio automático: ' + error.message);
-    } finally {
-      setBloqueandoSabados(false);
-    }
-  };
 
   if (!isAdmin && !isGerencia && !isFinanceiro) {
     return null;
@@ -219,25 +196,6 @@ export default function AdministradorPage() {
               <p className="text-sm text-gray-500">Lembretes automáticos e confirmações via WhatsApp</p>
             </div>
           </Link>
-          )}
-
-          {isAdmin && (
-          <div className="block">
-            <div 
-              onClick={handleBloquearSabados}
-              className="bg-white rounded-xl border border-red-200 p-6 hover:shadow-lg hover:border-red-400 transition-all cursor-pointer h-full"
-            >
-              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
-                <Calendar className="w-6 h-6 text-red-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                {bloqueandoSabados ? "Bloqueando..." : "Fechar Sábados 18:00-19:00"}
-              </h3>
-              <p className="text-sm text-gray-500">
-                Bloquear automaticamente horário 18:00-19:00 de todos os sábados em todas as unidades
-              </p>
-            </div>
-          </div>
           )}
           </div>
 

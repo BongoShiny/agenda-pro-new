@@ -110,11 +110,11 @@ export default function AgendaDiaView({
       };
     }
     
-    // Se for sábado, forçar horário 08:00 - 19:00
+    // Se for sábado, forçar horário 08:00 - 18:00 (último agendamento 17:00-18:00)
     if (isSabado) {
       return {
         horario_inicio: "08:00",
-        horario_fim: "19:00",
+        horario_fim: "18:00",
         isExcecao: false,
         isFolga: false
       };
