@@ -1060,7 +1060,7 @@ export default function RelatoriosFinanceirosPage() {
                   </CardHeader>
                   <CardContent>
                     <ResponsiveContainer width="100%" height={300}>
-                      <RechartsPie>
+                      <PieChart>
                         <Pie
                           data={listaUnidades}
                           cx="50%"
@@ -1076,7 +1076,7 @@ export default function RelatoriosFinanceirosPage() {
                           ))}
                         </Pie>
                         <Tooltip formatter={(value) => formatarMoeda(value)} />
-                      </RechartsPie>
+                      </PieChart>
                     </ResponsiveContainer>
                   </CardContent>
                 </Card>
