@@ -11,6 +11,7 @@ import Home from './pages/Home';
 import RelatoriosAvancados from './pages/RelatoriosAvancados';
 import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
+import ConfiguracaoSabado from './pages/ConfiguracaoSabado';
 
 
 export const PAGES = {
@@ -27,6 +28,7 @@ export const PAGES = {
     "RelatoriosAvancados": RelatoriosAvancados,
     "RelatoriosClientes": RelatoriosClientes,
     "RelatoriosFinanceiros": RelatoriosFinanceiros,
+    "ConfiguracaoSabado": ConfiguracaoSabado,
 }
 
 export const pagesConfig = {

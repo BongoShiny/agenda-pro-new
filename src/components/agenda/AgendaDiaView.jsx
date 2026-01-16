@@ -36,6 +36,13 @@ export default function AgendaDiaView({
     initialData: [],
     refetchInterval: 10000, // Atualizar a cada 10 segundos
   });
+
+  // Buscar configurações de sábado
+  const { data: configuracoesSabado = [] } = useQuery({
+    queryKey: ['configuracoes-sabado'],
+    queryFn: () => base44.entities.ConfiguracaoSabado.list(),
+    initialData: [],
+  });
   const [slotMenuAberto, setSlotMenuAberto] = useState(null);
       const [dialogBloquearAberto, setDialogBloquearAberto] = useState(false);
       const [profissionalBloquear, setProfissionalBloquear] = useState(null);
@@ -187,6 +194,40 @@ export default function AgendaDiaView({
     );
     
     return agendamentosSlot;
+  };
+
+  // Verificar se um horário em sábado atingiu o limite de atendimentos
+  const verificarLimiteSabado = (horario) => {
+    const dataFormatada = dataAtual.toISOString().split('T')[0];
+    const diaDaSemana = dataAtual.getDay();
+    
+    // Se não for sábado, não tem limite
+    if (diaDaSemana !== 6) return false;
+    
+    // Buscar configuração do sábado para esta unidade e data
+    const configSabado = configuracoesSabado.find(c => 
+      c.unidade_id === unidadeSelecionada.id &&
+      c.data_sabado === dataFormatada &&
+      c.ativo
+    );
+    
+    // Se não tem configuração, não bloquear
+    if (!configSabado) return false;
+    
+    // Contar quantos agendamentos existem neste horário (todos os terapeutas)
+    const totalAgendamentos = agendamentos.filter(ag => 
+      ag.unidade_id === unidadeSelecionada.id &&
+      ag.data === dataFormatada &&
+      ag.hora_inicio === horario &&
+      ag.status !== "ausencia" &&
+      ag.status !== "cancelado" &&
+      ag.status !== "bloqueio" &&
+      ag.tipo !== "bloqueio" &&
+      ag.cliente_nome !== "FECHADO"
+    ).length;
+    
+    // Se atingiu o limite, bloquear
+    return totalAgendamentos >= configSabado.limite_atendimentos_por_hora;
   };
 
   // Verificar se um slot está coberto por um agendamento (para não mostrar slot vazio)
@@ -382,6 +423,7 @@ export default function AgendaDiaView({
                   const isOcupado = agendamentosSlot.length > 0;
                   const agendamentoQueCobreSlot = getAgendamentoQueCobreSlot(terapeuta.id, horario);
                   const horarioPassou = horarioJaPassou(horario);
+                  const limiteSabadoAtingido = verificarLimiteSabado(horario);
                   const isMenuAberto = slotMenuAberto?.unidadeId === unidadeSelecionada.id && 
                                     slotMenuAberto?.profissionalId === terapeuta.id && 
                                     slotMenuAberto?.horario === horario;
@@ -432,6 +474,24 @@ export default function AgendaDiaView({
                           <PopoverContent className="md:hidden w-auto p-3">
                             <div className="text-sm font-semibold text-gray-900 mb-1">🕐 Horário Indisponível</div>
                             <div className="text-xs text-gray-600">Este horário já passou</div>
+                          </PopoverContent>
+                        </Popover>
+                      ) : !isOcupado && limiteSabadoAtingido ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className="w-full h-full bg-orange-200 rounded flex items-center justify-center md:cursor-default md:pointer-events-none">
+                              <div className="text-center">
+                                <div className="text-[10px] md:text-xs text-orange-700 font-bold">
+                                  <span className="md:hidden">LOTE</span>
+                                  <span className="hidden md:block">LOTADO</span>
+                                </div>
+                                <div className="text-[8px] md:text-[10px] text-orange-600 hidden md:block">Limite atingido</div>
+                              </div>
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="md:hidden w-auto p-3">
+                            <div className="text-sm font-semibold text-orange-900 mb-1">⚠️ Horário Lotado</div>
+                            <div className="text-xs text-orange-700">Limite de atendimentos atingido neste horário</div>
                           </PopoverContent>
                         </Popover>
                       ) : !isOcupado ? (
