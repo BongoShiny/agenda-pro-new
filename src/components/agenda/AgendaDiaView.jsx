@@ -222,30 +222,32 @@ export default function AgendaDiaView({
     
     // Se não tem configuração, não bloquear
     if (!configSabado) {
-      console.log("⚠️ Sábado sem configuração:", dataFormatada, "- unidade:", unidadeSelecionada.nome);
       return false;
     }
     
-    // Contar quantos agendamentos existem neste horário (todos os terapeutas)
-    const totalAgendamentos = agendamentos.filter(ag => 
-      ag.unidade_id === unidadeSelecionada.id &&
-      ag.data === dataFormatada &&
-      ag.hora_inicio === horario &&
-      ag.status !== "ausencia" &&
-      ag.status !== "cancelado" &&
-      ag.status !== "bloqueio" &&
-      ag.tipo !== "bloqueio" &&
-      ag.cliente_nome !== "FECHADO"
-    ).length;
+    // Contar TODOS os agendamentos deste horário em TODOS os terapeutas da unidade
+    const totalAgendamentosHorario = agendamentos.filter(ag => {
+      // Mesma unidade
+      if (ag.unidade_id !== unidadeSelecionada.id) return false;
+      // Mesma data
+      if (ag.data !== dataFormatada) return false;
+      // Mesmo horário de início
+      if (ag.hora_inicio !== horario) return false;
+      // Não contar ausências, cancelados e bloqueios
+      if (ag.status === "ausencia" || ag.status === "cancelado") return false;
+      if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
+      
+      return true;
+    }).length;
     
-    console.log(`🔍 Limite Sábado - Horário ${horario}:`, {
-      total: totalAgendamentos,
-      limite: configSabado.limite_atendimentos_por_hora,
-      bloqueado: totalAgendamentos >= configSabado.limite_atendimentos_por_hora
-    });
+    const bloqueado = totalAgendamentosHorario >= configSabado.limite_atendimentos_por_hora;
     
-    // Se atingiu o limite, bloquear
-    return totalAgendamentos >= configSabado.limite_atendimentos_por_hora;
+    if (bloqueado) {
+      console.log(`🚫 SÁBADO LOTADO - ${horario}: ${totalAgendamentosHorario}/${configSabado.limite_atendimentos_por_hora} atendimentos`);
+    }
+    
+    // Se atingiu ou ultrapassou o limite, bloquear
+    return bloqueado;
   };
 
   // Verificar se um slot está coberto por um agendamento (para não mostrar slot vazio)
