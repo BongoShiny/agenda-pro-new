@@ -883,66 +883,69 @@ export default function ConfiguracaoTerapeutasPage() {
             {/* Configurar Horário de Almoço */}
             <div className="p-4 bg-amber-50 rounded-lg border border-amber-200 space-y-3">
               <Label className="font-semibold">🍽️ Horário de Almoço</Label>
-              <p className="text-xs text-gray-600">Configure o horário padrão de almoço do terapeuta</p>
+              <p className="text-xs text-gray-600">Configure o horário de almoço do terapeuta</p>
               
-              <div className="flex gap-2 items-center">
+              <div className="space-y-2">
+                <Label className="text-sm">Data *</Label>
                 <Input
-                  type="time"
-                  value={profissionalExcecao?.horario_almoco_inicio || ""}
-                  onChange={async (e) => {
-                    if (!profissionalExcecao) return;
-                    await atualizarProfissionalMutation.mutateAsync({
-                      id: profissionalExcecao.id,
-                      dados: { 
-                        ...profissionalExcecao, 
-                        horario_almoco_inicio: e.target.value 
-                      }
-                    });
-                  }}
-                  className="flex-1"
-                  placeholder="Início"
-                />
-                <span className="text-gray-500 text-sm">até</span>
-                <Input
-                  type="time"
-                  value={profissionalExcecao?.horario_almoco_fim || ""}
-                  onChange={async (e) => {
-                    if (!profissionalExcecao) return;
-                    await atualizarProfissionalMutation.mutateAsync({
-                      id: profissionalExcecao.id,
-                      dados: { 
-                        ...profissionalExcecao, 
-                        horario_almoco_fim: e.target.value 
-                      }
-                    });
-                  }}
-                  className="flex-1"
-                  placeholder="Fim"
+                  type="date"
+                  value={novaExcecao.data}
+                  onChange={(e) => setNovaExcecao(prev => ({ ...prev, data: e.target.value }))}
                 />
               </div>
 
-              {profissionalExcecao?.horario_almoco_inicio && profissionalExcecao?.horario_almoco_fim && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={async () => {
-                    if (!profissionalExcecao) return;
-                    if (!confirm(`Remover horário de almoço de ${profissionalExcecao.nome}?`)) return;
-                    
-                    await atualizarProfissionalMutation.mutateAsync({
-                      id: profissionalExcecao.id,
-                      dados: { 
-                        ...profissionalExcecao, 
-                        horario_almoco_inicio: "",
-                        horario_almoco_fim: ""
-                      }
-                    });
-                  }}
-                  className="w-full text-amber-700 border-amber-300 hover:bg-amber-100"
-                >
-                  ❌ Remover Horário de Almoço
-                </Button>
-              )}
+              <div className="space-y-2">
+                <Label className="text-sm">Horário do Almoço</Label>
+                <div className="flex gap-2 items-center">
+                  <Input
+                    type="time"
+                    value={novaExcecao.horario_inicio}
+                    onChange={(e) => setNovaExcecao(prev => ({ ...prev, horario_inicio: e.target.value }))}
+                    className="flex-1"
+                    placeholder="Início"
+                  />
+                  <span className="text-gray-500 text-sm">até</span>
+                  <Input
+                    type="time"
+                    value={novaExcecao.horario_fim}
+                    onChange={(e) => setNovaExcecao(prev => ({ ...prev, horario_fim: e.target.value }))}
+                    className="flex-1"
+                    placeholder="Fim"
+                  />
+                </div>
+              </div>
+
+              <Button
+                onClick={async () => {
+                  if (!novaExcecao.data || !novaExcecao.horario_inicio || !novaExcecao.horario_fim || !profissionalExcecao) {
+                    alert("Por favor, preencha a data e os horários do almoço");
+                    return;
+                  }
+                  
+                  const resultado = await criarExcecaoMutation.mutateAsync({
+                    profissional_id: profissionalExcecao.id,
+                    data: novaExcecao.data,
+                    horario_inicio: novaExcecao.horario_inicio,
+                    horario_fim: novaExcecao.horario_fim,
+                    motivo: "Horário de Almoço"
+                  });
+
+                  await base44.entities.LogAcao.create({
+                    tipo: "criou_excecao_horario",
+                    usuario_email: usuarioAtual?.email || "sistema",
+                    descricao: `Configurou horário de almoço para ${profissionalExcecao.nome}: ${novaExcecao.data} (${novaExcecao.horario_inicio}-${novaExcecao.horario_fim})`,
+                    entidade_tipo: "HorarioExcecao",
+                    entidade_id: resultado.id,
+                    dados_novos: JSON.stringify({ profissional: profissionalExcecao.nome, data: novaExcecao.data, horario_inicio: novaExcecao.horario_inicio, horario_fim: novaExcecao.horario_fim, tipo: "Almoço" })
+                  });
+                  
+                  setNovaExcecao(prev => ({ ...prev, horario_inicio: "08:00", horario_fim: "18:00" }));
+                }}
+                disabled={!novaExcecao.data || !novaExcecao.horario_inicio || !novaExcecao.horario_fim}
+                className="w-full bg-amber-600 hover:bg-amber-700"
+              >
+                🍽️ Configurar Horário de Almoço
+              </Button>
             </div>
 
             {/* Adicionar Folga */}
@@ -1066,12 +1069,13 @@ export default function ConfiguracaoTerapeutasPage() {
                   });
                   
                   const isFolga = excecao.horario_inicio === "00:00" && excecao.horario_fim === "00:00";
+                  const isAlmoco = excecao.motivo === "Horário de Almoço";
                   
                   return (
                     <div key={excecao.id} className={`flex items-center gap-3 p-3 border rounded-lg ${
-                      isFolga ? 'bg-orange-50 border-orange-200' : 'bg-white border-gray-200'
+                      isFolga ? 'bg-orange-50 border-orange-200' : isAlmoco ? 'bg-amber-50 border-amber-200' : 'bg-white border-gray-200'
                     }`}>
-                      <Calendar className={`w-5 h-5 ${isFolga ? 'text-orange-500' : 'text-blue-500'}`} />
+                      <Calendar className={`w-5 h-5 ${isFolga ? 'text-orange-500' : isAlmoco ? 'text-amber-500' : 'text-blue-500'}`} />
                       <div className="flex-1">
                         <div className="font-medium text-sm">
                           📅 {dataFormatada}
@@ -1080,12 +1084,16 @@ export default function ConfiguracaoTerapeutasPage() {
                           <div className="text-xs text-orange-700 mt-1 font-semibold">
                             🏖️ FOLGA
                           </div>
+                        ) : isAlmoco ? (
+                          <div className="text-xs text-amber-700 mt-1 font-semibold">
+                            🍽️ ALMOÇO: {excecao.horario_inicio} - {excecao.horario_fim}
+                          </div>
                         ) : (
                           <div className="text-xs text-gray-600 mt-1">
                             ⏰ {excecao.horario_inicio} - {excecao.horario_fim}
                           </div>
                         )}
-                        {excecao.motivo && excecao.motivo !== "Folga" && (
+                        {excecao.motivo && excecao.motivo !== "Folga" && excecao.motivo !== "Horário de Almoço" && (
                           <div className="text-xs text-gray-500 mt-1">
                             💬 {excecao.motivo}
                           </div>

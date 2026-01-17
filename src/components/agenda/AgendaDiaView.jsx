@@ -92,10 +92,11 @@ export default function AgendaDiaView({
     const diaDaSemana = dataAtual.getDay();
     const isSabado = diaDaSemana === 6;
     
-    // Procurar exceção para esta data
+    // Procurar exceção para esta data (EXCLUINDO horário de almoço)
     const excecao = excecoesHorario.find(e => 
       e.profissional_id === profissional.id && 
-      e.data === dataFormatada
+      e.data === dataFormatada &&
+      e.motivo !== "Horário de Almoço"
     );
     
     if (excecao) {
@@ -131,18 +132,26 @@ export default function AgendaDiaView({
 
   // Verificar se horário está no período de almoço
   const estaNoHorarioAlmoco = (horario, profissional) => {
-    // Se não tem horário de almoço configurado, retornar false
-    if (!profissional.horario_almoco_inicio || !profissional.horario_almoco_fim) {
+    const dataFormatada = dataAtual.toISOString().split('T')[0];
+    
+    // Procurar exceção de horário de almoço para esta data
+    const almocoExcecao = excecoesHorario.find(e => 
+      e.profissional_id === profissional.id && 
+      e.data === dataFormatada &&
+      e.motivo === "Horário de Almoço"
+    );
+
+    if (!almocoExcecao) {
       return false;
     }
 
     const [h, m] = horario.split(':').map(Number);
     const minutos = h * 60 + m;
 
-    const [hAlmocoInicio, mAlmocoInicio] = profissional.horario_almoco_inicio.split(':').map(Number);
+    const [hAlmocoInicio, mAlmocoInicio] = almocoExcecao.horario_inicio.split(':').map(Number);
     const minutosAlmocoInicio = hAlmocoInicio * 60 + mAlmocoInicio;
 
-    const [hAlmocoFim, mAlmocoFim] = profissional.horario_almoco_fim.split(':').map(Number);
+    const [hAlmocoFim, mAlmocoFim] = almocoExcecao.horario_fim.split(':').map(Number);
     const minutosAlmocoFim = hAlmocoFim * 60 + mAlmocoFim;
 
     return minutos >= minutosAlmocoInicio && minutos < minutosAlmocoFim;
@@ -436,9 +445,7 @@ export default function AgendaDiaView({
                           </PopoverTrigger>
                           <PopoverContent className="md:hidden w-auto p-3">
                             <div className="text-sm font-semibold text-orange-900 mb-1">🍽️ Horário de Almoço</div>
-                            <div className="text-xs text-orange-700">
-                              Almoço: {terapeuta.horario_almoco_inicio} - {terapeuta.horario_almoco_fim}
-                            </div>
+                            <div className="text-xs text-orange-700">Terapeuta está em horário de almoço</div>
                           </PopoverContent>
                         </Popover>
                       </div>
