@@ -129,6 +129,25 @@ export default function AgendaDiaView({
     };
   };
 
+  // Verificar se horário está no período de almoço
+  const estaNoHorarioAlmoco = (horario, profissional) => {
+    // Se não tem horário de almoço configurado, retornar false
+    if (!profissional.horario_almoco_inicio || !profissional.horario_almoco_fim) {
+      return false;
+    }
+
+    const [h, m] = horario.split(':').map(Number);
+    const minutos = h * 60 + m;
+
+    const [hAlmocoInicio, mAlmocoInicio] = profissional.horario_almoco_inicio.split(':').map(Number);
+    const minutosAlmocoInicio = hAlmocoInicio * 60 + mAlmocoInicio;
+
+    const [hAlmocoFim, mAlmocoFim] = profissional.horario_almoco_fim.split(':').map(Number);
+    const minutosAlmocoFim = hAlmocoFim * 60 + mAlmocoFim;
+
+    return minutos >= minutosAlmocoInicio && minutos < minutosAlmocoFim;
+  };
+
   // Verificar se horário está dentro do expediente do profissional
   const horarioDentroDoPeriodo = (horario, profissional) => {
     const horarioDia = getHorarioProfissional(profissional);
@@ -392,6 +411,39 @@ export default function AgendaDiaView({
                 {todosHorarios.map((horario, idx) => {
                   const dentroDoHorario = horarioDentroDoPeriodo(horario, terapeuta);
                   const horarioTerapeuta = getHorarioProfissional(terapeuta);
+                  const isHorarioAlmoco = estaNoHorarioAlmoco(horario, terapeuta);
+
+                  // Se está no horário de almoço, mostrar como bloqueio de almoço
+                  if (dentroDoHorario && isHorarioAlmoco) {
+                    return (
+                      <div
+                        key={horario}
+                        className={`h-16 md:h-20 border-b border-gray-200 p-0.5 md:p-1 ${
+                          idx % 2 === 0 ? 'bg-orange-50' : 'bg-orange-100'
+                        }`}
+                      >
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className="w-full h-full rounded flex items-center justify-center bg-orange-200 md:cursor-default md:pointer-events-none">
+                              <div className="text-center">
+                                <div className="text-[10px] md:text-xs text-orange-800 font-bold">
+                                  <span className="md:hidden">🍽️</span>
+                                  <span className="hidden md:block">🍽️ ALMOÇO</span>
+                                </div>
+                                <div className="text-[8px] md:text-[10px] text-orange-700 hidden md:block">Horário de almoço</div>
+                              </div>
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="md:hidden w-auto p-3">
+                            <div className="text-sm font-semibold text-orange-900 mb-1">🍽️ Horário de Almoço</div>
+                            <div className="text-xs text-orange-700">
+                              Almoço: {terapeuta.horario_almoco_inicio} - {terapeuta.horario_almoco_fim}
+                            </div>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    );
+                  }
 
                   if (!dentroDoHorario) {
                     // Verificar se é folga

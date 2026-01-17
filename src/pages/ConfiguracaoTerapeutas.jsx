@@ -50,7 +50,9 @@ export default function ConfiguracaoTerapeutasPage() {
     email: "",
     especialidade: "",
     horario_inicio: "",
-    horario_fim: ""
+    horario_fim: "",
+    horario_almoco_inicio: "",
+    horario_almoco_fim: ""
   });
   const [dialogNovoAberto, setDialogNovoAberto] = useState(false);
   const [alertExcluirAberto, setAlertExcluirAberto] = useState(false);
@@ -60,7 +62,9 @@ export default function ConfiguracaoTerapeutasPage() {
     email: "",
     especialidade: "",
     horario_inicio: "08:00",
-    horario_fim: "18:00"
+    horario_fim: "18:00",
+    horario_almoco_inicio: "",
+    horario_almoco_fim: ""
   });
   const [dialogExcecaoAberto, setDialogExcecaoAberto] = useState(false);
   const [profissionalExcecao, setProfissionalExcecao] = useState(null);
@@ -104,7 +108,7 @@ export default function ConfiguracaoTerapeutasPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['profissionais'] });
       setDialogNovoAberto(false);
-      setNovoProfissional({ nome: "", email: "", especialidade: "", horario_inicio: "08:00", horario_fim: "18:00" });
+      setNovoProfissional({ nome: "", email: "", especialidade: "", horario_inicio: "08:00", horario_fim: "18:00", horario_almoco_inicio: "", horario_almoco_fim: "" });
     },
   });
 
@@ -377,7 +381,9 @@ export default function ConfiguracaoTerapeutasPage() {
       email: profissional.email || "",
       especialidade: profissional.especialidade || "",
       horario_inicio: profissional.horario_inicio || "08:00",
-      horario_fim: profissional.horario_fim || "18:00"
+      horario_fim: profissional.horario_fim || "18:00",
+      horario_almoco_inicio: profissional.horario_almoco_inicio || "",
+      horario_almoco_fim: profissional.horario_almoco_fim || ""
     });
   };
 
@@ -409,7 +415,7 @@ export default function ConfiguracaoTerapeutasPage() {
 
   const handleCancelarEdicao = () => {
     setEditandoProfissional(null);
-    setDadosEditados({ nome: "", email: "", especialidade: "", horario_inicio: "", horario_fim: "" });
+    setDadosEditados({ nome: "", email: "", especialidade: "", horario_inicio: "", horario_fim: "", horario_almoco_inicio: "", horario_almoco_fim: "" });
   };
 
   const handleAbrirDialogExcecao = (profissional) => {
@@ -607,6 +613,24 @@ export default function ConfiguracaoTerapeutasPage() {
                                                     className="flex-1"
                                                   />
                                                 </div>
+                                                <div className="flex gap-2 items-center">
+                                                  <span className="text-gray-600 text-xs font-medium min-w-[80px]">Almoço:</span>
+                                                  <Input
+                                                    type="time"
+                                                    value={dadosEditados.horario_almoco_inicio}
+                                                    onChange={(e) => setDadosEditados(prev => ({ ...prev, horario_almoco_inicio: e.target.value }))}
+                                                    className="flex-1"
+                                                    placeholder="Início"
+                                                  />
+                                                  <span className="text-gray-500 text-sm">até</span>
+                                                  <Input
+                                                    type="time"
+                                                    value={dadosEditados.horario_almoco_fim}
+                                                    onChange={(e) => setDadosEditados(prev => ({ ...prev, horario_almoco_fim: e.target.value }))}
+                                                    className="flex-1"
+                                                    placeholder="Fim"
+                                                  />
+                                                </div>
                                               </div>
                                               <div className="flex flex-col gap-1">
                                                 <Button size="icon" variant="ghost" onClick={() => handleSalvarProfissional(profissional.id)}>
@@ -653,6 +677,11 @@ export default function ConfiguracaoTerapeutasPage() {
                                             </div>
                                             <div className="text-xs text-gray-400 mt-1">
                                              Horário padrão: {profissional.horario_inicio || "08:00"} - {profissional.horario_fim || "18:00"}
+                                             {profissional.horario_almoco_inicio && profissional.horario_almoco_fim && (
+                                               <span className="ml-2 text-orange-600">
+                                                 | 🍽️ Almoço: {profissional.horario_almoco_inicio} - {profissional.horario_almoco_fim}
+                                               </span>
+                                             )}
                                             </div>
                                             {getExcecoesDoProfissional(profissional.id).length > 0 && (
                                              <div className="text-xs text-blue-600 mt-1">
@@ -784,6 +813,28 @@ export default function ConfiguracaoTerapeutasPage() {
                 />
               </div>
               <p className="text-xs text-gray-500">Define os horários que aparecem na agenda para este terapeuta</p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Horário de Almoço (opcional)</Label>
+              <div className="flex gap-2 items-center">
+                <Input
+                  type="time"
+                  value={novoProfissional.horario_almoco_inicio}
+                  onChange={(e) => setNovoProfissional(prev => ({ ...prev, horario_almoco_inicio: e.target.value }))}
+                  className="flex-1"
+                  placeholder="Início"
+                />
+                <span className="text-gray-500">até</span>
+                <Input
+                  type="time"
+                  value={novoProfissional.horario_almoco_fim}
+                  onChange={(e) => setNovoProfissional(prev => ({ ...prev, horario_almoco_fim: e.target.value }))}
+                  className="flex-1"
+                  placeholder="Fim"
+                />
+              </div>
+              <p className="text-xs text-gray-500">🍽️ Período bloqueado para almoço - aparecerá como "Horário de Almoço" na agenda</p>
             </div>
           </div>
 
