@@ -153,6 +153,7 @@ export default function AdministradorPage() {
           </Link>
           )}
 
+          {!isPosVenda && (
           <Link to={createPageUrl("RelatoriosFinanceiros")} className="block">
             <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer h-full">
               <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">
@@ -162,6 +163,7 @@ export default function AdministradorPage() {
               <p className="text-sm text-gray-500">Faturamento, pagamentos e valores a receber por período</p>
             </div>
           </Link>
+          )}
 
           {(isAdmin || isGerencia || isFinanceiro) && (
           <Link to={createPageUrl("GerenciarContratos")} className="block">
