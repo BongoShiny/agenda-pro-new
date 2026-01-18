@@ -55,7 +55,7 @@ export default function RelatoriosClientesPage() {
       try {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
-        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro";
+        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro" || user?.cargo === "pos_venda";
         if (!isAdmin) {
           navigate(createPageUrl("Agenda"));
         } else {
