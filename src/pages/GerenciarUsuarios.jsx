@@ -308,6 +308,7 @@ export default function GerenciarUsuariosPage() {
                             cargo === "gerencia_unidades" ? "bg-purple-100" : 
                             cargo === "financeiro" ? "bg-green-100" :
                             cargo === "vendedor" ? "bg-orange-100" :
+                            cargo === "pos_venda" ? "bg-pink-100" :
                             "bg-gray-100"
                           }`}>
                             {cargo === "administrador" || cargo === "superior" ? (
@@ -318,6 +319,8 @@ export default function GerenciarUsuariosPage() {
                               <FileSpreadsheet className="w-4 h-4 text-green-600" />
                             ) : cargo === "vendedor" ? (
                               <DollarSign className="w-4 h-4 text-orange-600" />
+                            ) : cargo === "pos_venda" ? (
+                              <FileSpreadsheet className="w-4 h-4 text-pink-600" />
                             ) : (
                               <User className="w-4 h-4 text-gray-600" />
                             )}
@@ -435,6 +438,12 @@ export default function GerenciarUsuariosPage() {
                                     Vendedor
                                   </div>
                                 </SelectItem>
+                                <SelectItem value="pos_venda">
+                                  <div className="flex items-center gap-2">
+                                    <FileSpreadsheet className="w-3 h-3" />
+                                    Pós Venda
+                                  </div>
+                                </SelectItem>
                                 <SelectItem value="funcionario">
                                   <div className="flex items-center gap-2">
                                     <User className="w-3 h-3" />
@@ -452,7 +461,7 @@ export default function GerenciarUsuariosPage() {
                          <Badge variant="secondary" className="bg-blue-100 text-blue-700">
                            Todas as unidades
                          </Badge>
-                       ) : cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" ? (
+                       ) : cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" || cargo === "pos_venda" ? (
                           <Popover>
                             <PopoverTrigger asChild>
                               <Button variant="outline" size="sm" className="text-left justify-start">
@@ -586,12 +595,13 @@ export default function GerenciarUsuariosPage() {
 
                       <TableCell>
                         <Badge 
-                          variant={cargo === "administrador" || cargo === "superior" || cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" || cargo === "terapeuta" ? "default" : "secondary"} 
+                          variant={cargo === "administrador" || cargo === "superior" || cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" || cargo === "terapeuta" || cargo === "pos_venda" ? "default" : "secondary"} 
                           className={
                             cargo === "gerencia_unidades" ? "bg-purple-600" : 
                             cargo === "financeiro" ? "bg-green-600" : 
                             cargo === "vendedor" ? "bg-orange-600" :
                             cargo === "terapeuta" ? "bg-teal-600" :
+                            cargo === "pos_venda" ? "bg-pink-600" :
                             cargo === "superior" ? "bg-blue-500" : ""
                           }
                         >
@@ -600,6 +610,7 @@ export default function GerenciarUsuariosPage() {
                           cargo === "financeiro" ? "Financeiro" : 
                           cargo === "vendedor" ? "Vendedor" :
                           cargo === "terapeuta" ? "Terapeuta" :
+                          cargo === "pos_venda" ? "Pós Venda" :
                           "Funcionário"}
                         </Badge>
                       </TableCell>
@@ -706,6 +717,20 @@ export default function GerenciarUsuariosPage() {
                   <li>• Pode ver detalhes dos pacientes</li>
                   <li>• Não pode bloquear agenda</li>
                   <li>• Acesso limitado ao sistema</li>
+                </ul>
+              </div>
+
+              <div className="p-4 bg-pink-50 rounded-lg border border-pink-200">
+                <div className="flex items-center gap-2 mb-3">
+                  <FileSpreadsheet className="w-5 h-5 text-pink-600" />
+                  <h3 className="font-semibold text-pink-900">Pós Venda</h3>
+                </div>
+                <ul className="space-y-2 text-sm text-pink-800">
+                  <li>• Acesso aos Relatórios/Planilha</li>
+                  <li>• Pode criar e editar agendamentos</li>
+                  <li>• Acesso às unidades permitidas</li>
+                  <li>• Não pode bloquear a agenda</li>
+                  <li>• Não pode editar quando bloqueada</li>
                 </ul>
               </div>
 
