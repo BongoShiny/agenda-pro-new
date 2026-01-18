@@ -1030,8 +1030,8 @@ export default function AgendaPage() {
 
   const unidadeAtual = unidadeSelecionada || unidades[0];
 
-  // Verificar se é admin ou gerência - ambos têm permissões administrativas
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
+  // Verificar se é admin, gerência ou pós-venda - todos têm permissões administrativas
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades" || usuarioAtual?.cargo === "pos_venda";
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">

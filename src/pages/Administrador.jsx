@@ -42,8 +42,9 @@ export default function AdministradorPage() {
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
   const isGerencia = usuarioAtual?.cargo === "gerencia_unidades";
   const isFinanceiro = usuarioAtual?.cargo === "financeiro";
+  const isPosVenda = usuarioAtual?.cargo === "pos_venda";
 
-  if (!isAdmin && !isGerencia && !isFinanceiro) {
+  if (!isAdmin && !isGerencia && !isFinanceiro && !isPosVenda) {
     return null;
   }
 
@@ -140,7 +141,7 @@ export default function AdministradorPage() {
             </div>
           </Link>
 
-          {(isAdmin || isGerencia) && (
+          {(isAdmin || isGerencia || isPosVenda) && (
           <Link to={createPageUrl("RelatoriosClientes")} className="block">
             <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer h-full">
               <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">
@@ -207,6 +208,8 @@ export default function AdministradorPage() {
               <p className="text-sm text-yellow-700 mt-1">
                 {isFinanceiro 
                   ? "Você tem acesso apenas ao Histórico de agendamentos e ações do sistema."
+                  : isPosVenda
+                  ? "Você tem acesso aos Relatórios/Planilha com as unidades permitidas."
                   : "Apenas superiores têm acesso a esta área. As alterações feitas aqui afetam todo o sistema."}
               </p>
             </div>
