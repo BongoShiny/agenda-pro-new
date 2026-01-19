@@ -206,6 +206,26 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               </div>
             </div>
 
+            {agendamento.health_score && (
+              <div className="flex items-start gap-3">
+                <div className="w-5 h-5 flex items-center justify-center mt-0.5">
+                  {agendamento.health_score === "insatisfeito" && "😡"}
+                  {agendamento.health_score === "neutro" && "😑"}
+                  {agendamento.health_score === "recuperado" && "🩹"}
+                  {agendamento.health_score === "satisfeito" && "😁"}
+                </div>
+                <div>
+                  <div className="text-sm text-gray-500">Health Score</div>
+                  <div className="font-medium">
+                    {agendamento.health_score === "insatisfeito" && "😡 INSATISFEITO"}
+                    {agendamento.health_score === "neutro" && "😑 NEUTRO"}
+                    {agendamento.health_score === "recuperado" && "🩹 RECUPERADO"}
+                    {agendamento.health_score === "satisfeito" && "😁 SATISFEITO"}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {agendamento.equipamento && (
               <div className="flex items-start gap-3">
                 <FileText className="w-5 h-5 text-gray-500 mt-0.5" />
@@ -390,6 +410,26 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
             <div className="font-medium">{agendamento.hora_inicio} - {agendamento.hora_fim}</div>
           </div>
         </div>
+
+        {agendamento.health_score && (
+          <div className="flex items-start gap-3">
+            <div className="w-5 h-5 flex items-center justify-center mt-0.5">
+              {agendamento.health_score === "insatisfeito" && "😡"}
+              {agendamento.health_score === "neutro" && "😑"}
+              {agendamento.health_score === "recuperado" && "🩹"}
+              {agendamento.health_score === "satisfeito" && "😁"}
+            </div>
+            <div>
+              <div className="text-sm text-gray-500">Health Score</div>
+              <div className="font-medium">
+                {agendamento.health_score === "insatisfeito" && "😡 INSATISFEITO"}
+                {agendamento.health_score === "neutro" && "😑 NEUTRO"}
+                {agendamento.health_score === "recuperado" && "🩹 RECUPERADO"}
+                {agendamento.health_score === "satisfeito" && "😁 SATISFEITO"}
+              </div>
+            </div>
+          </div>
+        )}
 
         {agendamento.observacoes && (
           <div className="flex items-start gap-3">

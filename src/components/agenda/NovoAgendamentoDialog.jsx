@@ -74,6 +74,7 @@ export default function NovoAgendamentoDialog({
     sala: "",
     equipamento: "",
     status_paciente: "",
+    health_score: "",
     valor_combinado: null,
     sinal: null,
     recebimento_2: null,
@@ -159,6 +160,7 @@ export default function NovoAgendamentoDialog({
           sala: agendamentoInicial?.sala || "",
           equipamento: agendamentoInicial?.equipamento || "",
           status_paciente: agendamentoInicial?.status_paciente || "",
+          health_score: agendamentoInicial?.health_score || "",
           valor_combinado: agendamentoInicial?.valor_combinado || null,
           sinal: agendamentoInicial?.sinal || null,
           recebimento_2: agendamentoInicial?.recebimento_2 || null,
@@ -646,6 +648,22 @@ export default function NovoAgendamentoDialog({
                 <SelectItem value={null}>-</SelectItem>
                 <SelectItem value="paciente_novo">Paciente Novo</SelectItem>
                 <SelectItem value="ultima_sessao">Última Sessão</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Health Score do Cliente</Label>
+            <Select value={formData.health_score || ""} onValueChange={(value) => setFormData(prev => ({ ...prev, health_score: value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>-</SelectItem>
+                <SelectItem value="insatisfeito">😡 INSATISFEITO</SelectItem>
+                <SelectItem value="neutro">😑 NEUTRO</SelectItem>
+                <SelectItem value="recuperado">🩹 RECUPERADO</SelectItem>
+                <SelectItem value="satisfeito">😁 SATISFEITO</SelectItem>
               </SelectContent>
             </Select>
           </div>
