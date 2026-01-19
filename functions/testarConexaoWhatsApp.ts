@@ -19,7 +19,8 @@ Deno.serve(async (req) => {
     }
 
     // Tentar fazer uma chamada simples para testar a conexão
-    const urlTeste = `${apiUrl}/instance`;
+    // Tenta com /api/v1/agentes que é um endpoint padrão da Octadesk
+    const urlTeste = `${apiUrl}/api/v1/agentes`;
     
     console.log('Testando conexão com:', urlTeste);
 
@@ -28,7 +29,7 @@ Deno.serve(async (req) => {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'apikey': apiToken
+          'Authorization': `Bearer ${apiToken}`
         }
       });
 
