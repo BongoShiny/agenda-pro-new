@@ -198,6 +198,34 @@ export default function NovoAgendamentoDialog({
     }
   }, [pacoteCliente, modoEdicao, open]);
 
+  // Sincronizar cliente automaticamente pelo telefone
+  useEffect(() => {
+    if (!formData.cliente_telefone || formData.cliente_id) return;
+    
+    // Limpar telefone para comparação (apenas números)
+    const telefoneLimpo = formData.cliente_telefone.replace(/\D/g, '');
+    
+    // Só buscar se tiver pelo menos 10 dígitos
+    if (telefoneLimpo.length < 10) return;
+    
+    // Buscar cliente com esse telefone
+    const clienteEncontrado = clientes.find(c => {
+      if (!c.telefone) return false;
+      const telefoneClienteLimpo = c.telefone.replace(/\D/g, '');
+      return telefoneClienteLimpo === telefoneLimpo;
+    });
+    
+    if (clienteEncontrado) {
+      setFormData(prev => ({
+        ...prev,
+        cliente_id: clienteEncontrado.id,
+        cliente_nome: clienteEncontrado.nome,
+        cliente_telefone: clienteEncontrado.telefone
+      }));
+      setBuscaCliente(clienteEncontrado.nome);
+    }
+  }, [formData.cliente_telefone, clientes]);
+
   // Calcular automaticamente falta_quanto - SEM causar loop
   useEffect(() => {
     try {
