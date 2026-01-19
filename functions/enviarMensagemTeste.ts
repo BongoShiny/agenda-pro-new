@@ -21,12 +21,15 @@ Deno.serve(async (req) => {
 
     if (!WHATSAPP_API_URL || !WHATSAPP_API_TOKEN || !WHATSAPP_INSTANCE_NAME) {
       return Response.json({ 
-        error: 'Configurações do WhatsApp não encontradas. Configure as variáveis de ambiente.' 
+        error: 'Configurações do WhatsApp não encontradas. Configure as variáveis de ambiente: WHATSAPP_API_URL, WHATSAPP_API_TOKEN, WHATSAPP_INSTANCE_NAME' 
       }, { status: 500 });
     }
 
     // Enviar mensagem via API do WhatsApp
     const url = `${WHATSAPP_API_URL}/message/sendText/${WHATSAPP_INSTANCE_NAME}`;
+    
+    console.log('Enviando para URL:', url);
+    console.log('Dados:', { number: telefone, text: mensagem });
     
     const response = await fetch(url, {
       method: 'POST',
