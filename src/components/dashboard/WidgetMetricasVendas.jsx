@@ -30,6 +30,16 @@ const formatarMoeda = (valor) => {
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
 };
 
+const formatarDataHoraBrasilia = (dataISO) => {
+  if (!dataISO) return { data: '-', hora: '-' };
+  
+  const date = new Date(dataISO);
+  const data = date.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
+  const hora = date.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
+  
+  return { data, hora };
+};
+
 export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim }) {
   const [unidadeSelecionada, setUnidadeSelecionada] = useState("todas");
   const [vendedorSelecionado, setVendedorSelecionado] = useState("todos");
