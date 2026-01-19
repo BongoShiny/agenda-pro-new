@@ -57,6 +57,9 @@ export default function RelatoriosFinanceirosPage() {
   const [pesquisaDetalhado, setPesquisaDetalhado] = useState("");
   const [comprovanteVisualizacao, setComprovanteVisualizacao] = useState(null);
   const [mesAnoAnalise, setMesAnoAnalise] = useState(format(new Date(), "yyyy-MM"));
+  const [vendedorFiltroAnalise, setVendedorFiltroAnalise] = useState("todos");
+  const [imagemDialogAnalise, setImagemDialogAnalise] = useState(null);
+  const [observacoesDialogAnalise, setObservacoesDialogAnalise] = useState(null);
   const [novoVendedor, setNovoVendedor] = useState({
     nome: "",
     email: "",
@@ -1243,12 +1246,20 @@ export default function RelatoriosFinanceirosPage() {
               </CardHeader>
               <CardContent>
                 {(() => {
-                  const agendamentosMesAnalise = agendamentos
+                  const todosAgendamentosMes = agendamentos
                     .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
                     .filter(ag => {
                       if (!ag.data) return false;
                       return ag.data.substring(0, 7) === mesAnoAnalise;
-                    });
+                    })
+                    .filter(ag => ag.vendedor_id && ag.vendedor_nome);
+
+                  const vendedoresUnicos = [...new Set(todosAgendamentosMes.map(ag => ag.vendedor_nome))].filter(Boolean);
+
+                  const agendamentosMesAnalise = todosAgendamentosMes.filter(ag => {
+                    if (vendedorFiltroAnalise === "todos") return true;
+                    return ag.vendedor_nome === vendedorFiltroAnalise;
+                  });
 
                   const totalCombinadoMes = agendamentosMesAnalise.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
                   const totalSinalMes = agendamentosMesAnalise.reduce((sum, ag) => sum + (ag.sinal || 0), 0);
@@ -1303,7 +1314,20 @@ export default function RelatoriosFinanceirosPage() {
                       </div>
 
                       <div>
-                        <h3 className="font-semibold text-lg mb-4">Desempenho por Vendedor</h3>
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="font-semibold text-lg">Desempenho por Vendedor</h3>
+                          <Tabs value={vendedorFiltroAnalise} onValueChange={setVendedorFiltroAnalise}>
+                            <TabsList>
+                              <TabsTrigger value="todos">Todos os Vendedores</TabsTrigger>
+                              {vendedoresUnicos.map(vendedor => (
+                                <TabsTrigger key={vendedor} value={vendedor}>
+                                  {vendedor}
+                                </TabsTrigger>
+                              ))}
+                            </TabsList>
+                          </Tabs>
+                        </div>
+                        
                         <Table>
                           <TableHeader>
                             <TableRow>
@@ -1332,6 +1356,113 @@ export default function RelatoriosFinanceirosPage() {
                             ))}
                           </TableBody>
                         </Table>
+                      </div>
+
+                      {/* Tabela detalhada de vendas */}
+                      <div>
+                        <h3 className="font-semibold text-lg mb-4">Vendas Detalhadas</h3>
+                        <div className="overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Data/Hora Criação</TableHead>
+                                <TableHead>Cliente</TableHead>
+                                <TableHead>Unidade</TableHead>
+                                <TableHead>Profissional</TableHead>
+                                <TableHead>Data Agendamento</TableHead>
+                                <TableHead>Pacote</TableHead>
+                                <TableHead className="text-right">Valor</TableHead>
+                                <TableHead className="text-right">Pago</TableHead>
+                                <TableHead className="text-right">A Receber</TableHead>
+                                <TableHead>Comprovante 1</TableHead>
+                                <TableHead>Observações Vendedor</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {agendamentosMesAnalise
+                                .sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0))
+                                .map((venda) => {
+                                  const totalPago = (venda.sinal || 0) + (venda.recebimento_2 || 0) + (venda.final_pagamento || 0);
+                                  return (
+                                    <TableRow key={venda.id}>
+                                      <TableCell>
+                                        <div className="flex items-center gap-2 text-sm">
+                                          <Calendar className="w-3 h-3 text-gray-400" />
+                                          {format(new Date(venda.created_date || venda.data), "dd/MM/yyyy", { locale: ptBR })}
+                                          <Clock className="w-3 h-3 text-gray-400 ml-1" />
+                                          {format(new Date(venda.created_date || venda.data), "HH:mm", { locale: ptBR })}
+                                        </div>
+                                      </TableCell>
+                                      <TableCell className="font-medium">{venda.cliente_nome}</TableCell>
+                                      <TableCell>
+                                        <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                          {venda.unidade_nome || "-"}
+                                        </span>
+                                      </TableCell>
+                                      <TableCell>{venda.profissional_nome}</TableCell>
+                                      <TableCell>
+                                        {venda.data ? format(criarDataPura(venda.data), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                                      </TableCell>
+                                      <TableCell>
+                                        {venda.cliente_pacote === "Sim" ? (
+                                          <div className="text-xs">
+                                            <span className="bg-green-100 text-green-800 px-2 py-1 rounded flex items-center gap-1">
+                                              <Package className="w-3 h-3" />
+                                              {venda.sessoes_feitas || 0}/{venda.quantas_sessoes || 0}
+                                            </span>
+                                          </div>
+                                        ) : (
+                                          <span className="text-gray-400 text-xs">-</span>
+                                        )}
+                                      </TableCell>
+                                      <TableCell className="text-right font-semibold">
+                                        {formatarMoeda(venda.valor_combinado)}
+                                      </TableCell>
+                                      <TableCell className="text-right text-emerald-600">
+                                        {formatarMoeda(totalPago)}
+                                      </TableCell>
+                                      <TableCell className="text-right text-orange-600">
+                                        {formatarMoeda(venda.falta_quanto)}
+                                      </TableCell>
+                                      <TableCell>
+                                        {venda.comprovante_1 ? (
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => setImagemDialogAnalise(venda.comprovante_1)}
+                                            className="h-8"
+                                          >
+                                            <ImageIcon className="w-3 h-3 mr-1" />
+                                            Ver
+                                          </Button>
+                                        ) : (
+                                          <span className="text-gray-400 text-xs">-</span>
+                                        )}
+                                      </TableCell>
+                                      <TableCell className="max-w-xs">
+                                        {venda.observacoes_vendedores ? (
+                                          <button
+                                            onClick={() => setObservacoesDialogAnalise({
+                                              cliente: venda.cliente_nome,
+                                              texto: venda.observacoes_vendedores
+                                            })}
+                                            className="flex items-start gap-1 hover:bg-gray-50 p-1 rounded transition-colors cursor-pointer text-left w-full"
+                                          >
+                                            <FileText className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+                                            <span className="text-xs text-gray-600 line-clamp-2">
+                                              {venda.observacoes_vendedores}
+                                            </span>
+                                          </button>
+                                        ) : (
+                                          <span className="text-gray-400 text-xs">-</span>
+                                        )}
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
+                            </TableBody>
+                          </Table>
+                        </div>
                       </div>
 
                       <div className="bg-gray-50 p-4 rounded-lg">
@@ -1788,6 +1919,36 @@ export default function RelatoriosFinanceirosPage() {
               </Button>
             </a>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Visualizar Comprovante - Análise */}
+      <Dialog open={!!imagemDialogAnalise} onOpenChange={() => setImagemDialogAnalise(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Comprovante de Pagamento</DialogTitle>
+          </DialogHeader>
+          <div className="flex justify-center items-center bg-gray-100 rounded-lg p-4">
+            <img 
+              src={imagemDialogAnalise} 
+              alt="Comprovante" 
+              className="max-w-full max-h-[70vh] object-contain rounded"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Observações - Análise */}
+      <Dialog open={!!observacoesDialogAnalise} onOpenChange={() => setObservacoesDialogAnalise(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Observações do Vendedor - {observacoesDialogAnalise?.cliente}</DialogTitle>
+          </DialogHeader>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">
+              {observacoesDialogAnalise?.texto}
+            </p>
+          </div>
         </DialogContent>
       </Dialog>
 
