@@ -359,9 +359,11 @@ export default function ConfiguracaoSabadoPage() {
                         selected={dataInicial}
                         onSelect={setDataInicial}
                         locale={ptBR}
+                        disabled={(date) => date.getDay() !== 6}
                       />
                     </PopoverContent>
                   </Popover>
+                  <p className="text-xs text-gray-500">Selecione um sábado</p>
                 </div>
 
                 <div className="space-y-2">
@@ -379,6 +381,7 @@ export default function ConfiguracaoSabadoPage() {
                         selected={dataFinal}
                         onSelect={setDataFinal}
                         locale={ptBR}
+                        disabled={(date) => date.getDay() !== 6}
                       />
                     </PopoverContent>
                   </Popover>
