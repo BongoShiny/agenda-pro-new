@@ -155,6 +155,7 @@ export default function NovoAgendamentoDialog({
           observacoes_vendedores: agendamentoInicial?.observacoes_vendedores || "",
           observacoes_terapeuta: agendamentoInicial?.observacoes_terapeuta || "",
           observacoes_recepcionista: agendamentoInicial?.observacoes_recepcionista || "",
+          observacoes_pos_venda: agendamentoInicial?.observacoes_pos_venda || "",
           sala: agendamentoInicial?.sala || "",
           equipamento: agendamentoInicial?.equipamento || "",
           status_paciente: agendamentoInicial?.status_paciente || "",
@@ -810,6 +811,16 @@ export default function NovoAgendamentoDialog({
               value={formData.observacoes_recepcionista || ""}
               onChange={(e) => setFormData(prev => ({ ...prev, observacoes_recepcionista: e.target.value }))}
               placeholder="Observações exclusivas da recepcionista"
+              rows={2}
+            />
+          </div>
+
+          <div className="col-span-2 space-y-2">
+            <Label>Observações Pós Venda</Label>
+            <Textarea
+              value={formData.observacoes_pos_venda || ""}
+              onChange={(e) => setFormData(prev => ({ ...prev, observacoes_pos_venda: e.target.value }))}
+              placeholder="Observações exclusivas do pós venda"
               rows={2}
             />
           </div>
