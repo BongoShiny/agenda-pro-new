@@ -180,7 +180,7 @@ Deno.serve(async (req) => {
             // Registrar no log
             await base44.asServiceRole.entities.LogAcao.create({
               tipo: "editou_agendamento",
-              usuario_email: numeroTeste || envioImediato ? user.email : "sistema-whatsapp",
+              usuario_email: numeroTeste || envioImediato ? (user?.email || "sistema-whatsapp") : "sistema-whatsapp",
               descricao: numeroTeste 
                 ? `Teste WhatsApp enviado para ${ag.cliente_nome} (${ag.cliente_telefone}) - Unidade: ${ag.unidade_nome}`
                 : envioImediato
