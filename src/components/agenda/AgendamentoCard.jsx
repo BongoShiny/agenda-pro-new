@@ -109,6 +109,19 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
           <div className="flex items-center gap-1 min-w-0 flex-1">
             <StatusIcon className="w-2.5 md:w-3 h-2.5 md:h-3 flex-shrink-0" />
             <span className="font-semibold text-[9px] md:text-xs truncate">{agendamento.cliente_nome}</span>
+            {agendamento.health_score && (
+              <span className="text-xs md:text-sm flex-shrink-0" title={
+                agendamento.health_score === "insatisfeito" ? "Insatisfeito" :
+                agendamento.health_score === "neutro" ? "Neutro" :
+                agendamento.health_score === "recuperado" ? "Recuperado" :
+                agendamento.health_score === "satisfeito" ? "Satisfeito" : ""
+              }>
+                {agendamento.health_score === "insatisfeito" && "😡"}
+                {agendamento.health_score === "neutro" && "😑"}
+                {agendamento.health_score === "recuperado" && "🩹"}
+                {agendamento.health_score === "satisfeito" && "😁"}
+              </span>
+            )}
           </div>
           <div className="flex items-center gap-0.5">
             <statusProntuario.icon className={`w-4 md:w-5 h-4 md:h-5 flex-shrink-0 ${statusProntuario.cor}`} title={`Prontuário ${statusProntuario.label}`} />
