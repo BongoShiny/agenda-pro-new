@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, TrendingUp, Calendar, Clock, Image as ImageIcon, FileText, ExternalLink, Edit3, Save } from "lucide-react";
 import { format } from "date-fns";
@@ -45,6 +45,13 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
     },
   });
 
+  // Buscar todos os vendedores cadastrados
+  const { data: vendedores = [] } = useQuery({
+    queryKey: ['vendedores'],
+    queryFn: () => base44.entities.Vendedor.list("nome"),
+    initialData: [],
+  });
+
   // Filtrar vendas baseado em created_date (data de criação) e que tenham vendedor
   const vendasPeriodo = agendamentos.filter(ag => {
     if (ag.status === "bloqueio" || ag.tipo === "bloqueio") return false;
@@ -55,9 +62,11 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
     return dataCriacao >= dataInicio && dataCriacao <= dataFim;
   });
 
-  // Obter lista única de unidades e vendedores
+  // Obter lista única de unidades
   const unidadesUnicas = [...new Set(vendasPeriodo.map(ag => ag.unidade_nome || "Sem Unidade"))];
-  const vendedoresUnicos = [...new Set(vendasPeriodo.map(ag => ag.vendedor_nome || "Sem Vendedor"))];
+  
+  // Usar todos os vendedores cadastrados (não apenas os que têm vendas no período)
+  const vendedoresUnicos = vendedores.map(v => v.nome).sort();
 
   // Filtrar vendas pela unidade e vendedor selecionados
   const vendasFiltradas = vendasPeriodo.filter(ag => {
