@@ -69,9 +69,12 @@ export default function ConfiguracaoSabadoPage() {
   const resetForm = () => {
     setUnidadeSelecionada(null);
     setDataSelecionada(null);
+    setDataInicial(null);
+    setDataFinal(null);
     setLimiteAtendimentos(4);
     setObservacoes("");
     setModoEdicao(false);
+    setModoGeracao(false);
     setConfigEditando(null);
   };
 
