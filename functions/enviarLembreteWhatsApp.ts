@@ -4,18 +4,21 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Verificar autenticação
-    const user = await base44.auth.me();
-    if (!user) {
-      return Response.json({ error: 'Não autorizado' }, { status: 401 });
-    }
-
     // Pegar parâmetros da requisição
     const body = await req.json().catch(() => ({}));
     const numeroTeste = body.numeroTeste; // Número opcional para teste
     const envioImediato = body.envioImediato; // Envio imediato ao ativar
     const unidadeId = body.unidadeId; // ID da unidade para envio imediato
     const verificarConfig = body.verificarConfig; // Apenas verificar se a config existe
+    
+    // Verificar autenticação apenas para chamadas manuais (teste/verificação)
+    let user = null;
+    if (numeroTeste || envioImediato || verificarConfig) {
+      user = await base44.auth.me();
+      if (!user) {
+        return Response.json({ error: 'Não autorizado' }, { status: 401 });
+      }
+    }
 
     // Pegar configurações da API do WhatsApp
     const WHATSAPP_API_URL = Deno.env.get("WHATSAPP_API_URL");
