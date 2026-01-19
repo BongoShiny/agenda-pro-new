@@ -17,12 +17,12 @@ export default function Layout({ children, currentPageName }) {
     // Definir idioma como inglês
     document.documentElement.lang = 'en';
 
-    // Configurar PWA
+    // Configurar PWA para iOS
     const viewport = document.querySelector('meta[name="viewport"]');
     if (!viewport) {
       const meta = document.createElement('meta');
       meta.name = 'viewport';
-      meta.content = 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no';
+      meta.content = 'width=device-width, initial-scale=1, viewport-fit=cover';
       document.head.appendChild(meta);
     }
 
@@ -46,7 +46,7 @@ export default function Layout({ children, currentPageName }) {
     if (!appleStatus) {
       const meta = document.createElement('meta');
       meta.name = 'apple-mobile-web-app-status-bar-style';
-      meta.content = 'black-translucent';
+      meta.content = 'default';
       document.head.appendChild(meta);
     }
 
@@ -54,16 +54,16 @@ export default function Layout({ children, currentPageName }) {
     if (!appleTitle) {
       const meta = document.createElement('meta');
       meta.name = 'apple-mobile-web-app-title';
-      meta.content = 'Sistema Agenda';
+      meta.content = 'Agenda';
       document.head.appendChild(meta);
     }
 
-    // Manifest
-    const manifestLink = document.querySelector('link[rel="manifest"]');
-    if (!manifestLink) {
+    // Ícone para iOS
+    const appleTouchIcon = document.querySelector('link[rel="apple-touch-icon"]');
+    if (!appleTouchIcon) {
       const link = document.createElement('link');
-      link.rel = 'manifest';
-      link.href = '/manifest.json';
+      link.rel = 'apple-touch-icon';
+      link.href = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"%3E%3Crect width="100" height="100" fill="%233B82F6"/%3E%3Ctext x="50" y="50" font-size="50" text-anchor="middle" dy=".3em" fill="white" font-family="Arial"%3EA%3C/text%3E%3C/svg%3E';
       document.head.appendChild(link);
     }
   }, []);
