@@ -1,9 +1,12 @@
 import React, { useState } from "react";
+import { base44 } from "@/api/base44Client";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, TrendingUp, Calendar, Clock, Image as ImageIcon, FileText, ExternalLink } from "lucide-react";
+import { Eye, TrendingUp, Calendar, Clock, Image as ImageIcon, FileText, ExternalLink, Edit3, Save } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -31,6 +34,16 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
   const [vendedorSelecionado, setVendedorSelecionado] = useState("todos");
   const [imagemDialog, setImagemDialog] = useState(null);
   const [observacoesDialog, setObservacoesDialog] = useState(null);
+  const [modoEdicao, setModoEdicao] = useState(false);
+  const [anotacoes, setAnotacoes] = useState({});
+  const queryClient = useQueryClient();
+
+  const atualizarAgendamentoMutation = useMutation({
+    mutationFn: ({ id, dados }) => base44.entities.Agendamento.update(id, dados),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agendamentos-dashboard'] });
+    },
+  });
 
   // Filtrar vendas baseado em created_date (data de criação) e que tenham vendedor
   const vendasPeriodo = agendamentos.filter(ag => {
@@ -63,6 +76,28 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
   const totalVendas = vendasFiltradas.length;
   const totalValor = vendasFiltradas.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
 
+  const handleSalvarAnotacoes = async () => {
+    const idsEditados = Object.keys(anotacoes);
+    if (idsEditados.length === 0) {
+      alert("Nenhuma anotação foi modificada");
+      return;
+    }
+
+    try {
+      for (const id of idsEditados) {
+        await atualizarAgendamentoMutation.mutateAsync({
+          id,
+          dados: { anotacao_venda: anotacoes[id] }
+        });
+      }
+      alert(`✅ ${idsEditados.length} anotação(ões) salva(s) com sucesso!`);
+      setModoEdicao(false);
+      setAnotacoes({});
+    } catch (error) {
+      alert("Erro ao salvar anotações: " + error.message);
+    }
+  };
+
   return (
     <Card className="col-span-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -78,6 +113,24 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
           <div className="text-right">
             <p className="text-sm text-gray-500">Valor Total</p>
             <p className="text-2xl font-bold text-emerald-600">{formatarMoeda(totalValor)}</p>
+          </div>
+          <div className="flex gap-2">
+            {modoEdicao ? (
+              <>
+                <Button onClick={() => { setModoEdicao(false); setAnotacoes({}); }} variant="outline" size="sm">
+                  Cancelar
+                </Button>
+                <Button onClick={handleSalvarAnotacoes} className="bg-emerald-600 hover:bg-emerald-700" size="sm">
+                  <Save className="w-4 h-4 mr-2" />
+                  Salvar Anotações
+                </Button>
+              </>
+            ) : (
+              <Button onClick={() => setModoEdicao(true)} variant="outline" size="sm">
+                <Edit3 className="w-4 h-4 mr-2" />
+                Editar Anotações
+              </Button>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -143,6 +196,7 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                       <TableHead className="text-right">A Receber</TableHead>
                       <TableHead>Comprovante 1</TableHead>
                       <TableHead>Observações Vendedor</TableHead>
+                      <TableHead className="min-w-[200px]">Anotações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -239,6 +293,21 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                                 </button>
                               ) : (
                                 <span className="text-gray-400 text-xs">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {modoEdicao ? (
+                                <Textarea
+                                  value={anotacoes[venda.id] !== undefined ? anotacoes[venda.id] : (venda.anotacao_venda || "")}
+                                  onChange={(e) => setAnotacoes(prev => ({ ...prev, [venda.id]: e.target.value }))}
+                                  placeholder="Adicionar anotação..."
+                                  className="text-xs min-h-[60px]"
+                                  rows={2}
+                                />
+                              ) : (
+                                <span className="text-xs text-gray-600">
+                                  {venda.anotacao_venda || "-"}
+                                </span>
                               )}
                             </TableCell>
                           </TableRow>
