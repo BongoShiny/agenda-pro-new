@@ -747,6 +747,36 @@ export default function NovoAgendamentoDialog({
             />
           </div>
 
+          <div className="col-span-2 space-y-3">
+            <Label>Anexar Comprovantes (até 5)</Label>
+            <div className="grid grid-cols-5 gap-3">
+              {[1, 2, 3, 4, 5].map(num => (
+                <div key={num}>
+                  <Label className="text-xs text-gray-500">Comprovante {num}</Label>
+                  <Input
+                    type="file"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => handleFileUpload(e, num)}
+                    disabled={uploadingFile === num}
+                  />
+                  {uploadingFile === num && (
+                    <p className="text-xs text-blue-600 mt-1">Enviando...</p>
+                  )}
+                  {formData[`comprovante_${num}`] && (
+                    <Button
+                      type="button"
+                      variant="link"
+                      className="text-xs p-0 h-auto mt-1"
+                      onClick={() => window.open(formData[`comprovante_${num}`], '_blank')}
+                    >
+                      Ver comprovante {num}
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="col-span-2 space-y-2">
             <Label>Observações</Label>
             <Textarea
