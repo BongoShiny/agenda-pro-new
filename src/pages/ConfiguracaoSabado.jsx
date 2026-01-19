@@ -7,11 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Calendar as CalendarIcon, Plus, Trash2, Settings, ArrowLeft } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, Trash2, Settings, ArrowLeft, Users } from "lucide-react";
 import { format, addDays, isSaturday, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createPageUrl } from "@/utils";
 import { Link } from "react-router-dom";
 
@@ -26,6 +27,13 @@ export default function ConfiguracaoSabadoPage() {
   const [modoEdicao, setModoEdicao] = useState(false);
   const [modoGeracao, setModoGeracao] = useState(false);
   const [configEditando, setConfigEditando] = useState(null);
+  const [dialogTerapeutasAberto, setDialogTerapeutasAberto] = useState(false);
+  const [terapeutaSelecionado, setTerapeutaSelecionado] = useState(null);
+  const [horarioInicio, setHorarioInicio] = useState("08:00");
+  const [horarioFim, setHorarioFim] = useState("12:00");
+  const [tipoConfigTerapeuta, setTipoConfigTerapeuta] = useState("todos");
+  const [dataSabadoTerapeuta, setDataSabadoTerapeuta] = useState(null);
+  const [unidadeConfigTerapeuta, setUnidadeConfigTerapeuta] = useState(null);
 
   const queryClient = useQueryClient();
 
@@ -38,6 +46,18 @@ export default function ConfiguracaoSabadoPage() {
   const { data: configuracoes = [] } = useQuery({
     queryKey: ['configuracoes-sabado'],
     queryFn: () => base44.entities.ConfiguracaoSabado.list("-data_sabado"),
+    initialData: [],
+  });
+
+  const { data: profissionais = [] } = useQuery({
+    queryKey: ['profissionais'],
+    queryFn: () => base44.entities.Profissional.list("nome"),
+    initialData: [],
+  });
+
+  const { data: configuracoesTerapeutas = [] } = useQuery({
+    queryKey: ['configuracoes-terapeuta-sabado'],
+    queryFn: () => base44.entities.ConfiguracaoTerapeutaSabado.list("profissional_nome"),
     initialData: [],
   });
 
@@ -66,6 +86,22 @@ export default function ConfiguracaoSabadoPage() {
     },
   });
 
+  const criarConfigTerapeutaMutation = useMutation({
+    mutationFn: (dados) => base44.entities.ConfiguracaoTerapeutaSabado.create(dados),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['configuracoes-terapeuta-sabado'] });
+      setDialogTerapeutasAberto(false);
+      resetFormTerapeuta();
+    },
+  });
+
+  const deletarConfigTerapeutaMutation = useMutation({
+    mutationFn: (id) => base44.entities.ConfiguracaoTerapeutaSabado.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['configuracoes-terapeuta-sabado'] });
+    },
+  });
+
   const resetForm = () => {
     setUnidadeSelecionada(null);
     setDataSelecionada(null);
@@ -76,6 +112,15 @@ export default function ConfiguracaoSabadoPage() {
     setModoEdicao(false);
     setModoGeracao(false);
     setConfigEditando(null);
+  };
+
+  const resetFormTerapeuta = () => {
+    setTerapeutaSelecionado(null);
+    setHorarioInicio("08:00");
+    setHorarioFim("12:00");
+    setTipoConfigTerapeuta("todos");
+    setDataSabadoTerapeuta(null);
+    setUnidadeConfigTerapeuta(null);
   };
 
   const handleNovaConfig = () => {
@@ -173,6 +218,50 @@ export default function ConfiguracaoSabadoPage() {
     deletarConfigMutation.mutate(id);
   };
 
+  const handleAbrirConfigTerapeutas = (unidade) => {
+    resetFormTerapeuta();
+    setUnidadeConfigTerapeuta(unidade.id);
+    setDialogTerapeutasAberto(true);
+  };
+
+  const handleSalvarConfigTerapeuta = () => {
+    if (!unidadeConfigTerapeuta) {
+      alert("⚠️ Selecione a unidade");
+      return;
+    }
+
+    if (!terapeutaSelecionado) {
+      alert("⚠️ Selecione o terapeuta");
+      return;
+    }
+
+    if (tipoConfigTerapeuta === "especifico" && !dataSabadoTerapeuta) {
+      alert("⚠️ Selecione a data do sábado");
+      return;
+    }
+
+    const profissional = profissionais.find(p => p.id === terapeutaSelecionado);
+    const unidade = unidades.find(u => u.id === unidadeConfigTerapeuta);
+
+    const dados = {
+      profissional_id: terapeutaSelecionado,
+      profissional_nome: profissional.nome,
+      unidade_id: unidadeConfigTerapeuta,
+      unidade_nome: unidade.nome,
+      data_sabado: tipoConfigTerapeuta === "todos" ? "" : format(dataSabadoTerapeuta, "yyyy-MM-dd"),
+      horario_inicio: horarioInicio,
+      horario_fim: horarioFim,
+      ativo: true
+    };
+
+    criarConfigTerapeutaMutation.mutate(dados);
+  };
+
+  const handleDeletarConfigTerapeuta = (id) => {
+    if (!window.confirm("Tem certeza que deseja excluir esta configuração?")) return;
+    deletarConfigTerapeutaMutation.mutate(id);
+  };
+
   const gerarTodosSabadosAnoAtual = () => {
     if (!unidadeSelecionada) {
       alert("⚠️ Selecione uma unidade primeiro");
@@ -244,75 +333,139 @@ export default function ConfiguracaoSabadoPage() {
           </CardContent>
         </Card>
 
-        {configsPorUnidade.map(({ unidade, configs }) => (
+        {configsPorUnidade.map(({ unidade, configs }) => {
+          const configsTerapeutasUnidade = configuracoesTerapeutas.filter(c => c.unidade_id === unidade.id);
+          
+          return (
           <Card key={unidade.id} className="mb-4">
             <CardHeader className="bg-gray-50">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-lg">🏢 {unidade.nome}</CardTitle>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    resetForm();
-                    setUnidadeSelecionada(unidade.id);
-                    setModoGeracao(true);
-                    setDialogAberto(true);
-                  }}
-                >
-                  <CalendarIcon className="w-4 h-4 mr-2" />
-                  Gerar Todos os Sábados {new Date().getFullYear()}
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleAbrirConfigTerapeutas(unidade)}
+                  >
+                    <Users className="w-4 h-4 mr-2" />
+                    Configurar Terapeutas
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      resetForm();
+                      setUnidadeSelecionada(unidade.id);
+                      setModoGeracao(true);
+                      setDialogAberto(true);
+                    }}
+                  >
+                    <CalendarIcon className="w-4 h-4 mr-2" />
+                    Gerar Todos os Sábados {new Date().getFullYear()}
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="p-4">
-              {configs.length === 0 ? (
-                <div className="text-center text-gray-500 py-8">
-                  Nenhuma configuração de sábado para esta unidade
-                </div>
-              ) : (
-                <div className="space-y-2">
-                  {configs.map(config => (
-                    <div
-                      key={config.id}
-                      className="flex items-center justify-between p-3 bg-white rounded-lg border hover:border-blue-300 transition-colors"
-                    >
-                      <div className="flex items-center gap-4">
-                        <div className="text-sm">
-                          <div className="font-medium text-gray-900">
-                            📅 {format(new Date(config.data_sabado + 'T12:00:00'), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                          </div>
-                          <div className="text-xs text-gray-600 mt-1">
-                            Limite: <strong>{config.limite_atendimentos_por_hora} atendimentos/hora</strong>
-                          </div>
-                          {config.observacoes && (
-                            <div className="text-xs text-gray-500 mt-1">{config.observacoes}</div>
-                          )}
-                        </div>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditarConfig(config)}
-                        >
-                          <Settings className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeletar(config.id)}
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
+              <Tabs defaultValue="limites" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="limites">Limites de Atendimento</TabsTrigger>
+                  <TabsTrigger value="terapeutas">Horários dos Terapeutas</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="limites" className="mt-4">
+                  {configs.length === 0 ? (
+                    <div className="text-center text-gray-500 py-8">
+                      Nenhuma configuração de sábado para esta unidade
                     </div>
-                  ))}
-                </div>
-              )}
+                  ) : (
+                    <div className="space-y-2">
+                      {configs.map(config => (
+                        <div
+                          key={config.id}
+                          className="flex items-center justify-between p-3 bg-white rounded-lg border hover:border-blue-300 transition-colors"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="text-sm">
+                              <div className="font-medium text-gray-900">
+                                📅 {format(new Date(config.data_sabado + 'T12:00:00'), "EEEE, dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                              </div>
+                              <div className="text-xs text-gray-600 mt-1">
+                                Limite: <strong>{config.limite_atendimentos_por_hora} atendimentos/hora</strong>
+                              </div>
+                              {config.observacoes && (
+                                <div className="text-xs text-gray-500 mt-1">{config.observacoes}</div>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditarConfig(config)}
+                            >
+                              <Settings className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeletar(config.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+
+                <TabsContent value="terapeutas" className="mt-4">
+                  {configsTerapeutasUnidade.length === 0 ? (
+                    <div className="text-center text-gray-500 py-8">
+                      Nenhuma configuração de terapeuta para esta unidade
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {configsTerapeutasUnidade.map(config => (
+                        <div
+                          key={config.id}
+                          className="flex items-center justify-between p-3 bg-white rounded-lg border hover:border-blue-300 transition-colors"
+                        >
+                          <div className="flex items-center gap-4">
+                            <div className="text-sm">
+                              <div className="font-medium text-gray-900">
+                                👨‍⚕️ {config.profissional_nome}
+                              </div>
+                              <div className="text-xs text-gray-600 mt-1">
+                                Horário: <strong>{config.horario_inicio} - {config.horario_fim}</strong>
+                              </div>
+                              <div className="text-xs text-gray-500 mt-1">
+                                {config.data_sabado ? 
+                                  `📅 ${format(new Date(config.data_sabado + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR })}` : 
+                                  "📅 Todos os sábados"}
+                              </div>
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeletarConfigTerapeuta(config.id)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
       </div>
 
       <Dialog open={dialogAberto} onOpenChange={setDialogAberto}>
@@ -442,6 +595,96 @@ export default function ConfiguracaoSabadoPage() {
             </Button>
             <Button onClick={handleSalvar} className="bg-blue-600 hover:bg-blue-700">
               {modoEdicao ? "Salvar Alterações" : modoGeracao ? "Gerar Configurações" : "Criar Configuração"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Configurar Terapeutas */}
+      <Dialog open={dialogTerapeutasAberto} onOpenChange={setDialogTerapeutasAberto}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>👨‍⚕️ Configurar Terapeuta no Sábado</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Terapeuta</Label>
+              <Select value={terapeutaSelecionado} onValueChange={setTerapeutaSelecionado}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o terapeuta" />
+                </SelectTrigger>
+                <SelectContent>
+                  {profissionais.filter(p => p.ativo).map(p => (
+                    <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Aplicar configuração</Label>
+              <Select value={tipoConfigTerapeuta} onValueChange={setTipoConfigTerapeuta}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Para todos os sábados</SelectItem>
+                  <SelectItem value="especifico">Para um sábado específico</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {tipoConfigTerapeuta === "especifico" && (
+              <div className="space-y-2">
+                <Label>Data do Sábado</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dataSabadoTerapeuta ? format(dataSabadoTerapeuta, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={dataSabadoTerapeuta}
+                      onSelect={setDataSabadoTerapeuta}
+                      locale={ptBR}
+                      disabled={(date) => date.getDay() !== 6}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <p className="text-xs text-gray-500">Apenas sábados podem ser selecionados</p>
+              </div>
+            )}
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Horário Início</Label>
+                <Input
+                  type="time"
+                  value={horarioInicio}
+                  onChange={(e) => setHorarioInicio(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Horário Fim</Label>
+                <Input
+                  type="time"
+                  value={horarioFim}
+                  onChange={(e) => setHorarioFim(e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogTerapeutasAberto(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSalvarConfigTerapeuta} className="bg-blue-600 hover:bg-blue-700">
+              Salvar Configuração
             </Button>
           </DialogFooter>
         </DialogContent>
