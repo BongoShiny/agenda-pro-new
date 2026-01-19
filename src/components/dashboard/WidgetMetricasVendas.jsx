@@ -228,9 +228,9 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                             <TableCell>
                               <div className="flex items-center gap-2 text-sm">
                                 <Calendar className="w-3 h-3 text-gray-400" />
-                                {format(new Date(venda.created_date), "dd/MM/yyyy", { locale: ptBR })}
+                                {venda.created_date ? new Date(venda.created_date).toLocaleDateString('pt-BR') : '-'}
                                 <Clock className="w-3 h-3 text-gray-400 ml-1" />
-                                {format(new Date(venda.created_date), "HH:mm", { locale: ptBR })}
+                                {venda.created_date ? new Date(venda.created_date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '-'}
                               </div>
                             </TableCell>
                             <TableCell className="font-medium">{venda.cliente_nome}</TableCell>
