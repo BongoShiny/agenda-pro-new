@@ -23,35 +23,51 @@ Deno.serve(async (req) => {
     
     console.log('Testando conexão com:', urlTeste);
 
-    const response = await fetch(urlTeste, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'apikey': apiToken
+    try {
+      const response = await fetch(urlTeste, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': apiToken
+        }
+      });
+
+      console.log('Status da resposta:', response.status);
+
+      if (response.status === 401) {
+        return Response.json({ 
+          sucesso: false, 
+          mensagem: '❌ Token inválido. Verifique sua chave de API.' 
+        });
+      } else if (response.status === 404) {
+        return Response.json({ 
+          sucesso: false, 
+          mensagem: `❌ URL incorreta ou instância não encontrada. Verifique: ${apiUrl}` 
+        });
+      } else if (response.ok) {
+        return Response.json({ 
+          sucesso: true, 
+          mensagem: '✅ Conexão com API WhatsApp estabelecida com sucesso!' 
+        });
+      } else {
+        try {
+          const resultado = await response.text();
+          return Response.json({ 
+            sucesso: false, 
+            mensagem: `❌ Erro ${response.status}: Verifique as credenciais e a URL` 
+          });
+        } catch (e) {
+          return Response.json({ 
+            sucesso: false, 
+            mensagem: `❌ Erro ${response.status}: Não foi possível processar a resposta` 
+          });
+        }
       }
-    });
-
-    const resultado = await response.json();
-
-    if (response.ok) {
-      return Response.json({ 
-        sucesso: true, 
-        mensagem: '✅ Conexão com API WhatsApp estabelecida com sucesso!' 
-      });
-    } else if (response.status === 401) {
+    } catch (fetchError) {
+      console.error('Erro na requisição fetch:', fetchError);
       return Response.json({ 
         sucesso: false, 
-        mensagem: '❌ Token inválido. Verifique sua chave de API.' 
-      });
-    } else if (response.status === 404) {
-      return Response.json({ 
-        sucesso: false, 
-        mensagem: `❌ URL incorreta ou instância não encontrada. Verifique: ${apiUrl}` 
-      });
-    } else {
-      return Response.json({ 
-        sucesso: false, 
-        mensagem: `❌ Erro ao conectar: ${resultado.message || 'Verifique as credenciais'}` 
+        mensagem: `❌ Erro ao conectar: Verifique se a URL está correta e completa (ex: https://o216174-f20.api002.octadesk.services)` 
       });
     }
 
