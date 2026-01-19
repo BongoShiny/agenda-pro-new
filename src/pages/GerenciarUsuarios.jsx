@@ -27,6 +27,7 @@ export default function GerenciarUsuariosPage() {
   const [usuarioAtual, setUsuarioAtual] = useState(null);
   const [editandoNome, setEditandoNome] = useState(null);
   const [novoNome, setNovoNome] = useState("");
+  const [busca, setBusca] = useState("");
   const queryClient = useQueryClient();
 
   useEffect(() => {
