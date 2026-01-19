@@ -61,6 +61,12 @@ export default function ConfiguracaoSabadoPage() {
     initialData: [],
   });
 
+  const { data: configuracoesTerapeutasUnidade = [] } = useQuery({
+    queryKey: ['configuracoes-terapeuta-unidade'],
+    queryFn: () => base44.entities.ConfiguracaoTerapeuta.list("ordem"),
+    initialData: [],
+  });
+
   const criarConfigMutation = useMutation({
     mutationFn: (dados) => base44.entities.ConfiguracaoSabado.create(dados),
     onSuccess: () => {
@@ -615,9 +621,14 @@ export default function ConfiguracaoSabadoPage() {
                   <SelectValue placeholder="Selecione o terapeuta" />
                 </SelectTrigger>
                 <SelectContent>
-                  {profissionais.filter(p => p.ativo).map(p => (
-                    <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
-                  ))}
+                  {profissionais
+                    .filter(p => p.ativo)
+                    .filter(p => configuracoesTerapeutasUnidade.some(ct => 
+                      ct.profissional_id === p.id && ct.unidade_id === unidadeConfigTerapeuta && ct.ativo
+                    ))
+                    .map(p => (
+                      <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
