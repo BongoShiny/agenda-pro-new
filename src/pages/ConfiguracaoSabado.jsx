@@ -94,12 +94,62 @@ export default function ConfiguracaoSabadoPage() {
   };
 
   const handleSalvar = () => {
-    if (!unidadeSelecionada || !dataSelecionada) {
-      alert("⚠️ Selecione a unidade e a data do sábado");
+    if (!unidadeSelecionada) {
+      alert("⚠️ Selecione a unidade");
       return;
     }
 
     const unidade = unidades.find(u => u.id === unidadeSelecionada);
+
+    // Modo geração em massa
+    if (modoGeracao) {
+      if (!dataInicial || !dataFinal) {
+        alert("⚠️ Selecione a data inicial e final");
+        return;
+      }
+
+      const sabados = [];
+      let data = new Date(dataInicial);
+      const fim = new Date(dataFinal);
+
+      while (data <= fim) {
+        if (isSaturday(data)) {
+          sabados.push({
+            unidade_id: unidadeSelecionada,
+            unidade_nome: unidade.nome,
+            data_sabado: format(data, "yyyy-MM-dd"),
+            limite_atendimentos_por_hora: limiteAtendimentos,
+            observacoes: observacoes,
+            ativo: true
+          });
+        }
+        data = addDays(data, 1);
+      }
+
+      if (sabados.length === 0) {
+        alert("⚠️ Nenhum sábado encontrado no período selecionado");
+        return;
+      }
+
+      if (!window.confirm(`Gerar configuração para ${sabados.length} sábado(s)?`)) return;
+
+      Promise.all(sabados.map(sab => criarConfigMutation.mutateAsync(sab)))
+        .then(() => {
+          alert("✅ Configurações criadas com sucesso!");
+          setDialogAberto(false);
+          resetForm();
+        })
+        .catch(err => alert("❌ Erro: " + err.message));
+      
+      return;
+    }
+
+    // Modo criação/edição individual
+    if (!dataSelecionada) {
+      alert("⚠️ Selecione a data do sábado");
+      return;
+    }
+
     const dataFormatada = format(dataSelecionada, "yyyy-MM-dd");
 
     const dados = {
