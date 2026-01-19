@@ -32,7 +32,7 @@ export default function RelatoriosAvancadosPage() {
       try {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
-        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades";
+        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "metricas";
         if (!isAdmin) {
           navigate(createPageUrl("Agenda"));
         }
