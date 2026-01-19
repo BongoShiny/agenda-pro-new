@@ -12,6 +12,7 @@ import Home from './pages/Home';
 import RelatoriosAvancados from './pages/RelatoriosAvancados';
 import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
+import TesteWebhook from './pages/TesteWebhook';
 import __Layout from './Layout.jsx';
 
 
@@ -30,6 +31,7 @@ export const PAGES = {
     "RelatoriosAvancados": RelatoriosAvancados,
     "RelatoriosClientes": RelatoriosClientes,
     "RelatoriosFinanceiros": RelatoriosFinanceiros,
+    "TesteWebhook": TesteWebhook,
 }
 
 export const pagesConfig = {
