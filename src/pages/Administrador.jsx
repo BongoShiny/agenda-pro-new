@@ -205,6 +205,18 @@ export default function AdministradorPage() {
             </div>
           </Link>
           )}
+
+          {isAdmin && (
+          <Link to={createPageUrl("TesteWebhook")} className="block">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer h-full">
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                <MessageCircle className="w-6 h-6 text-blue-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Testar Webhook</h3>
+              <p className="text-sm text-gray-500">Testar confirmação/cancelamento automático via WhatsApp</p>
+            </div>
+          </Link>
+          )}
           </div>
 
         <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
