@@ -1,8 +1,9 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, TrendingUp, Calendar, Clock } from "lucide-react";
+import { Eye, TrendingUp, Calendar, Clock, Image as ImageIcon, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -117,58 +118,107 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                 </div>
               </div>
 
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Data/Hora Criação</TableHead>
-                    <TableHead>Cliente</TableHead>
-                    <TableHead>Vendedor</TableHead>
-                    <TableHead>Profissional</TableHead>
-                    <TableHead>Data Agendamento</TableHead>
-                    <TableHead className="text-right">Valor</TableHead>
-                    <TableHead className="text-right">Pago</TableHead>
-                    <TableHead className="text-right">A Receber</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {vendasFiltradas
-                    .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
-                    .map((venda) => {
-                      const totalPago = (venda.sinal || 0) + (venda.recebimento_2 || 0) + (venda.final_pagamento || 0);
-                      return (
-                        <TableRow key={venda.id}>
-                          <TableCell>
-                            <div className="flex items-center gap-2 text-sm">
-                              <Calendar className="w-3 h-3 text-gray-400" />
-                              {format(new Date(venda.created_date), "dd/MM/yyyy", { locale: ptBR })}
-                              <Clock className="w-3 h-3 text-gray-400 ml-1" />
-                              {format(new Date(venda.created_date), "HH:mm", { locale: ptBR })}
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium">{venda.cliente_nome}</TableCell>
-                          <TableCell>
-                            <span className="text-blue-600 font-medium">
-                              {venda.vendedor_nome || "-"}
-                            </span>
-                          </TableCell>
-                          <TableCell>{venda.profissional_nome}</TableCell>
-                          <TableCell>
-                            {venda.data ? format(new Date(venda.data + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR }) : "-"}
-                          </TableCell>
-                          <TableCell className="text-right font-semibold">
-                            {formatarMoeda(venda.valor_combinado)}
-                          </TableCell>
-                          <TableCell className="text-right text-emerald-600">
-                            {formatarMoeda(totalPago)}
-                          </TableCell>
-                          <TableCell className="text-right text-orange-600">
-                            {formatarMoeda(venda.falta_quanto)}
-                          </TableCell>
-                        </TableRow>
-                      );
-                    })}
-                </TableBody>
-              </Table>
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data/Hora Criação</TableHead>
+                      <TableHead>Cliente</TableHead>
+                      <TableHead>Unidade</TableHead>
+                      <TableHead>Vendedor</TableHead>
+                      <TableHead>Profissional</TableHead>
+                      <TableHead>Data Agendamento</TableHead>
+                      <TableHead>Pacote</TableHead>
+                      <TableHead className="text-right">Valor</TableHead>
+                      <TableHead className="text-right">Pago</TableHead>
+                      <TableHead className="text-right">A Receber</TableHead>
+                      <TableHead>Comprovante 1</TableHead>
+                      <TableHead>Observações Vendedor</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {vendasFiltradas
+                      .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
+                      .map((venda) => {
+                        const totalPago = (venda.sinal || 0) + (venda.recebimento_2 || 0) + (venda.final_pagamento || 0);
+                        return (
+                          <TableRow key={venda.id}>
+                            <TableCell>
+                              <div className="flex items-center gap-2 text-sm">
+                                <Calendar className="w-3 h-3 text-gray-400" />
+                                {format(new Date(venda.created_date), "dd/MM/yyyy", { locale: ptBR })}
+                                <Clock className="w-3 h-3 text-gray-400 ml-1" />
+                                {format(new Date(venda.created_date), "HH:mm", { locale: ptBR })}
+                              </div>
+                            </TableCell>
+                            <TableCell className="font-medium">{venda.cliente_nome}</TableCell>
+                            <TableCell>
+                              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                {venda.unidade_nome || "-"}
+                              </span>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-blue-600 font-medium">
+                                {venda.vendedor_nome || "-"}
+                              </span>
+                            </TableCell>
+                            <TableCell>{venda.profissional_nome}</TableCell>
+                            <TableCell>
+                              {venda.data ? format(new Date(venda.data + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                            </TableCell>
+                            <TableCell>
+                              {venda.cliente_pacote === "Sim" ? (
+                                <div className="text-xs">
+                                  <span className="bg-green-100 text-green-800 px-2 py-1 rounded block mb-1">
+                                    {venda.sessoes_feitas || 0}/{venda.quantas_sessoes || 0}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-gray-400 text-xs">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-right font-semibold">
+                              {formatarMoeda(venda.valor_combinado)}
+                            </TableCell>
+                            <TableCell className="text-right text-emerald-600">
+                              {formatarMoeda(totalPago)}
+                            </TableCell>
+                            <TableCell className="text-right text-orange-600">
+                              {formatarMoeda(venda.falta_quanto)}
+                            </TableCell>
+                            <TableCell>
+                              {venda.comprovante_1 ? (
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => window.open(venda.comprovante_1, '_blank')}
+                                  className="h-8"
+                                >
+                                  <ImageIcon className="w-3 h-3 mr-1" />
+                                  Ver
+                                </Button>
+                              ) : (
+                                <span className="text-gray-400 text-xs">-</span>
+                              )}
+                            </TableCell>
+                            <TableCell className="max-w-xs">
+                              {venda.observacoes_vendedores ? (
+                                <div className="flex items-start gap-1">
+                                  <FileText className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+                                  <span className="text-xs text-gray-600 line-clamp-2">
+                                    {venda.observacoes_vendedores}
+                                  </span>
+                                </div>
+                              ) : (
+                                <span className="text-gray-400 text-xs">-</span>
+                              )}
+                            </TableCell>
+                          </TableRow>
+                        );
+                      })}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           </div>
         )}
