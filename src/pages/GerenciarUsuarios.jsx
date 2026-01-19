@@ -28,6 +28,7 @@ export default function GerenciarUsuariosPage() {
   const [editandoNome, setEditandoNome] = useState(null);
   const [novoNome, setNovoNome] = useState("");
   const [busca, setBusca] = useState("");
+  const [filtroCargo, setFiltroCargo] = useState("");
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -282,12 +283,30 @@ export default function GerenciarUsuariosPage() {
               <CardTitle>Usuários do Sistema</CardTitle>
               <Badge variant="secondary">{usuarios.length} usuários</Badge>
             </div>
-            <Input
-              placeholder="🔍 Pesquisar por nome ou email..."
-              value={busca}
-              onChange={(e) => setBusca(e.target.value)}
-              className="max-w-md"
-            />
+            <div className="flex gap-3">
+              <Input
+                placeholder="🔍 Pesquisar por nome ou email..."
+                value={busca}
+                onChange={(e) => setBusca(e.target.value)}
+                className="flex-1 max-w-md"
+              />
+              <Select value={filtroCargo} onValueChange={setFiltroCargo}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Todos os cargos" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>Todos os cargos</SelectItem>
+                  <SelectItem value="superior">Superior</SelectItem>
+                  <SelectItem value="gerencia_unidades">Gerência de Unidades</SelectItem>
+                  <SelectItem value="financeiro">Financeiro</SelectItem>
+                  <SelectItem value="vendedor">Vendedor</SelectItem>
+                  <SelectItem value="pos_venda">Pós Venda</SelectItem>
+                  <SelectItem value="terapeuta">Terapeuta</SelectItem>
+                  <SelectItem value="recepcao">Recepção</SelectItem>
+                  <SelectItem value="funcionario">Funcionário</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </CardHeader>
           <CardContent>
             <Table>
@@ -304,10 +323,21 @@ export default function GerenciarUsuariosPage() {
               <TableBody>
                 {usuarios
                   .filter(usuario => {
-                    if (!busca) return true;
-                    const termo = busca.toLowerCase();
-                    return usuario.full_name?.toLowerCase().includes(termo) || 
-                           usuario.email?.toLowerCase().includes(termo);
+                    // Filtro de busca
+                    if (busca) {
+                      const termo = busca.toLowerCase();
+                      const matchBusca = usuario.full_name?.toLowerCase().includes(termo) || 
+                                         usuario.email?.toLowerCase().includes(termo);
+                      if (!matchBusca) return false;
+                    }
+                    
+                    // Filtro de cargo
+                    if (filtroCargo) {
+                      const cargo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "funcionario");
+                      if (cargo !== filtroCargo) return false;
+                    }
+                    
+                    return true;
                   })
                   .map(usuario => {
                   const isCurrentUser = usuario.id === usuarioAtual.id;
