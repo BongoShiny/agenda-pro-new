@@ -226,6 +226,46 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               </div>
             )}
 
+            {agendamento.observacoes_vendedores && (
+              <div className="flex items-start gap-3">
+                <FileText className="w-5 h-5 text-gray-500 mt-0.5" />
+                <div>
+                  <div className="text-sm text-gray-500">Observações Vendedores</div>
+                  <div className="text-gray-700">{agendamento.observacoes_vendedores}</div>
+                </div>
+              </div>
+            )}
+
+            {agendamento.observacoes_terapeuta && (
+              <div className="flex items-start gap-3">
+                <FileText className="w-5 h-5 text-gray-500 mt-0.5" />
+                <div>
+                  <div className="text-sm text-gray-500">Observações Terapeuta</div>
+                  <div className="text-gray-700">{agendamento.observacoes_terapeuta}</div>
+                </div>
+              </div>
+            )}
+
+            {agendamento.observacoes_recepcionista && (
+              <div className="flex items-start gap-3">
+                <FileText className="w-5 h-5 text-gray-500 mt-0.5" />
+                <div>
+                  <div className="text-sm text-gray-500">Observações Recepcionista</div>
+                  <div className="text-gray-700">{agendamento.observacoes_recepcionista}</div>
+                </div>
+              </div>
+            )}
+
+            {agendamento.observacoes_pos_venda && (
+              <div className="flex items-start gap-3">
+                <FileText className="w-5 h-5 text-gray-500 mt-0.5" />
+                <div>
+                  <div className="text-sm text-gray-500">Observações Pós Venda</div>
+                  <div className="text-gray-700">{agendamento.observacoes_pos_venda}</div>
+                </div>
+              </div>
+            )}
+
             {(agendamento.comprovante_url || agendamento.comprovante_url_2) && (
               <div className="flex items-start gap-3">
                 <FileImage className="w-5 h-5 text-gray-500 mt-0.5" />
@@ -357,6 +397,46 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
             <div>
               <div className="text-sm text-gray-500">Observações</div>
               <div className="text-gray-700">{agendamento.observacoes}</div>
+            </div>
+          </div>
+        )}
+
+        {agendamento.observacoes_vendedores && (
+          <div className="flex items-start gap-3">
+            <FileText className="w-5 h-5 text-gray-500 mt-0.5" />
+            <div>
+              <div className="text-sm text-gray-500">Observações Vendedores</div>
+              <div className="text-gray-700">{agendamento.observacoes_vendedores}</div>
+            </div>
+          </div>
+        )}
+
+        {agendamento.observacoes_terapeuta && (
+          <div className="flex items-start gap-3">
+            <FileText className="w-5 h-5 text-gray-500 mt-0.5" />
+            <div>
+              <div className="text-sm text-gray-500">Observações Terapeuta</div>
+              <div className="text-gray-700">{agendamento.observacoes_terapeuta}</div>
+            </div>
+          </div>
+        )}
+
+        {agendamento.observacoes_recepcionista && (
+          <div className="flex items-start gap-3">
+            <FileText className="w-5 h-5 text-gray-500 mt-0.5" />
+            <div>
+              <div className="text-sm text-gray-500">Observações Recepcionista</div>
+              <div className="text-gray-700">{agendamento.observacoes_recepcionista}</div>
+            </div>
+          </div>
+        )}
+
+        {agendamento.observacoes_pos_venda && (
+          <div className="flex items-start gap-3">
+            <FileText className="w-5 h-5 text-gray-500 mt-0.5" />
+            <div>
+              <div className="text-sm text-gray-500">Observações Pós Venda</div>
+              <div className="text-gray-700">{agendamento.observacoes_pos_venda}</div>
             </div>
           </div>
         )}
