@@ -239,18 +239,9 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                             <TableCell>
                               <div className="flex items-center gap-2 text-sm">
                                 <Calendar className="w-3 h-3 text-gray-400" />
-                                {venda.created_date ? new Intl.DateTimeFormat('pt-BR', { 
-                                  day: '2-digit', 
-                                  month: '2-digit', 
-                                  year: 'numeric',
-                                  timeZone: 'America/Sao_Paulo' 
-                                }).format(new Date(venda.created_date)) : '-'}
+                                {venda.created_date ? new Date(venda.created_date).toLocaleDateString('pt-BR') : '-'}
                                 <Clock className="w-3 h-3 text-gray-400 ml-1" />
-                                {venda.created_date ? new Intl.DateTimeFormat('pt-BR', { 
-                                  hour: '2-digit', 
-                                  minute: '2-digit',
-                                  timeZone: 'America/Sao_Paulo' 
-                                }).format(new Date(venda.created_date)) : '-'}
+                                {venda.created_date ? new Date(venda.created_date).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) : '-'}
                               </div>
                             </TableCell>
                             <TableCell className="font-medium">{venda.cliente_nome}</TableCell>
