@@ -46,8 +46,15 @@ Deno.serve(async (req) => {
     const resultado = await response.json();
 
     if (!response.ok) {
+      console.error('Erro da API WhatsApp:', resultado);
+      
+      let mensagemErro = 'Erro ao enviar mensagem';
+      if (resultado.message && resultado.message.includes('sendText')) {
+        mensagemErro = `Erro: Verifique se a instância "${WHATSAPP_INSTANCE_NAME}" está correta. URL: ${url}`;
+      }
+      
       return Response.json({ 
-        error: 'Erro ao enviar mensagem', 
+        error: mensagemErro, 
         detalhes: resultado 
       }, { status: response.status });
     }
