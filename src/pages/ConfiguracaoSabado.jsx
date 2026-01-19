@@ -319,7 +319,7 @@ export default function ConfiguracaoSabadoPage() {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {modoEdicao ? "✏️ Editar Configuração" : "➕ Nova Configuração de Sábado"}
+              {modoEdicao ? "✏️ Editar Configuração" : modoGeracao ? "➕ Gerar Configurações de Sábados" : "➕ Nova Configuração de Sábado"}
             </DialogTitle>
           </DialogHeader>
 
@@ -329,7 +329,7 @@ export default function ConfiguracaoSabadoPage() {
               <Select 
                 value={unidadeSelecionada} 
                 onValueChange={setUnidadeSelecionada}
-                disabled={modoEdicao}
+                disabled={modoEdicao || modoGeracao}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione a unidade" />
@@ -342,27 +342,72 @@ export default function ConfiguracaoSabadoPage() {
               </Select>
             </div>
 
-            <div className="space-y-2">
-              <Label>Data do Sábado</Label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button variant="outline" className="w-full justify-start">
-                    <CalendarIcon className="mr-2 h-4 w-4" />
-                    {dataSelecionada ? format(dataSelecionada, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar data"}
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0">
-                  <Calendar
-                    mode="single"
-                    selected={dataSelecionada}
-                    onSelect={setDataSelecionada}
-                    locale={ptBR}
-                    disabled={(date) => date.getDay() !== 6} // Apenas sábados
-                  />
-                </PopoverContent>
-              </Popover>
-              <p className="text-xs text-gray-500">Apenas sábados podem ser selecionados</p>
-            </div>
+            {modoGeracao ? (
+              <>
+                <div className="space-y-2">
+                  <Label>Data Inicial</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dataInicial ? format(dataInicial, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar data inicial"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={dataInicial}
+                        onSelect={setDataInicial}
+                        locale={ptBR}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Data Final</Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {dataFinal ? format(dataFinal, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar data final"}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={dataFinal}
+                        onSelect={setDataFinal}
+                        locale={ptBR}
+                      />
+                    </PopoverContent>
+                  </Popover>
+                  <p className="text-xs text-gray-500">Todos os sábados entre as datas serão configurados</p>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-2">
+                <Label>Data do Sábado</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dataSelecionada ? format(dataSelecionada, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={dataSelecionada}
+                      onSelect={setDataSelecionada}
+                      locale={ptBR}
+                      disabled={(date) => date.getDay() !== 6}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <p className="text-xs text-gray-500">Apenas sábados podem ser selecionados</p>
+              </div>
+            )}
 
             <div className="space-y-2">
               <Label>Limite de Atendimentos por Hora</Label>
@@ -393,7 +438,7 @@ export default function ConfiguracaoSabadoPage() {
               Cancelar
             </Button>
             <Button onClick={handleSalvar} className="bg-blue-600 hover:bg-blue-700">
-              {modoEdicao ? "Salvar Alterações" : "Criar Configuração"}
+              {modoEdicao ? "Salvar Alterações" : modoGeracao ? "Gerar Configurações" : "Criar Configuração"}
             </Button>
           </DialogFooter>
         </DialogContent>
