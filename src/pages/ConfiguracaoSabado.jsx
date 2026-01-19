@@ -253,8 +253,10 @@ export default function ConfiguracaoSabadoPage() {
                   variant="outline"
                   size="sm"
                   onClick={() => {
+                    resetForm();
                     setUnidadeSelecionada(unidade.id);
-                    gerarTodosSabadosAnoAtual();
+                    setModoGeracao(true);
+                    setDialogAberto(true);
                   }}
                 >
                   <CalendarIcon className="w-4 h-4 mr-2" />
