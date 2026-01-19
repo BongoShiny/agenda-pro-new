@@ -278,10 +278,16 @@ export default function GerenciarUsuariosPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              <span>Usuários do Sistema</span>
+            <div className="flex items-center justify-between mb-4">
+              <CardTitle>Usuários do Sistema</CardTitle>
               <Badge variant="secondary">{usuarios.length} usuários</Badge>
-            </CardTitle>
+            </div>
+            <Input
+              placeholder="🔍 Pesquisar por nome ou email..."
+              value={busca}
+              onChange={(e) => setBusca(e.target.value)}
+              className="max-w-md"
+            />
           </CardHeader>
           <CardContent>
             <Table>
