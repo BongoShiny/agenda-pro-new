@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Calendar as CalendarIcon, Plus, Trash2, Settings, ArrowLeft, Users } from "lucide-react";
+import { Calendar as CalendarIcon, Plus, Trash2, Settings, ArrowLeft, Users, Edit } from "lucide-react";
 import { format, addDays, isSaturday, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar } from "@/components/ui/calendar";
@@ -34,6 +34,8 @@ export default function ConfiguracaoSabadoPage() {
   const [tipoConfigTerapeuta, setTipoConfigTerapeuta] = useState("todos");
   const [dataSabadoTerapeuta, setDataSabadoTerapeuta] = useState(null);
   const [unidadeConfigTerapeuta, setUnidadeConfigTerapeuta] = useState(null);
+  const [configTerapeutaEditando, setConfigTerapeutaEditando] = useState(null);
+  const [modoEdicaoTerapeuta, setModoEdicaoTerapeuta] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -101,6 +103,15 @@ export default function ConfiguracaoSabadoPage() {
     },
   });
 
+  const atualizarConfigTerapeutaMutation = useMutation({
+    mutationFn: ({ id, dados }) => base44.entities.ConfiguracaoTerapeutaSabado.update(id, dados),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['configuracoes-terapeuta-sabado'] });
+      setDialogTerapeutasAberto(false);
+      resetFormTerapeuta();
+    },
+  });
+
   const deletarConfigTerapeutaMutation = useMutation({
     mutationFn: (id) => base44.entities.ConfiguracaoTerapeutaSabado.delete(id),
     onSuccess: () => {
@@ -127,6 +138,8 @@ export default function ConfiguracaoSabadoPage() {
     setTipoConfigTerapeuta("todos");
     setDataSabadoTerapeuta(null);
     setUnidadeConfigTerapeuta(null);
+    setConfigTerapeutaEditando(null);
+    setModoEdicaoTerapeuta(false);
   };
 
   const handleNovaConfig = () => {
@@ -230,6 +243,20 @@ export default function ConfiguracaoSabadoPage() {
     setDialogTerapeutasAberto(true);
   };
 
+  const handleEditarConfigTerapeuta = (config) => {
+    setConfigTerapeutaEditando(config);
+    setTerapeutaSelecionado(config.profissional_id);
+    setUnidadeConfigTerapeuta(config.unidade_id);
+    setHorarioInicio(config.horario_inicio);
+    setHorarioFim(config.horario_fim);
+    setTipoConfigTerapeuta(config.data_sabado ? "especifico" : "todos");
+    if (config.data_sabado) {
+      setDataSabadoTerapeuta(new Date(config.data_sabado + 'T12:00:00'));
+    }
+    setModoEdicaoTerapeuta(true);
+    setDialogTerapeutasAberto(true);
+  };
+
   const handleSalvarConfigTerapeuta = () => {
     if (!unidadeConfigTerapeuta) {
       alert("⚠️ Selecione a unidade");
@@ -260,7 +287,11 @@ export default function ConfiguracaoSabadoPage() {
       ativo: true
     };
 
-    criarConfigTerapeutaMutation.mutate(dados);
+    if (modoEdicaoTerapeuta && configTerapeutaEditando) {
+      atualizarConfigTerapeutaMutation.mutate({ id: configTerapeutaEditando.id, dados });
+    } else {
+      criarConfigTerapeutaMutation.mutate(dados);
+    }
   };
 
   const handleConfigurarTodosTerapeutas = async () => {
@@ -502,14 +533,23 @@ export default function ConfiguracaoSabadoPage() {
                               </div>
                             </div>
                           </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleDeletarConfigTerapeuta(config.id)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          >
-                            <Trash2 className="w-4 h-4" />
-                          </Button>
+                          <div className="flex gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleEditarConfigTerapeuta(config)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => handleDeletarConfigTerapeuta(config.id)}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -658,26 +698,32 @@ export default function ConfiguracaoSabadoPage() {
       <Dialog open={dialogTerapeutasAberto} onOpenChange={setDialogTerapeutasAberto}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>👨‍⚕️ Configurar Terapeuta no Sábado</DialogTitle>
+            <DialogTitle>
+              {modoEdicaoTerapeuta ? "✏️ Editar Horário do Terapeuta" : "👨‍⚕️ Configurar Terapeuta no Sábado"}
+            </DialogTitle>
           </DialogHeader>
 
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-            <p className="text-sm text-blue-900 mb-2">
-              <strong>Configurar todos os terapeutas de uma vez:</strong>
-            </p>
-            <Button 
-              onClick={handleConfigurarTodosTerapeutas} 
-              className="w-full bg-blue-600 hover:bg-blue-700"
-              size="sm"
-            >
-              <Users className="w-4 h-4 mr-2" />
-              Configurar Todos (08:00 - 18:00)
-            </Button>
-          </div>
+          {!modoEdicaoTerapeuta && (
+            <>
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                <p className="text-sm text-blue-900 mb-2">
+                  <strong>Configurar todos os terapeutas de uma vez:</strong>
+                </p>
+                <Button 
+                  onClick={handleConfigurarTodosTerapeutas} 
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  size="sm"
+                >
+                  <Users className="w-4 h-4 mr-2" />
+                  Configurar Todos (08:00 - 18:00)
+                </Button>
+              </div>
 
-          <div className="border-t border-gray-200 pt-4">
-            <p className="text-sm text-gray-600 mb-4">Ou configure individualmente:</p>
-          </div>
+              <div className="border-t border-gray-200 pt-4">
+                <p className="text-sm text-gray-600 mb-4">Ou configure individualmente:</p>
+              </div>
+            </>
+          )}
 
           <div className="space-y-4">
             <div className="space-y-2">
@@ -757,11 +803,14 @@ export default function ConfiguracaoSabadoPage() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogTerapeutasAberto(false)}>
+            <Button variant="outline" onClick={() => {
+              setDialogTerapeutasAberto(false);
+              resetFormTerapeuta();
+            }}>
               Cancelar
             </Button>
             <Button onClick={handleSalvarConfigTerapeuta} className="bg-blue-600 hover:bg-blue-700">
-              Salvar Configuração
+              {modoEdicaoTerapeuta ? "Salvar Alterações" : "Salvar Configuração"}
             </Button>
           </DialogFooter>
         </DialogContent>
