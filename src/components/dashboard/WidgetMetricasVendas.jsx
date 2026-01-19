@@ -1,9 +1,16 @@
 import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, TrendingUp, Calendar, Clock, Image as ImageIcon, FileText } from "lucide-react";
+import { Eye, TrendingUp, Calendar, Clock, Image as ImageIcon, FileText, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Table,
@@ -22,6 +29,7 @@ const formatarMoeda = (valor) => {
 export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim }) {
   const [unidadeSelecionada, setUnidadeSelecionada] = useState("todas");
   const [vendedorSelecionado, setVendedorSelecionado] = useState("todos");
+  const [imagemDialog, setImagemDialog] = useState(null);
 
   // Filtrar vendas baseado em created_date (data de criação) e que tenham vendedor
   const vendasPeriodo = agendamentos.filter(ag => {
@@ -188,15 +196,28 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                             </TableCell>
                             <TableCell>
                               {venda.comprovante_1 ? (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => window.open(venda.comprovante_1, '_blank')}
-                                  className="h-8"
-                                >
-                                  <ImageIcon className="w-3 h-3 mr-1" />
-                                  Ver
-                                </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-8"
+                                    >
+                                      <ImageIcon className="w-3 h-3 mr-1" />
+                                      Ver
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent>
+                                    <DropdownMenuItem onClick={() => setImagemDialog(venda.comprovante_1)}>
+                                      <Eye className="w-4 h-4 mr-2" />
+                                      Visualizar aqui
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => window.open(venda.comprovante_1, '_blank')}>
+                                      <ExternalLink className="w-4 h-4 mr-2" />
+                                      Abrir em nova guia
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               ) : (
                                 <span className="text-gray-400 text-xs">-</span>
                               )}
@@ -223,6 +244,21 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
           </div>
         )}
       </CardContent>
+
+      <Dialog open={!!imagemDialog} onOpenChange={() => setImagemDialog(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Comprovante de Pagamento</DialogTitle>
+          </DialogHeader>
+          <div className="flex justify-center items-center bg-gray-100 rounded-lg p-4">
+            <img 
+              src={imagemDialog} 
+              alt="Comprovante" 
+              className="max-w-full max-h-[70vh] object-contain rounded"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
