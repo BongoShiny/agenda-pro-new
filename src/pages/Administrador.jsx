@@ -16,8 +16,8 @@ export default function AdministradorPage() {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
         
-        // Se não for admin, gerência, financeiro ou pós-venda, redireciona para agenda
-        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro" || user?.cargo === "pos_venda";
+        // Se não for admin, gerência, financeiro, pós-venda ou métricas, redireciona para agenda
+        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "financeiro" || user?.cargo === "pos_venda" || user?.cargo === "metricas";
         if (!isAdmin) {
           navigate(createPageUrl("Agenda"));
         }
@@ -43,8 +43,9 @@ export default function AdministradorPage() {
   const isGerencia = usuarioAtual?.cargo === "gerencia_unidades";
   const isFinanceiro = usuarioAtual?.cargo === "financeiro";
   const isPosVenda = usuarioAtual?.cargo === "pos_venda";
+  const isMetricas = usuarioAtual?.cargo === "metricas";
 
-  if (!isAdmin && !isGerencia && !isFinanceiro && !isPosVenda) {
+  if (!isAdmin && !isGerencia && !isFinanceiro && !isPosVenda && !isMetricas) {
     return null;
   }
 
@@ -63,7 +64,11 @@ export default function AdministradorPage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Área dos Superiores</h1>
-              <p className="text-sm text-gray-500">{isFinanceiro ? "Acesso ao histórico" : "Acesso restrito a superiores"}</p>
+              <p className="text-sm text-gray-500">
+                {isFinanceiro ? "Acesso ao histórico" : 
+                 isMetricas ? "Acesso a análises e relatórios avançados" : 
+                 "Acesso restrito a superiores"}
+              </p>
             </div>
           </div>
         </div>
@@ -71,7 +76,7 @@ export default function AdministradorPage() {
 
       <div className="max-w-4xl mx-auto p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {(isAdmin || isGerencia) && (
+          {(isAdmin || isGerencia || isMetricas) && (
             <Link to={createPageUrl("Home")} className="block">
               <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-300 transition-all cursor-pointer h-full">
                 <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
@@ -83,7 +88,7 @@ export default function AdministradorPage() {
             </Link>
           )}
 
-          {(isAdmin || isGerencia) && (
+          {(isAdmin || isGerencia || isMetricas) && (
             <Link to={createPageUrl("RelatoriosAvancados")} className="block">
               <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-purple-300 transition-all cursor-pointer h-full">
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
@@ -212,6 +217,8 @@ export default function AdministradorPage() {
                   ? "Você tem acesso apenas ao Histórico de agendamentos e ações do sistema."
                   : isPosVenda
                   ? "Você tem acesso aos Relatórios/Planilha com as unidades permitidas."
+                  : isMetricas
+                  ? "Você tem acesso apenas a Análises e Relatórios Avançados."
                   : "Apenas superiores têm acesso a esta área. As alterações feitas aqui afetam todo o sistema."}
               </p>
             </div>
