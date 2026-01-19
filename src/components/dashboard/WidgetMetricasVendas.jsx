@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, TrendingUp, Calendar, Clock, Image as ImageIcon, FileText, ExternalLink, Edit3, Save } from "lucide-react";
+import { Eye, TrendingUp, Calendar, Clock, Image as ImageIcon, FileText, ExternalLink, Edit3, Save, Search } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import {
   DropdownMenu,
@@ -162,16 +163,25 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
               </TabsList>
             </Tabs>
 
-            <Tabs value={vendedorSelecionado} onValueChange={setVendedorSelecionado}>
-              <TabsList className="mb-4">
-                <TabsTrigger value="todos">Todos os Vendedores</TabsTrigger>
-                {vendedoresUnicos.map(vendedor => (
-                  <TabsTrigger key={vendedor} value={vendedor}>
-                    {vendedor}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
-            </Tabs>
+            <div className="mb-4">
+              <label className="text-sm font-medium mb-2 block flex items-center gap-2">
+                <Search className="w-4 h-4 text-gray-600" />
+                Pesquisar Vendedor:
+              </label>
+              <Select value={vendedorSelecionado} onValueChange={setVendedorSelecionado}>
+                <SelectTrigger className="w-full max-w-md">
+                  <SelectValue placeholder="Selecione um vendedor" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Todos os Vendedores</SelectItem>
+                  {vendedoresUnicos.map(vendedor => (
+                    <SelectItem key={vendedor} value={vendedor}>
+                      {vendedor}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
             <div className="border rounded-lg p-4">
               <div className="flex items-center justify-between mb-4">
