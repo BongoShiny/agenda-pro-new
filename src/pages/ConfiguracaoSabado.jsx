@@ -263,6 +263,54 @@ export default function ConfiguracaoSabadoPage() {
     criarConfigTerapeutaMutation.mutate(dados);
   };
 
+  const handleConfigurarTodosTerapeutas = async () => {
+    if (!unidadeConfigTerapeuta) {
+      alert("⚠️ Selecione a unidade");
+      return;
+    }
+
+    const unidade = unidades.find(u => u.id === unidadeConfigTerapeuta);
+    
+    // Buscar todos os terapeutas ativos da unidade
+    const terapeutasUnidade = profissionais
+      .filter(p => p.ativo)
+      .filter(p => configuracoesTerapeutasUnidade.some(ct => 
+        ct.profissional_id === p.id && ct.unidade_id === unidadeConfigTerapeuta && ct.ativo
+      ));
+
+    if (terapeutasUnidade.length === 0) {
+      alert("⚠️ Nenhum terapeuta cadastrado nesta unidade");
+      return;
+    }
+
+    if (!window.confirm(`Configurar todos os ${terapeutasUnidade.length} terapeutas com horário 08:00 - 18:00 para todos os sábados?`)) {
+      return;
+    }
+
+    try {
+      const configuracoes = terapeutasUnidade.map(terapeuta => ({
+        profissional_id: terapeuta.id,
+        profissional_nome: terapeuta.nome,
+        unidade_id: unidadeConfigTerapeuta,
+        unidade_nome: unidade.nome,
+        data_sabado: "",
+        horario_inicio: "08:00",
+        horario_fim: "18:00",
+        ativo: true
+      }));
+
+      await Promise.all(configuracoes.map(config => 
+        criarConfigTerapeutaMutation.mutateAsync(config)
+      ));
+
+      alert(`✅ ${terapeutasUnidade.length} terapeutas configurados com sucesso!`);
+      setDialogTerapeutasAberto(false);
+      resetFormTerapeuta();
+    } catch (error) {
+      alert("❌ Erro ao configurar terapeutas: " + error.message);
+    }
+  };
+
   const handleDeletarConfigTerapeuta = (id) => {
     if (!window.confirm("Tem certeza que deseja excluir esta configuração?")) return;
     deletarConfigTerapeutaMutation.mutate(id);
@@ -613,7 +661,25 @@ export default function ConfiguracaoSabadoPage() {
             <DialogTitle>👨‍⚕️ Configurar Terapeuta no Sábado</DialogTitle>
           </DialogHeader>
 
-          <div className="space-y-4 py-4">
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+            <p className="text-sm text-blue-900 mb-2">
+              <strong>Configurar todos os terapeutas de uma vez:</strong>
+            </p>
+            <Button 
+              onClick={handleConfigurarTodosTerapeutas} 
+              className="w-full bg-blue-600 hover:bg-blue-700"
+              size="sm"
+            >
+              <Users className="w-4 h-4 mr-2" />
+              Configurar Todos (08:00 - 18:00)
+            </Button>
+          </div>
+
+          <div className="border-t border-gray-200 pt-4">
+            <p className="text-sm text-gray-600 mb-4">Ou configure individualmente:</p>
+          </div>
+
+          <div className="space-y-4">
             <div className="space-y-2">
               <Label>Terapeuta</Label>
               <Select value={terapeutaSelecionado} onValueChange={setTerapeutaSelecionado}>
