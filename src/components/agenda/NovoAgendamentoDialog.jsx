@@ -763,8 +763,6 @@ export default function NovoAgendamentoDialog({
             />
           </div>
 
-          <div className="col-span-2 space-y-3">
-            <Label>Anexar Comprovantes (até 5)</Label>
             <div className="grid grid-cols-5 gap-3">
               {[1, 2, 3, 4, 5].map(num => (
                 <div key={num}>
@@ -842,9 +840,25 @@ export default function NovoAgendamentoDialog({
               rows={2}
             />
           </div>
-        </div>
 
-        {erroHorarioBloqueado && (
+          <div className="col-span-2 space-y-2">
+            <Label>Health Score do Cliente</Label>
+            <Select value={formData.health_score || ""} onValueChange={(value) => setFormData(prev => ({ ...prev, health_score: value }))}>
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={null}>-</SelectItem>
+                <SelectItem value="insatisfeito">😡 INSATISFEITO</SelectItem>
+                <SelectItem value="neutro">😑 NEUTRO</SelectItem>
+                <SelectItem value="recuperado">🩹 RECUPERADO</SelectItem>
+                <SelectItem value="satisfeito">😁 SATISFEITO</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="col-span-2 space-y-3">
+            <Label>Anexar Comprovantes (até 5)</Label>
           <div className="bg-red-100 border-2 border-red-600 rounded-lg p-4 text-center animate-pulse">
             <div className="text-red-800 font-bold text-lg mb-2">
               🚫 HORÁRIO BLOQUEADO
