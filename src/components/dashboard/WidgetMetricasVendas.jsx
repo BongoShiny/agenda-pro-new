@@ -30,6 +30,7 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
   const [unidadeSelecionada, setUnidadeSelecionada] = useState("todas");
   const [vendedorSelecionado, setVendedorSelecionado] = useState("todos");
   const [imagemDialog, setImagemDialog] = useState(null);
+  const [observacoesDialog, setObservacoesDialog] = useState(null);
 
   // Filtrar vendas baseado em created_date (data de criação) e que tenham vendedor
   const vendasPeriodo = agendamentos.filter(ag => {
@@ -224,12 +225,18 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                             </TableCell>
                             <TableCell className="max-w-xs">
                               {venda.observacoes_vendedores ? (
-                                <div className="flex items-start gap-1">
+                                <button
+                                  onClick={() => setObservacoesDialog({
+                                    cliente: venda.cliente_nome,
+                                    texto: venda.observacoes_vendedores
+                                  })}
+                                  className="flex items-start gap-1 hover:bg-gray-50 p-1 rounded transition-colors cursor-pointer text-left w-full"
+                                >
                                   <FileText className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
                                   <span className="text-xs text-gray-600 line-clamp-2">
                                     {venda.observacoes_vendedores}
                                   </span>
-                                </div>
+                                </button>
                               ) : (
                                 <span className="text-gray-400 text-xs">-</span>
                               )}
@@ -256,6 +263,19 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
               alt="Comprovante" 
               className="max-w-full max-h-[70vh] object-contain rounded"
             />
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!observacoesDialog} onOpenChange={() => setObservacoesDialog(null)}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Observações do Vendedor - {observacoesDialog?.cliente}</DialogTitle>
+          </DialogHeader>
+          <div className="bg-gray-50 rounded-lg p-4">
+            <p className="text-sm text-gray-700 whitespace-pre-wrap">
+              {observacoesDialog?.texto}
+            </p>
           </div>
         </DialogContent>
       </Dialog>
