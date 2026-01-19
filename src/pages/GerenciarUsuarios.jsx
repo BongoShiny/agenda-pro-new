@@ -302,7 +302,14 @@ export default function GerenciarUsuariosPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {usuarios.map(usuario => {
+                {usuarios
+                  .filter(usuario => {
+                    if (!busca) return true;
+                    const termo = busca.toLowerCase();
+                    return usuario.full_name?.toLowerCase().includes(termo) || 
+                           usuario.email?.toLowerCase().includes(termo);
+                  })
+                  .map(usuario => {
                   const isCurrentUser = usuario.id === usuarioAtual.id;
                   const cargo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "funcionario");
                   
