@@ -35,6 +35,7 @@ export default function RelatoriosClientesPage() {
   const [busca, setBusca] = useState("");
   const [ordenacao, setOrdenacao] = useState({ campo: "data", direcao: "desc" });
   const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [filtroStatusPaciente, setFiltroStatusPaciente] = useState("todos");
   const [filtroProfissional, setFiltroProfissional] = useState("todos");
   const [filtroUnidade, setFiltroUnidade] = useState("todos");
   const [filtroServico, setFiltroServico] = useState("todos");
@@ -127,13 +128,14 @@ export default function RelatoriosClientesPage() {
             ag.cliente_telefone?.toLowerCase().includes(busca.toLowerCase()) ||
             ag.profissional_nome?.toLowerCase().includes(busca.toLowerCase());
           const matchStatus = filtroStatus === "todos" || ag.status === filtroStatus;
+          const matchStatusPaciente = filtroStatusPaciente === "todos" || ag.status_paciente === filtroStatusPaciente;
           const matchProfissional = filtroProfissional === "todos" || ag.profissional_id === filtroProfissional;
           const matchUnidade = filtroUnidade === "todos" || ag.unidade_id === filtroUnidade;
           const matchServico = filtroServico === "todos" || ag.servico_id === filtroServico;
           const matchEquipamento = filtroEquipamento === "todos" || ag.equipamento === filtroEquipamento;
           // Filtro por aba de unidade
           const matchUnidadeTab = unidadeTab === "todas" || ag.unidade_id === unidadeTab;
-          return matchBusca && matchStatus && matchProfissional && matchUnidade && matchServico && matchEquipamento && matchUnidadeTab;
+          return matchBusca && matchStatus && matchStatusPaciente && matchProfissional && matchUnidade && matchServico && matchEquipamento && matchUnidadeTab;
         })
     .sort((a, b) => {
       let valorA, valorB;
@@ -243,7 +245,14 @@ export default function RelatoriosClientesPage() {
       dados_novos: JSON.stringify({ total_registros: agendamentosFiltrados.length, filtros: { busca, filtroStatus, filtroProfissional, filtroUnidade, filtroServico, filtroEquipamento } })
     });
 
-    const headers = ["Cliente", "Telefone", "Profissional", "Serviço", "Unidade", "Data", "Horário", "Status", "Equipamento", "Cliente Pacote?", "Quantas Sessões", "Sessões Feitas"];
+    const statusPacienteLabels = {
+      "": "-",
+      "paciente_novo": "Paciente Novo",
+      "primeira_sessao": "1ª Sessão",
+      "ultima_sessao": "Última Sessão"
+    };
+
+    const headers = ["Cliente", "Telefone", "Profissional", "Serviço", "Unidade", "Data", "Horário", "Status", "Status Paciente", "Equipamento", "Cliente Pacote?", "Quantas Sessões", "Sessões Feitas"];
     const linhas = agendamentosFiltrados.map(ag => [
       getValorCelula(ag, "cliente_nome"),
       getValorCelula(ag, "cliente_telefone"),
@@ -253,6 +262,7 @@ export default function RelatoriosClientesPage() {
       ag.data ? format(new Date(ag.data + "T12:00:00"), "dd/MM/yyyy", { locale: ptBR }) : "",
       `${ag.hora_inicio || ""} - ${ag.hora_fim || ""}`,
       statusLabels[ag.status]?.label || ag.status || "",
+      statusPacienteLabels[ag.status_paciente || ""] || "-",
       getValorCelula(ag, "equipamento"),
       getValorCelula(ag, "cliente_pacote"),
       getValorCelula(ag, "quantas_sessoes"),
@@ -630,6 +640,18 @@ export default function RelatoriosClientesPage() {
                 <SelectItem value="concluido">Concluído</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={filtroStatusPaciente} onValueChange={setFiltroStatusPaciente}>
+              <SelectTrigger>
+                <SelectValue placeholder="Status do Paciente" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos</SelectItem>
+                <SelectItem value={null}>Nenhum</SelectItem>
+                <SelectItem value="paciente_novo">Paciente Novo</SelectItem>
+                <SelectItem value="primeira_sessao">Primeira Sessão</SelectItem>
+                <SelectItem value="ultima_sessao">Última Sessão</SelectItem>
+              </SelectContent>
+            </Select>
             <Select value={filtroProfissional} onValueChange={setFiltroProfissional}>
               <SelectTrigger>
                 <SelectValue placeholder="Profissional" />
@@ -734,13 +756,14 @@ export default function RelatoriosClientesPage() {
                   </th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">Horário</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">
-                    <button 
-                      onClick={() => toggleOrdenacao("status")}
-                      className="flex items-center gap-2 hover:text-blue-600"
-                    >
-                      Status <SortIcon campo="status" />
-                    </button>
+                   <button 
+                     onClick={() => toggleOrdenacao("status")}
+                     className="flex items-center gap-2 hover:text-blue-600"
+                   >
+                     Status <SortIcon campo="status" />
+                   </button>
                   </th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-700">Status Paciente</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">Equipamento</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">Cliente Pacote?</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">Quantas Sessões</th>
@@ -750,7 +773,7 @@ export default function RelatoriosClientesPage() {
               <tbody className="divide-y divide-gray-100">
                 {agendamentosFiltrados.length === 0 ? (
                   <tr>
-                    <td colSpan={12} className="px-4 py-8 text-center text-gray-500">
+                    <td colSpan={13} className="px-4 py-8 text-center text-gray-500">
                       Nenhum agendamento encontrado
                     </td>
                   </tr>
@@ -826,6 +849,36 @@ export default function RelatoriosClientesPage() {
                         ) : (
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusLabels[ag.status]?.cor || "bg-gray-100 text-gray-800"}`}>
                             {statusLabels[ag.status]?.label || ag.status}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {modoEditor ? (
+                          <Select 
+                            value={getValorCelula(ag, "status_paciente") || ag.status_paciente || ""} 
+                            onValueChange={(value) => handleEditarCelula(ag.id, "status_paciente", value)}
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue placeholder="-" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={null}>Nenhum</SelectItem>
+                              <SelectItem value="paciente_novo">Paciente Novo</SelectItem>
+                              <SelectItem value="primeira_sessao">1ª Sessão</SelectItem>
+                              <SelectItem value="ultima_sessao">Última Sessão</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            ag.status_paciente === "paciente_novo" ? "bg-green-100 text-green-800" :
+                            ag.status_paciente === "primeira_sessao" ? "bg-blue-100 text-blue-800" :
+                            ag.status_paciente === "ultima_sessao" ? "bg-purple-100 text-purple-800" :
+                            "bg-gray-100 text-gray-800"
+                          }`}>
+                            {ag.status_paciente === "paciente_novo" ? "Paciente Novo" :
+                             ag.status_paciente === "primeira_sessao" ? "1ª Sessão" :
+                             ag.status_paciente === "ultima_sessao" ? "Última Sessão" :
+                             "-"}
                           </span>
                         )}
                       </td>
