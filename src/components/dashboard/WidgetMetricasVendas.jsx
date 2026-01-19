@@ -34,8 +34,8 @@ const formatarDataHoraBrasilia = (dataISO) => {
   if (!dataISO) return { data: '-', hora: '-' };
   
   const date = new Date(dataISO);
-  // Subtrair 7 horas (em milissegundos)
-  const dateAjustada = new Date(date.getTime() - (7 * 60 * 60 * 1000));
+  // Subtrair 6 horas (em milissegundos)
+  const dateAjustada = new Date(date.getTime() - (6 * 60 * 60 * 1000));
   const data = dateAjustada.toLocaleDateString('pt-BR', { timeZone: 'UTC' });
   const hora = dateAjustada.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' });
   
