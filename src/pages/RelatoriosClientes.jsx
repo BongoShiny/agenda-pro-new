@@ -40,6 +40,7 @@ export default function RelatoriosClientesPage() {
   const [filtroUnidade, setFiltroUnidade] = useState("todos");
   const [filtroServico, setFiltroServico] = useState("todos");
   const [filtroEquipamento, setFiltroEquipamento] = useState("todos");
+  const [filtroData, setFiltroData] = useState("");
   const [modoEditor, setModoEditor] = useState(false);
   const [dadosEditados, setDadosEditados] = useState({});
   const [unidadeTab, setUnidadeTab] = useState("todas");
@@ -133,9 +134,10 @@ export default function RelatoriosClientesPage() {
           const matchUnidade = filtroUnidade === "todos" || ag.unidade_id === filtroUnidade;
           const matchServico = filtroServico === "todos" || ag.servico_id === filtroServico;
           const matchEquipamento = filtroEquipamento === "todos" || ag.equipamento === filtroEquipamento;
+          const matchData = !filtroData || ag.data === filtroData;
           // Filtro por aba de unidade
           const matchUnidadeTab = unidadeTab === "todas" || ag.unidade_id === unidadeTab;
-          return matchBusca && matchStatus && matchStatusPaciente && matchProfissional && matchUnidade && matchServico && matchEquipamento && matchUnidadeTab;
+          return matchBusca && matchStatus && matchStatusPaciente && matchProfissional && matchUnidade && matchServico && matchEquipamento && matchData && matchUnidadeTab;
         })
     .sort((a, b) => {
       let valorA, valorB;
@@ -613,7 +615,7 @@ export default function RelatoriosClientesPage() {
 
                     {/* Filtros */}
                     <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-4">
             <div className="md:col-span-4">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
@@ -625,6 +627,12 @@ export default function RelatoriosClientesPage() {
                 />
               </div>
             </div>
+            <Input
+              type="date"
+              value={filtroData}
+              onChange={(e) => setFiltroData(e.target.value)}
+              placeholder="Data específica"
+            />
           </div>
           <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
             <Select value={filtroStatus} onValueChange={setFiltroStatus}>
