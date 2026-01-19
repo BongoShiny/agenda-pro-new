@@ -19,9 +19,12 @@ export default function ConfiguracaoSabadoPage() {
   const [dialogAberto, setDialogAberto] = useState(false);
   const [unidadeSelecionada, setUnidadeSelecionada] = useState(null);
   const [dataSelecionada, setDataSelecionada] = useState(null);
+  const [dataInicial, setDataInicial] = useState(null);
+  const [dataFinal, setDataFinal] = useState(null);
   const [limiteAtendimentos, setLimiteAtendimentos] = useState(4);
   const [observacoes, setObservacoes] = useState("");
   const [modoEdicao, setModoEdicao] = useState(false);
+  const [modoGeracao, setModoGeracao] = useState(false);
   const [configEditando, setConfigEditando] = useState(null);
 
   const queryClient = useQueryClient();
