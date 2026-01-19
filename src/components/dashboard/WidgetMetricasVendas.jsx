@@ -47,11 +47,22 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
   });
 
   // Buscar todos os vendedores cadastrados
-  const { data: vendedores = [] } = useQuery({
+  const { data: vendedores = [], isLoading: carregandoVendedores } = useQuery({
     queryKey: ['vendedores'],
     queryFn: () => base44.entities.Vendedor.list("nome"),
     initialData: [],
   });
+
+  // Aguardar carregamento dos dados essenciais
+  if (!agendamentos || carregandoVendedores) {
+    return (
+      <Card className="col-span-full">
+        <CardContent className="py-8">
+          <div className="text-center text-gray-500">Carregando métricas de vendas...</div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   // Filtrar vendas baseado em created_date (data de criação) e que tenham vendedor
   const vendasPeriodo = agendamentos.filter(ag => {
