@@ -23,6 +23,35 @@ export default function TesteWebhook() {
     alert("✅ URL copiada!");
   };
 
+  const enviarMensagem = async () => {
+    if (!telefone || !mensagem) {
+      alert("Preencha telefone e mensagem!");
+      return;
+    }
+
+    setLoading(true);
+    setResultado(null);
+
+    try {
+      const response = await base44.functions.invoke('enviarMensagemTeste', {
+        telefone: telefone,
+        mensagem: mensagem
+      });
+
+      setResultado({
+        sucesso: true,
+        dados: response.data
+      });
+    } catch (error) {
+      setResultado({
+        sucesso: false,
+        erro: error.message
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const testarWebhook = async () => {
     if (!telefone || !mensagem) {
       alert("Preencha telefone e mensagem!");
@@ -94,10 +123,10 @@ export default function TesteWebhook() {
             </CardContent>
           </Card>
 
-          {/* Teste Manual */}
+          {/* Enviar Mensagem Real */}
           <Card>
             <CardHeader>
-              <CardTitle>2. Testar Webhook Manualmente</CardTitle>
+              <CardTitle>2. Enviar Mensagem Real via WhatsApp</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
@@ -111,7 +140,45 @@ export default function TesteWebhook() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Mensagem (escreva "Confirmar" ou "Cancelar")</Label>
+                  <Label>Mensagem para enviar</Label>
+                  <Textarea
+                    value={mensagem}
+                    onChange={(e) => setMensagem(e.target.value)}
+                    placeholder="Digite a mensagem que deseja enviar..."
+                    rows={3}
+                  />
+                </div>
+
+                <Button 
+                  onClick={enviarMensagem} 
+                  disabled={loading}
+                  className="w-full bg-green-600 hover:bg-green-700"
+                >
+                  <Send className="mr-2 h-4 w-4" />
+                  {loading ? "Enviando..." : "📱 Enviar Mensagem WhatsApp"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Teste Webhook */}
+          <Card>
+            <CardHeader>
+              <CardTitle>3. Simular Resposta do Cliente (Testar Webhook)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label>Telefone do Cliente (ex: 5511999999999)</Label>
+                  <Input
+                    value={telefone}
+                    onChange={(e) => setTelefone(e.target.value)}
+                    placeholder="5511999999999"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Resposta (escreva "Confirmar" ou "Cancelar")</Label>
                   <Textarea
                     value={mensagem}
                     onChange={(e) => setMensagem(e.target.value)}
@@ -123,10 +190,10 @@ export default function TesteWebhook() {
                 <Button 
                   onClick={testarWebhook} 
                   disabled={loading}
-                  className="w-full"
+                  className="w-full bg-blue-600 hover:bg-blue-700"
                 >
                   <Send className="mr-2 h-4 w-4" />
-                  {loading ? "Enviando..." : "Testar Webhook"}
+                  {loading ? "Testando..." : "🔄 Simular Resposta do Cliente"}
                 </Button>
               </div>
             </CardContent>
@@ -136,7 +203,7 @@ export default function TesteWebhook() {
           {resultado && (
             <Card>
               <CardHeader>
-                <CardTitle>3. Resultado do Teste</CardTitle>
+                <CardTitle>4. Resultado</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className={`p-4 rounded-lg ${resultado.sucesso ? 'bg-green-50 border-2 border-green-500' : 'bg-red-50 border-2 border-red-500'}`}>
@@ -168,13 +235,37 @@ export default function TesteWebhook() {
               <CardTitle>📋 Como Funciona</CardTitle>
             </CardHeader>
             <CardContent>
-              <ol className="list-decimal list-inside space-y-2 text-sm">
-                <li>Copie a URL do webhook acima</li>
-                <li>Configure na sua API do WhatsApp (Evolution, Z-API, Octadesk, etc)</li>
-                <li>Quando cliente responder "Confirmar" → agendamento fica confirmado</li>
-                <li>Quando cliente responder "Cancelar" → agendamento é deletado</li>
-                <li>Use o teste acima para simular uma resposta do cliente</li>
-              </ol>
+              <div className="space-y-4">
+                <div>
+                  <h4 className="font-semibold mb-2">📱 Enviar Mensagem Real:</h4>
+                  <ol className="list-decimal list-inside space-y-1 text-sm">
+                    <li>Digite o telefone do cliente (com DDD e código do país)</li>
+                    <li>Escreva a mensagem que deseja enviar</li>
+                    <li>Clique em "Enviar Mensagem WhatsApp"</li>
+                    <li>O cliente receberá a mensagem no WhatsApp</li>
+                  </ol>
+                </div>
+                
+                <div className="border-t pt-4">
+                  <h4 className="font-semibold mb-2">🔄 Simular Resposta:</h4>
+                  <ol className="list-decimal list-inside space-y-1 text-sm">
+                    <li>Digite o telefone do cliente</li>
+                    <li>Escreva "Confirmar" ou "Cancelar"</li>
+                    <li>Clique em "Simular Resposta do Cliente"</li>
+                    <li>O sistema processará como se o cliente tivesse respondido</li>
+                  </ol>
+                </div>
+
+                <div className="border-t pt-4">
+                  <h4 className="font-semibold mb-2">⚙️ Configurar Webhook:</h4>
+                  <ol className="list-decimal list-inside space-y-1 text-sm">
+                    <li>Copie a URL do webhook acima</li>
+                    <li>Configure na sua API do WhatsApp (Evolution, Z-API, etc)</li>
+                    <li>Quando cliente responder "Confirmar" → agendamento fica confirmado</li>
+                    <li>Quando cliente responder "Cancelar" → agendamento é deletado</li>
+                  </ol>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
