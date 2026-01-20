@@ -14,6 +14,7 @@ import RelatoriosAvancados from './pages/RelatoriosAvancados';
 import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
 import TesteWebhook from './pages/TesteWebhook';
+import WhatsAppCompleto from './pages/WhatsAppCompleto';
 import __Layout from './Layout.jsx';
 
 
@@ -34,6 +35,7 @@ export const PAGES = {
     "RelatoriosClientes": RelatoriosClientes,
     "RelatoriosFinanceiros": RelatoriosFinanceiros,
     "TesteWebhook": TesteWebhook,
+    "WhatsAppCompleto": WhatsAppCompleto,
 }
 
 export const pagesConfig = {
