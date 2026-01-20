@@ -20,24 +20,23 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Pegar configurações da API do WhatsApp
-    const WHATSAPP_API_URL = Deno.env.get("WHATSAPP_API_URL");
+    // Configurações da API do WhatsApp Octadesk
     const WHATSAPP_API_TOKEN = Deno.env.get("WHATSAPP_API_TOKEN");
-    const WHATSAPP_INSTANCE_NAME = Deno.env.get("WHATSAPP_INSTANCE_NAME");
+    const WHATSAPP_API_URL = "https://o216174-f20.octadesk.services";
 
     // Se for apenas verificação de configuração
     if (verificarConfig) {
-      if (!WHATSAPP_API_URL || !WHATSAPP_API_TOKEN) {
+      if (!WHATSAPP_API_TOKEN) {
         return Response.json({ 
-          error: 'API do WhatsApp não configurada. Configure WHATSAPP_API_URL e WHATSAPP_API_TOKEN nos secrets do aplicativo.' 
+          error: 'Token da API não configurado' 
         });
       }
       return Response.json({ success: true, configurado: true });
     }
 
-    if (!WHATSAPP_API_URL || !WHATSAPP_API_TOKEN) {
+    if (!WHATSAPP_API_TOKEN) {
       return Response.json({ 
-        error: 'Configurações do WhatsApp não encontradas. Configure WHATSAPP_API_URL e WHATSAPP_API_TOKEN' 
+        error: 'Token do WhatsApp não encontrado' 
       }, { status: 500 });
     }
 
