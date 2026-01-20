@@ -122,19 +122,28 @@ Deno.serve(async (req) => {
 
         // Determinar se deve enviar
         let deveEnviar = false;
+        let tipoLembrete = null;
         
         if (numeroTeste || envioImediato) {
           deveEnviar = true; // Modo teste ou envio imediato: sempre envia
+          tipoLembrete = 'teste';
         } else {
+          // Verificar se já foi enviado
+          if (ag.lembrete_1_dia_enviado && ag.lembrete_12_horas_enviado) {
+            continue; // Já enviou os dois lembretes
+          }
+
           // Modo normal: verificar se precisa enviar lembrete de 1 dia ou 12 horas
           const diff1Dia = Math.abs(dataAgendamento - umDiaFrente);
           const diff12Horas = Math.abs(dataAgendamento - dozeHorasFrente);
 
-          if (config.enviar_1_dia && diff1Dia < 3600000) { // Dentro de 1 hora de diferença
+          if (config.enviar_1_dia && diff1Dia < 3600000 && !ag.lembrete_1_dia_enviado) { // Dentro de 1 hora de diferença
             deveEnviar = true;
+            tipoLembrete = '1_dia';
           }
-          if (config.enviar_12_horas && diff12Horas < 3600000) { // Dentro de 1 hora de diferença
+          if (config.enviar_12_horas && diff12Horas < 3600000 && !ag.lembrete_12_horas_enviado) { // Dentro de 1 hora de diferença
             deveEnviar = true;
+            tipoLembrete = '12_horas';
           }
         }
 
@@ -212,6 +221,20 @@ Deno.serve(async (req) => {
           if (response.ok) {
             mensagensEnviadas++;
             
+            // Marcar lembrete como enviado (exceto em testes)
+            if (!numeroTeste) {
+              const updateData = {};
+              if (tipoLembrete === '1_dia') {
+                updateData.lembrete_1_dia_enviado = true;
+              } else if (tipoLembrete === '12_horas') {
+                updateData.lembrete_12_horas_enviado = true;
+              }
+              
+              if (Object.keys(updateData).length > 0) {
+                await base44.asServiceRole.entities.Agendamento.update(ag.id, updateData);
+              }
+            }
+            
             // Registrar no log
             await base44.asServiceRole.entities.LogAcao.create({
               tipo: "editou_agendamento",
@@ -220,7 +243,7 @@ Deno.serve(async (req) => {
                 ? `Teste WhatsApp enviado para ${ag.cliente_nome} (${ag.cliente_telefone}) - Unidade: ${ag.unidade_nome}`
                 : envioImediato
                 ? `WhatsApp enviado automaticamente para ${ag.cliente_nome} (${ag.cliente_telefone}) - Ativação da unidade ${ag.unidade_nome}`
-                : `Lembrete WhatsApp enviado para ${ag.cliente_nome} (${ag.cliente_telefone})`,
+                : `Lembrete WhatsApp ${tipoLembrete} enviado para ${ag.cliente_nome} (${ag.cliente_telefone})`,
               entidade_tipo: "Agendamento",
               entidade_id: ag.id
             });
