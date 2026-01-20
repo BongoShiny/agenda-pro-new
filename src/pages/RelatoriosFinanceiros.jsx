@@ -905,14 +905,22 @@ export default function RelatoriosFinanceirosPage() {
                 </SelectContent>
               </Select>
               {periodo === "personalizado" && (
-                <Input
-                  type="date"
-                  value={dataPersonalizada ? format(new Date(dataPersonalizada), "yyyy-MM-dd") : ""}
-                  onChange={(e) => setDataPersonalizada(e.target.value ? new Date(e.target.value) : null)}
-                  min="2000-01-01"
-                  max={format(new Date(), "yyyy-MM-dd")}
-                  className="mt-2"
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full mt-2">
+                      <CalendarIcon className="w-4 h-4 mr-2" />
+                      {dataPersonalizada ? format(new Date(dataPersonalizada), "dd/MM/yyyy") : "Selecionar data"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <CalendarComponent
+                      mode="single"
+                      selected={dataPersonalizada ? new Date(dataPersonalizada) : undefined}
+                      onSelect={(date) => setDataPersonalizada(date)}
+                      disabled={(date) => date > new Date()}
+                    />
+                  </PopoverContent>
+                </Popover>
               )}
               <p className="text-xs text-gray-500 mt-1">
                 {periodo === "dia" && `📅 ${format(new Date(), "dd 'de' MMMM", { locale: ptBR })}`}
