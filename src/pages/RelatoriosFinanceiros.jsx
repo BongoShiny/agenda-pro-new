@@ -1350,7 +1350,7 @@ export default function RelatoriosFinanceirosPage() {
                                    pix: "📱 PIX",
                                    link_pagamento: "🔗 Link",
                                    pago_na_clinica: "💳 Clínica"
-                                 }[ag.forma_pagamento] || "💳 Clínica";
+                                 }[ag.forma_pagamento] || "-";
 
                                  return (
                                    <TableRow key={ag.id}>
