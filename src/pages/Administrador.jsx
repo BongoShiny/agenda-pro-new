@@ -195,37 +195,13 @@ export default function AdministradorPage() {
           )}
 
           {isAdmin && (
-          <Link to={createPageUrl("ConfiguracaoWhatsAppCredenciais")} className="block">
-            <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-orange-300 transition-all cursor-pointer h-full">
-              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center mb-4">
-                <MessageCircle className="w-6 h-6 text-orange-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Configurar Credenciais WhatsApp</h3>
-              <p className="text-sm text-gray-500">API URL, Token e Instância</p>
-            </div>
-          </Link>
-          )}
-
-          {isAdmin && (
-          <Link to={createPageUrl("ConfiguracaoWhatsApp")} className="block">
+          <Link to={createPageUrl("WhatsAppCompleto")} className="block">
             <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-green-300 transition-all cursor-pointer h-full">
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
                 <MessageCircle className="w-6 h-6 text-green-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">WhatsApp Automático</h3>
-              <p className="text-sm text-gray-500">Lembretes automáticos e confirmações via WhatsApp</p>
-            </div>
-          </Link>
-          )}
-
-          {isAdmin && (
-          <Link to={createPageUrl("TesteWebhook")} className="block">
-            <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer h-full">
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
-                <MessageCircle className="w-6 h-6 text-blue-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Testar Webhook</h3>
-              <p className="text-sm text-gray-500">Testar confirmação/cancelamento automático via WhatsApp</p>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">WhatsApp Completo</h3>
+              <p className="text-sm text-gray-500">Configuração, webhook e testes de WhatsApp</p>
             </div>
           </Link>
           )}
