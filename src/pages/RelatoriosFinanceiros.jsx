@@ -1004,15 +1004,16 @@ export default function RelatoriosFinanceirosPage() {
         </div>
 
         {/* Tabelas por Profissional e Unidade */}
-        <Tabs defaultValue="dashboard" className="w-full">
-          <TabsList>
-            <TabsTrigger value="dashboard">📊 Dashboard</TabsTrigger>
-            <TabsTrigger value="profissional">Por Profissional</TabsTrigger>
-            <TabsTrigger value="unidade">Por Unidade</TabsTrigger>
-            <TabsTrigger value="analise-mensal">Análise Mensal</TabsTrigger>
-            <TabsTrigger value="detalhado">Detalhado</TabsTrigger>
-            <TabsTrigger value="por-vendedor">Por Vendedor</TabsTrigger>
-          </TabsList>
+         <Tabs defaultValue="dashboard" className="w-full">
+           <TabsList>
+             <TabsTrigger value="dashboard">📊 Dashboard</TabsTrigger>
+             <TabsTrigger value="analise-dia">📅 Análise do Dia</TabsTrigger>
+             <TabsTrigger value="profissional">Por Profissional</TabsTrigger>
+             <TabsTrigger value="unidade">Por Unidade</TabsTrigger>
+             <TabsTrigger value="analise-mensal">Análise Mensal</TabsTrigger>
+             <TabsTrigger value="detalhado">Detalhado</TabsTrigger>
+             <TabsTrigger value="por-vendedor">Por Vendedor</TabsTrigger>
+           </TabsList>
 
           <TabsContent value="dashboard">
             <div className="space-y-6">
