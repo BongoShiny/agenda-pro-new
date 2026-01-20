@@ -22,7 +22,7 @@ Deno.serve(async (req) => {
 
     // Configurações da API do WhatsApp Octadesk
     const WHATSAPP_API_TOKEN = Deno.env.get("WHATSAPP_API_TOKEN");
-    const WHATSAPP_API_URL = "https://api.octadesk.services";
+    const WHATSAPP_API_URL = Deno.env.get("WHATSAPP_API_URL") || "https://o216174-f20.api002.octadesk.services";
 
     // Se for apenas verificação de configuração
     if (verificarConfig) {
@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
 
         try {
           // Enviar mensagem via API Octadesk
-          const url = `${WHATSAPP_API_URL}/api/v1/whatsapp/send`;
+          const url = `${WHATSAPP_API_URL}/whatsapp/sendText`;
           const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -178,8 +178,7 @@ Deno.serve(async (req) => {
             },
             body: JSON.stringify({
               number: telefoneFormatado,
-              body: mensagem,
-              waba: "154138641866717"
+              text: mensagem
             })
           });
 
