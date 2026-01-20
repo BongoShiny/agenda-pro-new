@@ -562,13 +562,44 @@ export default function AgendaPage() {
   };
 
   const handleNovoAgendamentoSlot = (unidadeId, profissionalId, horario) => {
+    const dataFormatada = formatarDataPura(dataAtual);
+    
+    // Verificar se há bloqueio neste horário
+    const horarioBloqueado = agendamentos.find(ag => 
+      ag.data === dataFormatada &&
+      ag.profissional_id === profissionalId &&
+      ag.unidade_id === unidadeId &&
+      ag.hora_inicio === horario &&
+      (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO")
+    );
+
+    if (horarioBloqueado) {
+      alert("⚠️ HORÁRIO JÁ OCUPADO!\n\n⏰ Este horário está bloqueado e não pode ser agendado.");
+      return;
+    }
+
+    // Verificar se já há cliente no horário
+    const horarioOcupado = agendamentos.find(ag => 
+      ag.data === dataFormatada &&
+      ag.profissional_id === profissionalId &&
+      ag.unidade_id === unidadeId &&
+      ag.hora_inicio === horario &&
+      ag.status !== "cancelado" &&
+      ag.status !== "bloqueio" &&
+      ag.tipo !== "bloqueio" &&
+      ag.cliente_nome !== "FECHADO"
+    );
+
+    if (horarioOcupado) {
+      alert(`⚠️ HORÁRIO JÁ OCUPADO!\n\n👤 ${horarioOcupado.cliente_nome}\n⏰ ${horarioOcupado.hora_inicio} - ${horarioOcupado.hora_fim}\n\nEscolha outro horário ou profissional`);
+      return;
+    }
+    
     const unidade = unidades.find(u => u.id === unidadeId);
     const profissional = profissionais.find(p => p.id === profissionalId);
     
     const [hora, minuto] = horario.split(':').map(Number);
     const horaFim = `${(hora + 1).toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
-    
-    const dataFormatada = formatarDataPura(dataAtual);
     
     console.log("🆕 NOVO AGENDAMENTO SLOT:", dataFormatada, horario);
     
