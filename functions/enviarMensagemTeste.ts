@@ -23,10 +23,33 @@ Deno.serve(async (req) => {
 
     console.log('🔑 Token existe?', !!WHATSAPP_API_TOKEN);
     console.log('🌐 URL:', WHATSAPP_API_URL);
+    console.log('🔐 Token (primeiros 20 chars):', WHATSAPP_API_TOKEN?.substring(0, 20));
 
     if (!WHATSAPP_API_TOKEN) {
       return Response.json({ 
         error: 'Token da API não encontrado' 
+      }, { status: 500 });
+    }
+
+    // Testar autenticação primeiro
+    console.log('🔍 Testando autenticação...');
+    const authTestUrl = `${WHATSAPP_API_URL}/auth/check`;
+    const authResponse = await fetch(authTestUrl, {
+      method: 'GET',
+      headers: {
+        'apikey': WHATSAPP_API_TOKEN
+      }
+    });
+
+    console.log('🔐 Auth test status:', authResponse.status);
+    const authResult = await authResponse.text();
+    console.log('🔐 Auth test response:', authResult);
+
+    if (!authResponse.ok) {
+      return Response.json({ 
+        error: 'Token inválido ou não autorizado',
+        authStatus: authResponse.status,
+        authResponse: authResult
       }, { status: 500 });
     }
 
