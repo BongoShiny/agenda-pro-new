@@ -103,6 +103,33 @@ export default function ConfiguracaoTerapeutasPage() {
     initialData: [],
   });
 
+  const { data: configSabados = [] } = useQuery({
+    queryKey: ['config-sabados-terapeuta'],
+    queryFn: () => base44.entities.ConfiguracaoTerapeutaSabado.list(),
+    initialData: [],
+  });
+
+  const criarConfigSabadoMutation = useMutation({
+    mutationFn: (dados) => base44.entities.ConfiguracaoTerapeutaSabado.create(dados),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['config-sabados-terapeuta'] });
+    },
+  });
+
+  const atualizarConfigSabadoMutation = useMutation({
+    mutationFn: ({ id, dados }) => base44.entities.ConfiguracaoTerapeutaSabado.update(id, dados),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['config-sabados-terapeuta'] });
+    },
+  });
+
+  const deletarConfigSabadoMutation = useMutation({
+    mutationFn: (id) => base44.entities.ConfiguracaoTerapeutaSabado.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['config-sabados-terapeuta'] });
+    },
+  });
+
   const criarProfissionalMutation = useMutation({
     mutationFn: (dados) => base44.entities.Profissional.create(dados),
     onSuccess: () => {
