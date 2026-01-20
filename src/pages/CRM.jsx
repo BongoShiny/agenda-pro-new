@@ -17,56 +17,7 @@ export default function CRM() {
 
   const { data: clientes = [], isLoading, refetch } = useQuery({
     queryKey: ["clientesCRM"],
-    queryFn: async () => {
-      try {
-        // 1. Buscar todos os agendamentos com pacote ativo
-        const agendamentos = await base44.asServiceRole.entities.Agendamento.filter({ cliente_pacote: "Sim" });
-        
-        console.log("📊 Total de agendamentos com pacote:", agendamentos.length);
-
-        // 2. Agrupar por cliente_id para evitar duplicatas
-        const clientesUnicos = {};
-        agendamentos.forEach(ag => {
-          if (!clientesUnicos[ag.cliente_id]) {
-            clientesUnicos[ag.cliente_id] = ag;
-          }
-        });
-
-        // 3. Sincronizar cada cliente no CRM
-        const clientesCRM = await base44.entities.ClienteCRM.list("nome", 1000);
-        
-        for (const ag of Object.values(clientesUnicos)) {
-          // Verificar se já existe no CRM
-          const jaExiste = clientesCRM.some(c => c.nome === ag.cliente_nome);
-          
-          if (!jaExiste) {
-            console.log("✅ Adicionando cliente ao CRM:", ag.cliente_nome);
-            await base44.asServiceRole.entities.ClienteCRM.create({
-              nome: ag.cliente_nome,
-              telefone: ag.cliente_telefone || "",
-              email: "",
-              clinica: ag.unidade_nome,
-              data_primeira_sessao: ag.data,
-              vendedor: ag.vendedor_nome || "Não informado",
-              canal_venda: "Presencial",
-              pacote_nome: ag.servico_nome || "Pacote",
-              valor_pacote: ag.valor_combinado || 0,
-              forma_pagamento: "Pix",
-              sessoes_total: ag.quantas_sessoes || 0,
-              sessoes_realizadas: ag.sessoes_feitas || 0,
-              status_pacote: "Em Andamento",
-              ativo: true
-            }).catch(err => console.log("Erro ao criar cliente:", err));
-          }
-        }
-
-        // 4. Retornar clientes do CRM
-        return base44.entities.ClienteCRM.list("-updated_date", 200);
-      } catch (error) {
-        console.error("❌ Erro ao sincronizar:", error);
-        return base44.entities.ClienteCRM.list("-updated_date", 200);
-      }
-    },
+    queryFn: () => base44.entities.ClienteCRM.list("-updated_date", 200),
     initialData: [],
   });
 
