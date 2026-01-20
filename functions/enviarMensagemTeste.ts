@@ -25,21 +25,21 @@ Deno.serve(async (req) => {
       }, { status: 500 });
     }
 
-    // Enviar mensagem via API do WhatsApp
-    const url = `${WHATSAPP_API_URL}/message/sendText/${WHATSAPP_INSTANCE_NAME}`;
+    // Enviar mensagem via API do WhatsApp (Octadesk v2)
+    const url = `${WHATSAPP_API_URL}/api/v2/whatsapp/sendMessage`;
     
     console.log('Enviando para URL:', url);
-    console.log('Dados:', { number: telefone, text: mensagem });
+    console.log('Dados:', { phone: telefone, message: mensagem });
     
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': WHATSAPP_API_TOKEN
+        'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`
       },
       body: JSON.stringify({
-        number: telefone,
-        text: mensagem
+        phone: telefone,
+        message: mensagem
       })
     });
 
