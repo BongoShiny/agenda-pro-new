@@ -35,8 +35,11 @@ Deno.serve(async (req) => {
       }, { status: 200 });
     }
 
-    // Limpar telefone
-    const telefoneLimpo = telefone.replace(/\D/g, '').replace(/^55/, '');
+    // Limpar telefone - remover código do país 55 se existir
+    let telefoneLimpo = telefone.replace(/\D/g, '');
+    if (telefoneLimpo.startsWith('55')) {
+      telefoneLimpo = telefoneLimpo.substring(2);
+    }
     console.log('🔢 Telefone limpo:', telefoneLimpo);
 
     const mensagemLower = mensagem.toLowerCase();
