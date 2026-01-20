@@ -20,9 +20,9 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Configurações da API do WhatsApp Octadesk
-    const WHATSAPP_API_TOKEN = Deno.env.get("WHATSAPP_API_TOKEN");
-    const WHATSAPP_API_URL = Deno.env.get("WHATSAPP_API_URL") || "https://o216174-f20.api002.octadesk.services";
+    // Configurações da API do WhatsApp
+    const WHATSAPP_API_TOKEN = (Deno.env.get("WHATSAPP_API_TOKEN") || "").trim();
+    const WHATSAPP_API_URL = (Deno.env.get("WHATSAPP_API_URL") || "").trim();
 
     // Se for apenas verificação de configuração
     if (verificarConfig) {
