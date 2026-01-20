@@ -13,6 +13,7 @@ export default function CRM() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filtroClinica, setFiltroClinica] = useState("todas");
   const [filtroStatus, setFiltroStatus] = useState("todos");
+  const [sincronizando, setSincronizando] = useState(false);
 
   const { data: clientes = [], isLoading, refetch } = useQuery({
     queryKey: ["clientesCRM"],
@@ -77,6 +78,19 @@ export default function CRM() {
     return matchSearch && matchClinica && matchStatus;
   });
 
+  const handleSincronizacao = async () => {
+    setSincronizando(true);
+    try {
+      const response = await base44.functions.invoke('sincronizarClientesCRM');
+      alert(`✅ Sincronização concluída!\n\n📊 Criados: ${response.data.criados}\n✔️ Já existentes: ${response.data.jaExistentes}`);
+      refetch();
+    } catch (error) {
+      alert(`❌ Erro na sincronização: ${error.message}`);
+    } finally {
+      setSincronizando(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -89,13 +103,23 @@ export default function CRM() {
             </h1>
             <p className="text-gray-600 mt-1">Gerencie clientes com pacotes ativos</p>
           </div>
-          <Link to={createPageUrl("NovoClienteCRM")}>
-            <Button className="bg-teal-600 hover:bg-teal-700 gap-2">
-              <Plus className="w-4 h-4" />
-              Novo Cliente
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              className="border-teal-600 text-teal-600 hover:bg-teal-50"
+              onClick={handleSincronizacao}
+              disabled={sincronizando}
+            >
+              {sincronizando ? "Sincronizando..." : "🔄 Sincronizar"}
             </Button>
-          </Link>
-        </div>
+            <Link to={createPageUrl("NovoClienteCRM")}>
+              <Button className="bg-teal-600 hover:bg-teal-700 gap-2">
+                <Plus className="w-4 h-4" />
+                Novo Cliente
+              </Button>
+            </Link>
+          </div>
+          </div>
 
         {/* Filtros */}
         <div className="flex gap-4 mb-6 flex-wrap">
