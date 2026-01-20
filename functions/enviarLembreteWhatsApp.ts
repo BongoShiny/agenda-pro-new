@@ -160,7 +160,7 @@ Deno.serve(async (req) => {
 
         try {
           // Octadesk API - buscar chat existente primeiro
-          const buscaChatUrl = `${WHATSAPP_API_URL}/api/v1/chats`;
+          const buscaChatUrl = `${WHATSAPP_API_URL}/chats`;
           
           let chatId = null;
           
