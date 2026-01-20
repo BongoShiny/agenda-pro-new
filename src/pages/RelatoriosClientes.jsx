@@ -49,6 +49,8 @@ export default function RelatoriosClientesPage() {
   const [importandoCSV, setImportandoCSV] = useState(false);
   const [resultadoImportacao, setResultadoImportacao] = useState(null);
   const [clienteSelecionado, setClienteSelecionado] = useState(null);
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const itensPorPagina = 50;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const scrollTopRef = useRef(null);
@@ -123,56 +125,66 @@ export default function RelatoriosClientesPage() {
     "VOUCHER"
   ];
 
-  // Filtrar agendamentos (excluir bloqueios)
-      const agendamentosFiltrados = agendamentos
-        .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
-        .filter(ag => {
-          const matchBusca = !busca || 
-            ag.cliente_nome?.toLowerCase().includes(busca.toLowerCase()) ||
-            ag.cliente_telefone?.toLowerCase().includes(busca.toLowerCase()) ||
-            ag.profissional_nome?.toLowerCase().includes(busca.toLowerCase());
-          const matchStatus = filtroStatus === "todos" || ag.status === filtroStatus;
-          const matchStatusPaciente = filtroStatusPaciente === "todos" || ag.status_paciente === filtroStatusPaciente;
-          const matchProfissional = filtroProfissional === "todos" || ag.profissional_id === filtroProfissional;
-          const matchUnidade = filtroUnidade === "todos" || ag.unidade_id === filtroUnidade;
-          const matchServico = filtroServico === "todos" || ag.servico_id === filtroServico;
-          const matchEquipamento = filtroEquipamento === "todos" || ag.equipamento === filtroEquipamento;
-          const matchData = !filtroData || ag.data === filtroData;
-          // Filtro por aba de unidade
-          const matchUnidadeTab = unidadeTab === "todas" || ag.unidade_id === unidadeTab;
-          return matchBusca && matchStatus && matchStatusPaciente && matchProfissional && matchUnidade && matchServico && matchEquipamento && matchData && matchUnidadeTab;
-        })
-    .sort((a, b) => {
-      let valorA, valorB;
-      
-      switch (ordenacao.campo) {
-        case "cliente":
-          valorA = a.cliente_nome?.toLowerCase() || "";
-          valorB = b.cliente_nome?.toLowerCase() || "";
-          break;
-        case "profissional":
-          valorA = a.profissional_nome?.toLowerCase() || "";
-          valorB = b.profissional_nome?.toLowerCase() || "";
-          break;
-        case "data":
-          valorA = a.data + a.hora_inicio;
-          valorB = b.data + b.hora_inicio;
-          break;
-        case "status":
-          valorA = a.status || "";
-          valorB = b.status || "";
-          break;
-        default:
-          valorA = a.data;
-          valorB = b.data;
-      }
-      
-      if (ordenacao.direcao === "asc") {
-        return valorA > valorB ? 1 : -1;
-      } else {
-        return valorA < valorB ? 1 : -1;
-      }
-    });
+  // Filtrar agendamentos (excluir bloqueios) - memoizado
+  const agendamentosFiltrados = React.useMemo(() => {
+    return agendamentos
+      .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
+      .filter(ag => {
+        const matchBusca = !busca || 
+          ag.cliente_nome?.toLowerCase().includes(busca.toLowerCase()) ||
+          ag.cliente_telefone?.toLowerCase().includes(busca.toLowerCase()) ||
+          ag.profissional_nome?.toLowerCase().includes(busca.toLowerCase());
+        const matchStatus = filtroStatus === "todos" || ag.status === filtroStatus;
+        const matchStatusPaciente = filtroStatusPaciente === "todos" || ag.status_paciente === filtroStatusPaciente;
+        const matchProfissional = filtroProfissional === "todos" || ag.profissional_id === filtroProfissional;
+        const matchUnidade = filtroUnidade === "todos" || ag.unidade_id === filtroUnidade;
+        const matchServico = filtroServico === "todos" || ag.servico_id === filtroServico;
+        const matchEquipamento = filtroEquipamento === "todos" || ag.equipamento === filtroEquipamento;
+        const matchData = !filtroData || ag.data === filtroData;
+        const matchUnidadeTab = unidadeTab === "todas" || ag.unidade_id === unidadeTab;
+        return matchBusca && matchStatus && matchStatusPaciente && matchProfissional && matchUnidade && matchServico && matchEquipamento && matchData && matchUnidadeTab;
+      })
+      .sort((a, b) => {
+        let valorA, valorB;
+        switch (ordenacao.campo) {
+          case "cliente":
+            valorA = a.cliente_nome?.toLowerCase() || "";
+            valorB = b.cliente_nome?.toLowerCase() || "";
+            break;
+          case "profissional":
+            valorA = a.profissional_nome?.toLowerCase() || "";
+            valorB = b.profissional_nome?.toLowerCase() || "";
+            break;
+          case "data":
+            valorA = a.data + a.hora_inicio;
+            valorB = b.data + b.hora_inicio;
+            break;
+          case "status":
+            valorA = a.status || "";
+            valorB = b.status || "";
+            break;
+          default:
+            valorA = a.data;
+            valorB = b.data;
+        }
+        if (ordenacao.direcao === "asc") {
+          return valorA > valorB ? 1 : -1;
+        } else {
+          return valorA < valorB ? 1 : -1;
+        }
+      });
+  }, [agendamentos, busca, filtroStatus, filtroStatusPaciente, filtroProfissional, filtroUnidade, filtroServico, filtroEquipamento, filtroData, unidadeTab, ordenacao]);
+
+  // Paginação
+  const totalPaginas = Math.ceil(agendamentosFiltrados.length / itensPorPagina);
+  const indexInicio = (paginaAtual - 1) * itensPorPagina;
+  const indexFim = indexInicio + itensPorPagina;
+  const agendamentosPaginados = agendamentosFiltrados.slice(indexInicio, indexFim);
+
+  // Resetar página quando filtros mudam
+  useEffect(() => {
+    setPaginaAtual(1);
+  }, [busca, filtroStatus, filtroStatusPaciente, filtroProfissional, filtroUnidade, filtroServico, filtroEquipamento, filtroData, unidadeTab, ordenacao]);
 
   const toggleOrdenacao = (campo) => {
     if (ordenacao.campo === campo) {
@@ -813,7 +825,7 @@ export default function RelatoriosClientesPage() {
                     </td>
                   </tr>
                 ) : (
-                  agendamentosFiltrados.map((ag, idx) => (
+                  agendamentosPaginados.map((ag, idx) => (
                     <tr key={ag.id} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-4 py-3 font-medium text-gray-900">
                         <div className="flex items-center gap-2">
@@ -1031,9 +1043,53 @@ export default function RelatoriosClientesPage() {
                 )}
               </tbody>
             </table>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
+            </div>
+
+            {/* Paginação */}
+            {totalPaginas > 1 && (
+             <div className="flex items-center justify-between p-4 border-t bg-gray-50">
+               <div className="text-sm text-gray-600">
+                 Mostrando {indexInicio + 1}-{Math.min(indexFim, agendamentosFiltrados.length)} de {agendamentosFiltrados.length} registros
+               </div>
+               <div className="flex gap-2">
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   onClick={() => setPaginaAtual(p => Math.max(1, p - 1))}
+                   disabled={paginaAtual === 1}
+                 >
+                   Anterior
+                 </Button>
+                 <div className="flex items-center gap-1">
+                   {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
+                     const page = i + 1;
+                     return (
+                       <Button
+                         key={page}
+                         variant={paginaAtual === page ? "default" : "outline"}
+                         size="sm"
+                         onClick={() => setPaginaAtual(page)}
+                         className="w-8 h-8 p-0"
+                       >
+                         {page}
+                       </Button>
+                     );
+                   })}
+                   {totalPaginas > 5 && <span className="text-gray-500">...</span>}
+                 </div>
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   onClick={() => setPaginaAtual(p => Math.min(totalPaginas, p + 1))}
+                   disabled={paginaAtual === totalPaginas}
+                 >
+                   Próxima
+                 </Button>
+               </div>
+             </div>
+            )}
+            </div>
+            </div>
+            </div>
+            );
+            }
