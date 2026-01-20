@@ -4,25 +4,31 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
+    // Aceitar tanto GET quanto POST
+    if (req.method === 'GET') {
+      return Response.json({ 
+        status: 'Webhook ativo',
+        message: 'Configure este webhook na Octadesk para receber mensagens'
+      });
+    }
+    
     // Receber dados do webhook
-    const body = await req.json();
+    const body = await req.json().catch(() => ({}));
     
     console.log('Webhook recebido:', JSON.stringify(body, null, 2));
 
-    // Extrair informações da mensagem - Octadesk format
-    // Octadesk webhook envia: { chatId, message: { body, type, ... }, contact: { phoneNumber, ... } }
-    const mensagem = body.message?.body || body.body || body.text || '';
-    const telefone = body.contact?.phoneNumber || body.phoneNumber || body.from || body.phone || '';
-    const chatId = body.chatId || body.chat_id || '';
+    // Extrair informações - Octadesk pode enviar vários formatos
+    const mensagem = body.message?.body || body.body || body.text || body.message?.text?.body || '';
+    const telefone = body.contact?.phoneNumber || body.phoneNumber || body.from || body.phone || body.key?.remoteJid || '';
 
     console.log('Mensagem extraída:', mensagem);
     console.log('Telefone extraído:', telefone);
-    console.log('Chat ID:', chatId);
 
     if (!mensagem || !telefone) {
-      console.log('Dados insuficientes - retornando sucesso para não bloquear webhook');
+      console.log('Dados insuficientes - retornando 200 para não bloquear webhook');
       return Response.json({ 
-        message: 'Dados insuficientes', 
+        success: true,
+        message: 'Processado (dados insuficientes)',
         recebido: body
       }, { status: 200 });
     }
