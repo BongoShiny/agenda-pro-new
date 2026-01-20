@@ -193,12 +193,145 @@ export default function WhatsAppCompleto() {
           <h1 className="text-3xl font-bold">WhatsApp - Configuração Completa</h1>
         </div>
 
-        <Tabs defaultValue="config" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="setup" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="setup">📱 Setup</TabsTrigger>
             <TabsTrigger value="config">⚙️ Configuração</TabsTrigger>
             <TabsTrigger value="webhook">🔗 Webhook</TabsTrigger>
             <TabsTrigger value="teste">🧪 Teste</TabsTrigger>
           </TabsList>
+
+          {/* ABA SETUP */}
+          <TabsContent value="setup" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>📱 Como Configurar WhatsApp Business API</CardTitle>
+                <CardDescription>Siga este guia passo a passo para configurar sua integração</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Passo 1 */}
+                <div className="border-l-4 border-blue-500 pl-4">
+                  <h3 className="font-bold text-lg mb-2">1️⃣ Criar Conta na Octadesk</h3>
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Acesse: <a href="https://octadesk.com" target="_blank" rel="noopener" className="text-blue-600 underline">octadesk.com</a></li>
+                    <li>Crie uma conta gratuita ou faça login</li>
+                    <li>Acesse o painel de controle</li>
+                  </ol>
+                </div>
+
+                {/* Passo 2 */}
+                <div className="border-l-4 border-green-500 pl-4">
+                  <h3 className="font-bold text-lg mb-2">2️⃣ Conectar WhatsApp Business</h3>
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>No painel Octadesk, vá em <strong>Canais → WhatsApp</strong></li>
+                    <li>Clique em <strong>"Conectar WhatsApp"</strong></li>
+                    <li>Escolha <strong>"WhatsApp Business API"</strong></li>
+                    <li>Escaneie o QR Code com seu WhatsApp Business</li>
+                    <li>Aguarde a confirmação da conexão</li>
+                  </ol>
+                </div>
+
+                {/* Passo 3 */}
+                <div className="border-l-4 border-purple-500 pl-4">
+                  <h3 className="font-bold text-lg mb-2">3️⃣ Obter Credenciais da API</h3>
+                  <div className="space-y-3">
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="font-semibold mb-1">🔗 URL da API:</p>
+                      <code className="text-xs bg-white px-2 py-1 rounded">https://oXXXXXX-fXX.apiXXX.octadesk.services</code>
+                      <p className="text-xs text-gray-600 mt-1">
+                        • Encontre em: <strong>Configurações → API → URL Base</strong><br/>
+                        • Formato: https://o[seu-id]-f[numero].api[numero].octadesk.services<br/>
+                        • Exemplo: https://o216174-f20.api002.octadesk.services
+                      </p>
+                    </div>
+
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="font-semibold mb-1">🔑 Token da API:</p>
+                      <code className="text-xs bg-white px-2 py-1 rounded">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</code>
+                      <p className="text-xs text-gray-600 mt-1">
+                        • Encontre em: <strong>Configurações → API → Tokens</strong><br/>
+                        • Clique em <strong>"Gerar Novo Token"</strong><br/>
+                        • Copie o token completo (formato UUID com hífens)<br/>
+                        • ⚠️ Guarde com segurança - só aparece uma vez!
+                      </p>
+                    </div>
+
+                    <div className="bg-gray-50 p-3 rounded">
+                      <p className="font-semibold mb-1">📱 Nome da Instância:</p>
+                      <code className="text-xs bg-white px-2 py-1 rounded">minha_instancia</code>
+                      <p className="text-xs text-gray-600 mt-1">
+                        • Encontre em: <strong>Canais → WhatsApp → Configurações</strong><br/>
+                        • Geralmente é "default" ou o nome que você definiu<br/>
+                        • Exemplos: default, producao, vibe_terapias
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Passo 4 */}
+                <div className="border-l-4 border-orange-500 pl-4">
+                  <h3 className="font-bold text-lg mb-2">4️⃣ Configurar no Dashboard</h3>
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Acesse o <strong>Dashboard → Configurações → Secrets</strong></li>
+                    <li>Configure os seguintes valores:</li>
+                  </ol>
+                  <div className="mt-2 space-y-2 ml-6">
+                    <div className="text-sm">
+                      <strong>WHATSAPP_API_URL:</strong> Cole a URL completa da API
+                    </div>
+                    <div className="text-sm">
+                      <strong>WHATSAPP_API_TOKEN:</strong> Cole o token UUID completo
+                    </div>
+                    <div className="text-sm">
+                      <strong>WHATSAPP_INSTANCE_NAME:</strong> Cole o nome da instância
+                    </div>
+                  </div>
+                </div>
+
+                {/* Passo 5 */}
+                <div className="border-l-4 border-red-500 pl-4">
+                  <h3 className="font-bold text-lg mb-2">5️⃣ Testar Integração</h3>
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Vá para a aba <strong>"🧪 Teste"</strong> desta página</li>
+                    <li>Digite seu próprio número de telefone</li>
+                    <li>Digite uma mensagem de teste</li>
+                    <li>Clique em "Enviar Mensagem WhatsApp"</li>
+                    <li>Verifique se recebeu a mensagem no seu WhatsApp</li>
+                  </ol>
+                </div>
+
+                {/* Alternativas */}
+                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
+                  <h4 className="font-semibold mb-2">💡 Alternativas à Octadesk:</h4>
+                  <ul className="space-y-2 text-sm">
+                    <li><strong>Evolution API:</strong> Solução open-source e gratuita
+                      <br/><a href="https://evolution-api.com" target="_blank" className="text-blue-600 underline text-xs">evolution-api.com</a>
+                    </li>
+                    <li><strong>Z-API:</strong> API brasileira para WhatsApp Business
+                      <br/><a href="https://z-api.io" target="_blank" className="text-blue-600 underline text-xs">z-api.io</a>
+                    </li>
+                    <li><strong>Baileys:</strong> Biblioteca Node.js open-source
+                      <br/><a href="https://github.com/WhiskeySockets/Baileys" target="_blank" className="text-blue-600 underline text-xs">github.com/WhiskeySockets/Baileys</a>
+                    </li>
+                  </ul>
+                  <p className="text-xs text-yellow-700 mt-2">
+                    ℹ️ As credenciais funcionam de forma similar - você precisará da URL, Token e Instance de cada provedor.
+                  </p>
+                </div>
+
+                {/* Troubleshooting */}
+                <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4">
+                  <h4 className="font-semibold mb-2">❌ Problemas Comuns:</h4>
+                  <ul className="space-y-2 text-sm">
+                    <li><strong>Erro 401 (Unauthorized):</strong> Token incorreto ou expirado - gere um novo</li>
+                    <li><strong>Erro 404:</strong> URL da API incorreta - verifique o formato</li>
+                    <li><strong>Mensagem não chega:</strong> Verifique se o WhatsApp está conectado na Octadesk</li>
+                    <li><strong>Instância não encontrada:</strong> Confirme o nome exato da instância</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           {/* ABA CONFIGURAÇÃO */}
           <TabsContent value="config" className="space-y-6">
