@@ -686,6 +686,20 @@ export default function NovoAgendamentoDialog({
           </div>
 
           <div className="space-y-2">
+            <Label>Forma de Pagamento</Label>
+            <Select value={formData.forma_pagamento || "pago_na_clinica"} onValueChange={(value) => setFormData(prev => ({ ...prev, forma_pagamento: value }))}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pago_na_clinica">💳 Pago na Clínica</SelectItem>
+                <SelectItem value="pix">📱 PIX</SelectItem>
+                <SelectItem value="link_pagamento">🔗 Link de Pagamento</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
             <Label>Vendedor</Label>
             <Select value={formData.vendedor_id || ""} onValueChange={(value) => {
               const vendedor = vendedores.find(v => v.id === value);
