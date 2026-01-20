@@ -209,26 +209,16 @@ export default function WhatsAppCompleto() {
                 <CardDescription>Siga este guia passo a passo para configurar sua integração</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Passo 1 - WPPConnect */}
+                {/* Passo 1 - Z-API */}
                 <div className="border-l-4 border-blue-500 pl-4">
-                  <h3 className="font-bold text-lg mb-2">1️⃣ Instalar WPPConnect (Recomendado)</h3>
-                  <p className="text-sm mb-2">WPPConnect é gratuita, open-source, brasileira e funciona com seu WhatsApp Business normal.</p>
+                  <h3 className="font-bold text-lg mb-2">1️⃣ Criar Conta na Z-API (Recomendado)</h3>
+                  <p className="text-sm mb-2">Z-API é a melhor opção brasileira - simples, confiável e com suporte excelente.</p>
                   <div className="bg-blue-50 p-3 rounded space-y-2">
-                    <p className="font-semibold text-sm">📖 Documentação:</p>
-                    <a href="https://wppconnect.io" target="_blank" className="text-blue-600 underline text-sm">wppconnect.io</a>
-                    
-                    <p className="font-semibold text-sm mt-3">Opção A - Servidor Próprio (Gratuito):</p>
-                    <ol className="list-decimal list-inside space-y-1 text-xs ml-2">
-                      <li>Acesse: <a href="https://github.com/wppconnect-team/wppconnect-server" target="_blank" className="text-blue-600 underline">GitHub - WPPConnect Server</a></li>
-                      <li>Siga o guia de instalação (Node.js ou Docker)</li>
-                      <li>Clone, instale dependências e rode: <code className="bg-white px-1 rounded">npm start</code></li>
-                      <li>A API rodará em http://localhost:3000 (por padrão)</li>
-                    </ol>
-                    <p className="font-semibold text-sm mt-3">Opção B - Versão Gerenciada (Pago):</p>
-                    <ol className="list-decimal list-inside space-y-1 text-xs ml-2">
-                      <li>Use serviços como Hugging Face, Render ou similar</li>
-                      <li>Deploy automático via GitHub</li>
-                      <li>Ganhe URL pública para acessar de qualquer lugar</li>
+                    <ol className="list-decimal list-inside space-y-2 text-xs ml-2">
+                      <li>Acesse: <a href="https://z-api.io" target="_blank" className="text-blue-600 underline">z-api.io</a></li>
+                      <li>Crie uma conta gratuita (teste com saldo inicial)</li>
+                      <li>Faça login no painel</li>
+                      <li>Vá em <strong>Canais → WhatsApp</strong></li>
                     </ol>
                   </div>
                 </div>
@@ -237,11 +227,11 @@ export default function WhatsAppCompleto() {
                 <div className="border-l-4 border-green-500 pl-4">
                   <h3 className="font-bold text-lg mb-2">2️⃣ Conectar WhatsApp Business</h3>
                   <ol className="list-decimal list-inside space-y-2 text-sm">
-                    <li>Acesse o painel da Evolution API</li>
-                    <li>Crie uma nova instância (ex: "vibe_terapias")</li>
-                    <li>Escaneie o QR Code com seu <strong>WhatsApp Business</strong></li>
-                    <li>Aguarde a conexão ser estabelecida (status "open")</li>
-                    <li>✅ Seu WhatsApp está conectado!</li>
+                    <li>No painel Z-API, clique em <strong>"+ Instância"</strong></li>
+                    <li>Escolha <strong>WhatsApp Business</strong></li>
+                    <li>Dê um nome (ex: "vibe_terapias")</li>
+                    <li>Escaneie o QR Code com seu WhatsApp Business</li>
+                    <li>✅ Instância conectada com sucesso!</li>
                   </ol>
                 </div>
 
@@ -251,31 +241,30 @@ export default function WhatsAppCompleto() {
                   <div className="space-y-3">
                     <div className="bg-gray-50 p-3 rounded">
                       <p className="font-semibold mb-1">🔗 URL da API:</p>
-                      <code className="text-xs bg-white px-2 py-1 rounded block">http://seu-servidor:3000</code>
+                      <code className="text-xs bg-white px-2 py-1 rounded block">https://api.z-api.io</code>
                       <p className="text-xs text-gray-600 mt-1">
-                        • Se instalou localmente: http://localhost:3000<br/>
-                        • Se fez deploy: http://seu-dominio.com<br/>
-                        • Exemplo: https://wppconnect.seu-app.com
+                        • É sempre a mesma para todos os usuários<br/>
+                        • URL oficial da Z-API
                       </p>
                     </div>
 
                     <div className="bg-gray-50 p-3 rounded">
-                      <p className="font-semibold mb-1">🔑 API Key (Token):</p>
-                      <code className="text-xs bg-white px-2 py-1 rounded block">Bearer SUA_CHAVE_API</code>
+                      <p className="font-semibold mb-1">🔑 API Token:</p>
+                      <code className="text-xs bg-white px-2 py-1 rounded block">seu_token_aqui</code>
                       <p className="text-xs text-gray-600 mt-1">
-                        • Defina no arquivo .env: <code>BEARER_TOKEN</code><br/>
-                        • Ou configure em: <strong>Settings → API Keys</strong><br/>
-                        • Cole sem o prefixo "Bearer " (será adicionado automaticamente)
+                        • No painel Z-API, vá em <strong>Configurações → Tokens</strong><br/>
+                        • Copie o token (formato: alfanumérico sem hífens)<br/>
+                        • ⚠️ Guarde com segurança!
                       </p>
                     </div>
 
                     <div className="bg-gray-50 p-3 rounded">
-                      <p className="font-semibold mb-1">📱 Sessão/Instância:</p>
-                      <code className="text-xs bg-white px-2 py-1 rounded block">vibe_terapias</code>
+                      <p className="font-semibold mb-1">📱 ID da Instância:</p>
+                      <code className="text-xs bg-white px-2 py-1 rounded block">seu_id_instancia</code>
                       <p className="text-xs text-gray-600 mt-1">
-                        • Nome que você criou ao conectar no painel<br/>
-                        • Exemplos: vibe_terapias, clinica, atendimento<br/>
-                        • Sem espaços - use underline ou hífen
+                        • Clique em sua instância no painel<br/>
+                        • Copie o ID mostrado (geralmente um UUID)<br/>
+                        • Ou encontre em <strong>Configurações → ID da Instância</strong>
                       </p>
                     </div>
                   </div>
@@ -309,23 +298,34 @@ export default function WhatsAppCompleto() {
                   <h3 className="font-bold text-lg mb-2">5️⃣ Testar Integração</h3>
                   <ol className="list-decimal list-inside space-y-2 text-sm">
                     <li>Vá para a aba <strong>"🧪 Teste"</strong> nesta página</li>
-                    <li>Digite seu número de telefone (com DDD e 55)</li>
+                    <li>Digite seu número de telefone (com DDD, ex: 5511987654321)</li>
                     <li>Digite uma mensagem de teste</li>
-                    <li>Clique em "Enviar Mensagem WhatsApp"</li>
-                    <li>✅ Verifique se recebeu no WhatsApp Business</li>
+                    <li>Clique em <strong>"Enviar Mensagem WhatsApp"</strong></li>
+                    <li>✅ Verifique se recebeu no seu WhatsApp Business</li>
+                    <li>Veja o log abaixo para erros (se houver)</li>
                   </ol>
                 </div>
 
-                {/* Outras Opções */}
-                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">💡 Outras Opções de API WhatsApp:</h4>
+                {/* Troubleshooting Z-API */}
+                <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4">
+                  <h4 className="font-semibold mb-2">❌ Erros Comuns Z-API:</h4>
                   <ul className="space-y-2 text-sm">
-                    <li><strong>Z-API:</strong> API brasileira paga
-                      <br/><a href="https://z-api.io" target="_blank" className="text-blue-600 underline text-xs">z-api.io</a> - Interface gráfica, suporte incluído
-                    </li>
-                    <li><strong>Evolution API:</strong> Open-source com versão gerenciada
-                      <br/><a href="https://evolution-api.com" target="_blank" className="text-blue-600 underline text-xs">evolution-api.com</a> - Em breve (como mencionado)
-                    </li>
+                    <li><strong>401 Unauthorized:</strong> Token incorreto - copie novamente de Configurações</li>
+                    <li><strong>404 Not Found:</strong> ID da instância errado - verifique no painel</li>
+                    <li><strong>Sem saldo:</strong> Compre créditos no painel Z-API</li>
+                    <li><strong>Instância offline:</strong> Reconecte no painel (escanear QR novamente)</li>
+                    <li><strong>Mensagem não chega:</strong> Verifique o número (com DDD + 55)</li>
+                  </ul>
+                </div>
+
+                {/* Links Úteis */}
+                <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
+                  <h4 className="font-semibold mb-2">🔗 Links Úteis Z-API:</h4>
+                  <ul className="space-y-1 text-xs">
+                    <li>📖 <a href="https://z-api.io/documentacao" target="_blank" className="text-blue-600 underline">Documentação oficial</a></li>
+                    <li>💬 <a href="https://discord.gg/z-api" target="_blank" className="text-blue-600 underline">Discord da comunidade</a></li>
+                    <li>📧 <a href="https://z-api.io/suporte" target="_blank" className="text-blue-600 underline">Suporte por email</a></li>
+                    <li>🎓 <a href="https://youtube.com/z-api" target="_blank" className="text-blue-600 underline">Canal YouTube com tutoriais</a></li>
                   </ul>
                 </div>
 

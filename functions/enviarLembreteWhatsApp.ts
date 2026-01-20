@@ -168,14 +168,13 @@ Deno.serve(async (req) => {
         const telefoneFormatado = telefone.startsWith('55') ? telefone : '55' + telefone;
 
         try {
-          // Enviar mensagem via WPPConnect API
-          const sessionName = Deno.env.get("WHATSAPP_INSTANCE_NAME") || "default";
-          const url = `${WHATSAPP_API_URL}/api/sendText/${sessionName}`;
+          // Enviar mensagem via Z-API
+          const instanceId = Deno.env.get("WHATSAPP_INSTANCE_NAME");
+          const url = `${WHATSAPP_API_URL}/messages/text?apikey=${WHATSAPP_API_TOKEN}&instanceId=${instanceId}`;
           const response = await fetch(url, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json',
-              'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`
+              'Content-Type': 'application/json'
             },
             body: JSON.stringify({
               phone: telefoneFormatado,
