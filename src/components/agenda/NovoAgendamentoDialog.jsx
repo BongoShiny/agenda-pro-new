@@ -390,7 +390,8 @@ export default function NovoAgendamentoDialog({
       });
 
       if (horarioOcupado) {
-        alert(`⚠️ HORÁRIO JÁ OCUPADO!\n\nJá existe um cliente agendado neste horário:\n\n👤 ${horarioOcupado.cliente_nome}\n📅 ${formData.data}\n⏰ ${horarioOcupado.hora_inicio} - ${horarioOcupado.hora_fim}\n👨‍⚕️ ${horarioOcupado.profissional_nome}\n🏢 ${formData.unidade_nome}\n\nEscolha outro horário, profissional ou unidade.`);
+        setErroHorarioOcupado(true);
+        setTimeout(() => setErroHorarioOcupado(false), 4000);
         return;
       }
       
