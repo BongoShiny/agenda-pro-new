@@ -25,21 +25,64 @@ Deno.serve(async (req) => {
       }, { status: 500 });
     }
 
-    // Enviar mensagem via API do WhatsApp (Octadesk v2)
-    const url = `${WHATSAPP_API_URL}/api/v2/whatsapp/sendMessage`;
+    // Octadesk API - primeiro precisamos criar ou buscar um chat
+    // Passo 1: Buscar se existe um chat com este contato
+    const buscaChatUrl = `${WHATSAPP_API_URL}/api/v1/chats`;
+    
+    console.log('Buscando chat existente...');
+    
+    let chatId = null;
+    
+    try {
+      const buscaResponse = await fetch(buscaChatUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': WHATSAPP_API_TOKEN
+        }
+      });
+      
+      if (buscaResponse.ok) {
+        const chats = await buscaResponse.json();
+        // Procurar chat com este telefone
+        const chatExistente = chats.find(chat => 
+          chat.phoneNumber && chat.phoneNumber.replace(/\D/g, '').includes(telefone.replace(/\D/g, ''))
+        );
+        
+        if (chatExistente) {
+          chatId = chatExistente.id;
+          console.log('Chat existente encontrado:', chatId);
+        }
+      }
+    } catch (e) {
+      console.log('Erro ao buscar chats:', e);
+    }
+    
+    // Se não encontrou chat existente, retorna erro orientando o usuário
+    if (!chatId) {
+      return Response.json({ 
+        error: 'Chat não encontrado',
+        mensagem: 'Para enviar mensagem via Octadesk, é necessário que o cliente tenha iniciado uma conversa antes. O cliente precisa enviar uma mensagem primeiro.',
+        telefone: telefone
+      }, { status: 400 });
+    }
+    
+    // Passo 2: Enviar mensagem para o chat existente
+    const url = `${WHATSAPP_API_URL}/api/v1/chat/${chatId}/messages`;
     
     console.log('Enviando para URL:', url);
-    console.log('Dados:', { phone: telefone, message: mensagem });
+    console.log('Dados:', { type: 'public', body: mensagem, channel: 'whatsapp' });
     
     const response = await fetch(url, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`
+        'apikey': WHATSAPP_API_TOKEN
       },
       body: JSON.stringify({
-        phone: telefone,
-        message: mensagem
+        type: 'public',
+        body: mensagem,
+        channel: 'whatsapp'
       })
     });
 
@@ -48,13 +91,8 @@ Deno.serve(async (req) => {
     if (!response.ok) {
       console.error('Erro da API WhatsApp:', resultado);
       
-      let mensagemErro = 'Erro ao enviar mensagem';
-      if (resultado.message && resultado.message.includes('sendText')) {
-        mensagemErro = `Erro: Verifique se a instância "${WHATSAPP_INSTANCE_NAME}" está correta. URL: ${url}`;
-      }
-      
       return Response.json({ 
-        error: mensagemErro, 
+        error: 'Erro ao enviar mensagem', 
         detalhes: resultado 
       }, { status: response.status });
     }
@@ -62,7 +100,8 @@ Deno.serve(async (req) => {
     return Response.json({ 
       sucesso: true, 
       mensagem: 'Mensagem enviada com sucesso!',
-      resultado: resultado
+      resultado: resultado,
+      chatId: chatId
     });
 
   } catch (error) {
