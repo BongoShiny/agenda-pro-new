@@ -54,7 +54,8 @@ Deno.serve(async (req) => {
     const sendResponse = await fetch(sendUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`
       },
       body: JSON.stringify(sendPayload)
     });
