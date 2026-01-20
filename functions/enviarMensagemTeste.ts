@@ -19,7 +19,7 @@ Deno.serve(async (req) => {
     }
 
     const WHATSAPP_API_TOKEN = Deno.env.get("WHATSAPP_API_TOKEN");
-    const WHATSAPP_API_URL = "https://o216174-f20.octadesk.services";
+    const WHATSAPP_API_URL = "https://api.octadesk.services";
 
     if (!WHATSAPP_API_TOKEN) {
       return Response.json({ 
@@ -33,53 +33,35 @@ Deno.serve(async (req) => {
       telefoneFormatado = '55' + telefoneFormatado;
     }
     
-    console.log('🔧 Iniciando envio único...');
+    console.log('🔧 Iniciando envio...');
     console.log('  Telefone:', telefoneFormatado);
     
-    // MÉTODO DIRETO: send-template (único método que funciona)
-    const sendUrl = `${WHATSAPP_API_URL}/chat/send-template`;
+    // API da Octadesk - enviar mensagem
+    const sendUrl = `${WHATSAPP_API_URL}/api/v1/whatsapp/send`;
     
     const sendPayload = {
-      origin: {
-        contact: {
-          channel: "whatsapp",
-          phoneNumber: "554384981523",
-          name: "Vibe Terapias",
-          email: "sistema@vibe.com",
-          waba: "154138641866717"
-        }
-      },
-      target: {
-        contact: {
-          channel: "whatsapp",
-          phoneNumber: telefoneFormatado,
-          name: "Cliente",
-          email: `${telefoneFormatado}@temp.com`
-        }
-      },
-      content: {
-        text: mensagem
-      },
-      options: {
-        automaticAssign: true
-      }
+      number: telefoneFormatado,
+      body: mensagem,
+      waba: "154138641866717"
     };
     
-    console.log('📤 Enviando...');
+    console.log('📤 URL:', sendUrl);
+    console.log('📦 Payload:', JSON.stringify(sendPayload, null, 2));
     
     const sendResponse = await fetch(sendUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': WHATSAPP_API_TOKEN
+        'apitoken': WHATSAPP_API_TOKEN
       },
       body: JSON.stringify(sendPayload)
     });
 
     const resultado = await sendResponse.json();
+    console.log('📨 Status:', sendResponse.status);
     console.log('📨 Resposta:', JSON.stringify(resultado, null, 2));
     
-    if (sendResponse.ok && resultado.result) {
+    if (sendResponse.ok) {
       return Response.json({ 
         sucesso: true, 
         mensagem: '✅ Mensagem enviada!',
@@ -89,7 +71,8 @@ Deno.serve(async (req) => {
     
     return Response.json({ 
       sucesso: false,
-      error: resultado.error || 'Erro ao enviar',
+      error: resultado.error || resultado.message || 'Erro ao enviar',
+      status: sendResponse.status,
       resultado: resultado
     }, { status: 200 });
 
