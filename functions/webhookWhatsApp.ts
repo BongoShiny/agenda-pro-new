@@ -10,11 +10,17 @@ Deno.serve(async (req) => {
     console.log('Webhook recebido:', JSON.stringify(body, null, 2));
 
     // Extrair informações da mensagem (formato pode variar por API)
-    const mensagem = body.message?.text?.body || body.data?.body || body.body || '';
-    const telefone = body.from || body.data?.from || body.key?.remoteJid || '';
+    const mensagem = body.message?.text?.body || body.data?.body || body.body || body.text || '';
+    const telefone = body.from || body.data?.from || body.key?.remoteJid || body.phone || '';
 
     if (!mensagem || !telefone) {
-      return Response.json({ message: 'Dados insuficientes' }, { status: 400 });
+      console.log('Dados extraídos - mensagem:', mensagem, 'telefone:', telefone);
+      return Response.json({ 
+        message: 'Dados insuficientes', 
+        recebido: body,
+        mensagem_extraida: mensagem,
+        telefone_extraido: telefone
+      }, { status: 200 }); // Mudei para 200 para não dar erro e poder ver os dados
     }
 
     // Limpar telefone
