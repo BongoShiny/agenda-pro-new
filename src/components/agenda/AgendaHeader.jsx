@@ -241,23 +241,31 @@ export default function AgendaHeader({
           </div>
 
           <div className="flex items-center gap-3">
-            {isAdmin && (
-              <Link to={createPageUrl("Administrador")}>
-                <Button variant="outline" className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100">
-                  <ShieldCheck className="w-4 h-4 mr-2" />
-                  Superior
-                </Button>
-              </Link>
-            )}
-            
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700" 
-              onClick={onNovoAgendamento}
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Novo Agendamento
-            </Button>
-          </div>
+             {isAdmin && (
+               <>
+                 <Link to={createPageUrl("Administrador")}>
+                   <Button variant="outline" className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100">
+                     <ShieldCheck className="w-4 h-4 mr-2" />
+                     Superior
+                   </Button>
+                 </Link>
+                 <a href="https://vibe-crm-acb7f8f2.base44.app/Clinics" target="_blank" rel="noopener noreferrer">
+                   <Button variant="outline" className="bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100">
+                     <ExternalLink className="w-4 h-4 mr-2" />
+                     CRM
+                   </Button>
+                 </a>
+               </>
+             )}
+
+             <Button 
+               className="bg-blue-600 hover:bg-blue-700" 
+               onClick={onNovoAgendamento}
+             >
+               <Plus className="w-4 h-4 mr-2" />
+               Novo Agendamento
+             </Button>
+           </div>
         </div>
 
         <Tabs value={unidadeSelecionada?.id || unidades[0]?.id} onValueChange={(value) => {
