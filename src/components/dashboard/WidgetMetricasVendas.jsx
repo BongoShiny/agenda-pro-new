@@ -233,6 +233,7 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                       <TableHead>Profissional</TableHead>
                       <TableHead>Data Agendamento</TableHead>
                       <TableHead>Pacote</TableHead>
+                      <TableHead>Forma de Pagamento</TableHead>
                       <TableHead className="text-right">Valor</TableHead>
                       <TableHead className="text-right">Pago</TableHead>
                       <TableHead className="text-right">A Receber</TableHead>
@@ -281,6 +282,14 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                               ) : (
                                 <span className="text-gray-400 text-xs">-</span>
                               )}
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-xs text-gray-600">
+                                {venda.forma_pagamento === "pago_na_clinica" ? "💳 Pago na Clínica" :
+                                 venda.forma_pagamento === "pix" ? "📱 PIX" :
+                                 venda.forma_pagamento === "link_pagamento" ? "🔗 Link de Pagamento" :
+                                 "-"}
+                              </span>
                             </TableCell>
                             <TableCell className="text-right font-semibold">
                               {formatarMoeda(venda.valor_combinado)}
