@@ -56,15 +56,14 @@ export default function NovoAgendamentoDialog({
   isTerapeuta = false
 }) {
   const [formData, setFormData] = useState({
-    cliente_id: "",
-    cliente_nome: "",
-    cliente_telefone: "",
-    profissional_id: "",
-    profissional_nome: "",
-    servico_id: "",
-    servico_nome: "",
-    unidade_id: "",
-    unidade_nome: "",
+     cliente_id: "",
+     cliente_nome: "",
+     cliente_telefone: "",
+     profissional_id: "",
+     profissional_nome: "",
+     servicos_selecionados: [],
+     unidade_id: "",
+     unidade_nome: "",
     data: formatarDataPura(new Date()),
     hora_inicio: "09:00",
     hora_fim: "10:00",
@@ -145,8 +144,7 @@ export default function NovoAgendamentoDialog({
           cliente_telefone: agendamentoInicial?.cliente_telefone || "",
           profissional_id: agendamentoInicial?.profissional_id || "",
           profissional_nome: agendamentoInicial?.profissional_nome || "",
-          servico_id: agendamentoInicial?.servico_id || "",
-          servico_nome: agendamentoInicial?.servico_nome || "",
+          servicos_selecionados: agendamentoInicial?.servico_nome ? [agendamentoInicial.servico_nome] : [],
           unidade_id: agendamentoInicial?.unidade_id || "",
           unidade_nome: agendamentoInicial?.unidade_nome || "",
           data: agendamentoInicial?.data || formatarDataPura(new Date()),
@@ -294,13 +292,29 @@ export default function NovoAgendamentoDialog({
   };
 
   const handleServicoChange = (servicoId) => {
-    const servico = servicos.find(s => s.id === servicoId);
-    setFormData(prev => ({
-      ...prev,
-      servico_id: servicoId,
-      servico_nome: servico ? servico.nome : ""
-    }));
-  };
+     if (servicoId === "LIMPAR_SERVICOS") {
+       setFormData(prev => ({
+         ...prev,
+         servicos_selecionados: []
+       }));
+       return;
+     }
+
+     const servico = servicos.find(s => s.id === servicoId);
+     if (servico) {
+       setFormData(prev => ({
+         ...prev,
+         servicos_selecionados: [...prev.servicos_selecionados, servico.nome]
+       }));
+     }
+   };
+
+   const handleRemoveServico = (index) => {
+     setFormData(prev => ({
+       ...prev,
+       servicos_selecionados: prev.servicos_selecionados.filter((_, i) => i !== index)
+     }));
+   };
 
   const handleUnidadeChange = (unidadeId) => {
     try {
@@ -346,8 +360,18 @@ export default function NovoAgendamentoDialog({
   };
 
   const handleSubmit = () => {
-    try {
-      // Verificar se há bloqueio que SOBREPÕE com o horário selecionado
+     try {
+       // Preparar dados do serviço para salvamento
+       const dataToSave = {
+         ...formData,
+         servico_id: formData.servicos_selecionados[0] || "",
+         servico_nome: formData.servicos_selecionados.join(" + ")
+       };
+
+       // Remover campo temporário antes de salvar
+       delete dataToSave.servicos_selecionados;
+
+       // Verificar se há bloqueio que SOBREPÕE com o horário selecionado
       const [horaInicioNum, minInicioNum] = formData.hora_inicio.split(':').map(Number);
       const [horaFimNum, minFimNum] = formData.hora_fim.split(':').map(Number);
       const inicioMinutos = horaInicioNum * 60 + minInicioNum;
@@ -372,32 +396,32 @@ export default function NovoAgendamentoDialog({
         setErroHorarioBloqueado(true);
         setTimeout(() => setErroHorarioBloqueado(false), 3000);
         return;
-      }
+        }
 
-      // ✅ Verificar se JÁ HÁ OUTRO AGENDAMENTO neste horário/profissional/unidade (qualquer cliente)
-      const horarioOcupado = agendamentos.find(ag => {
-        if (ag.data !== formData.data) return false;
-        if (ag.profissional_id !== formData.profissional_id) return false;
-        if (ag.unidade_id !== formData.unidade_id) return false;
-        if (ag.id === formData.id) return false; // Ignorar se estiver editando
-        if (ag.status === "cancelado") return false; // Ignorar cancelados
-        if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false; // Bloqueios são tratados separadamente
-        
-        const [agHoraInicio, agMinInicio] = ag.hora_inicio.split(':').map(Number);
-        const [agHoraFim, agMinFim] = ag.hora_fim.split(':').map(Number);
-        const agInicioMinutos = agHoraInicio * 60 + agMinInicio;
-        const agFimMinutos = agHoraFim * 60 + agMinFim;
-        
-        return (inicioMinutos < agFimMinutos && fimMinutos > agInicioMinutos);
-      });
+        // ✅ Verificar se JÁ HÁ OUTRO AGENDAMENTO neste horário/profissional/unidade (qualquer cliente)
+        const horarioOcupado = agendamentos.find(ag => {
+          if (ag.data !== dataToSave.data) return false;
+          if (ag.profissional_id !== dataToSave.profissional_id) return false;
+          if (ag.unidade_id !== dataToSave.unidade_id) return false;
+          if (ag.id === dataToSave.id) return false; // Ignorar se estiver editando
+          if (ag.status === "cancelado") return false; // Ignorar cancelados
+          if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false; // Bloqueios são tratados separadamente
 
-      if (horarioOcupado) {
-        setErroHorarioOcupado(true);
-        setTimeout(() => setErroHorarioOcupado(false), 4000);
-        return;
-      }
-      
-      onSave(formData);
+          const [agHoraInicio, agMinInicio] = ag.hora_inicio.split(':').map(Number);
+          const [agHoraFim, agMinFim] = ag.hora_fim.split(':').map(Number);
+          const agInicioMinutos = agHoraInicio * 60 + agMinInicio;
+          const agFimMinutos = agHoraFim * 60 + agMinFim;
+
+          return (inicioMinutos < agFimMinutos && fimMinutos > agInicioMinutos);
+        });
+
+        if (horarioOcupado) {
+          setErroHorarioOcupado(true);
+          setTimeout(() => setErroHorarioOcupado(false), 4000);
+          return;
+        }
+
+        onSave(dataToSave);
       onOpenChange(false);
     } catch (error) {
       console.error("Erro ao salvar agendamento:", error);
@@ -493,13 +517,16 @@ export default function NovoAgendamentoDialog({
             </Select>
           </div>
 
-          <div className="space-y-2">
-            <Label>Serviço *</Label>
-            <Select value={formData.servico_id} onValueChange={handleServicoChange}>
+          <div className="space-y-2 col-span-2">
+            <Label>Serviço(s) *</Label>
+            <Select onValueChange={handleServicoChange} value="">
               <SelectTrigger>
-                <SelectValue placeholder="Selecione o serviço" />
+                <SelectValue placeholder="Clique para adicionar serviço" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="LIMPAR_SERVICOS" className="bg-red-50 text-red-700 font-bold">
+                  🗑️ LIMPAR SERVIÇOS
+                </SelectItem>
                 {servicos.map(servico => (
                   <SelectItem key={servico.id} value={servico.id}>
                     {servico.nome.toUpperCase()}
@@ -507,6 +534,25 @@ export default function NovoAgendamentoDialog({
                 ))}
               </SelectContent>
             </Select>
+            {formData.servicos_selecionados.length > 0 && (
+              <div className="mt-2 p-2 bg-blue-50 rounded border border-blue-200">
+                <p className="text-sm font-semibold text-blue-900 mb-2">
+                  {formData.servicos_selecionados.join(" + ")}
+                </p>
+                <div className="flex flex-wrap gap-2">
+                  {formData.servicos_selecionados.map((servico, index) => (
+                    <button
+                      key={index}
+                      onClick={() => handleRemoveServico(index)}
+                      className="inline-flex items-center gap-1 bg-blue-600 text-white px-2 py-1 rounded text-xs hover:bg-blue-700"
+                    >
+                      {servico}
+                      <X className="w-3 h-3" />
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -967,7 +1013,7 @@ export default function NovoAgendamentoDialog({
           </Button>
           <Button 
             onClick={handleSubmit}
-            disabled={!formData.cliente_nome || !formData.profissional_id || !formData.unidade_id}
+            disabled={!formData.cliente_nome || !formData.profissional_id || !formData.unidade_id || formData.servicos_selecionados.length === 0}
             className="bg-blue-600 hover:bg-blue-700"
           >
             {modoEdicao ? "Salvar Alterações" : "Salvar Agendamento"}
