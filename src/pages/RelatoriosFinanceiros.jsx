@@ -889,6 +889,12 @@ export default function RelatoriosFinanceirosPage() {
                   <SelectItem value="ano">Este Ano</SelectItem>
                 </SelectContent>
               </Select>
+              <p className="text-xs text-gray-500 mt-1">
+                {periodo === "dia" && `📅 ${format(new Date(), "dd 'de' MMMM", { locale: ptBR })}`}
+                {periodo === "semana" && `📅 ${format(startOfWeek(new Date(), { locale: ptBR }), "dd/MM")} - ${format(endOfWeek(new Date(), { locale: ptBR }), "dd/MM")}`}
+                {periodo === "mes" && `📅 ${format(new Date(), "MMMM 'de' yyyy", { locale: ptBR })}`}
+                {periodo === "ano" && `📅 ${format(new Date(), "yyyy")}`}
+              </p>
             </div>
 
             <div className="space-y-2">
