@@ -25,11 +25,74 @@ Deno.serve(async (req) => {
       }, { status: 500 });
     }
 
-    // Octadesk API - primeiro precisamos criar ou buscar um chat
-    // Passo 1: Buscar se existe um chat com este contato
-    const buscaChatUrl = `${WHATSAPP_API_URL}/api/v1/chats`;
+    // Formatar telefone para Octadesk (com código do país)
+    let telefoneFormatado = telefone.replace(/\D/g, '');
+    if (!telefoneFormatado.startsWith('55')) {
+      telefoneFormatado = '55' + telefoneFormatado;
+    }
     
-    console.log('Buscando chat existente...');
+    // Octadesk: buscar contato existente
+    const buscaContatoUrl = `${WHATSAPP_API_URL}/api/v1/contacts?phoneNumber=${telefoneFormatado}`;
+    
+    console.log('Buscando contato:', buscaContatoUrl);
+    
+    let contatoId = null;
+    
+    try {
+      const buscaResponse = await fetch(buscaContatoUrl, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'apikey': WHATSAPP_API_TOKEN
+        }
+      });
+      
+      if (buscaResponse.ok) {
+        const contatos = await buscaResponse.json();
+        if (contatos && contatos.length > 0) {
+          contatoId = contatos[0].id;
+          console.log('Contato encontrado:', contatoId);
+        }
+      }
+    } catch (e) {
+      console.log('Erro ao buscar contato:', e);
+    }
+    
+    // Se não encontrou contato, criar um novo
+    if (!contatoId) {
+      try {
+        const criarContatoUrl = `${WHATSAPP_API_URL}/api/v1/contacts`;
+        const criarResponse = await fetch(criarContatoUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': WHATSAPP_API_TOKEN
+          },
+          body: JSON.stringify({
+            name: 'Cliente',
+            phoneNumber: telefoneFormatado
+          })
+        });
+        
+        if (criarResponse.ok) {
+          const novoContato = await criarResponse.json();
+          contatoId = novoContato.id;
+          console.log('Novo contato criado:', contatoId);
+        }
+      } catch (e) {
+        console.log('Erro ao criar contato:', e);
+      }
+    }
+    
+    if (!contatoId) {
+      return Response.json({ 
+        error: 'Não foi possível criar/encontrar contato',
+        telefone: telefoneFormatado
+      }, { status: 400 });
+    }
+    
+    // Buscar ou criar chat
+    const buscaChatUrl = `${WHATSAPP_API_URL}/api/v1/chats?contactId=${contatoId}`;
     
     let chatId = null;
     
@@ -44,30 +107,49 @@ Deno.serve(async (req) => {
       
       if (buscaResponse.ok) {
         const chats = await buscaResponse.json();
-        // Procurar chat com este telefone
-        const chatExistente = chats.find(chat => 
-          chat.phoneNumber && chat.phoneNumber.replace(/\D/g, '').includes(telefone.replace(/\D/g, ''))
-        );
-        
-        if (chatExistente) {
-          chatId = chatExistente.id;
-          console.log('Chat existente encontrado:', chatId);
+        if (chats && chats.length > 0) {
+          chatId = chats[0].id;
+          console.log('Chat encontrado:', chatId);
         }
       }
     } catch (e) {
-      console.log('Erro ao buscar chats:', e);
+      console.log('Erro ao buscar chat:', e);
     }
     
-    // Se não encontrou chat existente, retorna erro orientando o usuário
+    // Se não encontrou chat, criar um novo
+    if (!chatId) {
+      try {
+        const criarChatUrl = `${WHATSAPP_API_URL}/api/v1/chats`;
+        const criarResponse = await fetch(criarChatUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'apikey': WHATSAPP_API_TOKEN
+          },
+          body: JSON.stringify({
+            contactId: contatoId,
+            channel: 'whatsapp'
+          })
+        });
+        
+        if (criarResponse.ok) {
+          const novoChat = await criarResponse.json();
+          chatId = novoChat.id;
+          console.log('Novo chat criado:', chatId);
+        }
+      } catch (e) {
+        console.log('Erro ao criar chat:', e);
+      }
+    }
+    
     if (!chatId) {
       return Response.json({ 
-        error: 'Chat não encontrado',
-        mensagem: 'Para enviar mensagem via Octadesk, é necessário que o cliente tenha iniciado uma conversa antes. O cliente precisa enviar uma mensagem primeiro.',
-        telefone: telefone
+        error: 'Não foi possível criar/encontrar chat',
+        contatoId: contatoId
       }, { status: 400 });
     }
     
-    // Passo 2: Enviar mensagem para o chat existente
+    // Enviar mensagem
     const url = `${WHATSAPP_API_URL}/api/v1/chat/${chatId}/messages`;
     
     console.log('Enviando para URL:', url);
@@ -101,7 +183,8 @@ Deno.serve(async (req) => {
       sucesso: true, 
       mensagem: 'Mensagem enviada com sucesso!',
       resultado: resultado,
-      chatId: chatId
+      chatId: chatId,
+      contatoId: contatoId
     });
 
   } catch (error) {

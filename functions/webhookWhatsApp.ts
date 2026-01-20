@@ -9,22 +9,26 @@ Deno.serve(async (req) => {
     
     console.log('Webhook recebido:', JSON.stringify(body, null, 2));
 
-    // Extrair informações da mensagem (formato pode variar por API)
-    const mensagem = body.message?.text?.body || body.data?.body || body.body || body.text || '';
-    const telefone = body.from || body.data?.from || body.key?.remoteJid || body.phone || '';
+    // Extrair informações da mensagem - Octadesk format
+    // Octadesk webhook envia: { chatId, message: { body, type, ... }, contact: { phoneNumber, ... } }
+    const mensagem = body.message?.body || body.body || body.text || '';
+    const telefone = body.contact?.phoneNumber || body.phoneNumber || body.from || body.phone || '';
+    const chatId = body.chatId || body.chat_id || '';
+
+    console.log('Mensagem extraída:', mensagem);
+    console.log('Telefone extraído:', telefone);
+    console.log('Chat ID:', chatId);
 
     if (!mensagem || !telefone) {
-      console.log('Dados extraídos - mensagem:', mensagem, 'telefone:', telefone);
+      console.log('Dados insuficientes - retornando sucesso para não bloquear webhook');
       return Response.json({ 
         message: 'Dados insuficientes', 
-        recebido: body,
-        mensagem_extraida: mensagem,
-        telefone_extraido: telefone
-      }, { status: 200 }); // Mudei para 200 para não dar erro e poder ver os dados
+        recebido: body
+      }, { status: 200 });
     }
 
-    // Limpar telefone
-    const telefoneLimpo = telefone.replace(/\D/g, '').replace('55', '');
+    // Limpar telefone (remover código do país e caracteres especiais)
+    const telefoneLimpo = telefone.replace(/\D/g, '').replace(/^55/, '');
 
     // Verificar se é comando de confirmação ou cancelamento (aceita a palavra em qualquer lugar)
     const mensagemLower = mensagem.toLowerCase();
