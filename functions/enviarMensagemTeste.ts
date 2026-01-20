@@ -38,126 +38,64 @@ Deno.serve(async (req) => {
     console.log('Mensagem:', mensagem);
     console.log('API URL:', WHATSAPP_API_URL);
     
-    // Tentar múltiplas abordagens para enviar a mensagem
+    // ENVIAR MENSAGEM - Usar send-template da Octadesk
+    console.log('📤 Enviando mensagem via send-template...');
+    const url = `${WHATSAPP_API_URL}/api/v1/chat/send-template`;
     
-    // Abordagem 1: Buscar chat existente
-    try {
-      const buscaChatUrl = `${WHATSAPP_API_URL}/api/v1/chats`;
-      console.log('Buscando chats existentes...');
-      
-      const buscaResponse = await fetch(buscaChatUrl, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': WHATSAPP_API_TOKEN
+    const payload = {
+      origin: {
+        contact: {
+          channel: "whatsapp",
+          name: "Sistema",
+          email: "sistema@agenda.com"
         }
-      });
-      
-      if (buscaResponse.ok) {
-        const chats = await buscaResponse.json();
-        console.log('Chats encontrados:', chats.length);
-        
-        // Procurar chat com este telefone
-        const chatExistente = chats.find(chat => {
-          const phoneChat = (chat.contact?.phoneNumber || chat.phoneNumber || '').replace(/\D/g, '');
-          return phoneChat.includes(telefoneFormatado.replace(/^55/, '')) || 
-                 telefoneFormatado.includes(phoneChat);
-        });
-        
-        if (chatExistente) {
-          console.log('Chat encontrado:', chatExistente.id);
-          
-          // Enviar mensagem para o chat existente
-          const url = `${WHATSAPP_API_URL}/api/v1/chat/${chatExistente.id}/messages`;
-          const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'apikey': WHATSAPP_API_TOKEN
-            },
-            body: JSON.stringify({
-              type: 'public',
-              body: mensagem,
-              channel: 'whatsapp'
-            })
-          });
-          
-          const resultado = await response.json();
-          
-          if (response.ok) {
-            return Response.json({ 
-              sucesso: true, 
-              mensagem: '✅ Mensagem enviada com sucesso!',
-              resultado: resultado,
-              metodo: 'chat_existente'
-            });
-          } else {
-            console.log('Erro ao enviar para chat existente:', resultado);
-          }
+      },
+      target: {
+        contact: {
+          channel: "whatsapp",
+          phoneNumber: telefoneFormatado,
+          name: "Cliente",
+          email: "cliente@temp.com"
         }
+      },
+      content: {
+        text: mensagem
+      },
+      options: {
+        automaticAssign: true
       }
-    } catch (e) {
-      console.log('Erro na abordagem 1:', e);
+    };
+    
+    console.log('📦 Payload:', JSON.stringify(payload, null, 2));
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': WHATSAPP_API_TOKEN
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const resultado = await response.json();
+    console.log('📨 Resposta API:', JSON.stringify(resultado, null, 2));
+    
+    if (response.ok && resultado.result) {
+      return Response.json({ 
+        sucesso: true, 
+        mensagem: '✅ Mensagem enviada com sucesso!',
+        resultado: resultado
+      });
     }
     
-    // Abordagem 2: Send template
-    try {
-      console.log('Tentando send-template...');
-      const url = `${WHATSAPP_API_URL}/api/v1/chat/send-template`;
-      
-      const payload = {
-        origin: {
-          contact: {
-            channel: "whatsapp"
-          }
-        },
-        target: {
-          contact: {
-            channel: "whatsapp",
-            phoneNumber: telefoneFormatado
-          }
-        },
-        content: {
-          text: mensagem
-        },
-        options: {
-          automaticAssign: true
-        }
-      };
-      
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'apikey': WHATSAPP_API_TOKEN
-        },
-        body: JSON.stringify(payload)
-      });
-
-      const resultado = await response.json();
-      
-      if (response.ok && !resultado.error) {
-        return Response.json({ 
-          sucesso: true, 
-          mensagem: '✅ Mensagem enviada com sucesso!',
-          resultado: resultado,
-          metodo: 'send_template'
-        });
-      } else {
-        console.log('Erro no send-template:', resultado);
-      }
-    } catch (e) {
-      console.log('Erro na abordagem 2:', e);
-    }
-
-    // Se chegou aqui, nenhuma abordagem funcionou - mas vamos retornar 200 com detalhes
-    console.log('❌ Nenhuma abordagem funcionou');
+    // Se deu erro, retornar detalhes
+    console.log('❌ Erro ao enviar:', resultado);
     return Response.json({ 
       sucesso: false,
-      error: 'Não foi possível enviar a mensagem',
-      detalhes: 'Verifique se o cliente já iniciou uma conversa no WhatsApp antes',
-      telefone: telefoneFormatado,
-      tentativas: ['chat_existente', 'send_template']
+      error: 'Erro ao enviar mensagem',
+      detalhes: resultado.error || 'Verifique as credenciais da API',
+      resultado: resultado,
+      telefone: telefoneFormatado
     }, { status: 200 });
 
   } catch (error) {
