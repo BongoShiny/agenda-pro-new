@@ -593,7 +593,6 @@ export default function NovoAgendamentoDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="consulta">Consulta</SelectItem>
-                <SelectItem value="liberacao_miofascial">Liberação Miofascial</SelectItem>
                 <SelectItem value="pacote">Pacote</SelectItem>
                 <SelectItem value="avaliacao">Avaliação</SelectItem>
                 <SelectItem value="avulsa">Avulsa</SelectItem>
