@@ -16,7 +16,8 @@ import {
   Edit,
   Eye,
   Save,
-  Upload
+  Upload,
+  ChevronRight
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
