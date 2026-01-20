@@ -540,6 +540,11 @@ export default function AgendaDiaView({
                                     slotMenuAberto?.profissionalId === terapeuta.id && 
                                     slotMenuAberto?.horario === horario;
 
+                  // Verificar se há bloqueio ou cliente no horário
+                  const temBloqueio = agendamentosSlot.some(ag => 
+                    ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO"
+                  );
+
                   // Se o slot está coberto por um agendamento de múltiplas horas
                   // Renderizar área clicável com fundo do bloqueio
                   if (agendamentoQueCobreSlot) {
@@ -606,7 +611,7 @@ export default function AgendaDiaView({
                             <div className="text-xs text-orange-700">Limite de atendimentos atingido neste horário</div>
                           </PopoverContent>
                         </Popover>
-                      ) : !isOcupado ? (
+                      ) : !isOcupado && !temBloqueio ? (
                         <SlotMenu
                           open={isMenuAberto}
                           onOpenChange={(open) => {
@@ -621,6 +626,24 @@ export default function AgendaDiaView({
                             onClick={() => handleSlotClick(unidadeSelecionada.id, terapeuta.id, horario)}
                           />
                         </SlotMenu>
+                      ) : !isOcupado && temBloqueio ? (
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className="w-full h-full bg-red-600 rounded flex items-center justify-center md:cursor-default md:pointer-events-none">
+                              <div className="text-center">
+                                <div className="text-[10px] md:text-xs text-white font-bold">
+                                  <span className="md:hidden">🚫</span>
+                                  <span className="hidden md:block">🚫 BLOQUEADO</span>
+                                </div>
+                                <div className="text-[8px] md:text-[10px] text-red-100 hidden md:block">Horário fechado</div>
+                              </div>
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="md:hidden w-auto p-3">
+                            <div className="text-sm font-semibold text-red-900 mb-1">🚫 Horário Bloqueado</div>
+                            <div className="text-xs text-red-700">Este horário está bloqueado e não pode ser agendado</div>
+                          </PopoverContent>
+                        </Popover>
                       ) : (
                         agendamentosSlot.map(agendamento => {
                           const duracaoHoras = calcularDuracaoSlots(agendamento.hora_inicio, agendamento.hora_fim);
