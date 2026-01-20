@@ -96,6 +96,7 @@ export default function NovoAgendamentoDialog({
   const [buscaCliente, setBuscaCliente] = useState("");
   const [erroHorarioBloqueado, setErroHorarioBloqueado] = useState(false);
   const [erroHorarioOcupado, setErroHorarioOcupado] = useState(false);
+  const [erroHorarioFechado, setErroHorarioFechado] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(null);
 
   const { data: vendedores = [] } = useQuery({
@@ -403,19 +404,19 @@ export default function NovoAgendamentoDialog({
       const [horaFimNum, minFimNum] = formData.hora_fim.split(':').map(Number);
       const inicioMinutos = horaInicioNum * 60 + minInicioNum;
       const fimMinutos = horaFimNum * 60 + minFimNum;
-      
+
       const horarioBloqueado = agendamentos.find(ag => {
         if (ag.data !== formData.data) return false;
         if (ag.profissional_id !== formData.profissional_id) return false;
         if (ag.unidade_id !== formData.unidade_id) return false;
         if (!(ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO")) return false;
         if (ag.id === formData.id) return false;
-        
+
         const [agHoraInicio, agMinInicio] = ag.hora_inicio.split(':').map(Number);
         const [agHoraFim, agMinFim] = ag.hora_fim.split(':').map(Number);
         const agInicioMinutos = agHoraInicio * 60 + agMinInicio;
         const agFimMinutos = agHoraFim * 60 + agMinFim;
-        
+
         return (inicioMinutos < agFimMinutos && fimMinutos > agInicioMinutos);
       });
 
@@ -423,32 +424,50 @@ export default function NovoAgendamentoDialog({
         setErroHorarioBloqueado(true);
         setTimeout(() => setErroHorarioBloqueado(false), 3000);
         return;
-        }
+      }
 
-        // ✅ Verificar se JÁ HÁ OUTRO AGENDAMENTO neste horário/profissional/unidade (qualquer cliente)
-        const horarioOcupado = agendamentos.find(ag => {
-          if (ag.data !== dataToSave.data) return false;
-          if (ag.profissional_id !== dataToSave.profissional_id) return false;
-          if (ag.unidade_id !== dataToSave.unidade_id) return false;
-          if (ag.id === dataToSave.id) return false; // Ignorar se estiver editando
-          if (ag.status === "cancelado") return false; // Ignorar cancelados
-          if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false; // Bloqueios são tratados separadamente
+      // ✅ Verificar se JÁ HÁ OUTRO AGENDAMENTO neste horário/profissional/unidade (qualquer cliente)
+      const horarioOcupado = agendamentos.find(ag => {
+        if (ag.data !== dataToSave.data) return false;
+        if (ag.profissional_id !== dataToSave.profissional_id) return false;
+        if (ag.unidade_id !== dataToSave.unidade_id) return false;
+        if (ag.id === dataToSave.id) return false;
+        if (ag.status === "cancelado") return false;
+        if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
 
-          const [agHoraInicio, agMinInicio] = ag.hora_inicio.split(':').map(Number);
-          const [agHoraFim, agMinFim] = ag.hora_fim.split(':').map(Number);
-          const agInicioMinutos = agHoraInicio * 60 + agMinInicio;
-          const agFimMinutos = agHoraFim * 60 + agMinFim;
+        const [agHoraInicio, agMinInicio] = ag.hora_inicio.split(':').map(Number);
+        const [agHoraFim, agMinFim] = ag.hora_fim.split(':').map(Number);
+        const agInicioMinutos = agHoraInicio * 60 + agMinInicio;
+        const agFimMinutos = agHoraFim * 60 + agMinFim;
 
-          return (inicioMinutos < agFimMinutos && fimMinutos > agInicioMinutos);
-        });
+        return (inicioMinutos < agFimMinutos && fimMinutos > agInicioMinutos);
+      });
 
-        if (horarioOcupado) {
-          setErroHorarioOcupado(true);
-          setTimeout(() => setErroHorarioOcupado(false), 4000);
+      if (horarioOcupado) {
+        setErroHorarioOcupado(true);
+        setTimeout(() => setErroHorarioOcupado(false), 4000);
+        return;
+      }
+
+      // Verificar se horário está dentro do expediente do profissional
+      const profissional = profissionais.find(p => p.id === formData.profissional_id);
+      if (profissional) {
+        const horarioInicio = profissional.horario_inicio || "08:00";
+        const horarioFim = profissional.horario_fim || "18:00";
+
+        const [profHoraInicio, profMinInicio] = horarioInicio.split(':').map(Number);
+        const [profHoraFim, profMinFim] = horarioFim.split(':').map(Number);
+        const profInicioMinutos = profHoraInicio * 60 + profMinInicio;
+        const profFimMinutos = profHoraFim * 60 + profMinFim;
+
+        if (inicioMinutos < profInicioMinutos || fimMinutos > profFimMinutos) {
+          setErroHorarioFechado(true);
+          setTimeout(() => setErroHorarioFechado(false), 3000);
           return;
         }
+      }
 
-        onSave(dataToSave);
+      onSave(dataToSave);
       onOpenChange(false);
     } catch (error) {
       console.error("Erro ao salvar agendamento:", error);
@@ -965,6 +984,17 @@ export default function NovoAgendamentoDialog({
             </Select>
           </div>
         </div>
+
+        {erroHorarioFechado && (
+          <div className="bg-red-100 border-2 border-red-600 rounded-lg p-4 text-center animate-pulse">
+            <div className="text-red-800 font-bold text-lg mb-2">
+              🚫 NÃO FOI POSSÍVEL AGENDAR POIS ESTÁ FECHADO
+            </div>
+            <div className="text-red-700 text-sm">
+              Este horário está fora do expediente do profissional
+            </div>
+          </div>
+        )}
 
         {erroHorarioBloqueado && (
           <div className="bg-red-100 border-2 border-red-600 rounded-lg p-4 text-center animate-pulse">
