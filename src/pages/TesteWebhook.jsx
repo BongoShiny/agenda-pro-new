@@ -29,6 +29,8 @@ export default function TesteWebhook() {
       return;
     }
 
+    if (loading) return; // Impedir múltiplos cliques
+
     setLoading(true);
     setResultado(null);
 
@@ -57,6 +59,8 @@ export default function TesteWebhook() {
       alert("Preencha telefone e mensagem!");
       return;
     }
+
+    if (loading) return; // Impedir múltiplos cliques
 
     setLoading(true);
     setResultado(null);
