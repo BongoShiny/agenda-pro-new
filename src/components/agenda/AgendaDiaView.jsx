@@ -582,7 +582,7 @@ export default function AgendaDiaView({
                                   <span className="md:hidden">LOTE</span>
                                   <span className="hidden md:block">LOTADO</span>
                                 </div>
-                                <div className="text-[8px] md:text-[10px] text-orange-600">Limite atingido</div>
+                                <div className="text-[8px] md:text-[10px] text-orange-600 md:hidden">Limite atingido</div>
                               </div>
                             </button>
                           </PopoverTrigger>
