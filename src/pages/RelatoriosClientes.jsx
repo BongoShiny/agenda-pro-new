@@ -257,7 +257,7 @@ export default function RelatoriosClientesPage() {
       "ultima_sessao": "Última Sessão"
     };
 
-    const headers = ["Cliente", "Telefone", "Profissional", "Serviço", "Unidade", "Data", "Horário", "Status", "Status Paciente", "Equipamento", "Cliente Pacote?", "Quantas Sessões", "Sessões Feitas"];
+    const headers = ["Cliente", "Telefone", "Profissional", "Serviço", "Unidade", "Data", "Horário", "Status", "Status Paciente", "Forma de Pagamento", "Equipamento", "Cliente Pacote?", "Quantas Sessões", "Sessões Feitas"];
     const linhas = agendamentosFiltrados.map(ag => [
       getValorCelula(ag, "cliente_nome"),
       getValorCelula(ag, "cliente_telefone"),
@@ -268,6 +268,7 @@ export default function RelatoriosClientesPage() {
       `${ag.hora_inicio || ""} - ${ag.hora_fim || ""}`,
       statusLabels[ag.status]?.label || ag.status || "",
       statusPacienteLabels[ag.status_paciente || ""] || "-",
+      getValorCelula(ag, "forma_pagamento") || "-",
       getValorCelula(ag, "equipamento"),
       getValorCelula(ag, "cliente_pacote"),
       getValorCelula(ag, "quantas_sessoes"),
@@ -797,6 +798,7 @@ export default function RelatoriosClientesPage() {
                    </button>
                   </th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">Status Paciente</th>
+                  <th className="px-4 py-3 text-left font-semibold text-gray-700">Forma de Pagamento</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">Equipamento</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">Cliente Pacote?</th>
                   <th className="px-4 py-3 text-left font-semibold text-gray-700">Quantas Sessões</th>
@@ -926,6 +928,31 @@ export default function RelatoriosClientesPage() {
                             {ag.status_paciente === "paciente_novo" ? "Paciente Novo" :
                              ag.status_paciente === "primeira_sessao" ? "1ª Sessão" :
                              ag.status_paciente === "ultima_sessao" ? "Última Sessão" :
+                             "-"}
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 text-gray-600">
+                        {modoEditor ? (
+                          <Select 
+                            value={getValorCelula(ag, "forma_pagamento") || ag.forma_pagamento || "-"} 
+                            onValueChange={(value) => handleEditarCelula(ag.id, "forma_pagamento", value)}
+                          >
+                            <SelectTrigger className="h-8 text-xs">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="-">-</SelectItem>
+                              <SelectItem value="pago_na_clinica">💳 Pago na Clínica</SelectItem>
+                              <SelectItem value="pix">📱 PIX</SelectItem>
+                              <SelectItem value="link_pagamento">🔗 Link de Pagamento</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        ) : (
+                          <span className="text-gray-600">
+                            {ag.forma_pagamento === "pago_na_clinica" ? "💳 Pago na Clínica" :
+                             ag.forma_pagamento === "pix" ? "📱 PIX" :
+                             ag.forma_pagamento === "link_pagamento" ? "🔗 Link de Pagamento" :
                              "-"}
                           </span>
                         )}
