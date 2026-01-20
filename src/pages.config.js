@@ -1,3 +1,4 @@
+import Administrador from './pages/Administrador';
 import Agenda from './pages/Agenda';
 import ConfiguracaoSabado from './pages/ConfiguracaoSabado';
 import ConfiguracaoTerapeutas from './pages/ConfiguracaoTerapeutas';
@@ -11,12 +12,11 @@ import RelatoriosAvancados from './pages/RelatoriosAvancados';
 import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
 import WhatsAppCompleto from './pages/WhatsAppCompleto';
-import RelatoriosGerados from './pages/RelatoriosGerados';
-import Administrador from './pages/Administrador';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
+    "Administrador": Administrador,
     "Agenda": Agenda,
     "ConfiguracaoSabado": ConfiguracaoSabado,
     "ConfiguracaoTerapeutas": ConfiguracaoTerapeutas,
@@ -30,8 +30,6 @@ export const PAGES = {
     "RelatoriosClientes": RelatoriosClientes,
     "RelatoriosFinanceiros": RelatoriosFinanceiros,
     "WhatsAppCompleto": WhatsAppCompleto,
-    "RelatoriosGerados": RelatoriosGerados,
-    "Administrador": Administrador,
 }
 
 export const pagesConfig = {
