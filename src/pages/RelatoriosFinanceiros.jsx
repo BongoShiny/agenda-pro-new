@@ -907,6 +907,8 @@ export default function RelatoriosFinanceirosPage() {
                   type="date"
                   value={dataPersonalizada ? format(new Date(dataPersonalizada), "yyyy-MM-dd") : ""}
                   onChange={(e) => setDataPersonalizada(e.target.value ? new Date(e.target.value) : null)}
+                  min="2000-01-01"
+                  max={format(new Date(), "yyyy-MM-dd")}
                   className="mt-2"
                 />
               )}
