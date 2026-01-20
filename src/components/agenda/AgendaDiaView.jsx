@@ -249,7 +249,7 @@ export default function AgendaDiaView({
   };
 
   // Verificar se um horário em sábado atingiu o limite de atendimentos
-  const verificarLimiteSabado = (horario) => {
+  const verificarLimiteSabado = (horario, profissionalId) => {
     const diaDaSemana = dataAtual.getDay();
     
     // Se não for sábado, não tem limite
@@ -281,10 +281,12 @@ export default function AgendaDiaView({
     const [hHorario, mHorario] = horario.split(':').map(Number);
     const minutosHorario = hHorario * 60 + mHorario;
     
-    // Contar TODOS os agendamentos que OCUPAM este horário (incluindo os que começam antes e terminam depois)
+    // Contar agendamentos DESTA terapeutas que OCUPAM este horário
     const totalAgendamentosHorario = agendamentos.filter(ag => {
       // Mesma unidade
       if (ag.unidade_id !== unidadeSelecionada.id) return false;
+      // Mesma terapeutas
+      if (ag.profissional_id !== profissionalId) return false;
       // Mesma data
       if (ag.data !== dataFormatada) return false;
       // Não contar ausências, cancelados e bloqueios
