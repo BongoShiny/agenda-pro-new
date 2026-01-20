@@ -398,25 +398,11 @@ export default function NovoAgendamentoDialog({
        // Remover campo temporário antes de salvar
        delete dataToSave.servicos_selecionados;
 
-       // Validar horário passado
-       const agora = new Date();
-       const dataAtual = formatarDataPura(agora);
-       const horaAtualNum = agora.getHours() * 60 + agora.getMinutes();
-
-       if (formData.data === dataAtual) {
-         const [horaInicioNum, minInicioNum] = formData.hora_inicio.split(':').map(Number);
-         const inicioMinutos = horaInicioNum * 60 + minInicioNum;
-         if (inicioMinutos <= horaAtualNum) {
-           alert("❌ Não é possível agendar para horários que já passaram!");
-           return;
-         }
-       }
-
        // Verificar se há bloqueio que SOBREPÕE com o horário selecionado
-      const [horaInicioNum, minInicioNum] = formData.hora_inicio.split(':').map(Number);
-      const [horaFimNum, minFimNum] = formData.hora_fim.split(':').map(Number);
-      const inicioMinutos = horaInicioNum * 60 + minInicioNum;
-      const fimMinutos = horaFimNum * 60 + minFimNum;
+       const [horaInicioNum, minInicioNum] = formData.hora_inicio.split(':').map(Number);
+       const [horaFimNum, minFimNum] = formData.hora_fim.split(':').map(Number);
+       const inicioMinutos = horaInicioNum * 60 + minInicioNum;
+       const fimMinutos = horaFimNum * 60 + minFimNum;
       
       const horarioBloqueado = agendamentos.find(ag => {
         if (ag.data !== formData.data) return false;

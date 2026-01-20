@@ -863,11 +863,7 @@ export default function RelatoriosClientesPage() {
                             </SelectTrigger>
                             <SelectContent>
                               {profissionais
-                                .filter(p => p.ativo !== false && (
-                                  !ag.unidade_id || profissionais
-                                    .filter(prof => prof.ativo !== false)
-                                    .some(prof => prof.id === p.id)
-                                ))
+                                .filter(p => p.ativo !== false)
                                 .map(p => (
                                   <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
                                 ))}
