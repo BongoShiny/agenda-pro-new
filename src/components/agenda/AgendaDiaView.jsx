@@ -477,57 +477,46 @@ export default function AgendaDiaView({
                   }
 
                   if (!dentroDoHorario) {
-                    // Verificar se é folga
-                    const isFolga = horarioTerapeuta.isFolga;
+                    // Se é exceção com folga explícita, mostrar folga
+                    const isFolgaExplicita = horarioTerapeuta.isExcecao && horarioTerapeuta.isFolga;
 
+                    if (isFolgaExplicita) {
+                      return (
+                        <div
+                          key={horario}
+                          className={`h-16 md:h-20 border-b border-gray-200 p-0.5 md:p-1 ${
+                            idx % 2 === 0 ? 'bg-orange-50' : 'bg-orange-100'
+                          }`}
+                        >
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button className="w-full h-full rounded flex items-center justify-center bg-orange-200 md:cursor-default md:pointer-events-none">
+                                <div className="text-center">
+                                  <div className="text-[10px] md:text-xs text-orange-700 font-bold">
+                                    <span className="md:hidden">🏖️</span>
+                                    <span className="hidden md:block">🏖️ FOLGA</span>
+                                  </div>
+                                  <div className="text-[8px] md:text-[10px] text-orange-600 hidden md:block">Terapeuta de folga</div>
+                                </div>
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent className="md:hidden w-auto p-3">
+                              <div className="text-sm font-semibold text-orange-900 mb-1">🏖️ Dia de Folga</div>
+                              <div className="text-xs text-orange-700">O terapeuta está de folga neste dia</div>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      );
+                    }
+
+                    // Fora do horário normal - não mostrar nada especial, apenas vazio
                     return (
                       <div
                         key={horario}
-                        className={`h-16 md:h-20 border-b border-gray-200 p-0.5 md:p-1 ${
-                          idx % 2 === 0 ? (isFolga ? 'bg-orange-50' : 'bg-gray-100') : (isFolga ? 'bg-orange-100' : 'bg-gray-200')
+                        className={`h-16 md:h-20 border-b border-gray-200 ${
+                          idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
                         }`}
-                      >
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <button className={`w-full h-full rounded flex items-center justify-center md:cursor-default md:pointer-events-none ${
-                              isFolga ? 'bg-orange-200' : 'bg-gray-300'
-                            }`}>
-                              <div className="text-center">
-                                  {isFolga ? (
-                                    <>
-                                      <div className="text-[10px] md:text-xs text-orange-700 font-bold">
-                                        <span className="md:hidden">🏖️</span>
-                                        <span className="hidden md:block">🏖️ FOLGA</span>
-                                      </div>
-                                      <div className="text-[8px] md:text-[10px] text-orange-600 hidden md:block">Terapeuta de folga</div>
-                                    </>
-                                  ) : (
-                                    <>
-                                      <div className="text-[10px] md:text-xs text-gray-600 font-medium">
-                                        <span className="md:hidden">FECH</span>
-                                        <span className="hidden md:block">BLOQUEADO</span>
-                                      </div>
-                                      <div className="text-[8px] md:text-[10px] text-gray-500 hidden md:block">Fora do horário</div>
-                                    </>
-                                  )}
-                                </div>
-                            </button>
-                          </PopoverTrigger>
-                          <PopoverContent className="md:hidden w-auto p-3">
-                            {isFolga ? (
-                              <>
-                                <div className="text-sm font-semibold text-orange-900 mb-1">🏖️ Dia de Folga</div>
-                                <div className="text-xs text-orange-700">O terapeuta está de folga neste dia</div>
-                              </>
-                            ) : (
-                              <>
-                                <div className="text-sm font-semibold text-gray-900 mb-1">⚠️ Horário Bloqueado</div>
-                                <div className="text-xs text-gray-600">Fora do horário de trabalho do profissional</div>
-                              </>
-                            )}
-                          </PopoverContent>
-                        </Popover>
-                      </div>
+                      />
                     );
                   }
 
