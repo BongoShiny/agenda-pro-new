@@ -177,8 +177,9 @@ export default function NovoAgendamentoDialog({
           comprovante_5: agendamentoInicial?.comprovante_5 || "",
           cliente_pacote: agendamentoInicial?.cliente_pacote || "Não",
           quantas_sessoes: agendamentoInicial?.quantas_sessoes || null,
-          sessoes_feitas: agendamentoInicial?.sessoes_feitas || null
-        };
+          sessoes_feitas: agendamentoInicial?.sessoes_feitas || null,
+          forma_pagamento: agendamentoInicial?.forma_pagamento || "pago_na_clinica"
+          };
         
         setFormData(dados);
         setBuscaCliente(dados.cliente_nome);
