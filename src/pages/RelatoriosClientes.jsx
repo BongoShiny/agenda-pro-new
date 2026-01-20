@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import HistoricoServicosCliente from "../components/cliente/HistoricoServicosCliente";
 
 export default function RelatoriosClientesPage() {
   const [usuarioAtual, setUsuarioAtual] = useState(null);
