@@ -814,13 +814,28 @@ export default function RelatoriosClientesPage() {
                   agendamentosFiltrados.map((ag, idx) => (
                     <tr key={ag.id} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-4 py-3 font-medium text-gray-900">
-                        {modoEditor ? (
-                          <Input
-                            value={getValorCelula(ag, "cliente_nome")}
-                            onChange={(e) => handleEditarCelula(ag.id, "cliente_nome", e.target.value)}
-                            className="h-8 text-sm"
-                          />
-                        ) : ag.cliente_nome}
+                        <div className="flex items-center gap-2">
+                          {modoEditor ? (
+                            <Input
+                              value={getValorCelula(ag, "cliente_nome")}
+                              onChange={(e) => handleEditarCelula(ag.id, "cliente_nome", e.target.value)}
+                              className="h-8 text-sm flex-1"
+                            />
+                          ) : (
+                            <>
+                              <span>{ag.cliente_nome}</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setClienteSelecionado(clientes.find(c => c.id === ag.cliente_id))}
+                                className="p-0 h-6 w-6 text-blue-600 hover:text-blue-800"
+                                title="Ver histórico do cliente"
+                              >
+                                <ChevronRight className="w-4 h-4" />
+                              </Button>
+                            </>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3 text-gray-600">
                         {modoEditor ? (
