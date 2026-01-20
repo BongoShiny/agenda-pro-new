@@ -169,7 +169,7 @@ Deno.serve(async (req) => {
 
         try {
           // Enviar mensagem via API Octadesk
-          const url = `${WHATSAPP_API_URL}/whatsapp/sendText`;
+          const url = `${WHATSAPP_API_URL}/chat/send-template`;
           const response = await fetch(url, {
             method: 'POST',
             headers: {
@@ -177,8 +177,28 @@ Deno.serve(async (req) => {
               'apitoken': WHATSAPP_API_TOKEN
             },
             body: JSON.stringify({
-              number: telefoneFormatado,
-              text: mensagem
+              origin: {
+                contact: {
+                  name: "Vibe Terapias",
+                  channel: "whatsapp"
+                }
+              },
+              target: {
+                contact: {
+                  name: ag.cliente_nome,
+                  phoneNumber: telefoneFormatado,
+                  channel: "whatsapp"
+                }
+              },
+              content: {
+                templateId: "text_message",
+                parameters: {
+                  body: mensagem
+                }
+              },
+              options: {
+                automaticAssign: true
+              }
             })
           });
 
