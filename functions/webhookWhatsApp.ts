@@ -53,7 +53,11 @@ Deno.serve(async (req) => {
       });
 
       const agendamentosCliente = agendamentos.filter(ag => {
-        const telAg = (ag.cliente_telefone || '').replace(/\D/g, '').replace(/^55/, '');
+        let telAg = (ag.cliente_telefone || '').replace(/\D/g, '');
+        if (telAg.startsWith('55')) {
+          telAg = telAg.substring(2);
+        }
+        console.log(`📞 Comparando: ${telAg} === ${telefoneLimpo}`);
         return telAg === telefoneLimpo;
       });
 
@@ -101,7 +105,11 @@ Deno.serve(async (req) => {
       });
 
       const agendamentosCliente = agendamentos.filter(ag => {
-        const telAg = (ag.cliente_telefone || '').replace(/\D/g, '').replace(/^55/, '');
+        let telAg = (ag.cliente_telefone || '').replace(/\D/g, '');
+        if (telAg.startsWith('55')) {
+          telAg = telAg.substring(2);
+        }
+        console.log(`📞 Comparando: ${telAg} === ${telefoneLimpo}`);
         return telAg === telefoneLimpo;
       });
 
