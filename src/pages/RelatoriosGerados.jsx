@@ -50,8 +50,6 @@ export default function RelatoriosGeradosPage() {
     queryKey: ['relatorios-vendas'],
     queryFn: () => base44.entities.RelatorioVendas.list("-created_date"),
     initialData: [],
-    staleTime: 5 * 60 * 1000, // Cache por 5 minutos
-    gcTime: 10 * 60 * 1000, // Manter cache por 10 minutos
   });
 
   const gerarRelatorioMutation = useMutation({
