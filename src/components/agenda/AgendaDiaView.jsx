@@ -212,12 +212,11 @@ export default function AgendaDiaView({
 
   const getAgendamentosParaSlot = (profissionalId, horario) => {
     // Retornar apenas agendamentos que INICIAM neste horário
-    // EXCLUIR "ausência" e "cancelado" para liberar o horário
+    // EXCLUIR apenas "cancelado" para liberar o horário (manter "ausencia")
     const agendamentosSlot = agendamentos.filter(ag => 
       ag.unidade_id === unidadeSelecionada.id &&
       ag.profissional_id === profissionalId && 
       ag.hora_inicio === horario &&
-      ag.status !== "ausencia" &&
       ag.status !== "cancelado"
     );
     
