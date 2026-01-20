@@ -1314,6 +1314,20 @@ export default function RelatoriosFinanceirosPage() {
                   const totalPagoMes = totalSinalMes + totalRecebimento2Mes + totalFinalPagamentoMes;
                   const totalAReceberMes = agendamentosMesAnalise.reduce((sum, ag) => sum + (ag.falta_quanto || 0), 0);
 
+                  // Calcular totais por forma de pagamento
+                  const formasPagamento = {
+                    pix: 0,
+                    link_pagamento: 0,
+                    pago_na_clinica: 0
+                  };
+                  agendamentosMesAnalise.forEach(ag => {
+                    const forma = ag.forma_pagamento || "pago_na_clinica";
+                    const totalPagoAg = (ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0);
+                    if (formasPagamento[forma] !== undefined) {
+                      formasPagamento[forma] += totalPagoAg;
+                    }
+                  });
+
                   // Agrupar por vendedor
                   const porVendedor = {};
                   agendamentosMesAnalise.forEach(ag => {
