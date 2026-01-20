@@ -152,11 +152,13 @@ Deno.serve(async (req) => {
     }, { status: 200 });
 
   } catch (error) {
-    console.error('🔴 Erro:', error);
-    return Response.json({ 
-      success: true,
-      message: 'Erro processado',
-      error: error.message 
-    }, { status: 200 });
-  }
+      console.error('🔴 Erro:', error);
+      console.error('🔴 Stack:', error.stack);
+      return Response.json({ 
+        success: true,
+        message: 'Erro processado',
+        error: error.message,
+        stack: error.stack
+      }, { status: 200 });
+    }
 });
