@@ -249,7 +249,7 @@ export default function AgendaDiaView({
   };
 
   // Verificar se um horário em sábado atingiu o limite de atendimentos
-  const verificarLimiteSabado = (horario, profissionalId) => {
+  const verificarLimiteSabado = (horario) => {
     const diaDaSemana = dataAtual.getDay();
     
     // Se não for sábado, não tem limite
@@ -281,12 +281,10 @@ export default function AgendaDiaView({
     const [hHorario, mHorario] = horario.split(':').map(Number);
     const minutosHorario = hHorario * 60 + mHorario;
     
-    // Contar agendamentos DESTA terapeutas que OCUPAM este horário
+    // Contar TODOS os agendamentos que OCUPAM este horário (incluindo os que começam antes e terminam depois)
     const totalAgendamentosHorario = agendamentos.filter(ag => {
       // Mesma unidade
       if (ag.unidade_id !== unidadeSelecionada.id) return false;
-      // Mesma terapeutas
-      if (ag.profissional_id !== profissionalId) return false;
       // Mesma data
       if (ag.data !== dataFormatada) return false;
       // Não contar ausências, cancelados e bloqueios
@@ -404,7 +402,11 @@ export default function AgendaDiaView({
                         )}
                       </div>
                       <div className="text-[10px] md:text-xs text-gray-500 truncate text-center mt-1">{terapeuta.especialidade}</div>
-                      {horarioTerapeuta.isExcecao && !horarioTerapeuta.isFolga && (
+                      {horarioTerapeuta.isFolga ? (
+                        <div className="text-[8px] md:text-[10px] text-orange-700 bg-orange-100 px-1 md:px-2 py-0.5 rounded mt-1 text-center font-semibold">
+                          🏖️ FOLGA
+                        </div>
+                      ) : horarioTerapeuta.isExcecao && (
                         <div className="text-[8px] md:text-[10px] text-blue-600 bg-blue-50 px-1 md:px-2 py-0.5 rounded mt-1 text-center">
                           📅 {horarioTerapeuta.horario_inicio} - {horarioTerapeuta.horario_fim}
                         </div>
@@ -475,46 +477,57 @@ export default function AgendaDiaView({
                   }
 
                   if (!dentroDoHorario) {
-                    // Se é exceção com folga explícita, mostrar folga
-                    const isFolgaExplicita = horarioTerapeuta.isExcecao && horarioTerapeuta.isFolga;
+                    // Verificar se é folga
+                    const isFolga = horarioTerapeuta.isFolga;
 
-                    if (isFolgaExplicita) {
-                      return (
-                        <div
-                          key={horario}
-                          className={`h-16 md:h-20 border-b border-gray-200 p-0.5 md:p-1 ${
-                            idx % 2 === 0 ? 'bg-orange-50' : 'bg-orange-100'
-                          }`}
-                        >
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <button className="w-full h-full rounded flex items-center justify-center bg-orange-200 md:cursor-default md:pointer-events-none">
-                                <div className="text-center">
-                                  <div className="text-[10px] md:text-xs text-orange-700 font-bold">
-                                    <span className="md:hidden">🏖️</span>
-                                    <span className="hidden md:block">🏖️ FOLGA</span>
-                                  </div>
-                                  <div className="text-[8px] md:text-[10px] text-orange-600 hidden md:block">Terapeuta de folga</div>
-                                </div>
-                              </button>
-                            </PopoverTrigger>
-                            <PopoverContent className="md:hidden w-auto p-3">
-                              <div className="text-sm font-semibold text-orange-900 mb-1">🏖️ Dia de Folga</div>
-                              <div className="text-xs text-orange-700">O terapeuta está de folga neste dia</div>
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                      );
-                    }
-
-                    // Fora do horário normal - não mostrar nada especial, apenas vazio
                     return (
                       <div
                         key={horario}
-                        className={`h-16 md:h-20 border-b border-gray-200 ${
-                          idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
+                        className={`h-16 md:h-20 border-b border-gray-200 p-0.5 md:p-1 ${
+                          idx % 2 === 0 ? (isFolga ? 'bg-orange-50' : 'bg-gray-100') : (isFolga ? 'bg-orange-100' : 'bg-gray-200')
                         }`}
-                      />
+                      >
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button className={`w-full h-full rounded flex items-center justify-center md:cursor-default md:pointer-events-none ${
+                              isFolga ? 'bg-orange-200' : 'bg-gray-300'
+                            }`}>
+                              <div className="text-center">
+                                  {isFolga ? (
+                                    <>
+                                      <div className="text-[10px] md:text-xs text-orange-700 font-bold">
+                                        <span className="md:hidden">🏖️</span>
+                                        <span className="hidden md:block">🏖️ FOLGA</span>
+                                      </div>
+                                      <div className="text-[8px] md:text-[10px] text-orange-600 hidden md:block">Terapeuta de folga</div>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <div className="text-[10px] md:text-xs text-gray-600 font-medium">
+                                        <span className="md:hidden">FECH</span>
+                                        <span className="hidden md:block">BLOQUEADO</span>
+                                      </div>
+                                      <div className="text-[8px] md:text-[10px] text-gray-500 hidden md:block">Fora do horário</div>
+                                    </>
+                                  )}
+                                </div>
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent className="md:hidden w-auto p-3">
+                            {isFolga ? (
+                              <>
+                                <div className="text-sm font-semibold text-orange-900 mb-1">🏖️ Dia de Folga</div>
+                                <div className="text-xs text-orange-700">O terapeuta está de folga neste dia</div>
+                              </>
+                            ) : (
+                              <>
+                                <div className="text-sm font-semibold text-gray-900 mb-1">⚠️ Horário Bloqueado</div>
+                                <div className="text-xs text-gray-600">Fora do horário de trabalho do profissional</div>
+                              </>
+                            )}
+                          </PopoverContent>
+                        </Popover>
+                      </div>
                     );
                   }
 
@@ -522,7 +535,7 @@ export default function AgendaDiaView({
                   const isOcupado = agendamentosSlot.length > 0;
                   const agendamentoQueCobreSlot = getAgendamentoQueCobreSlot(terapeuta.id, horario);
                   const horarioPassou = horarioJaPassou(horario);
-                  const limiteSabadoAtingido = verificarLimiteSabado(horario, terapeuta.id);
+                  const limiteSabadoAtingido = verificarLimiteSabado(horario);
                   const isMenuAberto = slotMenuAberto?.unidadeId === unidadeSelecionada.id && 
                                     slotMenuAberto?.profissionalId === terapeuta.id && 
                                     slotMenuAberto?.horario === horario;
@@ -584,7 +597,7 @@ export default function AgendaDiaView({
                                   <span className="md:hidden">LOTE</span>
                                   <span className="hidden md:block">LOTADO</span>
                                 </div>
-                                <div className="text-[8px] md:text-[10px] text-orange-600 md:hidden">Limite atingido</div>
+                                <div className="text-[8px] md:text-[10px] text-orange-600 hidden md:block">Limite atingido</div>
                               </div>
                             </button>
                           </PopoverTrigger>

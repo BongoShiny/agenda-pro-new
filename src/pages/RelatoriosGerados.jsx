@@ -4,12 +4,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { ArrowLeft, Loader, Download, FileText, Zap, Copy } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, Loader, Download, FileText, Zap } from "lucide-react";
 import { format, subDays, startOfWeek, endOfWeek, startOfMonth, endOfMonth } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 const formatarDataBR = (data) => {
   return format(new Date(data + "T12:00:00"), "dd/MM/yyyy", { locale: ptBR });
@@ -25,8 +25,6 @@ export default function RelatoriosGeradosPage() {
   const [carregando, setCarregando] = useState(true);
   const [periodoSelecionado, setPeriodoSelecionado] = useState("diario");
   const [gerando, setGerando] = useState(false);
-  const [relatoriosDetalhados, setRelatoriosDetalhados] = useState([]);
-  const [carregandoDetalhado, setCarregandoDetalhado] = useState(false);
   const [abaSelecionada, setAbaSelecionada] = useState("novo");
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -52,6 +50,8 @@ export default function RelatoriosGeradosPage() {
     queryKey: ['relatorios-vendas'],
     queryFn: () => base44.entities.RelatorioVendas.list("-created_date"),
     initialData: [],
+    staleTime: 5 * 60 * 1000, // Cache por 5 minutos
+    gcTime: 10 * 60 * 1000, // Manter cache por 10 minutos
   });
 
   const gerarRelatorioMutation = useMutation({
@@ -86,6 +86,7 @@ export default function RelatoriosGeradosPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['relatorios-vendas'] });
+      setAbaSelecionada("novo");
       alert("✅ Relatório gerado com sucesso!");
     },
     onError: (error) => {
@@ -99,44 +100,6 @@ export default function RelatoriosGeradosPage() {
       await gerarRelatorioMutation.mutateAsync(periodoSelecionado);
     } finally {
       setGerando(false);
-    }
-  };
-
-  const handleGerarDetalhado = async () => {
-    setCarregandoDetalhado(true);
-    try {
-      const hoje = new Date();
-      let dataInicio, dataFim;
-
-      switch (periodoSelecionado) {
-        case "diario":
-          dataInicio = format(hoje, "yyyy-MM-dd");
-          dataFim = format(hoje, "yyyy-MM-dd");
-          break;
-        case "semanal":
-          dataInicio = format(startOfWeek(hoje, { weekStartsOn: 1 }), "yyyy-MM-dd");
-          dataFim = format(endOfWeek(hoje, { weekStartsOn: 1 }), "yyyy-MM-dd");
-          break;
-        case "mensal":
-          dataInicio = format(startOfMonth(hoje), "yyyy-MM-dd");
-          dataFim = format(endOfMonth(hoje), "yyyy-MM-dd");
-          break;
-        default:
-          dataInicio = format(hoje, "yyyy-MM-dd");
-          dataFim = format(hoje, "yyyy-MM-dd");
-      }
-
-      const response = await base44.functions.invoke('gerarRelatorioDetalhado', {
-        dataInicio,
-        dataFim
-      });
-      setRelatoriosDetalhados(response.data.relatorios);
-      setAbaSelecionada("detalhado");
-      alert("✅ Relatórios detalhados gerados com sucesso!");
-    } catch (error) {
-      alert("❌ Erro ao gerar relatórios: " + error.message);
-    } finally {
-      setCarregandoDetalhado(false);
     }
   };
 
@@ -171,96 +134,69 @@ export default function RelatoriosGeradosPage() {
 
       <div className="max-w-7xl mx-auto p-6">
         <Tabs value={abaSelecionada} onValueChange={setAbaSelecionada} className="w-full">
-          <TabsList className="grid w-full max-w-sm grid-cols-3 mb-6">
-            <TabsTrigger value="novo">IA Completo</TabsTrigger>
-            <TabsTrigger value="detalhado">Por Unidade</TabsTrigger>
+          <TabsList className="grid w-full max-w-md grid-cols-2">
+            <TabsTrigger value="novo">Novo Relatório</TabsTrigger>
             <TabsTrigger value="historico">Histórico</TabsTrigger>
           </TabsList>
 
           {/* ABA: NOVO RELATÓRIO */}
           <TabsContent value="novo" className="space-y-6">
-         <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Zap className="w-5 h-5 text-purple-600" />
-              Gerar Novo Relatório
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex gap-4 items-end">
-              <div className="flex-1">
-                <label className="text-sm font-medium mb-2 block">Selecione o Período</label>
-                <Select value={periodoSelecionado} onValueChange={setPeriodoSelecionado}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="diario">📅 Relatório Diário (Hoje)</SelectItem>
-                    <SelectItem value="semanal">📊 Relatório Semanal (Esta Semana)</SelectItem>
-                    <SelectItem value="mensal">📈 Relatório Mensal (Este Mês)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <Button
-                onClick={handleGerarRelatorio}
-                disabled={gerando}
-                className="bg-purple-600 hover:bg-purple-700"
-              >
-                {gerando ? (
-                  <>
-                    <Loader className="w-4 h-4 mr-2 animate-spin" />
-                    Gerando...
-                  </>
-                ) : (
-                  <>
-                    <Zap className="w-4 h-4 mr-2" />
-                    Gerar Relatório
-                  </>
-                )}
-              </Button>
-              <Button
-                onClick={handleGerarDetalhado}
-                disabled={carregandoDetalhado}
-                variant="outline"
-              >
-                {carregandoDetalhado ? (
-                  <>
-                    <Loader className="w-4 h-4 mr-2 animate-spin" />
-                    Gerando...
-                  </>
-                ) : (
-                  <>
-                    <FileText className="w-4 h-4 mr-2" />
-                    Por Unidade
-                  </>
-                )}
-              </Button>
-              </div>
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Zap className="w-5 h-5 text-purple-600" />
+                  Gerar Novo Relatório
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="flex gap-4 items-end">
+                  <div className="flex-1">
+                    <label className="text-sm font-medium mb-2 block">Selecione o Período</label>
+                    <Select value={periodoSelecionado} onValueChange={setPeriodoSelecionado}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="diario">📅 Relatório Diário (Hoje)</SelectItem>
+                        <SelectItem value="semanal">📊 Relatório Semanal (Esta Semana)</SelectItem>
+                        <SelectItem value="mensal">📈 Relatório Mensal (Este Mês)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button
+                    onClick={handleGerarRelatorio}
+                    disabled={gerando}
+                    className="bg-purple-600 hover:bg-purple-700"
+                  >
+                    {gerando ? (
+                      <>
+                        <Loader className="w-4 h-4 mr-2 animate-spin" />
+                        Gerando...
+                      </>
+                    ) : (
+                      <>
+                        <Zap className="w-4 h-4 mr-2" />
+                        Gerar Relatório
+                      </>
+                    )}
+                  </Button>
+                </div>
               </CardContent>
-              </Card>
+            </Card>
 
-        {/* Lista de Relatórios */}
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold text-gray-900">Relatórios Gerados</h2>
-          {relatorios.length === 0 ? (
-            <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-500">
-              <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-              <p>Nenhum relatório gerado ainda. Clique em "Gerar Relatório" para começar!</p>
-            </div>
-          ) : (
-            relatorios.map((relatorio) => (
-              <Card key={relatorio.id} className="hover:shadow-lg transition-shadow">
+            {relatorios.length > 0 ? (
+              <Card className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div>
                       <CardTitle className="text-lg capitalize">
-                        Relatório {relatorio.periodo} - {formatarDataBR(relatorio.data_inicio)}
-                        {relatorio.data_inicio !== relatorio.data_fim && (
-                          <span> a {formatarDataBR(relatorio.data_fim)}</span>
+                        Relatório {relatorios[0].periodo} - {formatarDataBR(relatorios[0].data_inicio)}
+                        {relatorios[0].data_inicio !== relatorios[0].data_fim && (
+                          <span> a {formatarDataBR(relatorios[0].data_fim)}</span>
                         )}
                       </CardTitle>
                       <p className="text-sm text-gray-500 mt-1">
-                        Gerado em {format(new Date(relatorio.created_date), "dd/MM/yyyy HH:mm", { locale: ptBR })} por {relatorio.gerado_por}
+                        Gerado em {format(new Date(relatorios[0].created_date), "dd/MM/yyyy HH:mm", { locale: ptBR })} por {relatorios[0].gerado_por}
                       </p>
                     </div>
                     <Button variant="outline" size="sm" onClick={() => window.print()}>
@@ -273,130 +209,98 @@ export default function RelatoriosGeradosPage() {
                   <div className="grid grid-cols-4 gap-4 mb-6">
                     <div className="bg-blue-50 p-3 rounded-lg">
                       <p className="text-xs text-gray-600 font-medium">Total de Vendas</p>
-                      <p className="text-2xl font-bold text-blue-600">{relatorio.total_vendas}</p>
+                      <p className="text-2xl font-bold text-blue-600">{relatorios[0].total_vendas}</p>
                     </div>
                     <div className="bg-green-50 p-3 rounded-lg">
                       <p className="text-xs text-gray-600 font-medium">Valor Total</p>
-                      <p className="text-2xl font-bold text-green-600">{formatarMoeda(relatorio.total_valor)}</p>
+                      <p className="text-2xl font-bold text-green-600">{formatarMoeda(relatorios[0].total_valor)}</p>
                     </div>
                     <div className="bg-emerald-50 p-3 rounded-lg">
                       <p className="text-xs text-gray-600 font-medium">Recebido</p>
-                      <p className="text-2xl font-bold text-emerald-600">{formatarMoeda(relatorio.total_recebido)}</p>
+                      <p className="text-2xl font-bold text-emerald-600">{formatarMoeda(relatorios[0].total_recebido)}</p>
                     </div>
                     <div className="bg-purple-50 p-3 rounded-lg">
                       <p className="text-xs text-gray-600 font-medium">Taxa Recebimento</p>
-                      <p className="text-2xl font-bold text-purple-600">{relatorio.taxa_recebimento?.toFixed(1)}%</p>
+                      <p className="text-2xl font-bold text-purple-600">{relatorios[0].taxa_recebimento?.toFixed(1)}%</p>
                     </div>
                   </div>
 
                   <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
                     <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
-                      {relatorio.conteudo_relatorio}
+                      {relatorios[0].conteudo_relatorio}
                     </div>
                   </div>
                 </CardContent>
               </Card>
-            ))
-          )}
-          </div>
-          </TabsContent>
-
-          {/* ABA: DETALHADO POR UNIDADE */}
-          <TabsContent value="detalhado" className="space-y-4">
-           {relatoriosDetalhados.length === 0 ? (
-             <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-500">
-               <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-               <p>Clique em "Por Unidade" acima para gerar relatórios detalhados por unidade e vendedor.</p>
-             </div>
-           ) : (
-             relatoriosDetalhados.map((rel, idx) => (
-               <Card key={idx} className="hover:shadow-lg transition-shadow">
-                 <CardHeader>
-                   <CardTitle className="text-base">{rel.titulo}</CardTitle>
-                 </CardHeader>
-                 <CardContent>
-                   <div className="bg-gray-50 rounded-lg p-4 font-mono text-sm whitespace-pre-wrap leading-relaxed overflow-x-auto border border-gray-200">
-                     {rel.conteudo_formatado}
-                   </div>
-                   <Button
-                     variant="outline"
-                     size="sm"
-                     className="mt-4"
-                     onClick={() => {
-                       navigator.clipboard.writeText(rel.conteudo_formatado);
-                       alert("✅ Copiado para clipboard!");
-                     }}
-                   >
-                     <Copy className="w-4 h-4 mr-2" />
-                     Copiar
-                   </Button>
-                 </CardContent>
-               </Card>
-             ))
-           )}
+            ) : (
+              <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-500">
+                <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p>Nenhum relatório gerado. Clique em "Gerar Relatório" para começar!</p>
+              </div>
+            )}
           </TabsContent>
 
           {/* ABA: HISTÓRICO */}
           <TabsContent value="historico" className="space-y-4">
-           {relatorios.length === 0 ? (
-             <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-500">
-               <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-               <p>Nenhum relatório gerado ainda.</p>
-             </div>
-           ) : (
-             relatorios.map((relatorio) => (
-               <Card key={relatorio.id} className="hover:shadow-lg transition-shadow">
-                 <CardHeader>
-                   <div className="flex items-start justify-between">
-                     <div>
-                       <CardTitle className="text-lg capitalize">
-                         Relatório {relatorio.periodo} - {formatarDataBR(relatorio.data_inicio)}
-                         {relatorio.data_inicio !== relatorio.data_fim && (
-                           <span> a {formatarDataBR(relatorio.data_fim)}</span>
-                         )}
-                       </CardTitle>
-                       <p className="text-sm text-gray-500 mt-1">
-                         Gerado em {format(new Date(relatorio.created_date), "dd/MM/yyyy HH:mm", { locale: ptBR })} por {relatorio.gerado_por}
-                       </p>
-                     </div>
-                     <Button variant="outline" size="sm" onClick={() => window.print()}>
-                       <Download className="w-4 h-4 mr-2" />
-                       Exportar
-                     </Button>
-                   </div>
-                 </CardHeader>
-                 <CardContent>
-                   <div className="grid grid-cols-4 gap-4 mb-6">
-                     <div className="bg-blue-50 p-3 rounded-lg">
-                       <p className="text-xs text-gray-600 font-medium">Total de Vendas</p>
-                       <p className="text-2xl font-bold text-blue-600">{relatorio.total_vendas}</p>
-                     </div>
-                     <div className="bg-green-50 p-3 rounded-lg">
-                       <p className="text-xs text-gray-600 font-medium">Valor Total</p>
-                       <p className="text-2xl font-bold text-green-600">{formatarMoeda(relatorio.total_valor)}</p>
-                     </div>
-                     <div className="bg-emerald-50 p-3 rounded-lg">
-                       <p className="text-xs text-gray-600 font-medium">Recebido</p>
-                       <p className="text-2xl font-bold text-emerald-600">{formatarMoeda(relatorio.total_recebido)}</p>
-                     </div>
-                     <div className="bg-purple-50 p-3 rounded-lg">
-                       <p className="text-xs text-gray-600 font-medium">Taxa Recebimento</p>
-                       <p className="text-2xl font-bold text-purple-600">{relatorio.taxa_recebimento?.toFixed(1)}%</p>
-                     </div>
-                   </div>
+            {relatorios.length === 0 ? (
+              <div className="bg-white rounded-lg border border-gray-200 p-8 text-center text-gray-500">
+                <FileText className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p>Nenhum relatório gerado ainda.</p>
+              </div>
+            ) : (
+              relatorios.map((relatorio) => (
+                <Card key={relatorio.id} className="hover:shadow-lg transition-shadow">
+                  <CardHeader>
+                    <div className="flex items-start justify-between">
+                      <div>
+                        <CardTitle className="text-lg capitalize">
+                          Relatório {relatorio.periodo} - {formatarDataBR(relatorio.data_inicio)}
+                          {relatorio.data_inicio !== relatorio.data_fim && (
+                            <span> a {formatarDataBR(relatorio.data_fim)}</span>
+                          )}
+                        </CardTitle>
+                        <p className="text-sm text-gray-500 mt-1">
+                          Gerado em {format(new Date(relatorio.created_date), "dd/MM/yyyy HH:mm", { locale: ptBR })} por {relatorio.gerado_por}
+                        </p>
+                      </div>
+                      <Button variant="outline" size="sm" onClick={() => window.print()}>
+                        <Download className="w-4 h-4 mr-2" />
+                        Exportar
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-4 gap-4 mb-6">
+                      <div className="bg-blue-50 p-3 rounded-lg">
+                        <p className="text-xs text-gray-600 font-medium">Total de Vendas</p>
+                        <p className="text-2xl font-bold text-blue-600">{relatorio.total_vendas}</p>
+                      </div>
+                      <div className="bg-green-50 p-3 rounded-lg">
+                        <p className="text-xs text-gray-600 font-medium">Valor Total</p>
+                        <p className="text-2xl font-bold text-green-600">{formatarMoeda(relatorio.total_valor)}</p>
+                      </div>
+                      <div className="bg-emerald-50 p-3 rounded-lg">
+                        <p className="text-xs text-gray-600 font-medium">Recebido</p>
+                        <p className="text-2xl font-bold text-emerald-600">{formatarMoeda(relatorio.total_recebido)}</p>
+                      </div>
+                      <div className="bg-purple-50 p-3 rounded-lg">
+                        <p className="text-xs text-gray-600 font-medium">Taxa Recebimento</p>
+                        <p className="text-2xl font-bold text-purple-600">{relatorio.taxa_recebimento?.toFixed(1)}%</p>
+                      </div>
+                    </div>
 
-                   <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
-                     <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
-                       {relatorio.conteudo_relatorio}
-                     </div>
-                   </div>
-                 </CardContent>
-               </Card>
-             ))
-           )}
+                    <div className="bg-gray-50 rounded-lg p-4 max-h-96 overflow-y-auto">
+                      <div className="prose prose-sm max-w-none text-gray-700 whitespace-pre-wrap text-sm leading-relaxed">
+                        {relatorio.conteudo_relatorio}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))
+            )}
           </TabsContent>
-          </Tabs>
-          </div>
-          </div>
-          );
-          }
+        </Tabs>
+      </div>
+    </div>
+  );
+}
