@@ -887,7 +887,10 @@ export default function RelatoriosFinanceirosPage() {
           <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
               <label className="text-sm font-medium">Período</label>
-              <Select value={periodo} onValueChange={setPeriodo}>
+              <Select value={periodo} onValueChange={(value) => {
+                setPeriodo(value);
+                if (value !== "personalizado") setDataPersonalizada(null);
+              }}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -896,13 +899,23 @@ export default function RelatoriosFinanceirosPage() {
                   <SelectItem value="semana">Esta Semana</SelectItem>
                   <SelectItem value="mes">Este Mês</SelectItem>
                   <SelectItem value="ano">Este Ano</SelectItem>
+                  <SelectItem value="personalizado">Personalizado</SelectItem>
                 </SelectContent>
               </Select>
+              {periodo === "personalizado" && (
+                <Input
+                  type="date"
+                  value={dataPersonalizada ? format(new Date(dataPersonalizada), "yyyy-MM-dd") : ""}
+                  onChange={(e) => setDataPersonalizada(e.target.value ? new Date(e.target.value) : null)}
+                  className="mt-2"
+                />
+              )}
               <p className="text-xs text-gray-500 mt-1">
                 {periodo === "dia" && `📅 ${format(new Date(), "dd 'de' MMMM", { locale: ptBR })}`}
                 {periodo === "semana" && `📅 ${format(startOfWeek(new Date(), { locale: ptBR }), "dd/MM")} - ${format(endOfWeek(new Date(), { locale: ptBR }), "dd/MM")}`}
                 {periodo === "mes" && `📅 ${format(new Date(), "MMMM 'de' yyyy", { locale: ptBR })}`}
                 {periodo === "ano" && `📅 ${format(new Date(), "yyyy")}`}
+                {periodo === "personalizado" && dataPersonalizada && `📅 ${format(new Date(dataPersonalizada), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}`}
               </p>
             </div>
 
