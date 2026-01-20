@@ -531,13 +531,27 @@ export default function NovoAgendamentoDialog({
           )}
 
           <div className="space-y-2">
-            <Label>Profissional *</Label>
-            <Select value={formData.profissional_id} onValueChange={handleProfissionalChange}>
+            <Label>Unidade *</Label>
+            <Select value={formData.unidade_id} onValueChange={handleUnidadeChange}>
               <SelectTrigger>
-                <SelectValue placeholder="Selecione o profissional" />
+                <SelectValue placeholder="Selecione a unidade" />
               </SelectTrigger>
               <SelectContent>
-                {profissionais.map(prof => (
+                {unidades.map(unidade => (
+                  <SelectItem key={unidade.id} value={unidade.id}>{unidade.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Profissional *</Label>
+            <Select value={formData.profissional_id} onValueChange={handleProfissionalChange} disabled={!formData.unidade_id}>
+              <SelectTrigger>
+                <SelectValue placeholder={formData.unidade_id ? "Selecione o profissional" : "Selecione uma unidade primeiro"} />
+              </SelectTrigger>
+              <SelectContent>
+                {profissionaisFiltrados.map(prof => (
                   <SelectItem key={prof.id} value={prof.id}>{prof.nome}</SelectItem>
                 ))}
               </SelectContent>
