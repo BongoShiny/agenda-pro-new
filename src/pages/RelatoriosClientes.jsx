@@ -850,25 +850,11 @@ export default function RelatoriosClientesPage() {
                       </td>
                       <td className="px-4 py-3 text-gray-600">
                         {modoEditor ? (
-                          <Select 
-                            value={getValorCelula(ag, "profissional_id") || ag.profissional_id || ""} 
-                            onValueChange={(value) => {
-                              const profissional = profissionais.find(p => p.id === value);
-                              handleEditarCelula(ag.id, "profissional_id", value);
-                              handleEditarCelula(ag.id, "profissional_nome", profissional?.nome || "");
-                            }}
-                          >
-                            <SelectTrigger className="h-8 text-xs">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {profissionais
-                                .filter(p => p.ativo !== false)
-                                .map(p => (
-                                  <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
+                          <Input
+                            value={getValorCelula(ag, "profissional_nome")}
+                            onChange={(e) => handleEditarCelula(ag.id, "profissional_nome", e.target.value)}
+                            className="h-8 text-sm"
+                          />
                         ) : ag.profissional_nome}
                       </td>
                       <td className="px-4 py-3 text-gray-600">

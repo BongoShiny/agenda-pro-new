@@ -399,10 +399,10 @@ export default function NovoAgendamentoDialog({
        delete dataToSave.servicos_selecionados;
 
        // Verificar se há bloqueio que SOBREPÕE com o horário selecionado
-       const [horaInicioNum, minInicioNum] = formData.hora_inicio.split(':').map(Number);
-       const [horaFimNum, minFimNum] = formData.hora_fim.split(':').map(Number);
-       const inicioMinutos = horaInicioNum * 60 + minInicioNum;
-       const fimMinutos = horaFimNum * 60 + minFimNum;
+      const [horaInicioNum, minInicioNum] = formData.hora_inicio.split(':').map(Number);
+      const [horaFimNum, minFimNum] = formData.hora_fim.split(':').map(Number);
+      const inicioMinutos = horaInicioNum * 60 + minInicioNum;
+      const fimMinutos = horaFimNum * 60 + minFimNum;
       
       const horarioBloqueado = agendamentos.find(ag => {
         if (ag.data !== formData.data) return false;
