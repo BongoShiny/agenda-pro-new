@@ -20,16 +20,14 @@ Deno.serve(async (req) => {
 
     const WHATSAPP_API_TOKEN = (Deno.env.get("WHATSAPP_API_TOKEN") || "").trim();
     const WHATSAPP_API_URL = (Deno.env.get("WHATSAPP_API_URL") || "").trim();
+    const WHATSAPP_CLIENT_TOKEN = (Deno.env.get("WHATSAPP_CLIENT_TOKEN") || "").trim();
 
-    console.log('🔑 Token existe?', !!WHATSAPP_API_TOKEN);
-    console.log('🔑 Token length:', WHATSAPP_API_TOKEN.length);
-    console.log('🌐 URL:', WHATSAPP_API_URL);
-
-    if (!WHATSAPP_API_TOKEN || !WHATSAPP_API_URL) {
+    if (!WHATSAPP_API_TOKEN || !WHATSAPP_API_URL || !WHATSAPP_CLIENT_TOKEN) {
       return Response.json({ 
-        error: 'Token ou URL da API não configurados',
+        error: 'Credenciais Z-API não configuradas completamente',
         tokenOk: !!WHATSAPP_API_TOKEN,
-        urlOk: !!WHATSAPP_API_URL
+        urlOk: !!WHATSAPP_API_URL,
+        clientTokenOk: !!WHATSAPP_CLIENT_TOKEN
       }, { status: 500 });
     }
 
@@ -45,11 +43,9 @@ Deno.serve(async (req) => {
 
     const sendPayload = {
       phone: telefoneFormatado,
-      message: mensagem
+      message: mensagem,
+      clientToken: WHATSAPP_CLIENT_TOKEN
     };
-
-    console.log('📤 URL:', sendUrl);
-    console.log('📦 Payload:', JSON.stringify(sendPayload, null, 2));
 
     const sendResponse = await fetch(sendUrl, {
       method: 'POST',
