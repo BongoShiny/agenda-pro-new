@@ -160,17 +160,53 @@ Deno.serve(async (req) => {
         const telefoneFormatado = telefone.startsWith('55') ? telefone : '55' + telefone;
 
         try {
-          // Enviar mensagem via API do WhatsApp
-          const response = await fetch(WHATSAPP_API_URL, {
+          // Octadesk API - buscar chat existente primeiro
+          const buscaChatUrl = `${WHATSAPP_API_URL}/api/v1/chats`;
+          
+          let chatId = null;
+          
+          try {
+            const buscaResponse = await fetch(buscaChatUrl, {
+              method: 'GET',
+              headers: {
+                'Content-Type': 'application/json',
+                'apikey': WHATSAPP_API_TOKEN
+              }
+            });
+            
+            if (buscaResponse.ok) {
+              const chats = await buscaResponse.json();
+              const chatExistente = chats.find(chat => 
+                chat.phoneNumber && chat.phoneNumber.replace(/\D/g, '').includes(telefoneFormatado.replace(/\D/g, ''))
+              );
+              
+              if (chatExistente) {
+                chatId = chatExistente.id;
+              }
+            }
+          } catch (e) {
+            console.log('Erro ao buscar chat para', telefoneFormatado, e);
+          }
+          
+          // Se não encontrou chat, pula este agendamento
+          if (!chatId) {
+            console.log(`Chat não encontrado para ${telefoneFormatado} - cliente precisa iniciar conversa primeiro`);
+            erros.push(`Chat não encontrado para ${ag.cliente_nome} (${telefoneFormatado})`);
+            continue;
+          }
+          
+          // Enviar mensagem via API do WhatsApp Octadesk
+          const url = `${WHATSAPP_API_URL}/api/v1/chat/${chatId}/messages`;
+          const response = await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
               'apikey': WHATSAPP_API_TOKEN
             },
             body: JSON.stringify({
-              number: telefoneFormatado,
-              text: mensagem,
-              instance: WHATSAPP_INSTANCE_NAME
+              type: 'public',
+              body: mensagem,
+              channel: 'whatsapp'
             })
           });
 
