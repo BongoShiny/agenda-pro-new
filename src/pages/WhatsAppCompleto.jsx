@@ -209,22 +209,26 @@ export default function WhatsAppCompleto() {
                 <CardDescription>Siga este guia passo a passo para configurar sua integração</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Passo 1 - Evolution API */}
+                {/* Passo 1 - WPPConnect */}
                 <div className="border-l-4 border-blue-500 pl-4">
-                  <h3 className="font-bold text-lg mb-2">1️⃣ Instalar Evolution API (Recomendado)</h3>
-                  <p className="text-sm mb-2">A Evolution API é gratuita, open-source e funciona com seu WhatsApp Business normal.</p>
+                  <h3 className="font-bold text-lg mb-2">1️⃣ Instalar WPPConnect (Recomendado)</h3>
+                  <p className="text-sm mb-2">WPPConnect é gratuita, open-source, brasileira e funciona com seu WhatsApp Business normal.</p>
                   <div className="bg-blue-50 p-3 rounded space-y-2">
-                    <p className="font-semibold text-sm">Opção A - Servidor Próprio (Gratuito):</p>
+                    <p className="font-semibold text-sm">📖 Documentação:</p>
+                    <a href="https://wppconnect.io" target="_blank" className="text-blue-600 underline text-sm">wppconnect.io</a>
+                    
+                    <p className="font-semibold text-sm mt-3">Opção A - Servidor Próprio (Gratuito):</p>
                     <ol className="list-decimal list-inside space-y-1 text-xs ml-2">
-                      <li>Acesse: <a href="https://doc.evolution-api.com" target="_blank" className="text-blue-600 underline">doc.evolution-api.com</a></li>
-                      <li>Siga o guia de instalação (Docker recomendado)</li>
-                      <li>A API rodará em seu próprio servidor</li>
+                      <li>Acesse: <a href="https://github.com/wppconnect-team/wppconnect-server" target="_blank" className="text-blue-600 underline">GitHub - WPPConnect Server</a></li>
+                      <li>Siga o guia de instalação (Node.js ou Docker)</li>
+                      <li>Clone, instale dependências e rode: <code className="bg-white px-1 rounded">npm start</code></li>
+                      <li>A API rodará em http://localhost:3000 (por padrão)</li>
                     </ol>
-                    <p className="font-semibold text-sm mt-3">Opção B - Serviço Hospedado (Pago):</p>
+                    <p className="font-semibold text-sm mt-3">Opção B - Versão Gerenciada (Pago):</p>
                     <ol className="list-decimal list-inside space-y-1 text-xs ml-2">
-                      <li>Acesse: <a href="https://evolution-api.com" target="_blank" className="text-blue-600 underline">evolution-api.com</a></li>
-                      <li>Crie uma conta e escolha um plano</li>
-                      <li>Ganhe URL e Token prontos para usar</li>
+                      <li>Use serviços como Hugging Face, Render ou similar</li>
+                      <li>Deploy automático via GitHub</li>
+                      <li>Ganhe URL pública para acessar de qualquer lugar</li>
                     </ol>
                   </div>
                 </div>
@@ -247,31 +251,31 @@ export default function WhatsAppCompleto() {
                   <div className="space-y-3">
                     <div className="bg-gray-50 p-3 rounded">
                       <p className="font-semibold mb-1">🔗 URL da API:</p>
-                      <code className="text-xs bg-white px-2 py-1 rounded block">http://seu-servidor:8080</code>
+                      <code className="text-xs bg-white px-2 py-1 rounded block">http://seu-servidor:3000</code>
                       <p className="text-xs text-gray-600 mt-1">
-                        • Se instalou no seu servidor: http://seu-ip:8080<br/>
-                        • Se usa serviço hospedado: fornecido pela plataforma<br/>
-                        • Exemplo: https://api.evolution-api.com
+                        • Se instalou localmente: http://localhost:3000<br/>
+                        • Se fez deploy: http://seu-dominio.com<br/>
+                        • Exemplo: https://wppconnect.seu-app.com
                       </p>
                     </div>
 
                     <div className="bg-gray-50 p-3 rounded">
                       <p className="font-semibold mb-1">🔑 API Key (Token):</p>
-                      <code className="text-xs bg-white px-2 py-1 rounded block">B6D711FCDE4D4FD5936544120E713976</code>
+                      <code className="text-xs bg-white px-2 py-1 rounded block">Bearer SUA_CHAVE_API</code>
                       <p className="text-xs text-gray-600 mt-1">
-                        • Encontre em: <strong>Configurações → API Key</strong><br/>
-                        • Ou defina no arquivo .env: <code>AUTHENTICATION_API_KEY</code><br/>
-                        • Formato: string alfanumérica (sem hífens)
+                        • Defina no arquivo .env: <code>BEARER_TOKEN</code><br/>
+                        • Ou configure em: <strong>Settings → API Keys</strong><br/>
+                        • Cole sem o prefixo "Bearer " (será adicionado automaticamente)
                       </p>
                     </div>
 
                     <div className="bg-gray-50 p-3 rounded">
-                      <p className="font-semibold mb-1">📱 Nome da Instância:</p>
+                      <p className="font-semibold mb-1">📱 Sessão/Instância:</p>
                       <code className="text-xs bg-white px-2 py-1 rounded block">vibe_terapias</code>
                       <p className="text-xs text-gray-600 mt-1">
-                        • É o nome que você criou ao conectar o WhatsApp<br/>
-                        • Exemplos: vibe_terapias, meu_whatsapp, clinica<br/>
-                        • Não use espaços - use underline ou hífen
+                        • Nome que você criou ao conectar no painel<br/>
+                        • Exemplos: vibe_terapias, clinica, atendimento<br/>
+                        • Sem espaços - use underline ou hífen
                       </p>
                     </div>
                   </div>
@@ -316,14 +320,11 @@ export default function WhatsAppCompleto() {
                 <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
                   <h4 className="font-semibold mb-2">💡 Outras Opções de API WhatsApp:</h4>
                   <ul className="space-y-2 text-sm">
-                    <li><strong>Z-API:</strong> API brasileira paga (mais simples)
-                      <br/><a href="https://z-api.io" target="_blank" className="text-blue-600 underline text-xs">z-api.io</a> - Fornece URL e Token prontos
+                    <li><strong>Z-API:</strong> API brasileira paga
+                      <br/><a href="https://z-api.io" target="_blank" className="text-blue-600 underline text-xs">z-api.io</a> - Interface gráfica, suporte incluído
                     </li>
-                    <li><strong>WPPConnect:</strong> Open-source brasileiro
-                      <br/><a href="https://wppconnect.io" target="_blank" className="text-blue-600 underline text-xs">wppconnect.io</a> - Similar à Evolution API
-                    </li>
-                    <li><strong>Baileys:</strong> Biblioteca Node.js (para desenvolvedores)
-                      <br/><a href="https://github.com/WhiskeySockets/Baileys" target="_blank" className="text-blue-600 underline text-xs">github.com/WhiskeySockets/Baileys</a>
+                    <li><strong>Evolution API:</strong> Open-source com versão gerenciada
+                      <br/><a href="https://evolution-api.com" target="_blank" className="text-blue-600 underline text-xs">evolution-api.com</a> - Em breve (como mencionado)
                     </li>
                   </ul>
                 </div>

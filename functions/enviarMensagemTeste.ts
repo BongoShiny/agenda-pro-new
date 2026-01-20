@@ -40,13 +40,13 @@ Deno.serve(async (req) => {
     console.log('🔧 Iniciando envio...');
     console.log('  Telefone:', telefoneFormatado);
     
-    // Evolution API - enviar mensagem de texto
-    const instanceName = Deno.env.get("WHATSAPP_INSTANCE_NAME") || "default";
-    const sendUrl = `${WHATSAPP_API_URL}/message/sendText/${instanceName}`;
+    // WPPConnect API - enviar mensagem de texto
+    const sessionName = Deno.env.get("WHATSAPP_INSTANCE_NAME") || "default";
+    const sendUrl = `${WHATSAPP_API_URL}/api/sendText/${sessionName}`;
 
     const sendPayload = {
-      number: telefoneFormatado,
-      text: mensagem
+      phone: telefoneFormatado,
+      message: mensagem
     };
 
     console.log('📤 URL:', sendUrl);
@@ -56,7 +56,7 @@ Deno.serve(async (req) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'apikey': WHATSAPP_API_TOKEN
+        'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`
       },
       body: JSON.stringify(sendPayload)
     });
