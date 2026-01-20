@@ -89,7 +89,7 @@ Deno.serve(async (req) => {
       if (chatExistente) {
         // ENVIAR PARA CHAT EXISTENTE
         console.log(`📤 Enviando mensagem para chat ${chatExistente.id}...`);
-        const url = `${WHATSAPP_API_URL}/api/v1/chat/${chatExistente.id}/messages`;
+        const url = `${WHATSAPP_API_URL}/chat/${chatExistente.id}/messages`;
         
         const response = await fetch(url, {
           method: 'POST',
