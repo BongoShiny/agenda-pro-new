@@ -147,6 +147,18 @@ export default function AdministradorPage() {
           </Link>
 
           {(isAdmin || isGerencia || isPosVenda) && (
+          <Link to={createPageUrl("CRM")} className="block">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-teal-300 transition-all cursor-pointer h-full">
+              <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mb-4">
+                <Users className="w-6 h-6 text-teal-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">CRM Clientes Ativos</h3>
+              <p className="text-sm text-gray-500">Gerenciar clientes com pacotes ativos, renovações e retenção</p>
+            </div>
+          </Link>
+          )}
+
+          {(isAdmin || isGerencia || isPosVenda) && (
           <Link to={createPageUrl("RelatoriosClientes")} className="block">
             <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-emerald-300 transition-all cursor-pointer h-full">
               <div className="w-12 h-12 bg-emerald-100 rounded-lg flex items-center justify-center mb-4">
@@ -216,7 +228,7 @@ export default function AdministradorPage() {
                 {isFinanceiro 
                   ? "Você tem acesso apenas ao Histórico de agendamentos e ações do sistema."
                   : isPosVenda
-                  ? "Você tem acesso aos Relatórios/Planilha com as unidades permitidas."
+                  ? "Você tem acesso aos CRM, Relatórios/Planilha com as unidades permitidas."
                   : isMetricas
                   ? "Você tem acesso apenas a Análises e Relatórios Avançados."
                   : "Apenas superiores têm acesso a esta área. As alterações feitas aqui afetam todo o sistema."}
