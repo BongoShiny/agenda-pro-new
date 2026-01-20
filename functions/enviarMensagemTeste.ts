@@ -42,7 +42,7 @@ Deno.serve(async (req) => {
     
     // PASSO 1: Buscar chats existentes
     console.log('🔍 Buscando chats existentes...');
-    const buscaChatUrl = `${WHATSAPP_API_URL}/api/v1/chats`;
+    const buscaChatUrl = `${WHATSAPP_API_URL}/chats`;
     
     const buscaResponse = await fetch(buscaChatUrl, {
       method: 'GET',
