@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card } from "@/components/ui/card";
-import { Search, Plus, Users } from "lucide-react";
+import { Search, Plus, Users, ArrowLeft } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -47,7 +47,12 @@ export default function CRM() {
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
-          <div>
+          <Link to={createPageUrl("Administrador")}>
+            <Button variant="ghost" size="icon" className="mr-4">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          </Link>
+          <div className="flex-1">
             <h1 className="text-4xl font-bold text-gray-900 flex items-center gap-2">
               <Users className="w-8 h-8 text-teal-600" />
               CRM Clientes Ativos
