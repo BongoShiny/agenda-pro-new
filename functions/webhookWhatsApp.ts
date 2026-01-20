@@ -1,22 +1,23 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.4';
 
 Deno.serve(async (req) => {
-  // SEMPRE retornar 200 OK para não bloquear webhooks
-  try {
-    const base44 = createClientFromRequest(req);
-    
-    // GET - verificação de status
-    if (req.method === 'GET') {
-      return Response.json({ 
-        success: true,
-        status: 'Webhook ativo',
-        message: 'Configure este webhook na Octadesk'
-      }, { status: 200 });
-    }
-    
-    // Receber dados
-    const body = await req.json().catch(() => ({}));
-    console.log('📥 Webhook recebido:', JSON.stringify(body, null, 2));
+    // SEMPRE retornar 200 OK para não bloquear webhooks
+    try {
+      // GET - verificação de status
+      if (req.method === 'GET') {
+        return Response.json({ 
+          success: true,
+          status: 'Webhook ativo',
+          message: 'Configure este webhook na Octadesk'
+        }, { status: 200 });
+      }
+
+      // Receber dados
+      const body = await req.json().catch(() => ({}));
+      console.log('📥 Webhook recebido:', JSON.stringify(body, null, 2));
+
+      // Criar cliente base44 APÓS validar que não é GET
+      const base44 = createClientFromRequest(req);
 
     // Extrair dados - múltiplos formatos
     const mensagem = body.message?.body || body.body || body.text || body.mensagem || '';
