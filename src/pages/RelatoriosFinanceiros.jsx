@@ -832,7 +832,8 @@ export default function RelatoriosFinanceirosPage() {
     dia: "Hoje",
     semana: "Esta Semana",
     mes: "Este Mês",
-    ano: "Este Ano"
+    ano: "Este Ano",
+    personalizado: "Personalizado"
   };
 
   if (carregando) {
