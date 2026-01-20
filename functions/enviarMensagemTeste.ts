@@ -18,13 +18,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Telefone e mensagem são obrigatórios' }, { status: 400 });
     }
 
-    const WHATSAPP_API_URL = Deno.env.get("WHATSAPP_API_URL");
     const WHATSAPP_API_TOKEN = Deno.env.get("WHATSAPP_API_TOKEN");
-    const WHATSAPP_INSTANCE_NAME = Deno.env.get("WHATSAPP_INSTANCE_NAME");
+    const WHATSAPP_API_URL = "https://o216174-f20.octadesk.services";
 
-    if (!WHATSAPP_API_URL || !WHATSAPP_API_TOKEN || !WHATSAPP_INSTANCE_NAME) {
+    if (!WHATSAPP_API_TOKEN) {
       return Response.json({ 
-        error: 'Configurações do WhatsApp não encontradas. Configure as variáveis de ambiente: WHATSAPP_API_URL, WHATSAPP_API_TOKEN, WHATSAPP_INSTANCE_NAME' 
+        error: 'Token da API não encontrado' 
       }, { status: 500 });
     }
 
