@@ -38,7 +38,6 @@ import {
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
-import RelatorioVendedorDia from "../components/financeiro/RelatorioVendedorDia";
 
 const formatarMoeda = (valor) => {
   if (!valor && valor !== 0) return "R$ 0,00";
@@ -1868,31 +1867,23 @@ export default function RelatoriosFinanceirosPage() {
           </TabsContent>
 
           {/* Aba Por Vendedor */}
-           <TabsContent value="por-vendedor">
-             <div className="space-y-6">
-               {/* Relatório do Dia ao lado */}
-               <RelatorioVendedorDia 
-                 agendamentos={agendamentos}
-                 dataInicio={dataInicio}
-                 dataFim={dataFim}
-               />
-
-               <Card>
-                 <CardHeader>
-                   <CardTitle>Faturamento por Vendedor (Período Selecionado)</CardTitle>
-                 </CardHeader>
-                 <CardContent>
-                   <Table>
-                     <TableHeader>
-                       <TableRow>
-                         <TableHead>Vendedor</TableHead>
-                         <TableHead className="text-right">Atendimentos</TableHead>
-                         <TableHead className="text-right">Valor Combinado</TableHead>
-                         <TableHead className="text-right">Valor Recebido</TableHead>
-                         <TableHead className="text-right">A Receber</TableHead>
-                         <TableHead className="text-right">Ações</TableHead>
-                       </TableRow>
-                     </TableHeader>
+          <TabsContent value="por-vendedor">
+            <Card>
+              <CardHeader>
+                <CardTitle>Faturamento por Vendedor</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Vendedor</TableHead>
+                      <TableHead className="text-right">Atendimentos</TableHead>
+                      <TableHead className="text-right">Valor Combinado</TableHead>
+                      <TableHead className="text-right">Valor Recebido</TableHead>
+                      <TableHead className="text-right">A Receber</TableHead>
+                      <TableHead className="text-right">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
                   <TableBody>
                     {vendedores.filter(v => v.ativo).map(vendedor => {
                       const agendamentosVendedor = agendamentosFiltrados.filter(ag => 
@@ -1939,10 +1930,9 @@ export default function RelatoriosFinanceirosPage() {
                     <p className="text-sm mt-2">Crie vendedores para visualizar o relatório</p>
                   </div>
                 )}
-                </CardContent>
-                </Card>
-                </div>
-                </TabsContent>
+              </CardContent>
+            </Card>
+          </TabsContent>
         </Tabs>
       </div>
 
