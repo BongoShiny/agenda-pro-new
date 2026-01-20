@@ -138,8 +138,9 @@ Deno.serve(async (req) => {
         contact: {
           channel: "whatsapp",
           phoneNumber: "554384981523",
-          name: "Sistema Vibe",
-          email: "sistema@vibe.com"
+          name: "Vibe Terapias",
+          email: "sistema@vibe.com",
+          waba: "154138641866717"
         }
       },
       target: {
