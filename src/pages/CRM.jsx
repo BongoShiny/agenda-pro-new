@@ -16,7 +16,62 @@ export default function CRM() {
 
   const { data: clientes = [], isLoading } = useQuery({
     queryKey: ["clientesCRM"],
-    queryFn: () => base44.entities.ClienteCRM.list("-updated_date", 100),
+    queryFn: async () => {
+      // Sincronizar clientes da agenda que têm pacote ativo
+      try {
+        const clientesAgenda = await base44.entities.Cliente.list("nome");
+        const agendamentos = await base44.entities.Agendamento.list("-data");
+        
+        // Filtrar clientes que têm pacote ativo
+        const clientesComPacote = clientesAgenda.filter(cliente => {
+          const temPacote = agendamentos.some(ag => 
+            ag.cliente_id === cliente.id && 
+            ag.cliente_pacote === "Sim" &&
+            ag.status !== "cancelado"
+          );
+          return temPacote;
+        });
+
+        // Sincronizar cada cliente no CRM
+        for (const clienteAgenda of clientesComPacote) {
+          const agendamentosCliente = agendamentos.filter(ag => ag.cliente_id === clienteAgenda.id);
+          if (agendamentosCliente.length === 0) continue;
+
+          const pacoteAtivo = agendamentosCliente.find(ag => ag.cliente_pacote === "Sim" && ag.status !== "cancelado");
+          if (!pacoteAtivo) continue;
+
+          // Verificar se já existe no CRM
+          const existeNosCRM = await base44.entities.ClienteCRM.filter({ nome: clienteAgenda.nome, clinica: pacoteAtivo.unidade_nome });
+          
+          if (existeNosCRM.length === 0) {
+            // Criar no CRM
+            await base44.entities.ClienteCRM.create({
+              nome: clienteAgenda.nome,
+              telefone: clienteAgenda.telefone || "",
+              email: clienteAgenda.email || "",
+              data_nascimento: clienteAgenda.data_nascimento || "",
+              cpf: clienteAgenda.cpf || "",
+              clinica: pacoteAtivo.unidade_nome,
+              data_primeira_sessao: pacoteAtivo.data,
+              vendedor: pacoteAtivo.vendedor_nome || "Não informado",
+              canal_venda: "Presencial",
+              pacote_nome: pacoteAtivo.servico_nome,
+              valor_pacote: pacoteAtivo.valor_combinado || 0,
+              forma_pagamento: "Pix",
+              sessoes_total: pacoteAtivo.quantas_sessoes || 0,
+              sessoes_realizadas: pacoteAtivo.sessoes_feitas || 0,
+              status_pacote: "Em Andamento",
+              renovacoes: 0,
+              ativo: true
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Erro ao sincronizar clientes:", error);
+      }
+
+      return base44.entities.ClienteCRM.list("-updated_date", 100);
+    },
     initialData: [],
   });
 
