@@ -1867,23 +1867,31 @@ export default function RelatoriosFinanceirosPage() {
           </TabsContent>
 
           {/* Aba Por Vendedor */}
-          <TabsContent value="por-vendedor">
-            <Card>
-              <CardHeader>
-                <CardTitle>Faturamento por Vendedor</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Vendedor</TableHead>
-                      <TableHead className="text-right">Atendimentos</TableHead>
-                      <TableHead className="text-right">Valor Combinado</TableHead>
-                      <TableHead className="text-right">Valor Recebido</TableHead>
-                      <TableHead className="text-right">A Receber</TableHead>
-                      <TableHead className="text-right">Ações</TableHead>
-                    </TableRow>
-                  </TableHeader>
+           <TabsContent value="por-vendedor">
+             <div className="space-y-6">
+               {/* Relatório do Dia ao lado */}
+               <RelatorioVendedorDia 
+                 agendamentos={agendamentos}
+                 dataInicio={dataInicio}
+                 dataFim={dataFim}
+               />
+
+               <Card>
+                 <CardHeader>
+                   <CardTitle>Faturamento por Vendedor (Período Selecionado)</CardTitle>
+                 </CardHeader>
+                 <CardContent>
+                   <Table>
+                     <TableHeader>
+                       <TableRow>
+                         <TableHead>Vendedor</TableHead>
+                         <TableHead className="text-right">Atendimentos</TableHead>
+                         <TableHead className="text-right">Valor Combinado</TableHead>
+                         <TableHead className="text-right">Valor Recebido</TableHead>
+                         <TableHead className="text-right">A Receber</TableHead>
+                         <TableHead className="text-right">Ações</TableHead>
+                       </TableRow>
+                     </TableHeader>
                   <TableBody>
                     {vendedores.filter(v => v.ativo).map(vendedor => {
                       const agendamentosVendedor = agendamentosFiltrados.filter(ag => 
