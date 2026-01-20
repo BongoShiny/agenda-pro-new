@@ -41,8 +41,7 @@ Deno.serve(async (req) => {
     console.log('  Telefone:', telefoneFormatado);
     
     // Z-API - enviar mensagem de texto
-    const instanceId = Deno.env.get("WHATSAPP_INSTANCE_NAME");
-    const sendUrl = `${WHATSAPP_API_URL}/messages/text?apikey=${WHATSAPP_API_TOKEN}&instanceId=${instanceId}`;
+    const sendUrl = WHATSAPP_API_URL;
 
     const sendPayload = {
       phone: telefoneFormatado,

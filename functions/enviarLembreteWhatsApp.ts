@@ -169,8 +169,7 @@ Deno.serve(async (req) => {
 
         try {
           // Enviar mensagem via Z-API
-          const instanceId = Deno.env.get("WHATSAPP_INSTANCE_NAME");
-          const url = `${WHATSAPP_API_URL}/messages/text?apikey=${WHATSAPP_API_TOKEN}&instanceId=${instanceId}`;
+          const url = WHATSAPP_API_URL;
           const response = await fetch(url, {
             method: 'POST',
             headers: {
