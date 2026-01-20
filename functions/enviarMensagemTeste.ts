@@ -18,33 +18,30 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Telefone e mensagem são obrigatórios' }, { status: 400 });
     }
 
-    const WHATSAPP_API_TOKEN = (Deno.env.get("WHATSAPP_API_TOKEN") || "").trim();
-    const WHATSAPP_API_URL = (Deno.env.get("WHATSAPP_API_URL") || "").trim();
-    const WHATSAPP_CLIENT_TOKEN = (Deno.env.get("WHATSAPP_CLIENT_TOKEN") || "").trim();
+    const WHATSAPP_INSTANCE_ID = (Deno.env.get("WHATSAPP_INSTANCE_ID") || "").trim();
+    const WHATSAPP_INSTANCE_TOKEN = (Deno.env.get("WHATSAPP_INSTANCE_TOKEN") || "").trim();
 
-    if (!WHATSAPP_API_TOKEN || !WHATSAPP_API_URL || !WHATSAPP_CLIENT_TOKEN) {
+    if (!WHATSAPP_INSTANCE_ID || !WHATSAPP_INSTANCE_TOKEN) {
       return Response.json({ 
         error: 'Credenciais Z-API não configuradas completamente',
-        tokenOk: !!WHATSAPP_API_TOKEN,
-        urlOk: !!WHATSAPP_API_URL,
-        clientTokenOk: !!WHATSAPP_CLIENT_TOKEN
+        instanceIdOk: !!WHATSAPP_INSTANCE_ID,
+        instanceTokenOk: !!WHATSAPP_INSTANCE_TOKEN
       }, { status: 500 });
     }
 
     // Formatar telefone - remover caracteres especiais e adicionar +55
     const telefoneLimpo = telefone.replace(/\D/g, '');
     const telefoneFormatado = '55' + telefoneLimpo;
-    
+
     console.log('🔧 Iniciando envio...');
     console.log('  Telefone:', telefoneFormatado);
-    
+
     // Z-API - enviar mensagem de texto
-    const sendUrl = WHATSAPP_API_URL;
+    const sendUrl = `https://api.z-api.io/instances/${WHATSAPP_INSTANCE_ID}/token/${WHATSAPP_INSTANCE_TOKEN}/send-text`;
 
     const sendPayload = {
       phone: telefoneFormatado,
-      message: mensagem,
-      clientToken: WHATSAPP_CLIENT_TOKEN
+      message: mensagem
     };
 
     const sendResponse = await fetch(sendUrl, {
