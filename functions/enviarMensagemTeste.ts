@@ -34,9 +34,11 @@ Deno.serve(async (req) => {
       telefoneFormatado = '55' + telefoneFormatado;
     }
     
-    console.log('Telefone formatado:', telefoneFormatado);
-    console.log('Mensagem:', mensagem);
-    console.log('API URL:', WHATSAPP_API_URL);
+    console.log('🔧 Configurações:');
+    console.log('  Telefone formatado:', telefoneFormatado);
+    console.log('  Mensagem:', mensagem);
+    console.log('  API URL:', WHATSAPP_API_URL);
+    console.log('  Instance:', WHATSAPP_INSTANCE_NAME);
     
     // PASSO 1: Buscar chats existentes
     console.log('🔍 Buscando chats existentes...');
