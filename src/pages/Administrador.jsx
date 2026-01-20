@@ -206,17 +206,7 @@ export default function AdministradorPage() {
           </Link>
           )}
 
-          {isAdmin && (
-          <a href="https://vibe-crm-acb7f8f2.base44.app/Clinics" target="_blank" rel="noopener noreferrer" className="block">
-            <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-pink-300 transition-all cursor-pointer h-full">
-              <div className="w-12 h-12 bg-pink-100 rounded-lg flex items-center justify-center mb-4">
-                <ExternalLink className="w-6 h-6 text-pink-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">CRM</h3>
-              <p className="text-sm text-gray-500">Acesso ao sistema CRM integrado</p>
-            </div>
-          </a>
-          )}
+
           </div>
 
         <div className="mt-8 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
