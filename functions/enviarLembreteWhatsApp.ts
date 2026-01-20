@@ -59,7 +59,84 @@ Deno.serve(async (req) => {
       dataAmanha = amanha.toISOString().split('T')[0]; // YYYY-MM-DD
     }
 
-    // Buscar configurações
+    // Se for teste, buscar agendamentos direto pelo telefone
+    if (numeroTeste) {
+      const telefoneLimpo = numeroTeste.replace(/\D/g, '');
+      const numeroTesteSemPais = telefoneLimpo.startsWith('55') ? telefoneLimpo.slice(2) : telefoneLimpo;
+      
+      console.log(`🔍 Modo TESTE - Buscando agendamentos com telefone: ${numeroTesteSemPais}`);
+      
+      // Buscar todos os agendamentos agendados
+      const todosAgendamentos = await base44.asServiceRole.entities.Agendamento.filter({
+        status: 'agendado'
+      });
+      
+      let mensagensEnviadas = 0;
+      const erros = [];
+      
+      // Filtrar pelo telefone
+      for (const ag of todosAgendamentos) {
+        if (!ag.cliente_telefone) continue;
+        
+        const telefoneAg = ag.cliente_telefone.replace(/\D/g, '');
+        const telefoneAgSemPais = telefoneAg.startsWith('55') ? telefoneAg.slice(2) : telefoneAg;
+        
+        console.log(`Comparando: AG="${telefoneAgSemPais}" vs TESTE="${numeroTesteSemPais}"`);
+        
+        if (telefoneAgSemPais !== numeroTesteSemPais) {
+          continue;
+        }
+        
+        console.log(`✅ Encontrado agendamento para ${ag.cliente_nome}`);
+        
+        // Montar e enviar mensagem
+        let mensagem = "Olá {cliente}! 🗓️\n\nLembramos que você tem um agendamento:\n\n📅 Data: {data}\n⏰ Horário: {hora}\n👨‍⚕️ Profissional: {profissional}\n💼 Serviço: {servico}\n📍 Unidade: {unidade}\n\n✅ Responda *Confirmar* para confirmar\n❌ Responda *Cancelar* para cancelar";
+        
+        const dataFormatada = new Date(ag.data + 'T12:00:00').toLocaleDateString('pt-BR');
+        mensagem = mensagem
+          .replace(/\{cliente\}/g, ag.cliente_nome)
+          .replace(/\{profissional\}/g, ag.profissional_nome)
+          .replace(/\{data\}/g, dataFormatada)
+          .replace(/\{hora\}/g, ag.hora_inicio)
+          .replace(/\{unidade\}/g, ag.unidade_nome)
+          .replace(/\{servico\}/g, ag.servico_nome || 'Consulta');
+        
+        const telefoneFormatado = '55' + telefoneLimpo;
+        
+        try {
+          const url = WHATSAPP_API_URL;
+          const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${WHATSAPP_API_TOKEN}`
+            },
+            body: JSON.stringify({
+              phone: telefoneFormatado,
+              message: mensagem
+            })
+          });
+          
+          if (response.ok) {
+            mensagensEnviadas++;
+            console.log(`✅ Mensagem enviada para ${ag.cliente_nome}`);
+          } else {
+            erros.push(`Erro ao enviar para ${ag.cliente_nome}: ${response.statusText}`);
+          }
+        } catch (error) {
+          erros.push(`Erro ao enviar para ${ag.cliente_nome}: ${error.message}`);
+        }
+      }
+      
+      return Response.json({
+        success: true,
+        mensagensEnviadas,
+        erros: erros.length > 0 ? erros : undefined,
+        modoTeste: true
+      });
+    }
+
+    // Buscar configurações (para modo normal e envio imediato)
     let configuracoes;
     if (envioImediato && unidadeId) {
       // Envio imediato: buscar apenas a unidade específica
@@ -67,9 +144,6 @@ Deno.serve(async (req) => {
         unidade_id: unidadeId,
         ativo: true 
       });
-    } else if (numeroTeste) {
-      // Teste: buscar todas
-      configuracoes = await base44.asServiceRole.entities.ConfiguracaoWhatsApp.list();
     } else {
       // Normal: buscar apenas ativas
       configuracoes = await base44.asServiceRole.entities.ConfiguracaoWhatsApp.filter({ ativo: true });
@@ -84,11 +158,6 @@ Deno.serve(async (req) => {
 
     // Para cada configuração
     for (const config of configuracoes) {
-      // Se for teste e a unidade não está ativa, pular
-      if (numeroTeste && !config.ativo) {
-        continue;
-      }
-
       // Buscar agendamentos da unidade
       let filtroAgendamentos = {
         unidade_id: config.unidade_id,
