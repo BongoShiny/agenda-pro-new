@@ -163,9 +163,9 @@ Deno.serve(async (req) => {
           .replace(/\{unidade\}/g, ag.unidade_nome)
           .replace(/\{servico\}/g, ag.servico_nome || 'Consulta');
 
-        // Limpar telefone (remover caracteres especiais)
-        const telefone = ag.cliente_telefone.replace(/\D/g, '');
-        const telefoneFormatado = telefone.startsWith('55') ? telefone : '55' + telefone;
+        // Limpar telefone e adicionar +55
+        const telefoneLimpo = ag.cliente_telefone.replace(/\D/g, '');
+        const telefoneFormatado = '55' + telefoneLimpo;
 
         try {
           // Enviar mensagem via Z-API

@@ -31,11 +31,9 @@ Deno.serve(async (req) => {
       }, { status: 500 });
     }
 
-    // Formatar telefone
-    let telefoneFormatado = telefone.replace(/\D/g, '');
-    if (!telefoneFormatado.startsWith('55')) {
-      telefoneFormatado = '55' + telefoneFormatado;
-    }
+    // Formatar telefone - remover caracteres especiais e adicionar +55
+    const telefoneLimpo = telefone.replace(/\D/g, '');
+    const telefoneFormatado = '55' + telefoneLimpo;
     
     console.log('🔧 Iniciando envio...');
     console.log('  Telefone:', telefoneFormatado);
