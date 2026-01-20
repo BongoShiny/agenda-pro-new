@@ -4,7 +4,8 @@ import { base44 } from "@/api/base44Client";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Edit2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft, Edit2, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 
@@ -29,6 +30,21 @@ export default function DetalheClienteCRM() {
     queryFn: () => clienteId ? base44.entities.AnexoCRM.filter({ cliente_id: clienteId }) : [],
     enabled: !!clienteId,
   });
+
+  const { data: motivosWhatsApp = [] } = useQuery({
+    queryKey: ["motivos-whatsapp", clienteId],
+    queryFn: () => clienteId ? base44.entities.MotivoFechamentoCRM.filter({ cliente_id: clienteId, tipo_fechamento: "WhatsApp" }) : [],
+    enabled: !!clienteId,
+  });
+
+  const { data: motivosClinica = [] } = useQuery({
+    queryKey: ["motivos-clinica", clienteId],
+    queryFn: () => clienteId ? base44.entities.MotivoFechamentoCRM.filter({ cliente_id: clienteId, tipo_fechamento: "Clínica" }) : [],
+    enabled: !!clienteId,
+  });
+
+  const [editandoWhatsApp, setEditandoWhatsApp] = useState(false);
+  const [editandoClinica, setEditandoClinica] = useState(false);
 
   if (isLoading || !cliente) return <div className="p-6">Carregando...</div>;
 
@@ -127,10 +143,93 @@ export default function DetalheClienteCRM() {
           </TabsContent>
 
           <TabsContent value="conversao" className="mt-6">
-            <Card className="p-6">
-              <h3 className="font-bold text-lg mb-4">📊 Conversão de Pacote</h3>
-              <p className="text-gray-600 text-sm">Informações de fechamento e motivos da conversão</p>
-            </Card>
+            <div className="space-y-6">
+              {/* WhatsApp */}
+              <Card className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-lg">📱 Motivo de Fechamento - WhatsApp</h3>
+                  <p className="text-xs text-gray-500">(Descrito pelo Vendedor)</p>
+                </div>
+                {motivosWhatsApp.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500 mb-4">Nenhum motivo registrado</p>
+                    <Button 
+                      size="sm" 
+                      className="bg-teal-600 hover:bg-teal-700"
+                      onClick={() => setEditandoWhatsApp(true)}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar Motivo
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {motivosWhatsApp.map(motivo => (
+                      <div key={motivo.id} className="border-l-4 border-blue-500 pl-4 py-2 bg-blue-50 p-4 rounded">
+                        <p className="font-semibold text-sm text-gray-900 mb-2">Motivos:</p>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {motivo.motivos.map((m, i) => (
+                            <span key={i} className="bg-blue-200 text-blue-800 text-xs px-2 py-1 rounded">
+                              {m}
+                            </span>
+                          ))}
+                        </div>
+                        {motivo.motivo_principal && (
+                          <p className="text-sm text-gray-700 mb-2"><strong>Principal:</strong> {motivo.motivo_principal}</p>
+                        )}
+                        {motivo.observacoes && (
+                          <p className="text-sm text-gray-700"><strong>Observações:</strong> {motivo.observacoes}</p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-2">Registrado em: {motivo.data_registro}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+
+              {/* Clínica */}
+              <Card className="p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="font-bold text-lg">🏥 Motivo de Fechamento - Clínica</h3>
+                  <p className="text-xs text-gray-500">(Descrito pela Recepção)</p>
+                </div>
+                {motivosClinica.length === 0 ? (
+                  <div className="text-center py-8">
+                    <p className="text-gray-500 mb-4">Nenhum motivo registrado</p>
+                    <Button 
+                      size="sm" 
+                      className="bg-teal-600 hover:bg-teal-700"
+                      onClick={() => setEditandoClinica(true)}
+                    >
+                      <Plus className="w-4 h-4 mr-2" />
+                      Adicionar Motivo
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-4">
+                    {motivosClinica.map(motivo => (
+                      <div key={motivo.id} className="border-l-4 border-green-500 pl-4 py-2 bg-green-50 p-4 rounded">
+                        <p className="font-semibold text-sm text-gray-900 mb-2">Motivos:</p>
+                        <div className="flex flex-wrap gap-2 mb-3">
+                          {motivo.motivos.map((m, i) => (
+                            <span key={i} className="bg-green-200 text-green-800 text-xs px-2 py-1 rounded">
+                              {m}
+                            </span>
+                          ))}
+                        </div>
+                        {motivo.motivo_principal && (
+                          <p className="text-sm text-gray-700 mb-2"><strong>Principal:</strong> {motivo.motivo_principal}</p>
+                        )}
+                        {motivo.observacoes && (
+                          <p className="text-sm text-gray-700"><strong>Observações:</strong> {motivo.observacoes}</p>
+                        )}
+                        <p className="text-xs text-gray-500 mt-2">Registrado em: {motivo.data_registro}</p>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </Card>
+            </div>
           </TabsContent>
 
           <TabsContent value="anotacoes" className="mt-6">
