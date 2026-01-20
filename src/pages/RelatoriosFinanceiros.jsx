@@ -1252,7 +1252,136 @@ export default function RelatoriosFinanceirosPage() {
             </div>
           </TabsContent>
 
-          <TabsContent value="profissional">
+           <TabsContent value="analise-dia">
+             <Card>
+               <CardHeader>
+                 <CardTitle>📅 Análise do Dia - {format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</CardTitle>
+               </CardHeader>
+               <CardContent>
+                 {(() => {
+                   const hoje = format(new Date(), "yyyy-MM-dd");
+                   const agendamentosHoje = agendamentos
+                     .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
+                     .filter(ag => ag.data === hoje);
+
+                   const totalCombinadoHoje = agendamentosHoje.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
+                   const totalSinalHoje = agendamentosHoje.reduce((sum, ag) => sum + (ag.sinal || 0), 0);
+                   const totalRecebimento2Hoje = agendamentosHoje.reduce((sum, ag) => sum + (ag.recebimento_2 || 0), 0);
+                   const totalFinalPagamentoHoje = agendamentosHoje.reduce((sum, ag) => sum + (ag.final_pagamento || 0), 0);
+                   const totalPagoHoje = totalSinalHoje + totalRecebimento2Hoje + totalFinalPagamentoHoje;
+                   const totalAReceberHoje = agendamentosHoje.reduce((sum, ag) => sum + (ag.falta_quanto || 0), 0);
+
+                   // Formas de pagamento do dia
+                   const formasPagamentoHoje = {
+                     pix: 0,
+                     link_pagamento: 0,
+                     pago_na_clinica: 0
+                   };
+                   agendamentosHoje.forEach(ag => {
+                     const forma = ag.forma_pagamento || "pago_na_clinica";
+                     const totalPagoAg = (ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0);
+                     if (formasPagamentoHoje[forma] !== undefined) {
+                       formasPagamentoHoje[forma] += totalPagoAg;
+                     }
+                   });
+
+                   return (
+                     <div className="space-y-6">
+                       <div className="grid grid-cols-4 gap-4">
+                         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                           <p className="text-sm text-blue-600 mb-1">Agendamentos</p>
+                           <p className="text-3xl font-bold text-blue-700">{agendamentosHoje.length}</p>
+                         </div>
+                         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                           <p className="text-sm text-blue-600 mb-1">Valor Combinado</p>
+                           <p className="text-2xl font-bold text-blue-700">{formatarMoeda(totalCombinadoHoje)}</p>
+                         </div>
+                         <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
+                           <p className="text-sm text-emerald-600 mb-1">Total Recebido</p>
+                           <p className="text-2xl font-bold text-emerald-700">{formatarMoeda(totalPagoHoje)}</p>
+                         </div>
+                         <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                           <p className="text-sm text-orange-600 mb-1">A Receber</p>
+                           <p className="text-2xl font-bold text-orange-700">{formatarMoeda(totalAReceberHoje)}</p>
+                         </div>
+                       </div>
+
+                       {/* Formas de Pagamento do Dia */}
+                       <div className="bg-white rounded-lg border border-gray-200 p-4">
+                         <h3 className="font-semibold text-lg mb-4">💳 Formas de Pagamento</h3>
+                         <div className="grid grid-cols-3 gap-4">
+                           <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 text-center">
+                             <p className="text-sm text-blue-600 mb-2">📱 PIX</p>
+                             <p className="text-2xl font-bold text-blue-700">{formatarMoeda(formasPagamentoHoje.pix)}</p>
+                           </div>
+                           <div className="bg-purple-50 p-4 rounded-lg border border-purple-200 text-center">
+                             <p className="text-sm text-purple-600 mb-2">🔗 Link de Pagamento</p>
+                             <p className="text-2xl font-bold text-purple-700">{formatarMoeda(formasPagamentoHoje.link_pagamento)}</p>
+                           </div>
+                           <div className="bg-amber-50 p-4 rounded-lg border border-amber-200 text-center">
+                             <p className="text-sm text-amber-600 mb-2">💳 Pago na Clínica</p>
+                             <p className="text-2xl font-bold text-amber-700">{formatarMoeda(formasPagamentoHoje.pago_na_clinica)}</p>
+                           </div>
+                         </div>
+                       </div>
+
+                       {/* Tabela de Agendamentos do Dia */}
+                       <div>
+                         <h3 className="font-semibold text-lg mb-4">Agendamentos de Hoje</h3>
+                         {agendamentosHoje.length > 0 ? (
+                           <Table>
+                             <TableHeader>
+                               <TableRow>
+                                 <TableHead>Horário</TableHead>
+                                 <TableHead>Cliente</TableHead>
+                                 <TableHead>Profissional</TableHead>
+                                 <TableHead>Unidade</TableHead>
+                                 <TableHead>Vendedor</TableHead>
+                                 <TableHead className="text-right">Vlr. Combinado</TableHead>
+                                 <TableHead className="text-right">Total Pago</TableHead>
+                                 <TableHead className="text-right">A Receber</TableHead>
+                                 <TableHead>Forma Pagamento</TableHead>
+                               </TableRow>
+                             </TableHeader>
+                             <TableBody>
+                               {agendamentosHoje.sort((a, b) => a.hora_inicio.localeCompare(b.hora_inicio)).map(ag => {
+                                 const totalPagoAg = (ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0);
+                                 const formaLabel = {
+                                   pix: "📱 PIX",
+                                   link_pagamento: "🔗 Link",
+                                   pago_na_clinica: "💳 Clínica"
+                                 }[ag.forma_pagamento] || "💳 Clínica";
+
+                                 return (
+                                   <TableRow key={ag.id}>
+                                     <TableCell className="font-medium">{ag.hora_inicio} - {ag.hora_fim}</TableCell>
+                                     <TableCell>{ag.cliente_nome}</TableCell>
+                                     <TableCell>{ag.profissional_nome}</TableCell>
+                                     <TableCell>{ag.unidade_nome}</TableCell>
+                                     <TableCell>{ag.vendedor_nome || "-"}</TableCell>
+                                     <TableCell className="text-right">{formatarMoeda(ag.valor_combinado)}</TableCell>
+                                     <TableCell className="text-right text-emerald-600 font-semibold">{formatarMoeda(totalPagoAg)}</TableCell>
+                                     <TableCell className="text-right text-orange-600">{formatarMoeda(ag.falta_quanto)}</TableCell>
+                                     <TableCell>{formaLabel}</TableCell>
+                                   </TableRow>
+                                 );
+                               })}
+                             </TableBody>
+                           </Table>
+                         ) : (
+                           <div className="text-center py-12 text-gray-500">
+                             <p className="font-medium">Nenhum agendamento para hoje</p>
+                           </div>
+                         )}
+                       </div>
+                     </div>
+                   );
+                 })()}
+               </CardContent>
+             </Card>
+           </TabsContent>
+
+           <TabsContent value="profissional">
             <Card>
               <CardHeader>
                 <CardTitle>Atendimentos por Profissional</CardTitle>
