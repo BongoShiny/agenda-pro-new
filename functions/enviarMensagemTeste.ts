@@ -19,7 +19,10 @@ Deno.serve(async (req) => {
     }
 
     const WHATSAPP_API_TOKEN = Deno.env.get("WHATSAPP_API_TOKEN");
-    const WHATSAPP_API_URL = "https://api.octadesk.services";
+    const WHATSAPP_API_URL = Deno.env.get("WHATSAPP_API_URL") || "https://api.octadesk.services";
+
+    console.log('🔑 Token existe?', !!WHATSAPP_API_TOKEN);
+    console.log('🌐 URL:', WHATSAPP_API_URL);
 
     if (!WHATSAPP_API_TOKEN) {
       return Response.json({ 
