@@ -95,6 +95,7 @@ export default function NovoAgendamentoDialog({
   const [clientePopoverAberto, setClientePopoverAberto] = useState(false);
   const [buscaCliente, setBuscaCliente] = useState("");
   const [erroHorarioBloqueado, setErroHorarioBloqueado] = useState(false);
+  const [erroHorarioOcupado, setErroHorarioOcupado] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(null);
 
   const { data: vendedores = [] } = useQuery({
