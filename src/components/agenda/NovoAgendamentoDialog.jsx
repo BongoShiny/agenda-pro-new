@@ -99,10 +99,37 @@ export default function NovoAgendamentoDialog({
   const [uploadingFile, setUploadingFile] = useState(null);
 
   const { data: vendedores = [] } = useQuery({
-    queryKey: ['vendedores'],
-    queryFn: () => base44.entities.Vendedor.list("nome"),
-    initialData: [],
-  });
+     queryKey: ['vendedores'],
+     queryFn: () => base44.entities.Vendedor.list("nome"),
+     initialData: [],
+   });
+
+   const { data: configuracoesTerapeutas = [] } = useQuery({
+     queryKey: ['configuracoes-terapeutas', formData.unidade_id],
+     queryFn: async () => {
+       if (!formData.unidade_id) return [];
+       try {
+         return await base44.entities.ConfiguracaoTerapeuta.filter({
+           unidade_id: formData.unidade_id,
+           ativo: true
+         }, "ordem");
+       } catch (error) {
+         console.error("Erro ao buscar configurações:", error);
+         return [];
+       }
+     },
+     enabled: !!formData.unidade_id,
+   });
+
+   // Filtrar profissionais pela unidade selecionada
+   const profissionaisFiltrados = React.useMemo(() => {
+     if (!formData.unidade_id) return profissionais.filter(p => p.ativo !== false);
+
+     const idsConfiguracao = configuracoesTerapeutas.map(ct => ct.profissional_id);
+     return profissionais.filter(p => 
+       idsConfiguracao.includes(p.id) && p.ativo !== false
+     );
+   }, [profissionais, formData.unidade_id, configuracoesTerapeutas]);
 
   // Buscar pacote ativo do cliente selecionado
   const { data: pacoteCliente } = useQuery({
@@ -555,19 +582,7 @@ export default function NovoAgendamentoDialog({
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label>Unidade *</Label>
-            <Select value={formData.unidade_id} onValueChange={handleUnidadeChange}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione a unidade" />
-              </SelectTrigger>
-              <SelectContent>
-                {unidades.map(unidade => (
-                  <SelectItem key={unidade.id} value={unidade.id}>{unidade.nome}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+
 
           <div className="space-y-2">
             <Label>Data *</Label>
