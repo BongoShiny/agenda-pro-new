@@ -402,11 +402,7 @@ export default function AgendaDiaView({
                         )}
                       </div>
                       <div className="text-[10px] md:text-xs text-gray-500 truncate text-center mt-1">{terapeuta.especialidade}</div>
-                      {horarioTerapeuta.isFolga ? (
-                        <div className="text-[8px] md:text-[10px] text-orange-700 bg-orange-100 px-1 md:px-2 py-0.5 rounded mt-1 text-center font-semibold">
-                          🏖️ FOLGA
-                        </div>
-                      ) : horarioTerapeuta.isExcecao && (
+                      {horarioTerapeuta.isExcecao && !horarioTerapeuta.isFolga && (
                         <div className="text-[8px] md:text-[10px] text-blue-600 bg-blue-50 px-1 md:px-2 py-0.5 rounded mt-1 text-center">
                           📅 {horarioTerapeuta.horario_inicio} - {horarioTerapeuta.horario_fim}
                         </div>
