@@ -174,7 +174,7 @@ Deno.serve(async (req) => {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'apitoken': WHATSAPP_API_TOKEN
+              'apikey': WHATSAPP_API_TOKEN
             },
             body: JSON.stringify({
               origin: {
