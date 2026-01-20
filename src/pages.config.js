@@ -11,8 +11,8 @@ import Home from './pages/Home';
 import RelatoriosAvancados from './pages/RelatoriosAvancados';
 import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
-import WhatsAppCompleto from './pages/WhatsAppCompleto';
 import RelatoriosGerados from './pages/RelatoriosGerados';
+import WhatsAppCompleto from './pages/WhatsAppCompleto';
 import __Layout from './Layout.jsx';
 
 
@@ -30,8 +30,8 @@ export const PAGES = {
     "RelatoriosAvancados": RelatoriosAvancados,
     "RelatoriosClientes": RelatoriosClientes,
     "RelatoriosFinanceiros": RelatoriosFinanceiros,
-    "WhatsAppCompleto": WhatsAppCompleto,
     "RelatoriosGerados": RelatoriosGerados,
+    "WhatsAppCompleto": WhatsAppCompleto,
 }
 
 export const pagesConfig = {

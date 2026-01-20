@@ -98,6 +98,44 @@ export default function RelatoriosGeradosPage() {
     }
   };
 
+  const handleGerarDetalhado = async () => {
+    setCarregandoDetalhado(true);
+    try {
+      const hoje = new Date();
+      let dataInicio, dataFim;
+
+      switch (periodoSelecionado) {
+        case "diario":
+          dataInicio = format(hoje, "yyyy-MM-dd");
+          dataFim = format(hoje, "yyyy-MM-dd");
+          break;
+        case "semanal":
+          dataInicio = format(startOfWeek(hoje, { weekStartsOn: 1 }), "yyyy-MM-dd");
+          dataFim = format(endOfWeek(hoje, { weekStartsOn: 1 }), "yyyy-MM-dd");
+          break;
+        case "mensal":
+          dataInicio = format(startOfMonth(hoje), "yyyy-MM-dd");
+          dataFim = format(endOfMonth(hoje), "yyyy-MM-dd");
+          break;
+        default:
+          dataInicio = format(hoje, "yyyy-MM-dd");
+          dataFim = format(hoje, "yyyy-MM-dd");
+      }
+
+      const response = await base44.functions.invoke('gerarRelatorioDetalhado', {
+        dataInicio,
+        dataFim
+      });
+      setRelatoriosDetalhados(response.data.relatorios);
+      setAbaSelecionada("detalhado");
+      alert("✅ Relatórios detalhados gerados com sucesso!");
+    } catch (error) {
+      alert("❌ Erro ao gerar relatórios: " + error.message);
+    } finally {
+      setCarregandoDetalhado(false);
+    }
+  };
+
   if (carregando) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -168,9 +206,26 @@ export default function RelatoriosGeradosPage() {
                   </>
                 )}
               </Button>
-            </div>
-          </CardContent>
-        </Card>
+              <Button
+                onClick={handleGerarDetalhado}
+                disabled={carregandoDetalhado}
+                variant="outline"
+              >
+                {carregandoDetalhado ? (
+                  <>
+                    <Loader className="w-4 h-4 mr-2 animate-spin" />
+                    Gerando...
+                  </>
+                ) : (
+                  <>
+                    <FileText className="w-4 h-4 mr-2" />
+                    Por Unidade
+                  </>
+                )}
+              </Button>
+              </div>
+              </CardContent>
+              </Card>
 
         {/* Lista de Relatórios */}
         <div className="space-y-4">
