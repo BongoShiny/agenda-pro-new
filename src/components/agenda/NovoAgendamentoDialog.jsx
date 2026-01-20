@@ -80,6 +80,7 @@ export default function NovoAgendamentoDialog({
     recebimento_2: null,
     final_pagamento: null,
     falta_quanto: null,
+    forma_pagamento: "pago_na_clinica",
     vendedor_id: "",
     vendedor_nome: "",
     comprovante_1: "",
