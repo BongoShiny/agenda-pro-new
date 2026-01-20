@@ -370,6 +370,27 @@ export default function NovoAgendamentoDialog({
         setTimeout(() => setErroHorarioBloqueado(false), 3000);
         return;
       }
+
+      // ✅ NOVO: Verificar se o CLIENTE já tem agendamento neste horário/unidade
+      const clienteJaAgendado = agendamentos.find(ag => {
+        if (ag.data !== formData.data) return false;
+        if (ag.unidade_id !== formData.unidade_id) return false;
+        if (ag.cliente_id !== formData.cliente_id) return false;
+        if (ag.id === formData.id) return false; // Ignorar se estiver editando
+        if (ag.status === "cancelado") return false; // Ignorar cancelados
+        
+        const [agHoraInicio, agMinInicio] = ag.hora_inicio.split(':').map(Number);
+        const [agHoraFim, agMinFim] = ag.hora_fim.split(':').map(Number);
+        const agInicioMinutos = agHoraInicio * 60 + agMinInicio;
+        const agFimMinutos = agHoraFim * 60 + agMinFim;
+        
+        return (inicioMinutos < agFimMinutos && fimMinutos > agInicioMinutos);
+      });
+
+      if (clienteJaAgendado) {
+        alert(`⚠️ Este cliente já possui um agendamento nesta data/hora!\n\n📅 ${formData.data}\n⏰ ${clienteJaAgendado.hora_inicio} - ${clienteJaAgendado.hora_fim}\n👨‍⚕️ ${clienteJaAgendado.profissional_nome}\n\nEscolha outro horário ou profissional.`);
+        return;
+      }
       
       onSave(formData);
       onOpenChange(false);
