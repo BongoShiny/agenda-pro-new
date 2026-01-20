@@ -1938,9 +1938,10 @@ export default function RelatoriosFinanceirosPage() {
                     <p className="text-sm mt-2">Crie vendedores para visualizar o relatório</p>
                   </div>
                 )}
-              </CardContent>
-            </Card>
-          </TabsContent>
+                </CardContent>
+                </Card>
+                </div>
+                </TabsContent>
         </Tabs>
       </div>
 
