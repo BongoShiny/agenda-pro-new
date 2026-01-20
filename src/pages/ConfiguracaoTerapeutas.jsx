@@ -719,14 +719,28 @@ export default function ConfiguracaoTerapeutasPage() {
                                         </div>
                                         
                                         <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          onClick={() => handleAbrirDialogExcecao(profissional)}
-                                          className="hover:bg-blue-50"
-                                          title="Configurar horários específicos"
-                                        >
-                                          <Calendar className="w-4 h-4 text-blue-500" />
-                                        </Button>
+                                           variant="ghost"
+                                           size="icon"
+                                           onClick={() => {
+                                             setProfissionalSabado(profissional);
+                                             setUnidadeSabado(unidade.id);
+                                             setDialogSabadoAberto(true);
+                                           }}
+                                           className="hover:bg-purple-50"
+                                           title="Configurar horários de sábado"
+                                         >
+                                           <Calendar className="w-4 h-4 text-purple-500" />
+                                         </Button>
+
+                                        <Button
+                                           variant="ghost"
+                                           size="icon"
+                                           onClick={() => handleAbrirDialogExcecao(profissional)}
+                                           className="hover:bg-blue-50"
+                                           title="Configurar horários específicos"
+                                         >
+                                           <Calendar className="w-4 h-4 text-blue-500" />
+                                         </Button>
 
                                         <Button
                                           variant="ghost"
