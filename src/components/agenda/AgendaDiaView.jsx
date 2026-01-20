@@ -295,8 +295,8 @@ export default function AgendaDiaView({
     return agendamentos.find(ag => {
       if (ag.unidade_id !== unidadeSelecionada.id || ag.profissional_id !== profissionalId) return false;
       
-      // EXCLUIR "ausência" e "cancelado" para liberar o horário
-      if (ag.status === "ausencia" || ag.status === "cancelado") return false;
+      // EXCLUIR apenas "cancelado" para liberar o horário (manter "ausencia")
+      if (ag.status === "cancelado") return false;
       
       const [hInicio] = ag.hora_inicio.split(':').map(Number);
       const [hFim] = ag.hora_fim.split(':').map(Number);
