@@ -476,14 +476,26 @@ export default function WhatsAppCompleto() {
                 </div>
 
                 <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">📋 Como configurar na Octadesk:</h4>
-                  <ol className="list-decimal list-inside space-y-1 text-sm">
-                    <li>Acesse sua conta Octadesk</li>
-                    <li>Vá em Configurações → Integrações → WhatsApp</li>
-                    <li>Configure o webhook para "Mensagens Recebidas"</li>
-                    <li>Cole a URL acima</li>
+                  <h4 className="font-semibold mb-2">📋 Como configurar na Z-API:</h4>
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Acesse o painel da <strong>Z-API</strong></li>
+                    <li>Clique em sua instância de WhatsApp</li>
+                    <li>Vá em <strong>Webhooks</strong> ou <strong>Integrações</strong></li>
+                    <li>Procure por <strong>"Ao receber"</strong> (On Receive)</li>
+                    <li>Cole a URL acima no campo de webhook</li>
                     <li>Salve as configurações</li>
+                    <li>✅ Pronto! Agora o sistema receberá as mensagens dos clientes</li>
                   </ol>
+                </div>
+
+                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
+                  <h4 className="font-semibold mb-2">⚙️ Configurações Recomendadas Z-API:</h4>
+                  <ul className="list-disc list-inside space-y-1 text-sm">
+                    <li><strong>Ao receber:</strong> ATIVADO (cole a URL acima)</li>
+                    <li><strong>Receber status da mensagem:</strong> Opcional (para saber quando foi entregue/lida)</li>
+                    <li><strong>Ao conectar:</strong> Desativado (não necessário)</li>
+                    <li><strong>Ao desconectar:</strong> Desativado (não necessário)</li>
+                  </ul>
                 </div>
 
                 <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
