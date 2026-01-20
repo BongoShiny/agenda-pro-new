@@ -879,6 +879,65 @@ export default function NovoAgendamentoDialog({
           </div>
         )}
 
+        {erroHorarioOcupado && agendamentos.find(ag => {
+          if (ag.data !== formData.data) return false;
+          if (ag.profissional_id !== formData.profissional_id) return false;
+          if (ag.unidade_id !== formData.unidade_id) return false;
+          if (ag.id === formData.id) return false;
+          if (ag.status === "cancelado") return false;
+          if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
+          
+          const [horaInicioNum, minInicioNum] = formData.hora_inicio.split(':').map(Number);
+          const [horaFimNum, minFimNum] = formData.hora_fim.split(':').map(Number);
+          const inicioMinutos = horaInicioNum * 60 + minInicioNum;
+          const fimMinutos = horaFimNum * 60 + minFimNum;
+          
+          const [agHoraInicio, agMinInicio] = ag.hora_inicio.split(':').map(Number);
+          const [agHoraFim, agMinFim] = ag.hora_fim.split(':').map(Number);
+          const agInicioMinutos = agHoraInicio * 60 + agMinInicio;
+          const agFimMinutos = agHoraFim * 60 + agMinFim;
+          
+          return (inicioMinutos < agFimMinutos && fimMinutos > agInicioMinutos);
+        }) && (
+          <div className="bg-orange-100 border-2 border-orange-600 rounded-lg p-4 text-center animate-pulse">
+            <div className="text-orange-800 font-bold text-lg mb-2">
+              ⚠️ HORÁRIO JÁ OCUPADO!
+            </div>
+            <div className="text-orange-700 text-sm">
+              {(() => {
+                const horarioOcupado = agendamentos.find(ag => {
+                  if (ag.data !== formData.data) return false;
+                  if (ag.profissional_id !== formData.profissional_id) return false;
+                  if (ag.unidade_id !== formData.unidade_id) return false;
+                  if (ag.id === formData.id) return false;
+                  if (ag.status === "cancelado") return false;
+                  if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
+                  
+                  const [horaInicioNum, minInicioNum] = formData.hora_inicio.split(':').map(Number);
+                  const [horaFimNum, minFimNum] = formData.hora_fim.split(':').map(Number);
+                  const inicioMinutos = horaInicioNum * 60 + minInicioNum;
+                  const fimMinutos = horaFimNum * 60 + minFimNum;
+                  
+                  const [agHoraInicio, agMinInicio] = ag.hora_inicio.split(':').map(Number);
+                  const [agHoraFim, agMinFim] = ag.hora_fim.split(':').map(Number);
+                  const agInicioMinutos = agHoraInicio * 60 + agMinInicio;
+                  const agFimMinutos = agHoraFim * 60 + agMinFim;
+                  
+                  return (inicioMinutos < agFimMinutos && fimMinutos > agInicioMinutos);
+                });
+                
+                return horarioOcupado ? (
+                  <>
+                    <p className="font-semibold mb-2">👤 {horarioOcupado.cliente_nome}</p>
+                    <p>⏰ {horarioOcupado.hora_inicio} - {horarioOcupado.hora_fim}</p>
+                    <p className="mt-2">Escolha outro horário ou profissional</p>
+                  </>
+                ) : null;
+              })()}
+            </div>
+          </div>
+        )}
+
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancelar
