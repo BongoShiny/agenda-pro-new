@@ -172,27 +172,8 @@ Deno.serve(async (req) => {
       const agendamentos = await base44.asServiceRole.entities.Agendamento.filter(filtroAgendamentos);
 
       for (const ag of agendamentos) {
-        // Verificar se tem telefone
-        if (!ag.cliente_telefone) continue;
-
-        // Se for teste, verificar se corresponde ao número de teste
-        if (numeroTeste) {
-          const telefoneAg = ag.cliente_telefone.replace(/\D/g, '');
-          const numeroTesteLimpo = numeroTeste.replace(/\D/g, '');
-
-          // Debug: log dos telefones comparados
-          console.log(`Comparando: AG="${telefoneAg}" vs TESTE="${numeroTesteLimpo}"`);
-
-          // Comparação: remove últimos 2 dígitos do +55 se existir
-          const telefoneAgSemPais = telefoneAg.startsWith('55') ? telefoneAg.slice(2) : telefoneAg;
-          const numeroTesteSemPais = numeroTesteLimpo.startsWith('55') ? numeroTesteLimpo.slice(2) : numeroTesteLimpo;
-
-          console.log(`Sem país: AG="${telefoneAgSemPais}" vs TESTE="${numeroTesteSemPais}"`);
-
-          if (telefoneAgSemPais !== numeroTesteSemPais) {
-            continue; // Pular se não for o número de teste
-          }
-        }
+         // Verificar se tem telefone
+         if (!ag.cliente_telefone) continue;
 
         // Converter data do agendamento para Date
         const [ano, mes, dia] = ag.data.split('-').map(Number);
