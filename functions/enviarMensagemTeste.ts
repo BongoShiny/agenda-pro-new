@@ -9,7 +9,10 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Acesso negado' }, { status: 403 });
     }
 
-    const { telefone, mensagem } = await req.json();
+    const body = await req.json();
+    const { telefone, mensagem } = body;
+    
+    console.log('📥 Dados recebidos:', body);
 
     if (!telefone || !mensagem) {
       return Response.json({ error: 'Telefone e mensagem são obrigatórios' }, { status: 400 });
@@ -147,16 +150,21 @@ Deno.serve(async (req) => {
       console.log('Erro na abordagem 2:', e);
     }
 
-    // Se chegou aqui, nenhuma abordagem funcionou
+    // Se chegou aqui, nenhuma abordagem funcionou - mas vamos retornar 200 com detalhes
+    console.log('❌ Nenhuma abordagem funcionou');
     return Response.json({ 
-      error: '❌ Não foi possível enviar a mensagem',
-      mensagem: 'Verifique se: 1) O número do WhatsApp está correto, 2) A API da Octadesk está configurada corretamente, 3) O cliente já iniciou uma conversa antes',
+      sucesso: false,
+      error: 'Não foi possível enviar a mensagem',
+      detalhes: 'Verifique se o cliente já iniciou uma conversa no WhatsApp antes',
       telefone: telefoneFormatado,
       tentativas: ['chat_existente', 'send_template']
-    }, { status: 400 });
+    }, { status: 200 });
 
   } catch (error) {
-    console.error("Erro ao enviar mensagem:", error);
-    return Response.json({ error: error.message }, { status: 500 });
+    console.error("🔴 Erro ao enviar mensagem:", error);
+    return Response.json({ 
+      sucesso: false,
+      error: error.message 
+    }, { status: 200 });
   }
 });
