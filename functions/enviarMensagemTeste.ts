@@ -137,6 +137,7 @@ Deno.serve(async (req) => {
       origin: {
         contact: {
           channel: "whatsapp",
+          phoneNumber: "554384981523",
           name: "Sistema Vibe",
           email: "sistema@vibe.com"
         }
