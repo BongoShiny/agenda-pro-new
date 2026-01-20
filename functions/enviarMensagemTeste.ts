@@ -57,9 +57,22 @@ Deno.serve(async (req) => {
       body: JSON.stringify(sendPayload)
     });
 
-    const resultado = await sendResponse.json();
     console.log('📨 Status:', sendResponse.status);
-    console.log('📨 Resposta:', JSON.stringify(resultado, null, 2));
+    
+    // Ler resposta como texto primeiro para debug
+    const responseText = await sendResponse.text();
+    console.log('📨 Resposta (texto):', responseText);
+    
+    // Tentar parsear como JSON
+    let resultado;
+    try {
+      resultado = responseText ? JSON.parse(responseText) : {};
+    } catch (e) {
+      console.log('⚠️ Resposta não é JSON válido');
+      resultado = { rawResponse: responseText };
+    }
+    
+    console.log('📨 Resposta (parseada):', JSON.stringify(resultado, null, 2));
     
     if (sendResponse.ok) {
       return Response.json({ 
