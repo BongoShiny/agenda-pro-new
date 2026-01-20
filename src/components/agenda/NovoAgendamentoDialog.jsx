@@ -80,7 +80,7 @@ export default function NovoAgendamentoDialog({
     recebimento_2: null,
     final_pagamento: null,
     falta_quanto: null,
-    forma_pagamento: "pago_na_clinica",
+    forma_pagamento: "-",
     vendedor_id: "",
     vendedor_nome: "",
     comprovante_1: "",
@@ -178,7 +178,7 @@ export default function NovoAgendamentoDialog({
           cliente_pacote: agendamentoInicial?.cliente_pacote || "Não",
           quantas_sessoes: agendamentoInicial?.quantas_sessoes || null,
           sessoes_feitas: agendamentoInicial?.sessoes_feitas || null,
-          forma_pagamento: agendamentoInicial?.forma_pagamento || "pago_na_clinica"
+          forma_pagamento: agendamentoInicial?.forma_pagamento || "-"
           };
         
         setFormData(dados);
@@ -686,11 +686,12 @@ export default function NovoAgendamentoDialog({
 
           <div className="space-y-2">
             <Label>Forma de Pagamento</Label>
-            <Select value={formData.forma_pagamento || "pago_na_clinica"} onValueChange={(value) => setFormData(prev => ({ ...prev, forma_pagamento: value }))}>
+            <Select value={formData.forma_pagamento || "-"} onValueChange={(value) => setFormData(prev => ({ ...prev, forma_pagamento: value }))}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="-">-</SelectItem>
                 <SelectItem value="pago_na_clinica">💳 Pago na Clínica</SelectItem>
                 <SelectItem value="pix">📱 PIX</SelectItem>
                 <SelectItem value="link_pagamento">🔗 Link de Pagamento</SelectItem>
