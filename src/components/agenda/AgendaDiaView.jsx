@@ -38,11 +38,18 @@ export default function AgendaDiaView({
   });
 
   // Buscar configurações de sábado
-  const { data: configuracoesSabado = [] } = useQuery({
-    queryKey: ['configuracoes-sabado'],
-    queryFn: () => base44.entities.ConfiguracaoSabado.list(),
-    initialData: [],
-  });
+   const { data: configuracoesSabado = [] } = useQuery({
+     queryKey: ['configuracoes-sabado'],
+     queryFn: () => base44.entities.ConfiguracaoSabado.list(),
+     initialData: [],
+   });
+
+   // Buscar configurações de terapeutas para sábado
+   const { data: configuracoesTerapeutaSabado = [] } = useQuery({
+     queryKey: ['configuracoes-terapeuta-sabado'],
+     queryFn: () => base44.entities.ConfiguracaoTerapeutaSabado.list(),
+     initialData: [],
+   });
   const [slotMenuAberto, setSlotMenuAberto] = useState(null);
       const [dialogBloquearAberto, setDialogBloquearAberto] = useState(false);
       const [profissionalBloquear, setProfissionalBloquear] = useState(null);
@@ -85,50 +92,68 @@ export default function AgendaDiaView({
   };
 
   // Obter horário do profissional para a data selecionada (considerando exceções)
-  const getHorarioProfissional = (profissional) => {
-    const dataFormatada = dataAtual.toISOString().split('T')[0];
-    
-    // Verificar se é sábado (dia da semana 6)
-    const diaDaSemana = dataAtual.getDay();
-    const isSabado = diaDaSemana === 6;
-    
-    // Procurar exceção para esta data (EXCLUINDO horário de almoço)
-    const excecao = excecoesHorario.find(e => 
-      e.profissional_id === profissional.id && 
-      e.data === dataFormatada &&
-      e.motivo !== "Horário de Almoço"
-    );
-    
-    if (excecao) {
-      // Verificar se é folga (00:00 - 00:00)
-      const isFolga = excecao.horario_inicio === "00:00" && excecao.horario_fim === "00:00";
-      return {
-        horario_inicio: excecao.horario_inicio,
-        horario_fim: excecao.horario_fim,
-        isExcecao: true,
-        isFolga: isFolga,
-        motivo: excecao.motivo
-      };
-    }
-    
-    // Se for sábado, forçar horário 08:00 - 18:00 (último agendamento 17:00-18:00)
-    if (isSabado) {
-      return {
-        horario_inicio: "08:00",
-        horario_fim: "18:00",
-        isExcecao: false,
-        isFolga: false
-      };
-    }
-    
-    // Usar horário padrão
-    return {
-      horario_inicio: profissional.horario_inicio || "08:00",
-      horario_fim: profissional.horario_fim || "18:00",
-      isExcecao: false,
-      isFolga: false
-    };
-  };
+   const getHorarioProfissional = (profissional) => {
+     const dataFormatada = dataAtual.toISOString().split('T')[0];
+
+     // Verificar se é sábado (dia da semana 6)
+     const diaDaSemana = dataAtual.getDay();
+     const isSabado = diaDaSemana === 6;
+
+     // Procurar exceção para esta data (EXCLUINDO horário de almoço)
+     const excecao = excecoesHorario.find(e => 
+       e.profissional_id === profissional.id && 
+       e.data === dataFormatada &&
+       e.motivo !== "Horário de Almoço"
+     );
+
+     if (excecao) {
+       // Verificar se é folga (00:00 - 00:00)
+       const isFolga = excecao.horario_inicio === "00:00" && excecao.horario_fim === "00:00";
+       return {
+         horario_inicio: excecao.horario_inicio,
+         horario_fim: excecao.horario_fim,
+         isExcecao: true,
+         isFolga: isFolga,
+         motivo: excecao.motivo
+       };
+     }
+
+     // Se for sábado, buscar configuração específica do terapeuta
+     if (isSabado) {
+       // Buscar configuração específica para este sábado
+       const configEspecifica = configuracoesTerapeutaSabado.find(c => 
+         c.profissional_id === profissional.id &&
+         c.unidade_id === unidadeSelecionada.id &&
+         (c.data_sabado === dataFormatada || c.data_sabado === "") &&
+         c.ativo
+       );
+
+       if (configEspecifica) {
+         return {
+           horario_inicio: configEspecifica.horario_inicio || "08:00",
+           horario_fim: configEspecifica.horario_fim || "18:00",
+           isExcecao: false,
+           isFolga: false
+         };
+       }
+
+       // Se não tem configuração específica, o terapeuta não trabalha sábado
+       return {
+         horario_inicio: "00:00",
+         horario_fim: "00:00",
+         isExcecao: false,
+         isFolga: true
+       };
+     }
+
+     // Usar horário padrão
+     return {
+       horario_inicio: profissional.horario_inicio || "08:00",
+       horario_fim: profissional.horario_fim || "18:00",
+       isExcecao: false,
+       isFolga: false
+     };
+   };
 
   // Verificar se horário está no período de almoço
   const estaNoHorarioAlmoco = (horario, profissional) => {
