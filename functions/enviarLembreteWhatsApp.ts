@@ -110,7 +110,17 @@ Deno.serve(async (req) => {
         if (numeroTeste) {
           const telefoneAg = ag.cliente_telefone.replace(/\D/g, '');
           const numeroTesteLimpo = numeroTeste.replace(/\D/g, '');
-          if (telefoneAg !== numeroTesteLimpo && !telefoneAg.endsWith(numeroTesteLimpo) && !numeroTesteLimpo.endsWith(telefoneAg)) {
+
+          // Debug: log dos telefones comparados
+          console.log(`Comparando: AG="${telefoneAg}" vs TESTE="${numeroTesteLimpo}"`);
+
+          // Comparação: remove últimos 2 dígitos do +55 se existir
+          const telefoneAgSemPais = telefoneAg.startsWith('55') ? telefoneAg.slice(2) : telefoneAg;
+          const numeroTesteSemPais = numeroTesteLimpo.startsWith('55') ? numeroTesteLimpo.slice(2) : numeroTesteLimpo;
+
+          console.log(`Sem país: AG="${telefoneAgSemPais}" vs TESTE="${numeroTesteSemPais}"`);
+
+          if (telefoneAgSemPais !== numeroTesteSemPais) {
             continue; // Pular se não for o número de teste
           }
         }
