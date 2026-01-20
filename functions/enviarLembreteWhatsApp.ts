@@ -21,13 +21,12 @@ Deno.serve(async (req) => {
     }
 
     // Configurações da API do WhatsApp (Z-API APENAS)
-    const WHATSAPP_API_TOKEN = (Deno.env.get("WHATSAPP_API_TOKEN") || "").trim();
-    const WHATSAPP_API_URL = (Deno.env.get("WHATSAPP_API_URL") || "").trim();
-    const WHATSAPP_CLIENT_TOKEN = (Deno.env.get("WHATSAPP_CLIENT_TOKEN") || "").trim();
+    const WHATSAPP_INSTANCE_ID = (Deno.env.get("WHATSAPP_INSTANCE_ID") || "").trim();
+    const WHATSAPP_INSTANCE_TOKEN = (Deno.env.get("WHATSAPP_INSTANCE_TOKEN") || "").trim();
 
     // Se for apenas verificação de configuração
     if (verificarConfig) {
-      if (!WHATSAPP_API_TOKEN || !WHATSAPP_API_URL || !WHATSAPP_CLIENT_TOKEN) {
+      if (!WHATSAPP_INSTANCE_ID || !WHATSAPP_INSTANCE_TOKEN) {
         return Response.json({ 
           error: 'Credenciais Z-API não configuradas completamente' 
         });
@@ -35,12 +34,11 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, configurado: true });
     }
 
-    if (!WHATSAPP_API_TOKEN || !WHATSAPP_API_URL || !WHATSAPP_CLIENT_TOKEN) {
+    if (!WHATSAPP_INSTANCE_ID || !WHATSAPP_INSTANCE_TOKEN) {
       return Response.json({ 
         error: 'Credenciais Z-API incompletas',
-        tokenOk: !!WHATSAPP_API_TOKEN,
-        urlOk: !!WHATSAPP_API_URL,
-        clientTokenOk: !!WHATSAPP_CLIENT_TOKEN
+        instanceIdOk: !!WHATSAPP_INSTANCE_ID,
+        instanceTokenOk: !!WHATSAPP_INSTANCE_TOKEN
       }, { status: 500 });
     }
 
