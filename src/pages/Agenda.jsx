@@ -342,6 +342,13 @@ export default function AgendaPage() {
     ? todasUnidades
     : todasUnidades.filter(u => Array.isArray(usuarioAtual?.unidades_acesso) && usuarioAtual.unidades_acesso.includes(u.id));
 
+  // Se for gerencia de unidades e só tem 1 unidade, selecionar automaticamente
+  useEffect(() => {
+    if (usuarioAtual?.cargo === "gerencia_unidades" && unidades.length === 1 && !unidadeSelecionada) {
+      setUnidadeSelecionada(unidades[0]);
+    }
+  }, [unidades, usuarioAtual, unidadeSelecionada]);
+
   const { data: servicos = [] } = useQuery({
     queryKey: ['servicos'],
     queryFn: () => base44.entities.Servico.list("nome"),

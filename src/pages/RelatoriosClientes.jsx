@@ -103,11 +103,21 @@ export default function RelatoriosClientesPage() {
     initialData: [],
   });
 
-  const { data: unidades = [] } = useQuery({
+  const { data: todasUnidades = [] } = useQuery({
     queryKey: ['unidades-relatorio'],
     queryFn: () => base44.entities.Unidade.list("nome"),
     initialData: [],
   });
+
+  // Filtrar unidades baseado no cargo do usuário
+  const unidades = React.useMemo(() => {
+    if (!usuarioAtual) return todasUnidades;
+    if (usuarioAtual.cargo === "administrador" || usuarioAtual.cargo === "superior" || usuarioAtual.role === "admin") {
+      return todasUnidades;
+    }
+    // Filtrar apenas unidades que o usuário tem acesso
+    return todasUnidades.filter(u => Array.isArray(usuarioAtual.unidades_acesso) && usuarioAtual.unidades_acesso.includes(u.id));
+  }, [todasUnidades, usuarioAtual]);
 
   const { data: servicos = [] } = useQuery({
     queryKey: ['servicos-relatorio'],
