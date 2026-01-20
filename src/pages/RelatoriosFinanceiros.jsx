@@ -165,6 +165,13 @@ export default function RelatoriosFinanceirosPage() {
         dataInicio = format(startOfYear(hoje), "yyyy-MM-dd");
         dataFim = format(endOfYear(hoje), "yyyy-MM-dd");
         break;
+      case "personalizado":
+        if (dataPersonalizada) {
+          dataInicio = dataFim = format(new Date(dataPersonalizada), "yyyy-MM-dd");
+        } else {
+          dataInicio = dataFim = format(hoje, "yyyy-MM-dd");
+        }
+        break;
       default:
         dataInicio = format(startOfMonth(hoje), "yyyy-MM-dd");
         dataFim = format(endOfMonth(hoje), "yyyy-MM-dd");
