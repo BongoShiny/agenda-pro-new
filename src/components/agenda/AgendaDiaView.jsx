@@ -522,7 +522,7 @@ export default function AgendaDiaView({
                   const isOcupado = agendamentosSlot.length > 0;
                   const agendamentoQueCobreSlot = getAgendamentoQueCobreSlot(terapeuta.id, horario);
                   const horarioPassou = horarioJaPassou(horario);
-                  const limiteSabadoAtingido = verificarLimiteSabado(horario);
+                  const limiteSabadoAtingido = verificarLimiteSabado(horario, terapeuta.id);
                   const isMenuAberto = slotMenuAberto?.unidadeId === unidadeSelecionada.id && 
                                     slotMenuAberto?.profissionalId === terapeuta.id && 
                                     slotMenuAberto?.horario === horario;
