@@ -1033,6 +1033,20 @@ export default function AgendaPage() {
   // Verificar se é admin, gerência ou pós-venda - todos têm permissões administrativas
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades" || usuarioAtual?.cargo === "pos_venda";
 
+  // Loading enquanto carrega dados
+  if (!usuarioAtual || unidades.length === 0 || agendamentos.length === 0) {
+    return (
+      <div className="h-screen flex flex-col bg-gray-50">
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mb-4"></div>
+            <p className="text-gray-600 text-lg">Carregando agenda...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen flex flex-col bg-gray-50">
       {/* PAINEL DE DEBUG - APENAS PARA ADMINISTRADORES */}
