@@ -209,25 +209,35 @@ export default function WhatsAppCompleto() {
                 <CardDescription>Siga este guia passo a passo para configurar sua integração</CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
-                {/* Passo 1 */}
+                {/* Passo 1 - Evolution API */}
                 <div className="border-l-4 border-blue-500 pl-4">
-                  <h3 className="font-bold text-lg mb-2">1️⃣ Criar Conta na Octadesk</h3>
-                  <ol className="list-decimal list-inside space-y-2 text-sm">
-                    <li>Acesse: <a href="https://octadesk.com" target="_blank" rel="noopener" className="text-blue-600 underline">octadesk.com</a></li>
-                    <li>Crie uma conta gratuita ou faça login</li>
-                    <li>Acesse o painel de controle</li>
-                  </ol>
+                  <h3 className="font-bold text-lg mb-2">1️⃣ Instalar Evolution API (Recomendado)</h3>
+                  <p className="text-sm mb-2">A Evolution API é gratuita, open-source e funciona com seu WhatsApp Business normal.</p>
+                  <div className="bg-blue-50 p-3 rounded space-y-2">
+                    <p className="font-semibold text-sm">Opção A - Servidor Próprio (Gratuito):</p>
+                    <ol className="list-decimal list-inside space-y-1 text-xs ml-2">
+                      <li>Acesse: <a href="https://doc.evolution-api.com" target="_blank" className="text-blue-600 underline">doc.evolution-api.com</a></li>
+                      <li>Siga o guia de instalação (Docker recomendado)</li>
+                      <li>A API rodará em seu próprio servidor</li>
+                    </ol>
+                    <p className="font-semibold text-sm mt-3">Opção B - Serviço Hospedado (Pago):</p>
+                    <ol className="list-decimal list-inside space-y-1 text-xs ml-2">
+                      <li>Acesse: <a href="https://evolution-api.com" target="_blank" className="text-blue-600 underline">evolution-api.com</a></li>
+                      <li>Crie uma conta e escolha um plano</li>
+                      <li>Ganhe URL e Token prontos para usar</li>
+                    </ol>
+                  </div>
                 </div>
 
                 {/* Passo 2 */}
                 <div className="border-l-4 border-green-500 pl-4">
                   <h3 className="font-bold text-lg mb-2">2️⃣ Conectar WhatsApp Business</h3>
                   <ol className="list-decimal list-inside space-y-2 text-sm">
-                    <li>No painel Octadesk, vá em <strong>Canais → WhatsApp</strong></li>
-                    <li>Clique em <strong>"Conectar WhatsApp"</strong></li>
-                    <li>Escolha <strong>"WhatsApp Business API"</strong></li>
-                    <li>Escaneie o QR Code com seu WhatsApp Business</li>
-                    <li>Aguarde a confirmação da conexão</li>
+                    <li>Acesse o painel da Evolution API</li>
+                    <li>Crie uma nova instância (ex: "vibe_terapias")</li>
+                    <li>Escaneie o QR Code com seu <strong>WhatsApp Business</strong></li>
+                    <li>Aguarde a conexão ser estabelecida (status "open")</li>
+                    <li>✅ Seu WhatsApp está conectado!</li>
                   </ol>
                 </div>
 
@@ -237,32 +247,31 @@ export default function WhatsAppCompleto() {
                   <div className="space-y-3">
                     <div className="bg-gray-50 p-3 rounded">
                       <p className="font-semibold mb-1">🔗 URL da API:</p>
-                      <code className="text-xs bg-white px-2 py-1 rounded">https://oXXXXXX-fXX.apiXXX.octadesk.services</code>
+                      <code className="text-xs bg-white px-2 py-1 rounded block">http://seu-servidor:8080</code>
                       <p className="text-xs text-gray-600 mt-1">
-                        • Encontre em: <strong>Configurações → API → URL Base</strong><br/>
-                        • Formato: https://o[seu-id]-f[numero].api[numero].octadesk.services<br/>
-                        • Exemplo: https://o216174-f20.api002.octadesk.services
+                        • Se instalou no seu servidor: http://seu-ip:8080<br/>
+                        • Se usa serviço hospedado: fornecido pela plataforma<br/>
+                        • Exemplo: https://api.evolution-api.com
                       </p>
                     </div>
 
                     <div className="bg-gray-50 p-3 rounded">
-                      <p className="font-semibold mb-1">🔑 Token da API:</p>
-                      <code className="text-xs bg-white px-2 py-1 rounded">xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx</code>
+                      <p className="font-semibold mb-1">🔑 API Key (Token):</p>
+                      <code className="text-xs bg-white px-2 py-1 rounded block">B6D711FCDE4D4FD5936544120E713976</code>
                       <p className="text-xs text-gray-600 mt-1">
-                        • Encontre em: <strong>Configurações → API → Tokens</strong><br/>
-                        • Clique em <strong>"Gerar Novo Token"</strong><br/>
-                        • Copie o token completo (formato UUID com hífens)<br/>
-                        • ⚠️ Guarde com segurança - só aparece uma vez!
+                        • Encontre em: <strong>Configurações → API Key</strong><br/>
+                        • Ou defina no arquivo .env: <code>AUTHENTICATION_API_KEY</code><br/>
+                        • Formato: string alfanumérica (sem hífens)
                       </p>
                     </div>
 
                     <div className="bg-gray-50 p-3 rounded">
                       <p className="font-semibold mb-1">📱 Nome da Instância:</p>
-                      <code className="text-xs bg-white px-2 py-1 rounded">minha_instancia</code>
+                      <code className="text-xs bg-white px-2 py-1 rounded block">vibe_terapias</code>
                       <p className="text-xs text-gray-600 mt-1">
-                        • Encontre em: <strong>Canais → WhatsApp → Configurações</strong><br/>
-                        • Geralmente é "default" ou o nome que você definiu<br/>
-                        • Exemplos: default, producao, vibe_terapias
+                        • É o nome que você criou ao conectar o WhatsApp<br/>
+                        • Exemplos: vibe_terapias, meu_whatsapp, clinica<br/>
+                        • Não use espaços - use underline ou hífen
                       </p>
                     </div>
                   </div>
@@ -270,20 +279,23 @@ export default function WhatsAppCompleto() {
 
                 {/* Passo 4 */}
                 <div className="border-l-4 border-orange-500 pl-4">
-                  <h3 className="font-bold text-lg mb-2">4️⃣ Configurar no Dashboard</h3>
+                  <h3 className="font-bold text-lg mb-2">4️⃣ Configurar no Dashboard Base44</h3>
                   <ol className="list-decimal list-inside space-y-2 text-sm">
-                    <li>Acesse o <strong>Dashboard → Configurações → Secrets</strong></li>
-                    <li>Configure os seguintes valores:</li>
+                    <li>Acesse <strong>Dashboard → Configurações → Environment Variables</strong></li>
+                    <li>Configure os seguintes secrets:</li>
                   </ol>
                   <div className="mt-2 space-y-2 ml-6">
-                    <div className="text-sm">
-                      <strong>WHATSAPP_API_URL:</strong> Cole a URL completa da API
+                    <div className="bg-white border p-2 rounded text-sm">
+                      <strong>WHATSAPP_API_URL</strong><br/>
+                      <span className="text-xs text-gray-600">Cole a URL da sua Evolution API</span>
                     </div>
-                    <div className="text-sm">
-                      <strong>WHATSAPP_API_TOKEN:</strong> Cole o token UUID completo
+                    <div className="bg-white border p-2 rounded text-sm">
+                      <strong>WHATSAPP_API_TOKEN</strong><br/>
+                      <span className="text-xs text-gray-600">Cole a API Key</span>
                     </div>
-                    <div className="text-sm">
-                      <strong>WHATSAPP_INSTANCE_NAME:</strong> Cole o nome da instância
+                    <div className="bg-white border p-2 rounded text-sm">
+                      <strong>WHATSAPP_INSTANCE_NAME</strong><br/>
+                      <span className="text-xs text-gray-600">Cole o nome da instância</span>
                     </div>
                   </div>
                 </div>
@@ -292,31 +304,28 @@ export default function WhatsAppCompleto() {
                 <div className="border-l-4 border-red-500 pl-4">
                   <h3 className="font-bold text-lg mb-2">5️⃣ Testar Integração</h3>
                   <ol className="list-decimal list-inside space-y-2 text-sm">
-                    <li>Vá para a aba <strong>"🧪 Teste"</strong> desta página</li>
-                    <li>Digite seu próprio número de telefone</li>
+                    <li>Vá para a aba <strong>"🧪 Teste"</strong> nesta página</li>
+                    <li>Digite seu número de telefone (com DDD e 55)</li>
                     <li>Digite uma mensagem de teste</li>
                     <li>Clique em "Enviar Mensagem WhatsApp"</li>
-                    <li>Verifique se recebeu a mensagem no seu WhatsApp</li>
+                    <li>✅ Verifique se recebeu no WhatsApp Business</li>
                   </ol>
                 </div>
 
-                {/* Alternativas */}
+                {/* Outras Opções */}
                 <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">💡 Alternativas à Octadesk:</h4>
+                  <h4 className="font-semibold mb-2">💡 Outras Opções de API WhatsApp:</h4>
                   <ul className="space-y-2 text-sm">
-                    <li><strong>Evolution API:</strong> Solução open-source e gratuita
-                      <br/><a href="https://evolution-api.com" target="_blank" className="text-blue-600 underline text-xs">evolution-api.com</a>
+                    <li><strong>Z-API:</strong> API brasileira paga (mais simples)
+                      <br/><a href="https://z-api.io" target="_blank" className="text-blue-600 underline text-xs">z-api.io</a> - Fornece URL e Token prontos
                     </li>
-                    <li><strong>Z-API:</strong> API brasileira para WhatsApp Business
-                      <br/><a href="https://z-api.io" target="_blank" className="text-blue-600 underline text-xs">z-api.io</a>
+                    <li><strong>WPPConnect:</strong> Open-source brasileiro
+                      <br/><a href="https://wppconnect.io" target="_blank" className="text-blue-600 underline text-xs">wppconnect.io</a> - Similar à Evolution API
                     </li>
-                    <li><strong>Baileys:</strong> Biblioteca Node.js open-source
+                    <li><strong>Baileys:</strong> Biblioteca Node.js (para desenvolvedores)
                       <br/><a href="https://github.com/WhiskeySockets/Baileys" target="_blank" className="text-blue-600 underline text-xs">github.com/WhiskeySockets/Baileys</a>
                     </li>
                   </ul>
-                  <p className="text-xs text-yellow-700 mt-2">
-                    ℹ️ As credenciais funcionam de forma similar - você precisará da URL, Token e Instance de cada provedor.
-                  </p>
                 </div>
 
                 {/* Troubleshooting */}

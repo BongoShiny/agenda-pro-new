@@ -40,37 +40,18 @@ Deno.serve(async (req) => {
     console.log('🔧 Iniciando envio...');
     console.log('  Telefone:', telefoneFormatado);
     
-    // API da Octadesk - enviar mensagem via template
-    const sendUrl = `${WHATSAPP_API_URL}/chat/send-template`;
-    
+    // Evolution API - enviar mensagem de texto
+    const instanceName = Deno.env.get("WHATSAPP_INSTANCE_NAME") || "default";
+    const sendUrl = `${WHATSAPP_API_URL}/message/sendText/${instanceName}`;
+
     const sendPayload = {
-      origin: {
-        contact: {
-          name: "Vibe Terapias",
-          channel: "whatsapp"
-        }
-      },
-      target: {
-        contact: {
-          name: "Cliente",
-          phoneNumber: telefoneFormatado,
-          channel: "whatsapp"
-        }
-      },
-      content: {
-        templateId: "text_message",
-        parameters: {
-          body: mensagem
-        }
-      },
-      options: {
-        automaticAssign: true
-      }
+      number: telefoneFormatado,
+      text: mensagem
     };
-    
+
     console.log('📤 URL:', sendUrl);
     console.log('📦 Payload:', JSON.stringify(sendPayload, null, 2));
-    
+
     const sendResponse = await fetch(sendUrl, {
       method: 'POST',
       headers: {
