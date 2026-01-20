@@ -129,62 +129,72 @@ Deno.serve(async (req) => {
       console.log('❌ Erro ao buscar chats:', buscaResponse.status);
     }
     
-    // PASSO 2: Se não encontrou chat, tentar send-template
-    console.log('📤 Tentando send-template...');
-    const url = `${WHATSAPP_API_URL}/api/v1/chat/send-template`;
+    // PASSO 2: Tentar criar contato e enviar
+    console.log('📤 Tentando criar/buscar contato...');
     
-    const payload = {
-      origin: {
-        contact: {
-          channel: "whatsapp",
-          name: "Sistema",
-          email: "sistema@agenda.com"
-        }
-      },
-      target: {
-        contact: {
-          channel: "whatsapp",
-          phoneNumber: telefoneFormatado,
-          name: "Cliente",
-          email: "cliente@temp.com"
-        }
-      },
-      content: {
-        text: mensagem
-      },
-      options: {
-        automaticAssign: true
-      }
+    // Primeiro, tentar buscar ou criar o contato
+    const contatoUrl = `${WHATSAPP_API_URL}/api/v1/contacts`;
+    const contatoPayload = {
+      channel: "whatsapp",
+      phoneNumber: telefoneFormatado,
+      name: "Cliente",
+      email: `${telefoneFormatado}@temp.com`
     };
     
-    const response = await fetch(url, {
+    console.log('📞 Buscando/Criando contato:', contatoPayload);
+    
+    const contatoResponse = await fetch(contatoUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'apikey': WHATSAPP_API_TOKEN
       },
-      body: JSON.stringify(payload)
+      body: JSON.stringify(contatoPayload)
+    });
+    
+    const contato = await contatoResponse.json();
+    console.log('📋 Contato:', contato);
+    
+    // Agora tentar enviar a mensagem
+    console.log('📤 Tentando enviar via send-message...');
+    const sendUrl = `${WHATSAPP_API_URL}/api/v1/chat/send-message`;
+    
+    const sendPayload = {
+      number: telefoneFormatado,
+      text: mensagem
+    };
+    
+    console.log('📦 Payload send-message:', sendPayload);
+    
+    const sendResponse = await fetch(sendUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'apikey': WHATSAPP_API_TOKEN
+      },
+      body: JSON.stringify(sendPayload)
     });
 
-    const resultado = await response.json();
-    console.log('📨 Resposta send-template:', JSON.stringify(resultado, null, 2));
+    const resultado = await sendResponse.json();
+    console.log('📨 Resposta send-message:', JSON.stringify(resultado, null, 2));
     
-    if (response.ok && resultado.result) {
+    if (sendResponse.ok) {
       return Response.json({ 
         sucesso: true, 
         mensagem: '✅ Mensagem enviada com sucesso!',
         resultado: resultado,
-        metodo: 'send_template'
+        metodo: 'send_message'
       });
     }
     
-    // Se deu erro
+    // Se falhou, retornar erro detalhado
     return Response.json({ 
       sucesso: false,
-      error: 'Erro ao enviar mensagem',
-      detalhes: resultado.error || 'Não foi possível enviar',
+      error: 'Nenhum método funcionou',
+      detalhes: 'O chat existe, mas não conseguimos enviar a mensagem. Verifique se a instância da Octadesk está ativa e conectada.',
       resultado: resultado,
-      telefone: telefoneFormatado
+      telefone: telefoneFormatado,
+      sugestao: 'Entre na Octadesk e verifique se a instância do WhatsApp está conectada e ativa'
     }, { status: 200 });
 
   } catch (error) {
