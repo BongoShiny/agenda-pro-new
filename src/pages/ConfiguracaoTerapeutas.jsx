@@ -1190,8 +1190,109 @@ export default function ConfiguracaoTerapeutasPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Alert Dialog para confirmar exclusão permanente */}
-      <AlertDialog open={alertExcluirAberto} onOpenChange={setAlertExcluirAberto}>
+      {/* Dialog para configurar sábados */}
+      <Dialog open={dialogSabadoAberto} onOpenChange={setDialogSabadoAberto}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>✏️ Editar Horário do Terapeuta - SÁBADOS</DialogTitle>
+            <DialogDescription>
+              Configure horários específicos para sábados - Terapeuta: {profissionalSabado?.nome}
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Aplicar configuração</Label>
+              <Select value={configSabadoEdicao.aplicacao || "todos"} onValueChange={(value) => setConfigSabadoEdicao(prev => ({ ...prev, aplicacao: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">Para todos os sábados</SelectItem>
+                  <SelectItem value="especifico">Para um sábado específico</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {configSabadoEdicao.aplicacao === "especifico" && (
+              <div className="space-y-2">
+                <Label>Data do Sábado</Label>
+                <Input
+                  type="date"
+                  value={configSabadoEdicao.data_sabado}
+                  onChange={(e) => setConfigSabadoEdicao(prev => ({ ...prev, data_sabado: e.target.value }))}
+                />
+              </div>
+            )}
+
+            <div className="space-y-2">
+              <Label>Horário Início</Label>
+              <Input
+                type="time"
+                value={configSabadoEdicao.horario_inicio}
+                onChange={(e) => setConfigSabadoEdicao(prev => ({ ...prev, horario_inicio: e.target.value }))}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Horário Fim</Label>
+              <Input
+                type="time"
+                value={configSabadoEdicao.horario_fim}
+                onChange={(e) => setConfigSabadoEdicao(prev => ({ ...prev, horario_fim: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDialogSabadoAberto(false)}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={async () => {
+                if (!profissionalSabado || !unidadeSabado) return;
+
+                const configExistente = configSabados.find(c => 
+                  c.profissional_id === profissionalSabado.id && 
+                  c.unidade_id === unidadeSabado &&
+                  (configSabadoEdicao.aplicacao === "todos" ? !c.data_sabado : c.data_sabado === configSabadoEdicao.data_sabado)
+                );
+
+                if (configExistente) {
+                  await atualizarConfigSabadoMutation.mutateAsync({
+                    id: configExistente.id,
+                    dados: {
+                      horario_inicio: configSabadoEdicao.horario_inicio,
+                      horario_fim: configSabadoEdicao.horario_fim,
+                      data_sabado: configSabadoEdicao.aplicacao === "especifico" ? configSabadoEdicao.data_sabado : "",
+                      ativo: true
+                    }
+                  });
+                } else {
+                  await criarConfigSabadoMutation.mutateAsync({
+                    profissional_id: profissionalSabado.id,
+                    profissional_nome: profissionalSabado.nome,
+                    unidade_id: unidadeSabado,
+                    unidade_nome: unidades.find(u => u.id === unidadeSabado)?.nome,
+                    horario_inicio: configSabadoEdicao.horario_inicio,
+                    horario_fim: configSabadoEdicao.horario_fim,
+                    data_sabado: configSabadoEdicao.aplicacao === "especifico" ? configSabadoEdicao.data_sabado : "",
+                    ativo: true
+                  });
+                }
+
+                setDialogSabadoAberto(false);
+              }}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Salvar Alterações
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+       {/* Alert Dialog para confirmar exclusão permanente */}
+       <AlertDialog open={alertExcluirAberto} onOpenChange={setAlertExcluirAberto}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="flex items-center gap-2">
