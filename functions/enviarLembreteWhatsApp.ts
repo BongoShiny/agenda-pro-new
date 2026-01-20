@@ -20,23 +20,25 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Configurações da API do WhatsApp
+    // Configurações da API do WhatsApp (Z-API APENAS)
     const WHATSAPP_API_TOKEN = (Deno.env.get("WHATSAPP_API_TOKEN") || "").trim();
     const WHATSAPP_API_URL = (Deno.env.get("WHATSAPP_API_URL") || "").trim();
 
     // Se for apenas verificação de configuração
     if (verificarConfig) {
-      if (!WHATSAPP_API_TOKEN) {
+      if (!WHATSAPP_API_TOKEN || !WHATSAPP_API_URL) {
         return Response.json({ 
-          error: 'Token da API não configurado' 
+          error: 'Token ou URL da API não configurados' 
         });
       }
       return Response.json({ success: true, configurado: true });
     }
 
-    if (!WHATSAPP_API_TOKEN) {
+    if (!WHATSAPP_API_TOKEN || !WHATSAPP_API_URL) {
       return Response.json({ 
-        error: 'Token do WhatsApp não encontrado' 
+        error: 'Token ou URL da API Z-API não configurados',
+        tokenOk: !!WHATSAPP_API_TOKEN,
+        urlOk: !!WHATSAPP_API_URL
       }, { status: 500 });
     }
 

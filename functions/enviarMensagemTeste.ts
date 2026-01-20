@@ -18,16 +18,18 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Telefone e mensagem são obrigatórios' }, { status: 400 });
     }
 
-    const WHATSAPP_API_TOKEN = Deno.env.get("WHATSAPP_API_TOKEN");
+    const WHATSAPP_API_TOKEN = (Deno.env.get("WHATSAPP_API_TOKEN") || "").trim();
     const WHATSAPP_API_URL = (Deno.env.get("WHATSAPP_API_URL") || "").trim();
 
     console.log('🔑 Token existe?', !!WHATSAPP_API_TOKEN);
+    console.log('🔑 Token length:', WHATSAPP_API_TOKEN.length);
     console.log('🌐 URL:', WHATSAPP_API_URL);
-    console.log('🔐 Token completo:', WHATSAPP_API_TOKEN);
 
-    if (!WHATSAPP_API_TOKEN) {
+    if (!WHATSAPP_API_TOKEN || !WHATSAPP_API_URL) {
       return Response.json({ 
-        error: 'Token da API não encontrado' 
+        error: 'Token ou URL da API não configurados',
+        tokenOk: !!WHATSAPP_API_TOKEN,
+        urlOk: !!WHATSAPP_API_URL
       }, { status: 500 });
     }
 
