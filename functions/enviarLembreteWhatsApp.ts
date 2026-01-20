@@ -117,7 +117,8 @@ Deno.serve(async (req) => {
             },
             body: JSON.stringify({
               phone: telefoneFormatado,
-              message: mensagem
+              message: mensagem,
+              clientToken: WHATSAPP_CLIENT_TOKEN
             })
           });
           
@@ -242,7 +243,8 @@ Deno.serve(async (req) => {
             },
             body: JSON.stringify({
               phone: telefoneFormatado,
-              message: mensagem
+              message: mensagem,
+              clientToken: WHATSAPP_CLIENT_TOKEN
             })
           });
 
