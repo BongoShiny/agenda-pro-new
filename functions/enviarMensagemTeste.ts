@@ -54,18 +54,32 @@ Deno.serve(async (req) => {
       const chats = await buscaResponse.json();
       console.log(`📋 Total de chats: ${chats.length}`);
       
-      // Limpar telefone para comparação
-      const telLimpo = telefoneFormatado.replace(/^55/, '');
-      console.log(`🔢 Procurando por: ${telLimpo} ou ${telefoneFormatado}`);
+      // Extrair apenas números do telefone
+      const telLimpo = telefoneFormatado.replace(/\D/g, '');
+      const telSem55 = telLimpo.replace(/^55/, '');
+      console.log(`🔢 Procurando por: ${telLimpo} ou ${telSem55}`);
       
-      // Procurar chat com este telefone
+      // Log todos os telefones para debug
+      chats.forEach((chat, i) => {
+        const phone = (chat.contact?.phoneNumber || chat.phoneNumber || '').replace(/\D/g, '');
+        console.log(`Chat ${i}: ${phone}`);
+      });
+      
+      // Procurar chat - comparação mais flexível
       const chatExistente = chats.find(chat => {
         const phoneChat = (chat.contact?.phoneNumber || chat.phoneNumber || '').replace(/\D/g, '');
-        const match = phoneChat === telLimpo || phoneChat === telefoneFormatado || 
-                     phoneChat.endsWith(telLimpo) || telLimpo.endsWith(phoneChat);
+        
+        // Comparar de várias formas
+        const match = 
+          phoneChat === telLimpo || 
+          phoneChat === telSem55 || 
+          phoneChat.endsWith(telSem55) || 
+          telSem55.endsWith(phoneChat) ||
+          (phoneChat.length >= 10 && telSem55.includes(phoneChat.slice(-10))) ||
+          (telSem55.length >= 10 && phoneChat.includes(telSem55.slice(-10)));
         
         if (match) {
-          console.log(`✅ Chat encontrado! ID: ${chat.id}, Phone: ${phoneChat}`);
+          console.log(`✅ MATCH! Chat ID: ${chat.id}, Phone: ${phoneChat}`);
         }
         return match;
       });
@@ -107,8 +121,10 @@ Deno.serve(async (req) => {
           }, { status: 200 });
         }
       } else {
-        console.log('❌ Chat não encontrado');
+        console.log('❌ Chat não encontrado nos chats existentes');
       }
+    } else {
+      console.log('❌ Erro ao buscar chats:', buscaResponse.status);
     }
     
     // PASSO 2: Se não encontrou chat, tentar send-template
