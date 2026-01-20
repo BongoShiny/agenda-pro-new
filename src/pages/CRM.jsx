@@ -14,63 +14,57 @@ export default function CRM() {
   const [filtroClinica, setFiltroClinica] = useState("todas");
   const [filtroStatus, setFiltroStatus] = useState("todos");
 
-  const { data: clientes = [], isLoading } = useQuery({
+  const { data: clientes = [], isLoading, refetch } = useQuery({
     queryKey: ["clientesCRM"],
     queryFn: async () => {
-      // Sincronizar clientes da agenda que têm pacote ativo
       try {
-        const clientesAgenda = await base44.entities.Cliente.list("nome");
-        const agendamentos = await base44.entities.Agendamento.list("-data");
+        // 1. Buscar todos os agendamentos com pacote ativo
+        const agendamentos = await base44.asServiceRole.entities.Agendamento.filter({ cliente_pacote: "Sim" });
         
-        // Filtrar clientes que têm pacote ativo
-        const clientesComPacote = clientesAgenda.filter(cliente => {
-          const temPacote = agendamentos.some(ag => 
-            ag.cliente_id === cliente.id && 
-            ag.cliente_pacote === "Sim" &&
-            ag.status !== "cancelado"
-          );
-          return temPacote;
+        console.log("📊 Total de agendamentos com pacote:", agendamentos.length);
+
+        // 2. Agrupar por cliente_id para evitar duplicatas
+        const clientesUnicos = {};
+        agendamentos.forEach(ag => {
+          if (!clientesUnicos[ag.cliente_id]) {
+            clientesUnicos[ag.cliente_id] = ag;
+          }
         });
 
-        // Sincronizar cada cliente no CRM
-        for (const clienteAgenda of clientesComPacote) {
-          const agendamentosCliente = agendamentos.filter(ag => ag.cliente_id === clienteAgenda.id);
-          if (agendamentosCliente.length === 0) continue;
-
-          const pacoteAtivo = agendamentosCliente.find(ag => ag.cliente_pacote === "Sim" && ag.status !== "cancelado");
-          if (!pacoteAtivo) continue;
-
+        // 3. Sincronizar cada cliente no CRM
+        const clientesCRM = await base44.entities.ClienteCRM.list("nome", 1000);
+        
+        for (const ag of Object.values(clientesUnicos)) {
           // Verificar se já existe no CRM
-          const existeNosCRM = await base44.entities.ClienteCRM.filter({ nome: clienteAgenda.nome, clinica: pacoteAtivo.unidade_nome });
+          const jaExiste = clientesCRM.some(c => c.nome === ag.cliente_nome);
           
-          if (existeNosCRM.length === 0) {
-            // Criar no CRM
-            await base44.entities.ClienteCRM.create({
-              nome: clienteAgenda.nome,
-              telefone: clienteAgenda.telefone || "",
-              email: clienteAgenda.email || "",
-              data_nascimento: clienteAgenda.data_nascimento || "",
-              cpf: clienteAgenda.cpf || "",
-              clinica: pacoteAtivo.unidade_nome,
-              data_primeira_sessao: pacoteAtivo.data,
-              vendedor: pacoteAtivo.vendedor_nome || "Não informado",
+          if (!jaExiste) {
+            console.log("✅ Adicionando cliente ao CRM:", ag.cliente_nome);
+            await base44.asServiceRole.entities.ClienteCRM.create({
+              nome: ag.cliente_nome,
+              telefone: ag.cliente_telefone || "",
+              email: "",
+              clinica: ag.unidade_nome,
+              data_primeira_sessao: ag.data,
+              vendedor: ag.vendedor_nome || "Não informado",
               canal_venda: "Presencial",
-              pacote_nome: pacoteAtivo.servico_nome,
-              valor_pacote: pacoteAtivo.valor_combinado || 0,
+              pacote_nome: ag.servico_nome || "Pacote",
+              valor_pacote: ag.valor_combinado || 0,
               forma_pagamento: "Pix",
-              sessoes_total: pacoteAtivo.quantas_sessoes || 0,
-              sessoes_realizadas: pacoteAtivo.sessoes_feitas || 0,
+              sessoes_total: ag.quantas_sessoes || 0,
+              sessoes_realizadas: ag.sessoes_feitas || 0,
               status_pacote: "Em Andamento",
-              renovacoes: 0,
               ativo: true
-            });
+            }).catch(err => console.log("Erro ao criar cliente:", err));
           }
         }
-      } catch (error) {
-        console.error("Erro ao sincronizar clientes:", error);
-      }
 
-      return base44.entities.ClienteCRM.list("-updated_date", 100);
+        // 4. Retornar clientes do CRM
+        return base44.entities.ClienteCRM.list("-updated_date", 200);
+      } catch (error) {
+        console.error("❌ Erro ao sincronizar:", error);
+        return base44.entities.ClienteCRM.list("-updated_date", 200);
+      }
     },
     initialData: [],
   });
