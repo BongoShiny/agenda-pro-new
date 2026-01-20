@@ -52,6 +52,7 @@ export default function RelatoriosFinanceirosPage() {
   const [usuarioAtual, setUsuarioAtual] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [periodo, setPeriodo] = useState("mes");
+  const [dataPersonalizada, setDataPersonalizada] = useState(null);
   const [unidadeFiltro, setUnidadeFiltro] = useState("todas");
   const [profissionalFiltro, setProfissionalFiltro] = useState("todos");
   const [modoEditor, setModoEditor] = useState(false);
