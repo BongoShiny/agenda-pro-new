@@ -1373,6 +1373,25 @@ export default function RelatoriosFinanceirosPage() {
                         </div>
                       </div>
 
+                      {/* Formas de Pagamento */}
+                      <div className="bg-white rounded-lg border border-gray-200 p-4">
+                        <h3 className="font-semibold text-lg mb-4">💳 Formas de Pagamento</h3>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="bg-blue-50 p-4 rounded-lg border border-blue-200 text-center">
+                            <p className="text-sm text-blue-600 mb-2">📱 PIX</p>
+                            <p className="text-2xl font-bold text-blue-700">{formatarMoeda(formasPagamento.pix)}</p>
+                          </div>
+                          <div className="bg-purple-50 p-4 rounded-lg border border-purple-200 text-center">
+                            <p className="text-sm text-purple-600 mb-2">🔗 Link de Pagamento</p>
+                            <p className="text-2xl font-bold text-purple-700">{formatarMoeda(formasPagamento.link_pagamento)}</p>
+                          </div>
+                          <div className="bg-amber-50 p-4 rounded-lg border border-amber-200 text-center">
+                            <p className="text-sm text-amber-600 mb-2">💳 Pago na Clínica</p>
+                            <p className="text-2xl font-bold text-amber-700">{formatarMoeda(formasPagamento.pago_na_clinica)}</p>
+                          </div>
+                        </div>
+                      </div>
+
                       <div>
                         <div className="flex items-center justify-between mb-4">
                           <h3 className="font-semibold text-lg">Desempenho por Vendedor</h3>
