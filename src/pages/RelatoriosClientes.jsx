@@ -48,6 +48,7 @@ export default function RelatoriosClientesPage() {
   const [unidadeTab, setUnidadeTab] = useState("todas");
   const [importandoCSV, setImportandoCSV] = useState(false);
   const [resultadoImportacao, setResultadoImportacao] = useState(null);
+  const [clienteSelecionado, setClienteSelecionado] = useState(null);
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const scrollTopRef = useRef(null);
