@@ -78,6 +78,14 @@ export default function ConfiguracaoTerapeutasPage() {
     tipo: "horario" // "horario" ou "folga"
   });
   const [usuarioAtual, setUsuarioAtual] = useState(null);
+  const [dialogSabadoAberto, setDialogSabadoAberto] = useState(false);
+  const [profissionalSabado, setProfissionalSabado] = useState(null);
+  const [unidadeSabado, setUnidadeSabado] = useState(null);
+  const [configSabadoEdicao, setConfigSabadoEdicao] = useState({
+    horario_inicio: "08:00",
+    horario_fim: "12:00",
+    data_sabado: ""
+  });
 
   const { data: profissionais = [] } = useQuery({
     queryKey: ['profissionais'],
