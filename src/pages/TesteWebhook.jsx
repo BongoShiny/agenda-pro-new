@@ -63,11 +63,12 @@ export default function TesteWebhook() {
 
     try {
       const response = await base44.functions.invoke('webhookWhatsApp', {
-        from: telefone,
+        phoneNumber: telefone,
+        contact: {
+          phoneNumber: telefone
+        },
         message: {
-          text: {
-            body: mensagem
-          }
+          body: mensagem
         }
       });
 
@@ -78,7 +79,7 @@ export default function TesteWebhook() {
     } catch (error) {
       setResultado({
         sucesso: false,
-        erro: error.message
+        erro: error.message || error.response?.data?.error || 'Erro desconhecido'
       });
     } finally {
       setLoading(false);

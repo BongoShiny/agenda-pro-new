@@ -126,6 +126,11 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error('Erro no webhook:', error);
-    return Response.json({ error: error.message }, { status: 500 });
+    // Sempre retornar 200 para não bloquear o webhook real
+    return Response.json({ 
+      success: true,
+      message: 'Processado com erro',
+      error: error.message 
+    }, { status: 200 });
   }
 });

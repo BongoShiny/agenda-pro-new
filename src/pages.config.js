@@ -3,6 +3,7 @@ import Agenda from './pages/Agenda';
 import ConfiguracaoSabado from './pages/ConfiguracaoSabado';
 import ConfiguracaoTerapeutas from './pages/ConfiguracaoTerapeutas';
 import ConfiguracaoWhatsApp from './pages/ConfiguracaoWhatsApp';
+import ConfiguracaoWhatsAppCredenciais from './pages/ConfiguracaoWhatsAppCredenciais';
 import ConfigurarUnidades from './pages/ConfigurarUnidades';
 import GerenciarContratos from './pages/GerenciarContratos';
 import GerenciarProntuarios from './pages/GerenciarProntuarios';
@@ -13,7 +14,6 @@ import RelatoriosAvancados from './pages/RelatoriosAvancados';
 import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
 import TesteWebhook from './pages/TesteWebhook';
-import ConfiguracaoWhatsAppCredenciais from './pages/ConfiguracaoWhatsAppCredenciais';
 import __Layout from './Layout.jsx';
 
 
@@ -23,6 +23,7 @@ export const PAGES = {
     "ConfiguracaoSabado": ConfiguracaoSabado,
     "ConfiguracaoTerapeutas": ConfiguracaoTerapeutas,
     "ConfiguracaoWhatsApp": ConfiguracaoWhatsApp,
+    "ConfiguracaoWhatsAppCredenciais": ConfiguracaoWhatsAppCredenciais,
     "ConfigurarUnidades": ConfigurarUnidades,
     "GerenciarContratos": GerenciarContratos,
     "GerenciarProntuarios": GerenciarProntuarios,
@@ -33,7 +34,6 @@ export const PAGES = {
     "RelatoriosClientes": RelatoriosClientes,
     "RelatoriosFinanceiros": RelatoriosFinanceiros,
     "TesteWebhook": TesteWebhook,
-    "ConfiguracaoWhatsAppCredenciais": ConfiguracaoWhatsAppCredenciais,
 }
 
 export const pagesConfig = {
