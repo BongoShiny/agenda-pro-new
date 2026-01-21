@@ -71,11 +71,24 @@ export default function WhatsAppCompleto() {
       
       try {
         await updateConfig.mutateAsync({ id: config.id, data: { ativo: true } });
-        await base44.functions.invoke('enviarLembreteWhatsApp', {
+        
+        const response = await base44.functions.invoke('enviarLembreteWhatsApp', {
           envioImediato: true,
           unidadeId: config.unidade_id
         });
-        alert('✅ WhatsApp ativado e mensagens enviadas!');
+        
+        const mensagensEnviadas = response.data?.mensagensEnviadas || 0;
+        const erros = response.data?.erros || [];
+        
+        if (mensagensEnviadas > 0) {
+          alert(`✅ WhatsApp ativado!\n\n${mensagensEnviadas} mensagem(ns) enviada(s) com sucesso.`);
+        } else {
+          alert(`⚠️ WhatsApp ativado, mas nenhuma mensagem foi enviada.\n\nPossíveis motivos:\n• Não há agendamentos para amanhã\n• Clientes sem telefone cadastrado\n• Verifique se as credenciais Z-API estão corretas`);
+        }
+        
+        if (erros.length > 0) {
+          console.error('Erros ao enviar:', erros);
+        }
       } catch (error) {
         alert('❌ Erro ao ativar: ' + error.message);
       }
