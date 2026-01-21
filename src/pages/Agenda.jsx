@@ -316,8 +316,29 @@ export default function AgendaPage() {
       return listaNormalizada;
     },
     initialData: [],
-    refetchInterval: 3000,
+    refetchInterval: 2000, // Atualizar a cada 2 segundos para pegar mudanças do webhook mais rápido
   });
+
+  // Subscrição em tempo real para agendamentos
+  useEffect(() => {
+    console.log('🔔 Ativando subscrição em tempo real para agendamentos');
+    
+    const unsubscribe = base44.entities.Agendamento.subscribe((event) => {
+      console.log(`🔔 EVENTO TEMPO REAL: ${event.type} - ID: ${event.id}`);
+      
+      if (event.type === 'update') {
+        console.log('✅ Agendamento atualizado em tempo real:', event.data);
+        // Forçar atualização imediata
+        refetchAgendamentos();
+        queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+      }
+    });
+
+    return () => {
+      console.log('🔕 Desativando subscrição de agendamentos');
+      unsubscribe();
+    };
+  }, [refetchAgendamentos, queryClient]);
 
   const { data: clientes = [] } = useQuery({
     queryKey: ['clientes'],
