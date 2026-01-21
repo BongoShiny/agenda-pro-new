@@ -18,14 +18,23 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Telefone e mensagem são obrigatórios' }, { status: 400 });
     }
 
-    const WHATSAPP_INSTANCE_ID = (Deno.env.get("WHATSAPP_INSTANCE_ID") || "").trim();
-    const WHATSAPP_INSTANCE_TOKEN = (Deno.env.get("WHATSAPP_INSTANCE_TOKEN") || "").trim();
+    const WHATSAPP_INSTANCE_ID = Deno.env.get("WHATSAPP_INSTANCE_ID") || "";
+    const WHATSAPP_INSTANCE_TOKEN = Deno.env.get("WHATSAPP_INSTANCE_TOKEN") || "";
+    const WHATSAPP_CLIENT_TOKEN = Deno.env.get("WHATSAPP_CLIENT_TOKEN") || "";
 
-    if (!WHATSAPP_INSTANCE_ID || !WHATSAPP_INSTANCE_TOKEN) {
+    console.log('🔧 Debug Secrets:', {
+      instanceId: WHATSAPP_INSTANCE_ID ? '✅ SET' : '❌ MISSING',
+      instanceToken: WHATSAPP_INSTANCE_TOKEN ? '✅ SET' : '❌ MISSING',
+      clientToken: WHATSAPP_CLIENT_TOKEN ? '✅ SET' : '❌ MISSING',
+      clientTokenLength: WHATSAPP_CLIENT_TOKEN?.length || 0
+    });
+
+    if (!WHATSAPP_INSTANCE_ID || !WHATSAPP_INSTANCE_TOKEN || !WHATSAPP_CLIENT_TOKEN) {
       return Response.json({ 
         error: 'Credenciais Z-API não configuradas completamente',
         instanceIdOk: !!WHATSAPP_INSTANCE_ID,
-        instanceTokenOk: !!WHATSAPP_INSTANCE_TOKEN
+        instanceTokenOk: !!WHATSAPP_INSTANCE_TOKEN,
+        clientTokenOk: !!WHATSAPP_CLIENT_TOKEN
       }, { status: 500 });
     }
 
@@ -44,10 +53,13 @@ Deno.serve(async (req) => {
       message: mensagem
     };
 
+    console.log('📤 Enviando:', { url: sendUrl, clientToken: WHATSAPP_CLIENT_TOKEN?.substring(0, 10) + '...' });
+
     const sendResponse = await fetch(sendUrl, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Client-Token': WHATSAPP_CLIENT_TOKEN
       },
       body: JSON.stringify(sendPayload)
     });
