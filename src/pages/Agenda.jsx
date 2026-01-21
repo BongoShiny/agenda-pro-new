@@ -316,8 +316,8 @@ export default function AgendaPage() {
       return listaNormalizada;
     },
     initialData: [],
-    refetchInterval: 5000, // Atualizar a cada 5 segundos
-    staleTime: 2000, // Cache por 2 segundos
+    refetchInterval: 3000, // Atualizar a cada 3 segundos
+    staleTime: 0, // Sem cache para atualizar sempre
     });
 
   // Subscrição em tempo real para agendamentos
@@ -326,16 +326,13 @@ export default function AgendaPage() {
 
         const unsubscribe = base44.entities.Agendamento.subscribe((event) => {
               console.log(`🔔 EVENTO TEMPO REAL: ${event.type} - ID: ${event.id}`);
+              console.log('📊 Dados:', event.data);
 
-              // Só refetch se o agendamento afeta a data/unidade visível
-              const agData = event.data?.data;
-              const agUnidade = event.data?.unidade_id;
-              const dataFormatada = formatarDataPura(dataAtual);
-
-              if (agData === dataFormatada && (!unidadeSelecionada || agUnidade === unidadeSelecionada.id)) {
-                console.log('🔄 Refetch por mudança relevante (webhook)');
-                queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
-              }
+              // SEMPRE refetch imediatamente (sem checar data/unidade)
+              console.log('🔄 Refetch IMEDIATO para webhook');
+              queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+              // Forçar busca imediata (não esperar o intervalo)
+              refetchAgendamentos();
             });
 
         return () => {
