@@ -251,29 +251,29 @@ export default function AgendaDiaView({
   // Verificar se um horário em sábado atingiu o limite de atendimentos
   const verificarLimiteSabado = (horario, profissionalId) => {
     const diaDaSemana = dataAtual.getDay();
-    
+
     // Se não for sábado, não tem limite
     if (diaDaSemana !== 6) return false;
-    
+
     const formatarDataPura = (data) => {
       const ano = data.getFullYear();
       const mes = String(data.getMonth() + 1).padStart(2, '0');
       const dia = String(data.getDate()).padStart(2, '0');
       return `${ano}-${mes}-${dia}`;
     };
-    
+
     const dataFormatada = formatarDataPura(dataAtual);
-    
+
     // Buscar configuração do sábado para esta unidade e data
     const configSabado = configuracoesSabado.find(c => 
       c.unidade_id === unidadeSelecionada.id &&
       c.data_sabado === dataFormatada &&
       c.ativo
     );
-    
+
     // Se não tem configuração, não bloquear
     if (!configSabado) return false;
-    
+
     // Buscar IDs dos terapeutas que trabalham neste sábado
     const terapeutasSabado = configuracoesTerapeutaSabado
       .filter(c => 
@@ -282,11 +282,15 @@ export default function AgendaDiaView({
         c.ativo
       )
       .map(c => c.profissional_id);
-    
+
     // Se não tem nenhum terapeuta configurado para trabalhar, não bloquear
     if (terapeutasSabado.length === 0) return false;
-    
-    // Contar apenas agendamentos de terapeutas que trabalham no sábado, NESTE HORÁRIO ESPECÍFICO
+
+    // Converter horário para minutos
+    const [h] = horario.split(':').map(Number);
+    const minutosHorario = h * 60;
+
+    // Contar agendamentos que OCUPAM este horário (não apenas os que iniciam)
     const totalAgendamentosHorario = agendamentos.filter(ag => {
       if (ag.unidade_id !== unidadeSelecionada.id) return false;
       if (ag.data !== dataFormatada) return false;
@@ -295,11 +299,19 @@ export default function AgendaDiaView({
       if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
       // Só contar se o terapeuta trabalha no sábado
       if (!terapeutasSabado.includes(ag.profissional_id)) return false;
-      
-      // Contar apenas agendamentos que INICIAM neste horário
-      return ag.hora_inicio === horario;
+
+      // Verificar se o agendamento ocupa este horário
+      const [hInicio] = ag.hora_inicio.split(':').map(Number);
+      const [hFim] = ag.hora_fim.split(':').map(Number);
+      const minutosInicio = hInicio * 60;
+      const minutosFim = hFim * 60;
+
+      // O agendamento ocupa este horário se:
+      // - Inicia neste horário OU
+      // - Este horário está entre o início e fim do agendamento
+      return minutosHorario >= minutosInicio && minutosHorario < minutosFim;
     }).length;
-    
+
     // Bloquear se atingiu ou passou o limite
     return totalAgendamentosHorario >= configSabado.limite_atendimentos_por_hora;
   };
