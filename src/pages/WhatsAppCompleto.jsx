@@ -426,10 +426,14 @@ export default function WhatsAppCompleto() {
                           <Input
                             type="time"
                             value={config.horario_envio || "18:00"}
-                            onChange={(e) => updateConfig.mutate({ 
-                              id: config.id, 
-                              data: { horario_envio: e.target.value } 
-                            })}
+                            onChange={(e) => {
+                              if (!config.ativo) {
+                                updateConfig.mutate({ 
+                                  id: config.id, 
+                                  data: { horario_envio: e.target.value } 
+                                });
+                              }
+                            }}
                             disabled={config.ativo}
                             className="mt-1"
                           />
@@ -445,10 +449,17 @@ export default function WhatsAppCompleto() {
                             min="10"
                             max="120"
                             value={config.delay_segundos || 50}
-                            onChange={(e) => updateConfig.mutate({ 
-                              id: config.id, 
-                              data: { delay_segundos: parseInt(e.target.value) } 
-                            })}
+                            onChange={(e) => {
+                              if (!config.ativo) {
+                                const valor = parseInt(e.target.value, 10);
+                                if (!isNaN(valor) && valor >= 10 && valor <= 120) {
+                                  updateConfig.mutate({ 
+                                    id: config.id, 
+                                    data: { delay_segundos: valor } 
+                                  });
+                                }
+                              }
+                            }}
                             disabled={config.ativo}
                             className="mt-1"
                           />
