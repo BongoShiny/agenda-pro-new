@@ -274,6 +274,7 @@ export default function AgendaDiaView({
     
     // Se não tem configuração, não bloquear
     if (!configSabado) {
+      console.log(`✅ SÁBADO ${horario}: Sem configuração de limite para ${dataFormatada} na unidade ${unidadeSelecionada.nome}`);
       return false;
     }
     
@@ -282,7 +283,7 @@ export default function AgendaDiaView({
     const minutosHorario = hHorario * 60 + mHorario;
     
     // Contar TODOS os agendamentos que OCUPAM este horário (incluindo os que começam antes e terminam depois)
-    const totalAgendamentosHorario = agendamentos.filter(ag => {
+    const agendamentosOcupando = agendamentos.filter(ag => {
       // Mesma unidade
       if (ag.unidade_id !== unidadeSelecionada.id) return false;
       // Mesma data
@@ -299,13 +300,17 @@ export default function AgendaDiaView({
       
       // O horário está ocupado se está entre início (inclusive) e fim (exclusive)
       return minutosHorario >= minutosInicio && minutosHorario < minutosFim;
-    }).length;
+    });
     
+    const totalAgendamentosHorario = agendamentosOcupando.length;
     const bloqueado = totalAgendamentosHorario >= configSabado.limite_atendimentos_por_hora;
     
-    if (bloqueado) {
-      console.log(`🚫 SÁBADO LOTADO - ${horario}: ${totalAgendamentosHorario}/${configSabado.limite_atendimentos_por_hora} atendimentos`);
-    }
+    console.log(`📊 SÁBADO ${horario}: ${totalAgendamentosHorario}/${configSabado.limite_atendimentos_por_hora} atendimentos`, {
+      bloqueado,
+      data: dataFormatada,
+      unidade: unidadeSelecionada.nome,
+      agendamentos: agendamentosOcupando.map(a => `${a.cliente_nome} (${a.profissional_nome}) ${a.hora_inicio}-${a.hora_fim}`)
+    });
     
     // Se atingiu ou ultrapassou o limite, bloquear
     return bloqueado;
