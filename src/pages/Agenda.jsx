@@ -290,55 +290,54 @@ export default function AgendaPage() {
     queryKey: ['agendamentos'],
     queryFn: async () => {
       console.log("📥📥📥 CARREGANDO AGENDAMENTOS DO BANCO 📥📥📥");
-      
+
       const lista = await base44.entities.Agendamento.list("-data");
-      
+
       console.log("📊 Total bruto do banco:", lista.length);
-      
+
       // NORMALIZAR TODAS AS DATAS NA ENTRADA
       const listaNormalizada = lista.map(ag => {
         const dataNormalizada = normalizarData(ag.data);
         return { ...ag, data: dataNormalizada };
       });
-      
+
       console.log("✅ Todos os agendamentos normalizados:", listaNormalizada.length);
-      
+
       // Mostrar todos os bloqueios
       const bloqueios = listaNormalizada.filter(ag => 
         ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO"
       );
-      
+
       console.log("🔒 BLOQUEIOS NO BANCO:", bloqueios.length);
       bloqueios.forEach(b => {
         console.log(`  🔒 ID: ${b.id} | Data: ${b.data} | Hora: ${b.hora_inicio} | Prof: ${b.profissional_nome} | Unidade: ${b.unidade_nome}`);
       });
-      
+
       return listaNormalizada;
     },
     initialData: [],
-    refetchInterval: 2000, // Atualizar a cada 2 segundos para pegar mudanças do webhook mais rápido
-  });
-
-  // Subscrição em tempo real para agendamentos
-  useEffect(() => {
-    console.log('🔔 Ativando subscrição em tempo real para agendamentos');
-    
-    const unsubscribe = base44.entities.Agendamento.subscribe((event) => {
-      console.log(`🔔 EVENTO TEMPO REAL: ${event.type} - ID: ${event.id}`);
-      
-      if (event.type === 'update') {
-        console.log('✅ Agendamento atualizado em tempo real:', event.data);
-        // Forçar atualização imediata
-        refetchAgendamentos();
-        queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
-      }
+    refetchInterval: 1000, // Atualizar a cada 1 segundo para pegar mudanças do webhook
     });
 
-    return () => {
-      console.log('🔕 Desativando subscrição de agendamentos');
-      unsubscribe();
-    };
-  }, [refetchAgendamentos, queryClient]);
+  // Subscrição em tempo real para agendamentos
+      useEffect(() => {
+        console.log('🔔 Ativando subscrição em tempo real para agendamentos');
+
+        const unsubscribe = base44.entities.Agendamento.subscribe((event) => {
+          console.log(`🔔 EVENTO TEMPO REAL: ${event.type} - ID: ${event.id}`);
+          console.log('📊 Dados do evento:', event.data);
+
+          // Qualquer mudança (create, update, delete) dispara refetch
+          console.log('🔄 Disparando refetch imediato...');
+          queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+          refetchAgendamentos();
+        });
+
+        return () => {
+          console.log('🔕 Desativando subscrição de agendamentos');
+          unsubscribe();
+        };
+      }, [refetchAgendamentos, queryClient]);
 
   const { data: clientes = [] } = useQuery({
     queryKey: ['clientes'],
