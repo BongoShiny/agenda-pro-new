@@ -27,7 +27,8 @@ export default function AgendaDiaView({
   onStatusPacienteChange,
   usuarioAtual,
   dataAtual,
-  excecoesHorario = []
+  excecoesHorario = [],
+  refetchAgendamentos // Nova prop para forçar atualização
 }) {
   // Buscar prontuários
   const { data: prontuarios = [] } = useQuery({
