@@ -316,7 +316,8 @@ export default function AgendaPage() {
       return listaNormalizada;
     },
     initialData: [],
-    refetchInterval: 1000, // Atualizar a cada 1 segundo para pegar mudanças do webhook
+    refetchInterval: 5000, // Atualizar a cada 5 segundos
+    staleTime: 2000, // Cache por 2 segundos
     });
 
   // Subscrição em tempo real para agendamentos
@@ -324,38 +325,48 @@ export default function AgendaPage() {
         console.log('🔔 Ativando subscrição em tempo real para agendamentos');
 
         const unsubscribe = base44.entities.Agendamento.subscribe((event) => {
-          console.log(`🔔 EVENTO TEMPO REAL: ${event.type} - ID: ${event.id}`);
-          console.log('📊 Dados do evento:', event.data);
+              console.log(`🔔 EVENTO TEMPO REAL: ${event.type} - ID: ${event.id}`);
 
-          // Qualquer mudança (create, update, delete) dispara refetch
-          console.log('🔄 Disparando refetch imediato...');
-          queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
-          refetchAgendamentos();
-        });
+              // Só refetch se o agendamento afeta a data/unidade visível
+              const agData = event.data?.data;
+              const agUnidade = event.data?.unidade_id;
+              const dataFormatada = formatarDataPura(dataAtual);
+
+              if (agData === dataFormatada && (!unidadeSelecionada || agUnidade === unidadeSelecionada.id)) {
+                console.log('🔄 Refetch por mudança relevante (webhook)');
+                queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+              }
+            });
 
         return () => {
-          console.log('🔕 Desativando subscrição de agendamentos');
-          unsubscribe();
-        };
-      }, [refetchAgendamentos, queryClient]);
+            console.log('🔕 Desativando subscrição de agendamentos');
+            unsubscribe();
+          };
+        }, [dataAtual, unidadeSelecionada, queryClient]);
 
   const { data: clientes = [] } = useQuery({
-    queryKey: ['clientes'],
-    queryFn: () => base44.entities.Cliente.list("nome"),
-    initialData: [],
-  });
+      queryKey: ['clientes'],
+      queryFn: () => base44.entities.Cliente.list("nome"),
+      initialData: [],
+      staleTime: 60000, // Cache por 1 minuto
+      refetchInterval: false,
+    });
 
-  const { data: profissionais = [] } = useQuery({
-    queryKey: ['profissionais'],
-    queryFn: () => base44.entities.Profissional.list("nome"),
-    initialData: [],
-  });
+    const { data: profissionais = [] } = useQuery({
+      queryKey: ['profissionais'],
+      queryFn: () => base44.entities.Profissional.list("nome"),
+      initialData: [],
+      staleTime: 60000,
+      refetchInterval: false,
+    });
 
-  const { data: todasUnidades = [] } = useQuery({
-    queryKey: ['unidades'],
-    queryFn: () => base44.entities.Unidade.list("nome"),
-    initialData: [],
-  });
+    const { data: todasUnidades = [] } = useQuery({
+      queryKey: ['unidades'],
+      queryFn: () => base44.entities.Unidade.list("nome"),
+      initialData: [],
+      staleTime: 60000,
+      refetchInterval: false,
+    });
 
   // Filtrar unidades baseado no acesso do usuário
   const unidades = (usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin")
@@ -373,24 +384,32 @@ export default function AgendaPage() {
     queryKey: ['servicos'],
     queryFn: () => base44.entities.Servico.list("nome"),
     initialData: [],
+    staleTime: 60000,
+    refetchInterval: false,
   });
 
   const { data: configuracoes = [] } = useQuery({
     queryKey: ['configuracoes'],
     queryFn: () => base44.entities.ConfiguracaoTerapeuta.list("ordem"),
     initialData: [],
+    staleTime: 60000,
+    refetchInterval: false,
   });
 
   const { data: excecoesHorario = [] } = useQuery({
     queryKey: ['excecoes-horario'],
     queryFn: () => base44.entities.HorarioExcecao.list("-data"),
     initialData: [],
+    staleTime: 60000,
+    refetchInterval: false,
   });
 
   const { data: configuracoesTerapeutaSabado = [] } = useQuery({
     queryKey: ['configuracoes-terapeuta-sabado'],
     queryFn: () => base44.entities.ConfiguracaoTerapeutaSabado.list(),
     initialData: [],
+    staleTime: 60000,
+    refetchInterval: false,
   });
 
   const criarAgendamentoMutation = useMutation({
@@ -1113,31 +1132,7 @@ export default function AgendaPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
-      {/* PAINEL DE DEBUG - APENAS PARA ADMINISTRADORES */}
-      {isAdmin && (
-        <div className="bg-yellow-100 border-b-2 border-yellow-400 p-3 text-xs font-mono">
-          <div className="max-w-7xl mx-auto grid grid-cols-4 gap-4">
-            <div>
-              <strong>👤 Usuário:</strong> {usuarioAtual?.email || "carregando..."}
-            </div>
-            <div>
-              <strong>🌍 Timezone:</strong> {Intl.DateTimeFormat().resolvedOptions().timeZone}
-            </div>
-            <div>
-              <strong>📅 Data Atual (raw):</strong> {dataAtual.toISOString()}
-            </div>
-            <div>
-              <strong>📅 Data Formatada:</strong> {formatarDataPura(dataAtual)}
-            </div>
-            <div className="col-span-2">
-              <strong>📊 Agendamentos:</strong> Total: {agendamentos.length} | Filtrados: {agendamentosFiltrados.length}
-            </div>
-            <div className="col-span-2">
-              <strong>🔒 Bloqueios:</strong> Total: {agendamentos.filter(a => a.status === "bloqueio" || a.tipo === "bloqueio" || a.cliente_nome === "FECHADO").length} | Visíveis: {agendamentosFiltrados.filter(a => a.status === "bloqueio" || a.tipo === "bloqueio" || a.cliente_nome === "FECHADO").length}
-            </div>
-          </div>
-        </div>
-      )}
+      {/* PAINEL DE DEBUG - DESABILITADO PARA MELHOR PERFORMANCE */}
 
       <AgendaHeader
         dataAtual={dataAtual}
