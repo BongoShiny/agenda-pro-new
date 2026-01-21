@@ -430,10 +430,11 @@ export default function WhatsAppCompleto() {
                               id: config.id, 
                               data: { horario_envio: e.target.value } 
                             })}
+                            disabled={config.ativo}
                             className="mt-1"
                           />
                           <p className="text-xs text-gray-500 mt-1">
-                            Horário que as mensagens serão enviadas
+                            {config.ativo ? "⚠️ Desative para editar" : "Horário que as mensagens serão enviadas"}
                           </p>
                         </div>
 
@@ -448,10 +449,11 @@ export default function WhatsAppCompleto() {
                               id: config.id, 
                               data: { delay_segundos: parseInt(e.target.value) } 
                             })}
+                            disabled={config.ativo}
                             className="mt-1"
                           />
                           <p className="text-xs text-gray-500 mt-1">
-                            Tempo de espera entre cada envio
+                            {config.ativo ? "⚠️ Desative para editar" : "Tempo de espera entre cada envio"}
                           </p>
                         </div>
                       </div>
