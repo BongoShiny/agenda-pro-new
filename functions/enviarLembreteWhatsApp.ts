@@ -23,10 +23,11 @@ Deno.serve(async (req) => {
     // Configurações da API do WhatsApp (Z-API APENAS)
     const WHATSAPP_INSTANCE_ID = (Deno.env.get("WHATSAPP_INSTANCE_ID") || "").trim();
     const WHATSAPP_INSTANCE_TOKEN = (Deno.env.get("WHATSAPP_INSTANCE_TOKEN") || "").trim();
+    const WHATSAPP_CLIENT_TOKEN = (Deno.env.get("WHATSAPP_CLIENT_TOKEN") || "").trim();
 
     // Se for apenas verificação de configuração
     if (verificarConfig) {
-      if (!WHATSAPP_INSTANCE_ID || !WHATSAPP_INSTANCE_TOKEN) {
+      if (!WHATSAPP_INSTANCE_ID || !WHATSAPP_INSTANCE_TOKEN || !WHATSAPP_CLIENT_TOKEN) {
         return Response.json({ 
           error: 'Credenciais Z-API não configuradas completamente' 
         });
@@ -34,11 +35,12 @@ Deno.serve(async (req) => {
       return Response.json({ success: true, configurado: true });
     }
 
-    if (!WHATSAPP_INSTANCE_ID || !WHATSAPP_INSTANCE_TOKEN) {
+    if (!WHATSAPP_INSTANCE_ID || !WHATSAPP_INSTANCE_TOKEN || !WHATSAPP_CLIENT_TOKEN) {
       return Response.json({ 
         error: 'Credenciais Z-API incompletas',
         instanceIdOk: !!WHATSAPP_INSTANCE_ID,
-        instanceTokenOk: !!WHATSAPP_INSTANCE_TOKEN
+        instanceTokenOk: !!WHATSAPP_INSTANCE_TOKEN,
+        clientTokenOk: !!WHATSAPP_CLIENT_TOKEN
       }, { status: 500 });
     }
 
@@ -234,7 +236,8 @@ Deno.serve(async (req) => {
           const response = await fetch(url, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Client-Token': WHATSAPP_CLIENT_TOKEN
             },
             body: JSON.stringify({
               phone: telefoneFormatado,

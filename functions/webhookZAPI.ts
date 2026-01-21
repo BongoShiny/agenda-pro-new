@@ -18,6 +18,11 @@ Deno.serve(async (req) => {
     // Criar cliente base44 APÓS receber os dados
     const base44 = createClientFromRequest(req);
 
+    // Configurações da API do WhatsApp (Z-API)
+    const WHATSAPP_INSTANCE_ID = (Deno.env.get("WHATSAPP_INSTANCE_ID") || "").trim();
+    const WHATSAPP_INSTANCE_TOKEN = (Deno.env.get("WHATSAPP_INSTANCE_TOKEN") || "").trim();
+    const WHATSAPP_CLIENT_TOKEN = (Deno.env.get("WHATSAPP_CLIENT_TOKEN") || "").trim();
+
     // Extrair dados da Z-API - formato de mensagem recebida
     const mensagem = body.text || body.message || body.body || '';
     const telefone = body.phone || body.wuid || body.phoneNumber || '';
@@ -87,6 +92,31 @@ Deno.serve(async (req) => {
       });
 
       console.log('✅ Agendamento confirmado:', proximo.id);
+
+      // Enviar mensagem de confirmação
+      if (WHATSAPP_INSTANCE_ID && WHATSAPP_INSTANCE_TOKEN && WHATSAPP_CLIENT_TOKEN) {
+        try {
+          const dataFormatada = new Date(proximo.data + 'T12:00:00').toLocaleDateString('pt-BR');
+          const mensagemConfirmacao = `✅ Agendamento confirmado com sucesso!\n\n📅 Data: ${dataFormatada}\n⏰ Horário: ${proximo.hora_inicio}\n👨‍⚕️ Profissional: ${proximo.profissional_nome}\n📍 Unidade: ${proximo.unidade_nome}\n\nNos vemos em breve! 😊`;
+          
+          const telefoneFormatado = '55' + telefone.replace(/\D/g, '');
+          const url = `https://api.z-api.io/instances/${WHATSAPP_INSTANCE_ID}/token/${WHATSAPP_INSTANCE_TOKEN}/send-text`;
+          
+          await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Client-Token': WHATSAPP_CLIENT_TOKEN
+            },
+            body: JSON.stringify({
+              phone: telefoneFormatado,
+              message: mensagemConfirmacao
+            })
+          });
+        } catch (error) {
+          console.error('Erro ao enviar mensagem de confirmação:', error);
+        }
+      }
       
       return Response.json({ 
         success: true, 
@@ -136,6 +166,31 @@ Deno.serve(async (req) => {
       await base44.asServiceRole.entities.Agendamento.delete(proximo.id);
 
       console.log('❌ Agendamento cancelado:', proximo.id);
+
+      // Enviar mensagem de cancelamento
+      if (WHATSAPP_INSTANCE_ID && WHATSAPP_INSTANCE_TOKEN && WHATSAPP_CLIENT_TOKEN) {
+        try {
+          const dataFormatada = new Date(proximo.data + 'T12:00:00').toLocaleDateString('pt-BR');
+          const mensagemCancelamento = `❌ Agendamento cancelado com sucesso.\n\n📅 Data: ${dataFormatada}\n⏰ Horário: ${proximo.hora_inicio}\n👨‍⚕️ Profissional: ${proximo.profissional_nome}\n📍 Unidade: ${proximo.unidade_nome}\n\nSe desejar reagendar, entre em contato conosco. 📞`;
+          
+          const telefoneFormatado = '55' + telefone.replace(/\D/g, '');
+          const url = `https://api.z-api.io/instances/${WHATSAPP_INSTANCE_ID}/token/${WHATSAPP_INSTANCE_TOKEN}/send-text`;
+          
+          await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Client-Token': WHATSAPP_CLIENT_TOKEN
+            },
+            body: JSON.stringify({
+              phone: telefoneFormatado,
+              message: mensagemCancelamento
+            })
+          });
+        } catch (error) {
+          console.error('Erro ao enviar mensagem de cancelamento:', error);
+        }
+      }
       
       return Response.json({ 
         success: true, 
