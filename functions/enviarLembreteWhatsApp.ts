@@ -287,8 +287,8 @@ Deno.serve(async (req) => {
               entidade_id: ag.id
             });
 
-            // Cooldown de 50 segundos entre envios (apenas no envio imediato)
-            if (envioImediato) {
+            // Cooldown de 50 segundos entre envios (exceto testes)
+            if (!numeroTeste) {
               await new Promise(resolve => setTimeout(resolve, 50000));
             }
           }
