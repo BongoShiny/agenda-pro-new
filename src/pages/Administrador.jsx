@@ -206,6 +206,17 @@ export default function AdministradorPage() {
           </Link>
           )}
 
+          {isAdmin && (
+          <Link to={createPageUrl("GerenciarServicos")} className="block">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-purple-300 transition-all cursor-pointer h-full">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                <span className="text-2xl">💆</span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Gerenciar Serviços</h3>
+              <p className="text-sm text-gray-500">Criar e editar serviços Vibe Terapias</p>
+            </div>
+          </Link>
+          )}
 
           </div>
 
