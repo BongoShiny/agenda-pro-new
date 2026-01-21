@@ -608,7 +608,7 @@ export default function AgendaDiaView({
                             <div className="text-xs text-orange-700">Limite de atendimentos atingido neste horário</div>
                           </PopoverContent>
                         </Popover>
-                      ) : !isOcupado && !temBloqueio ? (
+                      ) : !isOcupado && !temBloqueio && !limiteSabadoAtingido ? (
                         <SlotMenu
                           open={isMenuAberto}
                           onOpenChange={(open) => {
