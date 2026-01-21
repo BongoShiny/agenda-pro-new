@@ -21,6 +21,8 @@ export default function WhatsAppCompleto() {
   const [resultado, setResultado] = useState(null);
   const [telefone, setTelefone] = useState("");
   const [mensagem, setMensagem] = useState("");
+  const [horariosEditaveis, setHorariosEditaveis] = useState({});
+  const [delaysEditaveis, setDelaysEditaveis] = useState({});
 
   const queryClient = useQueryClient();
 
@@ -425,12 +427,27 @@ export default function WhatsAppCompleto() {
                           <Label>⏰ Horário de Envio</Label>
                           <Input
                             type="time"
-                            value={config.horario_envio || "18:00"}
+                            value={horariosEditaveis[config.id] !== undefined 
+                              ? horariosEditaveis[config.id] 
+                              : config.horario_envio || "18:00"}
                             onChange={(e) => {
                               if (!config.ativo) {
+                                setHorariosEditaveis(prev => ({
+                                  ...prev,
+                                  [config.id]: e.target.value
+                                }));
+                              }
+                            }}
+                            onBlur={(e) => {
+                              if (!config.ativo && horariosEditaveis[config.id] !== undefined) {
                                 updateConfig.mutate({ 
                                   id: config.id, 
                                   data: { horario_envio: e.target.value } 
+                                });
+                                setHorariosEditaveis(prev => {
+                                  const novo = { ...prev };
+                                  delete novo[config.id];
+                                  return novo;
                                 });
                               }
                             }}
@@ -448,9 +465,19 @@ export default function WhatsAppCompleto() {
                             type="number"
                             min="10"
                             max="120"
-                            value={config.delay_segundos || 50}
+                            value={delaysEditaveis[config.id] !== undefined 
+                              ? delaysEditaveis[config.id] 
+                              : config.delay_segundos || 50}
                             onChange={(e) => {
                               if (!config.ativo) {
+                                setDelaysEditaveis(prev => ({
+                                  ...prev,
+                                  [config.id]: e.target.value
+                                }));
+                              }
+                            }}
+                            onBlur={(e) => {
+                              if (!config.ativo && delaysEditaveis[config.id] !== undefined) {
                                 const valor = parseInt(e.target.value, 10);
                                 if (!isNaN(valor) && valor >= 10 && valor <= 120) {
                                   updateConfig.mutate({ 
@@ -458,6 +485,11 @@ export default function WhatsAppCompleto() {
                                     data: { delay_segundos: valor } 
                                   });
                                 }
+                                setDelaysEditaveis(prev => {
+                                  const novo = { ...prev };
+                                  delete novo[config.id];
+                                  return novo;
+                                });
                               }
                             }}
                             disabled={config.ativo}
