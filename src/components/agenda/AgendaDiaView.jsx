@@ -561,6 +561,10 @@ export default function AgendaDiaView({
                     );
                   }
 
+                  // Se o slot não está ocupado por agendamento, mostrar LOTADO se atingiu limite
+                  const slotVazio = !isOcupado;
+                  const mostrarLotado = slotVazio && !temBloqueio && limiteSabadoAtingido;
+
                   return (
                     <div
                       key={horario}
@@ -586,13 +590,13 @@ export default function AgendaDiaView({
                             <div className="text-xs text-gray-600">Este horário já passou</div>
                           </PopoverContent>
                         </Popover>
-                      ) : !isOcupado && limiteSabadoAtingido ? (
+                      ) : mostrarLotado ? (
                         <Popover>
                           <PopoverTrigger asChild>
                             <button className="w-full h-full bg-orange-200 rounded flex items-center justify-center md:cursor-default md:pointer-events-none">
                               <div className="text-center">
                                 <div className="text-[10px] md:text-xs text-orange-700 font-bold">
-                                  <span className="md:hidden">LOTE</span>
+                                  <span className="md:hidden">LOTADO</span>
                                   <span className="hidden md:block">LOTADO</span>
                                 </div>
                                 <div className="text-[8px] md:text-[10px] text-orange-600 hidden md:block">Limite atingido</div>
