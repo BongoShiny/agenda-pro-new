@@ -101,11 +101,14 @@ Deno.serve(async (req) => {
         
         try {
           const url = `https://api.z-api.io/instances/${WHATSAPP_INSTANCE_ID}/token/${WHATSAPP_INSTANCE_TOKEN}/send-text`;
+          
+          console.log('🔑 Client-Token:', WHATSAPP_CLIENT_TOKEN ? 'Configurado' : 'NÃO CONFIGURADO');
+          
           const response = await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Client-Token': WHATSAPP_CLIENT_TOKEN
+              'Client-Token': WHATSAPP_CLIENT_TOKEN || 'Fe9e62cb592214788b9c04ea5a37d6f9dS'
             },
             body: JSON.stringify({
               phone: telefoneFormatado,
@@ -216,11 +219,14 @@ Deno.serve(async (req) => {
         try {
           // Enviar mensagem via Z-API
           const url = `https://api.z-api.io/instances/${WHATSAPP_INSTANCE_ID}/token/${WHATSAPP_INSTANCE_TOKEN}/send-text`;
+          
+          console.log('🔑 Client-Token:', WHATSAPP_CLIENT_TOKEN ? 'Configurado' : 'NÃO CONFIGURADO');
+          
           const response = await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Client-Token': WHATSAPP_CLIENT_TOKEN
+              'Client-Token': WHATSAPP_CLIENT_TOKEN || 'Fe9e62cb592214788b9c04ea5a37d6f9dS'
             },
             body: JSON.stringify({
               phone: telefoneFormatado,
