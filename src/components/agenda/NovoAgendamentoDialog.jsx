@@ -396,12 +396,32 @@ export default function NovoAgendamentoDialog({
 
   const handleSubmit = () => {
      try {
+       // Se não tiver cliente_id (cliente não cadastrado), buscar cliente_telefone diretamente
+       if (!formData.cliente_id && !formData.cliente_telefone) {
+         alert("❌ Por favor, informe o telefone do cliente!");
+         return;
+       }
+
        // Preparar dados do serviço para salvamento
        const dataToSave = {
          ...formData,
          servico_id: formData.servicos_selecionados[0] || "",
          servico_nome: formData.servicos_selecionados.join(" + ")
        };
+
+       // Garantir que o telefone está presente
+       if (!dataToSave.cliente_telefone && formData.cliente_id) {
+         const cliente = clientes.find(c => c.id === formData.cliente_id);
+         if (cliente?.telefone) {
+           dataToSave.cliente_telefone = cliente.telefone;
+         }
+       }
+
+       console.log('💾 Salvando agendamento:', {
+         cliente_nome: dataToSave.cliente_nome,
+         cliente_telefone: dataToSave.cliente_telefone,
+         cliente_id: dataToSave.cliente_id
+       });
 
        // Remover campo temporário antes de salvar
        delete dataToSave.servicos_selecionados;
