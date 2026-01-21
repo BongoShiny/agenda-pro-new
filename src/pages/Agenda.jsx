@@ -302,8 +302,8 @@ export default function AgendaPage() {
       return listaNormalizada;
     },
     initialData: [],
-    refetchInterval: false, // Desabilitar refetch automático
-    staleTime: 0,
+    refetchInterval: 5000, // Refetch a cada 5 segundos
+    staleTime: 2000, // Cache por 2 segundos
     });
 
   // Subscrição em tempo real para agendamentos
