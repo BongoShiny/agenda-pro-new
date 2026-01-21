@@ -1200,6 +1200,7 @@ export default function AgendaPage() {
         modoEdicao={!!agendamentoInicial?.id}
         agendamentos={agendamentos}
         isTerapeuta={isProfissional}
+        excecoesHorario={excecoesHorario}
       />
 
       <DetalhesAgendamentoDialog
