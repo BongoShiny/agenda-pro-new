@@ -63,11 +63,15 @@ Deno.serve(async (req) => {
       console.log(`🔍 Total de agendamentos 'agendado': ${agendamentos.length}`);
       
       const agendamentosCliente = agendamentos.filter(ag => {
+        if (!ag.cliente_telefone) {
+          console.log(`⚠️ Agendamento sem telefone: ${ag.cliente_nome} (ID: ${ag.id})`);
+          return false;
+        }
         let telAg = (ag.cliente_telefone || '').replace(/\D/g, '');
         if (telAg.startsWith('55')) {
           telAg = telAg.substring(2);
         }
-        console.log(`📞 Comparando: "${telAg}" === "${telefoneLimpo}" (${ag.cliente_nome})`);
+        console.log(`📞 Comparando: "${telAg}" === "${telefoneLimpo}" (${ag.cliente_nome}, Tel original: ${ag.cliente_telefone})`);
         return telAg === telefoneLimpo;
       });
 
