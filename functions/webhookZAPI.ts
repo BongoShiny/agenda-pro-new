@@ -52,16 +52,23 @@ Deno.serve(async (req) => {
 
     // Limpar telefone - remover código do país 55 se existir
     let telefoneLimpo = telefone.replace(/\D/g, '');
+    console.log('📱 Telefone após replace /\\D/g:', telefoneLimpo);
+    
     if (telefoneLimpo.startsWith('55')) {
       telefoneLimpo = telefoneLimpo.substring(2);
+      console.log('📱 Telefone após remover 55:', telefoneLimpo);
     }
-    console.log('🔢 Telefone limpo:', telefoneLimpo);
+    
+    console.log('🔢 TELEFONE FINAL LIMPO:', telefoneLimpo);
 
     const mensagemLower = mensagem.toLowerCase().trim();
+    console.log('💬 Mensagem em lowercase:', mensagemLower);
+    console.log('🔍 Contém "confirmar"?', mensagemLower.includes('confirmar'));
+    console.log('🔍 É exatamente "confirmar"?', mensagemLower === 'confirmar');
     
     // CONFIRMAR
     if (mensagemLower.includes('confirmar') || mensagemLower === 'confirmar') {
-      console.log('✅ Processando confirmação...');
+      console.log('✅✅✅ PROCESSANDO CONFIRMAÇÃO ✅✅✅');
       
       const agendamentos = await base44.asServiceRole.entities.Agendamento.filter({
         status: 'agendado'
