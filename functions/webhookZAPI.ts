@@ -60,17 +60,26 @@ Deno.serve(async (req) => {
         status: 'agendado'
       });
 
+      console.log(`🔍 Total de agendamentos 'agendado': ${agendamentos.length}`);
+      
       const agendamentosCliente = agendamentos.filter(ag => {
         let telAg = (ag.cliente_telefone || '').replace(/\D/g, '');
         if (telAg.startsWith('55')) {
           telAg = telAg.substring(2);
         }
-        console.log(`📞 Comparando: ${telAg} === ${telefoneLimpo}`);
+        console.log(`📞 Comparando: "${telAg}" === "${telefoneLimpo}" (${ag.cliente_nome})`);
         return telAg === telefoneLimpo;
       });
 
+      console.log(`🔍 Agendamentos encontrados para este telefone: ${agendamentosCliente.length}`);
+      
       if (agendamentosCliente.length === 0) {
-        console.log('❌ Nenhum agendamento encontrado');
+        console.log('❌ Nenhum agendamento encontrado para confirmar');
+        console.log('💡 Telefone procurado:', telefoneLimpo);
+        console.log('💡 Todos agendamentos:', agendamentos.map(ag => ({
+          nome: ag.cliente_nome,
+          tel: ag.cliente_telefone
+        })));
         return Response.json({ 
           success: true,
           message: 'Nenhum agendamento encontrado' 
