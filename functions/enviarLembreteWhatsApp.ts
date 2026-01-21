@@ -21,9 +21,16 @@ Deno.serve(async (req) => {
     }
 
     // Configurações da API do WhatsApp (Z-API APENAS)
-    const WHATSAPP_INSTANCE_ID = (Deno.env.get("WHATSAPP_INSTANCE_ID") || "").trim();
-    const WHATSAPP_INSTANCE_TOKEN = (Deno.env.get("WHATSAPP_INSTANCE_TOKEN") || "").trim();
-    const WHATSAPP_CLIENT_TOKEN = (Deno.env.get("WHATSAPP_CLIENT_TOKEN") || "").trim();
+    const WHATSAPP_INSTANCE_ID = Deno.env.get("WHATSAPP_INSTANCE_ID") || "";
+    const WHATSAPP_INSTANCE_TOKEN = Deno.env.get("WHATSAPP_INSTANCE_TOKEN") || "";
+    const WHATSAPP_CLIENT_TOKEN = Deno.env.get("WHATSAPP_CLIENT_TOKEN") || "";
+    
+    console.log('🔧 Debug Secrets:', {
+      instanceId: WHATSAPP_INSTANCE_ID ? '✅ SET' : '❌ MISSING',
+      instanceToken: WHATSAPP_INSTANCE_TOKEN ? '✅ SET' : '❌ MISSING',
+      clientToken: WHATSAPP_CLIENT_TOKEN ? '✅ SET' : '❌ MISSING',
+      clientTokenLength: WHATSAPP_CLIENT_TOKEN?.length || 0
+    });
 
     // Se for apenas verificação de configuração
     if (verificarConfig) {
@@ -102,25 +109,32 @@ Deno.serve(async (req) => {
         try {
           const url = `https://api.z-api.io/instances/${WHATSAPP_INSTANCE_ID}/token/${WHATSAPP_INSTANCE_TOKEN}/send-text`;
           
-          console.log('🔑 Client-Token:', WHATSAPP_CLIENT_TOKEN ? 'Configurado' : 'NÃO CONFIGURADO');
+          const payload = {
+            phone: telefoneFormatado,
+            message: mensagem
+          };
+          
+          console.log('📤 Enviando:', { url, clientToken: WHATSAPP_CLIENT_TOKEN?.substring(0, 10) + '...' });
           
           const response = await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Client-Token': WHATSAPP_CLIENT_TOKEN || 'Fe9e62cb592214788b9c04ea5a37d6f9dS'
+              'Client-Token': WHATSAPP_CLIENT_TOKEN
             },
-            body: JSON.stringify({
-              phone: telefoneFormatado,
-              message: mensagem
-            })
+            body: JSON.stringify(payload)
           });
           
-          if (response.ok) {
+          const resposta = await response.json();
+          console.log('📥 Resposta Z-API:', resposta);
+          
+          if (resposta.error) {
+            const erro = `${ag.cliente_nome}: ${resposta.error}`;
+            console.error('❌', erro);
+            erros.push(erro);
+          } else {
             mensagensEnviadas++;
             console.log(`✅ Mensagem enviada para ${ag.cliente_nome}`);
-          } else {
-            erros.push(`Erro ao enviar para ${ag.cliente_nome}: ${response.statusText}`);
           }
         } catch (error) {
           erros.push(`Erro ao enviar para ${ag.cliente_nome}: ${error.message}`);
@@ -220,21 +234,30 @@ Deno.serve(async (req) => {
           // Enviar mensagem via Z-API
           const url = `https://api.z-api.io/instances/${WHATSAPP_INSTANCE_ID}/token/${WHATSAPP_INSTANCE_TOKEN}/send-text`;
           
-          console.log('🔑 Client-Token:', WHATSAPP_CLIENT_TOKEN ? 'Configurado' : 'NÃO CONFIGURADO');
+          const payload = {
+            phone: telefoneFormatado,
+            message: mensagem
+          };
+          
+          console.log('📤 Enviando:', { url, clientToken: WHATSAPP_CLIENT_TOKEN?.substring(0, 10) + '...' });
           
           const response = await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Client-Token': WHATSAPP_CLIENT_TOKEN || 'Fe9e62cb592214788b9c04ea5a37d6f9dS'
+              'Client-Token': WHATSAPP_CLIENT_TOKEN
             },
-            body: JSON.stringify({
-              phone: telefoneFormatado,
-              message: mensagem
-            })
+            body: JSON.stringify(payload)
           });
+          
+          const resposta = await response.json();
+          console.log('📥 Resposta Z-API:', resposta);
 
-          if (response.ok) {
+          if (resposta.error) {
+            const erro = `${ag.cliente_nome} (${ag.unidade_nome}): ${resposta.error}`;
+            console.error('❌', erro);
+            erros.push(erro);
+          } else {
             mensagensEnviadas++;
             
             // Marcar lembrete como enviado (exceto em testes)
@@ -268,8 +291,6 @@ Deno.serve(async (req) => {
             if (envioImediato) {
               await new Promise(resolve => setTimeout(resolve, 50000));
             }
-          } else {
-            erros.push(`Erro ao enviar para ${ag.cliente_nome} (${ag.unidade_nome}): ${response.statusText}`);
           }
         } catch (error) {
           erros.push(`Erro ao enviar para ${ag.cliente_nome}: ${error.message}`);
