@@ -94,16 +94,8 @@ Deno.serve(async (req) => {
         console.log(`✅ Encontrado agendamento para ${ag.cliente_nome}`);
         
         // Montar e enviar mensagem
-        let mensagem = "Olá {cliente}! 🗓️\n\nLembramos que você tem um agendamento:\n\n📅 Data: {data}\n⏰ Horário: {hora}\n👨‍⚕️ Profissional: {profissional}\n💼 Serviço: {servico}\n📍 Unidade: {unidade}\n\n✅ Responda *Confirmar* para confirmar\n❌ Responda *Cancelar* para cancelar";
-        
-        const dataFormatada = new Date(ag.data + 'T12:00:00').toLocaleDateString('pt-BR');
-        mensagem = mensagem
-          .replace(/\{cliente\}/g, ag.cliente_nome)
-          .replace(/\{profissional\}/g, ag.profissional_nome)
-          .replace(/\{data\}/g, dataFormatada)
-          .replace(/\{hora\}/g, ag.hora_inicio)
-          .replace(/\{unidade\}/g, ag.unidade_nome)
-          .replace(/\{servico\}/g, ag.servico_nome || 'Consulta');
+         const dataFormatada = new Date(ag.data + 'T12:00:00').toLocaleDateString('pt-BR');
+         let mensagem = `Olá! Este é um lembrete do seu agendamento marcado para ${dataFormatada} às ${ag.hora_inicio}. Nos vemos em breve! 😊`;
         
         const telefoneFormatado = '55' + telefoneLimpo;
         
@@ -213,19 +205,9 @@ Deno.serve(async (req) => {
 
         if (!deveEnviar) continue;
 
-        // Montar mensagem personalizada
-        let mensagem = config.mensagem_template || 
-          "Olá {cliente}! 🗓️\n\nLembramos que você tem um agendamento:\n\n📅 Data: {data}\n⏰ Horário: {hora}\n👨‍⚕️ Profissional: {profissional}\n💼 Serviço: {servico}\n📍 Unidade: {unidade}\n\n✅ Responda *Confirmar* para confirmar\n❌ Responda *Cancelar* para cancelar";
-
-        // Substituir variáveis
+        // Montar mensagem simples
         const dataFormatada = new Date(ag.data + 'T12:00:00').toLocaleDateString('pt-BR');
-        mensagem = mensagem
-          .replace(/\{cliente\}/g, ag.cliente_nome)
-          .replace(/\{profissional\}/g, ag.profissional_nome)
-          .replace(/\{data\}/g, dataFormatada)
-          .replace(/\{hora\}/g, ag.hora_inicio)
-          .replace(/\{unidade\}/g, ag.unidade_nome)
-          .replace(/\{servico\}/g, ag.servico_nome || 'Consulta');
+        let mensagem = `Olá! Este é um lembrete do seu agendamento marcado para ${dataFormatada} às ${ag.hora_inicio}. Nos vemos em breve! 😊`;
 
         // Limpar telefone e adicionar +55
         const telefoneLimpo = ag.cliente_telefone.replace(/\D/g, '');
