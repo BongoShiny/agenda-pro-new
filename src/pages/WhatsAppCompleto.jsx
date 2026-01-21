@@ -400,65 +400,29 @@ export default function WhatsAppCompleto() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
+                      <div>
+                        <Label>Enviar lembretes:</Label>
+                        <div className="flex gap-4 mt-2">
+                          <label className="flex items-center gap-2">
+                            <Switch 
+                              checked={config.enviar_1_dia}
+                              onCheckedChange={() => handleToggleHorario(config, '1_dia')}
+                            />
+                            <span>1 dia antes</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <Switch 
+                              checked={config.enviar_12_horas}
+                              onCheckedChange={() => handleToggleHorario(config, '12_horas')}
+                            />
+                            <span>12 horas antes</span>
+                          </label>
+                        </div>
+                      </div>
+
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
-                          <Label>Enviar lembretes:</Label>
-                          <div className="flex gap-4 mt-2">
-                            <label className="flex items-center gap-2">
-                              <Switch 
-                                checked={config.enviar_1_dia}
-                                onCheckedChange={() => handleToggleHorario(config, '1_dia')}
-                              />
-                              <span>1 dia antes</span>
-                            </label>
-                            <label className="flex items-center gap-2">
-                              <Switch 
-                                checked={config.enviar_12_horas}
-                                onCheckedChange={() => handleToggleHorario(config, '12_horas')}
-                              />
-                              <span>12 horas antes</span>
-                            </label>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-2 gap-4">
-                          <div>
-                            <Label>⏰ Horário de Envio</Label>
-                            <Input
-                              type="time"
-                              value={config.horario_envio || "18:00"}
-                              onChange={(e) => updateConfig.mutate({ 
-                                id: config.id, 
-                                data: { horario_envio: e.target.value } 
-                              })}
-                              className="mt-1"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                              Horário que as mensagens serão enviadas
-                            </p>
-                          </div>
-
-                          <div>
-                            <Label>⏱️ Delay entre Clientes (segundos)</Label>
-                            <Input
-                              type="number"
-                              min="10"
-                              max="120"
-                              value={config.delay_segundos || 50}
-                              onChange={(e) => updateConfig.mutate({ 
-                                id: config.id, 
-                                data: { delay_segundos: parseInt(e.target.value) } 
-                              })}
-                              className="mt-1"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">
-                              Tempo de espera entre cada envio
-                            </p>
-                          </div>
-                        </div>
-
-                        <div>
-                          <Label>Horário de envio:</Label>
+                          <Label>⏰ Horário de Envio</Label>
                           <Input
                             type="time"
                             value={config.horario_envio || "18:00"}
@@ -466,13 +430,15 @@ export default function WhatsAppCompleto() {
                               id: config.id, 
                               data: { horario_envio: e.target.value } 
                             })}
-                            className="mt-2"
+                            className="mt-1"
                           />
-                          <p className="text-xs text-gray-500 mt-1">Horário diário de envio automático</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Horário que as mensagens serão enviadas
+                          </p>
                         </div>
 
                         <div>
-                          <Label>Delay entre clientes (segundos):</Label>
+                          <Label>⏱️ Delay entre Clientes (segundos)</Label>
                           <Input
                             type="number"
                             min="10"
@@ -482,9 +448,11 @@ export default function WhatsAppCompleto() {
                               id: config.id, 
                               data: { delay_segundos: parseInt(e.target.value) } 
                             })}
-                            className="mt-2"
+                            className="mt-1"
                           />
-                          <p className="text-xs text-gray-500 mt-1">Intervalo entre mensagens (mín: 10s)</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Tempo de espera entre cada envio
+                          </p>
                         </div>
                       </div>
 
