@@ -108,9 +108,16 @@ Deno.serve(async (req) => {
         new Date(a.data + 'T' + a.hora_inicio) - new Date(b.data + 'T' + b.hora_inicio)
       )[0];
 
-      await base44.asServiceRole.entities.Agendamento.update(proximo.id, {
+      console.log('🔄 Atualizando status para CONFIRMADO...');
+      console.log('ID do agendamento:', proximo.id);
+      console.log('Status anterior:', proximo.status);
+      
+      const resultado = await base44.asServiceRole.entities.Agendamento.update(proximo.id, {
         status: 'confirmado'
       });
+
+      console.log('✅ ATUALIZAÇÃO CONCLUÍDA!');
+      console.log('Resultado:', JSON.stringify(resultado, null, 2));
 
       await base44.asServiceRole.entities.LogAcao.create({
         tipo: "editou_agendamento",
@@ -118,11 +125,14 @@ Deno.serve(async (req) => {
         descricao: `Confirmado via WhatsApp (Z-API): ${proximo.cliente_nome} - ${proximo.data} ${proximo.hora_inicio}`,
         entidade_tipo: "Agendamento",
         entidade_id: proximo.id,
-        dados_antigos: JSON.stringify({ status: 'agendado' }),
+        dados_antigos: JSON.stringify({ status: proximo.status }),
         dados_novos: JSON.stringify({ status: 'confirmado' })
       });
 
-      console.log('✅ Agendamento confirmado:', proximo.id);
+      console.log('✅✅✅ AGENDAMENTO CONFIRMADO COM SUCESSO ✅✅✅');
+      console.log('ID:', proximo.id);
+      console.log('Cliente:', proximo.cliente_nome);
+      console.log('Data/Hora:', proximo.data, proximo.hora_inicio);
 
       // Enviar mensagem de confirmação
       if (WHATSAPP_INSTANCE_ID && WHATSAPP_INSTANCE_TOKEN && WHATSAPP_CLIENT_TOKEN) {
