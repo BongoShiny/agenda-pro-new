@@ -13,7 +13,10 @@ Deno.serve(async (req) => {
 
     // Receber dados do webhook da Z-API
     const body = await req.json().catch(() => ({}));
-    console.log('📥 Webhook Z-API recebido:', JSON.stringify(body, null, 2));
+    
+    console.log('🔔🔔🔔 ==================== WEBHOOK Z-API RECEBIDO ==================== 🔔🔔🔔');
+    console.log('📥 BODY COMPLETO (JSON):', JSON.stringify(body, null, 2));
+    console.log('📥 TODAS AS CHAVES:', Object.keys(body));
 
     // Criar cliente base44 APÓS receber os dados
     const base44 = createClientFromRequest(req);
@@ -23,20 +26,24 @@ Deno.serve(async (req) => {
     const WHATSAPP_INSTANCE_TOKEN = (Deno.env.get("WHATSAPP_INSTANCE_TOKEN") || "").trim();
     const WHATSAPP_CLIENT_TOKEN = (Deno.env.get("WHATSAPP_CLIENT_TOKEN") || "").trim();
 
-    // Extrair dados da Z-API - formato de mensagem recebida
-    // Z-API pode enviar: text.message, phone, instanceId, messageId, etc
-    const mensagem = body.text?.message || body.text || body.message || body.body || '';
-    const telefone = body.phone || body.wuid || body.phoneNumber || body.from || '';
+    // Extrair dados da Z-API - TODOS OS FORMATOS POSSÍVEIS
+    const mensagem = body.text?.message || body.text || body.message || body.body || body.content || '';
+    const telefone = body.phone || body.wuid || body.phoneNumber || body.from || body.sender || body.chatId || '';
 
-    console.log('🔍 BODY COMPLETO:', body);
     console.log('📱 Telefone extraído:', telefone);
     console.log('💬 Mensagem extraída:', mensagem);
-    console.log('🔍 body.text:', body.text);
+    console.log('🔍 Estrutura body.text:', body.text);
+    console.log('🔍 Tipo de body.text:', typeof body.text);
     console.log('🔍 body.phone:', body.phone);
+    console.log('🔍 body.message:', body.message);
+    console.log('🔍 body.content:', body.content);
+    console.log('🔍 body.from:', body.from);
 
     // Se não tem dados suficientes
     if (!mensagem || !telefone) {
-      console.log('⚠️ Dados insuficientes');
+      console.log('⚠️⚠️⚠️ DADOS INSUFICIENTES - ABORTANDO');
+      console.log('Mensagem vazia?', !mensagem);
+      console.log('Telefone vazio?', !telefone);
       return Response.json({ 
         success: true,
         message: 'Processado - dados insuficientes'
