@@ -421,6 +421,42 @@ export default function WhatsAppCompleto() {
                           </div>
                         </div>
 
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label>⏰ Horário de Envio</Label>
+                            <Input
+                              type="time"
+                              value={config.horario_envio || "18:00"}
+                              onChange={(e) => updateConfig.mutate({ 
+                                id: config.id, 
+                                data: { horario_envio: e.target.value } 
+                              })}
+                              className="mt-1"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                              Horário que as mensagens serão enviadas
+                            </p>
+                          </div>
+
+                          <div>
+                            <Label>⏱️ Delay entre Clientes (segundos)</Label>
+                            <Input
+                              type="number"
+                              min="10"
+                              max="120"
+                              value={config.delay_segundos || 50}
+                              onChange={(e) => updateConfig.mutate({ 
+                                id: config.id, 
+                                data: { delay_segundos: parseInt(e.target.value) } 
+                              })}
+                              className="mt-1"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">
+                              Tempo de espera entre cada envio
+                            </p>
+                          </div>
+                        </div>
+
                         <div>
                           <Label>Horário de envio:</Label>
                           <Input
