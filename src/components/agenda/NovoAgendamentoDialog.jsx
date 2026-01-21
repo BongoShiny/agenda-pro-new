@@ -53,7 +53,8 @@ export default function NovoAgendamentoDialog({
   servicos = [],
   modoEdicao = false,
   agendamentos = [],
-  isTerapeuta = false
+  isTerapeuta = false,
+  excecoesHorario = []
 }) {
   const [formData, setFormData] = useState({
      cliente_id: "",
@@ -449,11 +450,34 @@ export default function NovoAgendamentoDialog({
         return;
       }
 
-      // Verificar se horário está dentro do expediente do profissional
+      // Verificar se horário está dentro do expediente do profissional (considerando exceções)
       const profissional = profissionais.find(p => p.id === formData.profissional_id);
-      if (profissional) {
-        const horarioInicio = profissional.horario_inicio || "08:00";
-        const horarioFim = profissional.horario_fim || "18:00";
+      if (profissional && formData.data) {
+        // Buscar exceção de horário para esta data
+        const excecao = excecoesHorario.find(e => 
+          e.profissional_id === profissional.id && 
+          e.data === formData.data &&
+          e.motivo !== "Horário de Almoço"
+        );
+
+        let horarioInicio, horarioFim;
+        
+        if (excecao) {
+          // Usar horário da exceção
+          horarioInicio = excecao.horario_inicio;
+          horarioFim = excecao.horario_fim;
+          
+          // Se é folga (00:00 - 00:00), bloquear
+          if (horarioInicio === "00:00" && horarioFim === "00:00") {
+            setErroHorarioFechado(true);
+            setTimeout(() => setErroHorarioFechado(false), 3000);
+            return;
+          }
+        } else {
+          // Usar horário padrão
+          horarioInicio = profissional.horario_inicio || "08:00";
+          horarioFim = profissional.horario_fim || "18:00";
+        }
 
         const [profHoraInicio, profMinInicio] = horarioInicio.split(':').map(Number);
         const [profHoraFim, profMinFim] = horarioFim.split(':').map(Number);
