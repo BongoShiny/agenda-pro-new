@@ -126,16 +126,19 @@ Deno.serve(async (req) => {
         new Date(a.data + 'T' + a.hora_inicio) - new Date(b.data + 'T' + b.hora_inicio)
       )[0];
 
+      await base44.asServiceRole.entities.Agendamento.update(proximo.id, {
+        status: 'cancelado'
+      });
+
       await base44.asServiceRole.entities.LogAcao.create({
-        tipo: "excluiu_agendamento",
+        tipo: "editou_agendamento",
         usuario_email: "sistema-whatsapp",
         descricao: `Cancelado via WhatsApp: ${proximo.cliente_nome} - ${proximo.data} ${proximo.hora_inicio}`,
         entidade_tipo: "Agendamento",
         entidade_id: proximo.id,
-        dados_antigos: JSON.stringify(proximo)
+        dados_antigos: JSON.stringify({ status: 'agendado' }),
+        dados_novos: JSON.stringify({ status: 'cancelado' })
       });
-
-      await base44.asServiceRole.entities.Agendamento.delete(proximo.id);
 
       console.log('❌ Agendamento cancelado:', proximo.id);
       
