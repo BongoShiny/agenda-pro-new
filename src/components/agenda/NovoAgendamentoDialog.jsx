@@ -283,11 +283,16 @@ export default function NovoAgendamentoDialog({
     try {
       const cliente = clientes.find(c => c.id === clienteId);
       if (cliente) {
+        console.log('📋 Cliente selecionado:', { 
+          id: clienteId, 
+          nome: cliente.nome, 
+          telefone: cliente.telefone 
+        });
         setFormData(prev => ({
           ...prev,
           cliente_id: clienteId,
           cliente_nome: cliente.nome,
-          cliente_telefone: cliente.telefone || ""
+          cliente_telefone: cliente.telefone || prev.cliente_telefone || ""
         }));
         setBuscaCliente(cliente.nome);
         setClientePopoverAberto(false);
