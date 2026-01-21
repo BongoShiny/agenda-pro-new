@@ -274,29 +274,19 @@ export default function AgendaDiaView({
     // Se não tem configuração, não bloquear
     if (!configSabado) return false;
     
-    // Primeiro: verificar se o terapeuta trabalha neste sábado
-    const configTerapeutaSabado = configuracoesTerapeutaSabado.find(c => 
-      c.profissional_id === profissionalId &&
-      c.unidade_id === unidadeSelecionada.id &&
-      (c.data_sabado === dataFormatada || !c.data_sabado || c.data_sabado === "") &&
-      c.ativo
-    );
-    
-    // Se o terapeuta não trabalha neste sábado, não precisa verificar limite
-    if (!configTerapeutaSabado) return false;
-    
-    // Contar TODOS os agendamentos do dia (não apenas do horário específico)
-    const totalAgendamentosDia = agendamentos.filter(ag => {
+    // Contar agendamentos que INICIAM neste horário específico (em qualquer terapeuta)
+    const totalAgendamentosHorario = agendamentos.filter(ag => {
       if (ag.unidade_id !== unidadeSelecionada.id) return false;
       if (ag.data !== dataFormatada) return false;
       if (ag.status === "ausencia" || ag.status === "cancelado") return false;
       if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
       
-      return true;
+      // Contar apenas agendamentos que INICIAM neste horário
+      return ag.hora_inicio === horario;
     }).length;
     
-    // Bloquear apenas se já atingiu o limite do DIA
-    return totalAgendamentosDia >= configSabado.limite_atendimentos_por_hora;
+    // Bloquear apenas se já atingiu o limite por horário
+    return totalAgendamentosHorario >= configSabado.limite_atendimentos_por_hora;
   };
 
   // Verificar se um slot está coberto por um agendamento (para não mostrar slot vazio)
