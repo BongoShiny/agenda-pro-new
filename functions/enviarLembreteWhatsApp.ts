@@ -112,7 +112,8 @@ Deno.serve(async (req) => {
           const response = await fetch(url, {
             method: 'POST',
             headers: {
-              'Content-Type': 'application/json'
+              'Content-Type': 'application/json',
+              'Client-Token': WHATSAPP_CLIENT_TOKEN
             },
             body: JSON.stringify({
               phone: telefoneFormatado,
