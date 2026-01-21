@@ -302,8 +302,8 @@ export default function AgendaPage() {
       return listaNormalizada;
     },
     initialData: [],
-    refetchInterval: 3000, // Atualizar a cada 3 segundos
-    staleTime: 1000, // Cache por 1 segundo para evitar refetch infinito
+    refetchInterval: false, // Desabilitar refetch automático
+    staleTime: 0,
     });
 
   // Subscrição em tempo real para agendamentos
@@ -325,7 +325,7 @@ export default function AgendaPage() {
             console.log('🔕 Desativando subscrição de agendamentos');
             unsubscribe();
           };
-        }, [dataAtual, unidadeSelecionada, queryClient]);
+        }, [queryClient, refetchAgendamentos]);
 
   const { data: clientes = [] } = useQuery({
       queryKey: ['clientes'],
