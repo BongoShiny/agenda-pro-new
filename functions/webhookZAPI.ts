@@ -69,13 +69,24 @@ Deno.serve(async (req) => {
     // CONFIRMAR
     if (mensagemLower.includes('confirmar') || mensagemLower === 'confirmar') {
       console.log('✅✅✅ PROCESSANDO CONFIRMAÇÃO ✅✅✅');
-      
+      console.log('📱 Telefone do cliente (limpo):', telefoneLimpo);
+
       const agendamentos = await base44.asServiceRole.entities.Agendamento.filter({
         status: 'agendado'
       });
 
       console.log(`🔍 Total de agendamentos 'agendado': ${agendamentos.length}`);
-      
+
+      // Debug: mostrar todos os telefones
+      console.log('📋 Todos os telefones cadastrados:');
+      agendamentos.forEach(ag => {
+        let telAg = (ag.cliente_telefone || '').replace(/\D/g, '');
+        if (telAg.startsWith('55')) {
+          telAg = telAg.substring(2);
+        }
+        console.log(`  - ${ag.cliente_nome}: ${ag.cliente_telefone} → ${telAg}`);
+      });
+
       const agendamentosCliente = agendamentos.filter(ag => {
         if (!ag.cliente_telefone) {
           console.log(`⚠️ Agendamento sem telefone: ${ag.cliente_nome} (ID: ${ag.id})`);
@@ -85,8 +96,11 @@ Deno.serve(async (req) => {
         if (telAg.startsWith('55')) {
           telAg = telAg.substring(2);
         }
-        console.log(`📞 Comparando: "${telAg}" === "${telefoneLimpo}" (${ag.cliente_nome}, Tel original: ${ag.cliente_telefone})`);
-        return telAg === telefoneLimpo;
+        const match = telAg === telefoneLimpo;
+        if (match) {
+          console.log(`✅ MATCH ENCONTRADO: "${telAg}" === "${telefoneLimpo}" (${ag.cliente_nome}, ID: ${ag.id})`);
+        }
+        return match;
       });
 
       console.log(`🔍 Agendamentos encontrados para este telefone: ${agendamentosCliente.length}`);
