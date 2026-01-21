@@ -317,7 +317,7 @@ export default function AgendaPage() {
     },
     initialData: [],
     refetchInterval: 3000, // Atualizar a cada 3 segundos
-    staleTime: 0, // Sem cache para atualizar sempre
+    staleTime: 1000, // Cache por 1 segundo para evitar refetch infinito
     });
 
   // Subscrição em tempo real para agendamentos
@@ -1113,8 +1113,8 @@ export default function AgendaPage() {
   // Verificar se é admin, gerência ou pós-venda - todos têm permissões administrativas
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades" || usuarioAtual?.cargo === "pos_venda";
 
-  // Loading enquanto carrega dados
-  if (!usuarioAtual || unidades.length === 0 || agendamentos.length === 0) {
+  // Loading enquanto carrega dados essenciais
+  if (!usuarioAtual || unidades.length === 0) {
     return (
       <div className="h-screen flex flex-col bg-gray-50">
         <div className="flex-1 flex items-center justify-center">
