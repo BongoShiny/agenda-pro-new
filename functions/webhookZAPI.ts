@@ -24,11 +24,15 @@ Deno.serve(async (req) => {
     const WHATSAPP_CLIENT_TOKEN = (Deno.env.get("WHATSAPP_CLIENT_TOKEN") || "").trim();
 
     // Extrair dados da Z-API - formato de mensagem recebida
-    const mensagem = body.text || body.message || body.body || '';
-    const telefone = body.phone || body.wuid || body.phoneNumber || '';
+    // Z-API pode enviar: text.message, phone, instanceId, messageId, etc
+    const mensagem = body.text?.message || body.text || body.message || body.body || '';
+    const telefone = body.phone || body.wuid || body.phoneNumber || body.from || '';
 
-    console.log('📱 Telefone:', telefone);
-    console.log('💬 Mensagem:', mensagem);
+    console.log('🔍 BODY COMPLETO:', body);
+    console.log('📱 Telefone extraído:', telefone);
+    console.log('💬 Mensagem extraída:', mensagem);
+    console.log('🔍 body.text:', body.text);
+    console.log('🔍 body.phone:', body.phone);
 
     // Se não tem dados suficientes
     if (!mensagem || !telefone) {
