@@ -287,9 +287,10 @@ Deno.serve(async (req) => {
               entidade_id: ag.id
             });
 
-            // Cooldown de 50 segundos entre envios (exceto testes)
+            // Cooldown configurável entre envios (exceto testes)
             if (!numeroTeste) {
-              await new Promise(resolve => setTimeout(resolve, 50000));
+              const delayMs = (config.delay_segundos || 50) * 1000;
+              await new Promise(resolve => setTimeout(resolve, delayMs));
             }
           }
         } catch (error) {

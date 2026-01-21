@@ -112,7 +112,9 @@ export default function WhatsAppCompleto() {
       ativo: false,
       mensagem_template: "Olá {cliente}! 🗓️\n\nLembramos que você tem um agendamento:\n\n📅 Data: {data}\n⏰ Horário: {hora}\n👨‍⚕️ Profissional: {profissional}\n💼 Serviço: {servico}\n📍 Unidade: {unidade}\n\n✅ Responda *Confirmar* para confirmar\n❌ Responda *Cancelar* para cancelar",
       enviar_1_dia: true,
-      enviar_12_horas: true
+      enviar_12_horas: true,
+      horario_envio: "18:00",
+      delay_segundos: 50
     });
   };
 
@@ -398,23 +400,55 @@ export default function WhatsAppCompleto() {
                       </div>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      <div>
-                        <Label>Enviar lembretes:</Label>
-                        <div className="flex gap-4 mt-2">
-                          <label className="flex items-center gap-2">
-                            <Switch 
-                              checked={config.enviar_1_dia}
-                              onCheckedChange={() => handleToggleHorario(config, '1_dia')}
-                            />
-                            <span>1 dia antes</span>
-                          </label>
-                          <label className="flex items-center gap-2">
-                            <Switch 
-                              checked={config.enviar_12_horas}
-                              onCheckedChange={() => handleToggleHorario(config, '12_horas')}
-                            />
-                            <span>12 horas antes</span>
-                          </label>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <Label>Enviar lembretes:</Label>
+                          <div className="flex gap-4 mt-2">
+                            <label className="flex items-center gap-2">
+                              <Switch 
+                                checked={config.enviar_1_dia}
+                                onCheckedChange={() => handleToggleHorario(config, '1_dia')}
+                              />
+                              <span>1 dia antes</span>
+                            </label>
+                            <label className="flex items-center gap-2">
+                              <Switch 
+                                checked={config.enviar_12_horas}
+                                onCheckedChange={() => handleToggleHorario(config, '12_horas')}
+                              />
+                              <span>12 horas antes</span>
+                            </label>
+                          </div>
+                        </div>
+
+                        <div>
+                          <Label>Horário de envio:</Label>
+                          <Input
+                            type="time"
+                            value={config.horario_envio || "18:00"}
+                            onChange={(e) => updateConfig.mutate({ 
+                              id: config.id, 
+                              data: { horario_envio: e.target.value } 
+                            })}
+                            className="mt-2"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Horário diário de envio automático</p>
+                        </div>
+
+                        <div>
+                          <Label>Delay entre clientes (segundos):</Label>
+                          <Input
+                            type="number"
+                            min="10"
+                            max="120"
+                            value={config.delay_segundos || 50}
+                            onChange={(e) => updateConfig.mutate({ 
+                              id: config.id, 
+                              data: { delay_segundos: parseInt(e.target.value) } 
+                            })}
+                            className="mt-2"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Intervalo entre mensagens (mín: 10s)</p>
                         </div>
                       </div>
 
