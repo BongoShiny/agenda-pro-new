@@ -64,42 +64,28 @@ export const criarDataPura = (dataString) => {
 
 // FUNÇÃO CRÍTICA: Normaliza qualquer formato de data para YYYY-MM-DD
 export const normalizarData = (valor) => {
-  if (!valor) {
-    console.log("⚠️ normalizarData: valor vazio");
-    return null;
-  }
-  
-  console.log("🔧 normalizarData INPUT:", valor, "| Tipo:", typeof valor);
-  
+  if (!valor) return null;
+
   // Já está no formato correto YYYY-MM-DD
   if (typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valor)) {
-    console.log("✅ normalizarData: já está correto:", valor);
     return valor;
   }
-  
-  // String com timestamp (ex: "2025-11-13T00:00:00.000Z")
+
+  // String com timestamp
   if (typeof valor === 'string' && valor.includes('T')) {
-    const resultado = valor.split('T')[0];
-    console.log("✅ normalizarData: extraído de timestamp:", resultado);
-    return resultado;
+    return valor.split('T')[0];
   }
-  
-  // É um Date object - usar métodos LOCAIS
+
+  // É um Date object
   if (valor instanceof Date) {
-    const resultado = formatarDataPura(valor);
-    console.log("✅ normalizarData: convertido de Date:", resultado);
-    return resultado;
+    return formatarDataPura(valor);
   }
-  
-  // Último recurso: tentar parsear
+
+  // Último recurso
   try {
-    // Forçar interpretação LOCAL adicionando horário meio-dia
     const data = new Date(valor + 'T12:00:00');
-    const resultado = formatarDataPura(data);
-    console.log("✅ normalizarData: parseado:", resultado);
-    return resultado;
+    return formatarDataPura(data);
   } catch (e) {
-    console.error("❌ normalizarData ERRO:", valor, e);
     return null;
   }
 };
@@ -1020,18 +1006,7 @@ export default function AgendaPage() {
   };
 
   // FILTRAR AGENDAMENTOS PELA DATA ATUAL
-  console.log("🔍🔍🔍 ==================== INICIANDO FILTRO ==================== 🔍🔍🔍");
-  console.log("📊 ESTADO DO FILTRO:");
-  console.log("  - dataAtual (Date object):", dataAtual.toString());
-  console.log("  - Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-  
   const dataFiltro = formatarDataPura(dataAtual);
-  
-  console.log("📅 DATA DO FILTRO (string pura):", dataFiltro);
-  console.log("📊 Total de agendamentos no banco:", agendamentos.length);
-  console.log("🏢 Unidade selecionada:", unidadeSelecionada?.nome, "(ID:", unidadeSelecionada?.id, ")");
-
-  // Filtrar por terapeuta se o usuário for um terapeuta
   const isProfissional = usuarioAtual?.cargo === "terapeuta";
   const profissionalDoUsuario = profissionais.find(p => p.email === usuarioAtual?.email);
 
@@ -1049,63 +1024,18 @@ export default function AgendaPage() {
   }
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
-    // Se for terapeuta, mostrar apenas seus próprios agendamentos
-    if (isProfissional && profissionalDoUsuario) {
-      if (ag.profissional_id !== profissionalDoUsuario.id) {
-        return false;
-      }
-    }
-    
-    // Restante dos filtros normais
-    // Log detalhado para cada agendamento
-    const isDataMatch = ag.data === dataFiltro;
-    const isUnidadeMatch = !unidadeSelecionada || ag.unidade_id === unidadeSelecionada.id;
-    const isClienteMatch = !filters.cliente || (
-      (ag.cliente_nome && ag.cliente_nome.toLowerCase().includes(filters.cliente.toLowerCase())) ||
-      (ag.cliente_telefone && ag.cliente_telefone.toLowerCase().includes(filters.cliente.toLowerCase()))
-    );
-    const isUnidadeFilterMatch = !filters.unidade || ag.unidade_id === filters.unidade;
-    const isProfissionalMatch = !filters.profissional || ag.profissional_id === filters.profissional;
-    const isServicoMatch = !filters.servico || ag.servico_id === filters.servico;
-    const isStatusMatch = !filters.status || ag.status === filters.status;
-    const isDataFilterMatch = !filters.data || ag.data === filters.data;
-    
-    const isBloqueio = ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO";
-    
-    if (isBloqueio) {
-      console.log(`🔒 BLOQUEIO ENCONTRADO:`, {
-        id: ag.id,
-        data: ag.data,
-        dataMatch: isDataMatch,
-        horario: ag.hora_inicio,
-        profissional: ag.profissional_nome,
-        unidade: ag.unidade_nome,
-        unidadeMatch: isUnidadeMatch,
-        passaNoFiltro: isDataMatch && isUnidadeMatch
-      });
-    }
-    
-    // Retornar apenas se TODOS os filtros passarem
-    if (!isDataMatch) return false;
-    if (!isUnidadeMatch) return false;
-    if (!isUnidadeFilterMatch) return false;
-    if (!isClienteMatch) return false;
-    if (!isProfissionalMatch) return false;
-    if (!isServicoMatch) return false;
-    if (!isStatusMatch) return false;
-    if (!isDataFilterMatch) return false;
-    
-    return true;
-  });
+    if (isProfissional && profissionalDoUsuario && ag.profissional_id !== profissionalDoUsuario.id) return false;
 
-  console.log("📊 TOTAL APÓS FILTRO:", agendamentosFiltrados.length);
-  
-  const bloqueiosFiltrados = agendamentosFiltrados.filter(ag => 
-    ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO"
-  );
-  console.log("🔒 BLOQUEIOS NO FILTRO:", bloqueiosFiltrados.length);
-  bloqueiosFiltrados.forEach(b => {
-    console.log(`  🔒 ${b.hora_inicio} | ${b.profissional_nome} | Data: ${b.data}`);
+    if (ag.data !== dataFiltro) return false;
+    if (unidadeSelecionada && ag.unidade_id !== unidadeSelecionada.id) return false;
+    if (filters.cliente && !(ag.cliente_nome?.toLowerCase().includes(filters.cliente.toLowerCase()) || ag.cliente_telefone?.toLowerCase().includes(filters.cliente.toLowerCase()))) return false;
+    if (filters.unidade && ag.unidade_id !== filters.unidade) return false;
+    if (filters.profissional && ag.profissional_id !== filters.profissional) return false;
+    if (filters.servico && ag.servico_id !== filters.servico) return false;
+    if (filters.status && ag.status !== filters.status) return false;
+    if (filters.data && ag.data !== filters.data) return false;
+
+    return true;
   });
 
   const unidadeAtual = unidadeSelecionada || unidades[0];
