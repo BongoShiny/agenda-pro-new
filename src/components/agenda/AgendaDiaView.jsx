@@ -124,7 +124,7 @@ export default function AgendaDiaView({
        const configEspecifica = configuracoesTerapeutaSabado.find(c => 
          c.profissional_id === profissional.id &&
          c.unidade_id === unidadeSelecionada.id &&
-         (c.data_sabado === dataFormatada || c.data_sabado === "") &&
+         (c.data_sabado === dataFormatada || !c.data_sabado || c.data_sabado === "") &&
          c.ativo
        );
 
