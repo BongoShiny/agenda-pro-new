@@ -249,13 +249,12 @@ export default function AgendaDiaView({
   };
 
   // Verificar se um horário em sábado atingiu o limite de atendimentos
-  const verificarLimiteSabado = (horario) => {
+  const verificarLimiteSabado = (horario, profissionalId) => {
     const diaDaSemana = dataAtual.getDay();
     
     // Se não for sábado, não tem limite
     if (diaDaSemana !== 6) return false;
     
-    // Usar a mesma formatação de data do resto do sistema
     const formatarDataPura = (data) => {
       const ano = data.getFullYear();
       const mes = String(data.getMonth() + 1).padStart(2, '0');
@@ -273,47 +272,35 @@ export default function AgendaDiaView({
     );
     
     // Se não tem configuração, não bloquear
-    if (!configSabado) {
-      console.log(`✅ SÁBADO ${horario}: Sem configuração de limite para ${dataFormatada} na unidade ${unidadeSelecionada.nome}`);
-      return false;
-    }
+    if (!configSabado) return false;
     
-    // Converter horário para minutos para comparação
+    // Primeiro: verificar se o terapeuta trabalha neste sábado
+    const configTerapeutaSabado = configuracoesTerapeutaSabado.find(c => 
+      c.profissional_id === profissionalId &&
+      c.unidade_id === unidadeSelecionada.id &&
+      (c.data_sabado === dataFormatada || !c.data_sabado || c.data_sabado === "") &&
+      c.ativo
+    );
+    
+    // Se o terapeuta não trabalha neste sábado, não precisa verificar limite
+    if (!configTerapeutaSabado) return false;
+    
     const [hHorario, mHorario] = horario.split(':').map(Number);
     const minutosHorario = hHorario * 60 + mHorario;
     
-    // Contar TODOS os agendamentos que OCUPAM este horário (incluindo os que começam antes e terminam depois)
-    const agendamentosOcupando = agendamentos.filter(ag => {
-      // Mesma unidade
+    // Contar apenas agendamentos que iniciam neste horário específico
+    const totalAgendamentosHorario = agendamentos.filter(ag => {
       if (ag.unidade_id !== unidadeSelecionada.id) return false;
-      // Mesma data
       if (ag.data !== dataFormatada) return false;
-      // Não contar ausências, cancelados e bloqueios
       if (ag.status === "ausencia" || ag.status === "cancelado") return false;
       if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
       
-      // Verificar se o horário está DENTRO do período do agendamento
-      const [hInicio, mInicio] = ag.hora_inicio.split(':').map(Number);
-      const [hFim, mFim] = ag.hora_fim.split(':').map(Number);
-      const minutosInicio = hInicio * 60 + mInicio;
-      const minutosFim = hFim * 60 + mFim;
-      
-      // O horário está ocupado se está entre início (inclusive) e fim (exclusive)
-      return minutosHorario >= minutosInicio && minutosHorario < minutosFim;
-    });
+      // Contar apenas agendamentos que INICIAM neste horário
+      return ag.hora_inicio === horario;
+    }).length;
     
-    const totalAgendamentosHorario = agendamentosOcupando.length;
-    const bloqueado = totalAgendamentosHorario >= configSabado.limite_atendimentos_por_hora;
-    
-    console.log(`📊 SÁBADO ${horario}: ${totalAgendamentosHorario}/${configSabado.limite_atendimentos_por_hora} atendimentos`, {
-      bloqueado,
-      data: dataFormatada,
-      unidade: unidadeSelecionada.nome,
-      agendamentos: agendamentosOcupando.map(a => `${a.cliente_nome} (${a.profissional_nome}) ${a.hora_inicio}-${a.hora_fim}`)
-    });
-    
-    // Se atingiu ou ultrapassou o limite, bloquear
-    return bloqueado;
+    // Bloquear apenas se já atingiu o limite
+    return totalAgendamentosHorario >= configSabado.limite_atendimentos_por_hora;
   };
 
   // Verificar se um slot está coberto por um agendamento (para não mostrar slot vazio)
@@ -540,7 +527,7 @@ export default function AgendaDiaView({
                   const isOcupado = agendamentosSlot.length > 0;
                   const agendamentoQueCobreSlot = getAgendamentoQueCobreSlot(terapeuta.id, horario);
                   const horarioPassou = horarioJaPassou(horario);
-                  const limiteSabadoAtingido = verificarLimiteSabado(horario);
+                  const limiteSabadoAtingido = verificarLimiteSabado(horario, terapeuta.id);
                   const isMenuAberto = slotMenuAberto?.unidadeId === unidadeSelecionada.id && 
                                     slotMenuAberto?.profissionalId === terapeuta.id && 
                                     slotMenuAberto?.horario === horario;
