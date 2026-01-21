@@ -274,12 +274,22 @@ export default function AgendaDiaView({
     // Se não tem configuração, não bloquear
     if (!configSabado) return false;
     
-    // Contar agendamentos que INICIAM neste horário específico (em qualquer terapeuta)
+    // Buscar IDs dos terapeutas que trabalham neste sábado
+    const terapeutasSabado = configuracoesTerapeutaSabado
+      .filter(c => 
+        c.unidade_id === unidadeSelecionada.id &&
+        (c.data_sabado === dataFormatada || !c.data_sabado || c.data_sabado === "") &&
+        c.ativo
+      )
+      .map(c => c.profissional_id);
+    
+    // Contar apenas agendamentos de terapeutas que trabalham no sábado
     const totalAgendamentosHorario = agendamentos.filter(ag => {
       if (ag.unidade_id !== unidadeSelecionada.id) return false;
       if (ag.data !== dataFormatada) return false;
       if (ag.status === "ausencia" || ag.status === "cancelado") return false;
       if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
+      if (!terapeutasSabado.includes(ag.profissional_id)) return false; // Só contar se o terapeuta trabalha no sábado
       
       // Contar apenas agendamentos que INICIAM neste horário
       return ag.hora_inicio === horario;
