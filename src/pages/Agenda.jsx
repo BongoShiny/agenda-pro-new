@@ -64,28 +64,42 @@ export const criarDataPura = (dataString) => {
 
 // FUNÇÃO CRÍTICA: Normaliza qualquer formato de data para YYYY-MM-DD
 export const normalizarData = (valor) => {
-  if (!valor) return null;
-
+  if (!valor) {
+    console.log("⚠️ normalizarData: valor vazio");
+    return null;
+  }
+  
+  console.log("🔧 normalizarData INPUT:", valor, "| Tipo:", typeof valor);
+  
   // Já está no formato correto YYYY-MM-DD
   if (typeof valor === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(valor)) {
+    console.log("✅ normalizarData: já está correto:", valor);
     return valor;
   }
-
-  // String com timestamp
+  
+  // String com timestamp (ex: "2025-11-13T00:00:00.000Z")
   if (typeof valor === 'string' && valor.includes('T')) {
-    return valor.split('T')[0];
+    const resultado = valor.split('T')[0];
+    console.log("✅ normalizarData: extraído de timestamp:", resultado);
+    return resultado;
   }
-
-  // É um Date object
+  
+  // É um Date object - usar métodos LOCAIS
   if (valor instanceof Date) {
-    return formatarDataPura(valor);
+    const resultado = formatarDataPura(valor);
+    console.log("✅ normalizarData: convertido de Date:", resultado);
+    return resultado;
   }
-
-  // Último recurso
+  
+  // Último recurso: tentar parsear
   try {
+    // Forçar interpretação LOCAL adicionando horário meio-dia
     const data = new Date(valor + 'T12:00:00');
-    return formatarDataPura(data);
+    const resultado = formatarDataPura(data);
+    console.log("✅ normalizarData: parseado:", resultado);
+    return resultado;
   } catch (e) {
+    console.error("❌ normalizarData ERRO:", valor, e);
     return null;
   }
 };
@@ -302,7 +316,7 @@ export default function AgendaPage() {
       return listaNormalizada;
     },
     initialData: [],
-    refetchInterval: 5000, // Refetch a cada 5 segundos
+    refetchInterval: 5000, // Atualizar a cada 5 segundos
     staleTime: 2000, // Cache por 2 segundos
     });
 
@@ -312,20 +326,23 @@ export default function AgendaPage() {
 
         const unsubscribe = base44.entities.Agendamento.subscribe((event) => {
               console.log(`🔔 EVENTO TEMPO REAL: ${event.type} - ID: ${event.id}`);
-              console.log('📊 Dados:', event.data);
 
-              // SEMPRE refetch imediatamente (sem checar data/unidade)
-              console.log('🔄 Refetch IMEDIATO para webhook');
-              queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
-              // Forçar busca imediata (não esperar o intervalo)
-              refetchAgendamentos();
+              // Só refetch se o agendamento afeta a data/unidade visível
+              const agData = event.data?.data;
+              const agUnidade = event.data?.unidade_id;
+              const dataFormatada = formatarDataPura(dataAtual);
+
+              if (agData === dataFormatada && (!unidadeSelecionada || agUnidade === unidadeSelecionada.id)) {
+                console.log('🔄 Refetch por mudança relevante (webhook)');
+                queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+              }
             });
 
         return () => {
             console.log('🔕 Desativando subscrição de agendamentos');
             unsubscribe();
           };
-        }, [queryClient, refetchAgendamentos]);
+        }, [dataAtual, unidadeSelecionada, queryClient]);
 
   const { data: clientes = [] } = useQuery({
       queryKey: ['clientes'],
@@ -1006,7 +1023,18 @@ export default function AgendaPage() {
   };
 
   // FILTRAR AGENDAMENTOS PELA DATA ATUAL
+  console.log("🔍🔍🔍 ==================== INICIANDO FILTRO ==================== 🔍🔍🔍");
+  console.log("📊 ESTADO DO FILTRO:");
+  console.log("  - dataAtual (Date object):", dataAtual.toString());
+  console.log("  - Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+  
   const dataFiltro = formatarDataPura(dataAtual);
+  
+  console.log("📅 DATA DO FILTRO (string pura):", dataFiltro);
+  console.log("📊 Total de agendamentos no banco:", agendamentos.length);
+  console.log("🏢 Unidade selecionada:", unidadeSelecionada?.nome, "(ID:", unidadeSelecionada?.id, ")");
+
+  // Filtrar por terapeuta se o usuário for um terapeuta
   const isProfissional = usuarioAtual?.cargo === "terapeuta";
   const profissionalDoUsuario = profissionais.find(p => p.email === usuarioAtual?.email);
 
@@ -1024,18 +1052,63 @@ export default function AgendaPage() {
   }
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
-    if (isProfissional && profissionalDoUsuario && ag.profissional_id !== profissionalDoUsuario.id) return false;
-
-    if (ag.data !== dataFiltro) return false;
-    if (unidadeSelecionada && ag.unidade_id !== unidadeSelecionada.id) return false;
-    if (filters.cliente && !(ag.cliente_nome?.toLowerCase().includes(filters.cliente.toLowerCase()) || ag.cliente_telefone?.toLowerCase().includes(filters.cliente.toLowerCase()))) return false;
-    if (filters.unidade && ag.unidade_id !== filters.unidade) return false;
-    if (filters.profissional && ag.profissional_id !== filters.profissional) return false;
-    if (filters.servico && ag.servico_id !== filters.servico) return false;
-    if (filters.status && ag.status !== filters.status) return false;
-    if (filters.data && ag.data !== filters.data) return false;
-
+    // Se for terapeuta, mostrar apenas seus próprios agendamentos
+    if (isProfissional && profissionalDoUsuario) {
+      if (ag.profissional_id !== profissionalDoUsuario.id) {
+        return false;
+      }
+    }
+    
+    // Restante dos filtros normais
+    // Log detalhado para cada agendamento
+    const isDataMatch = ag.data === dataFiltro;
+    const isUnidadeMatch = !unidadeSelecionada || ag.unidade_id === unidadeSelecionada.id;
+    const isClienteMatch = !filters.cliente || (
+      (ag.cliente_nome && ag.cliente_nome.toLowerCase().includes(filters.cliente.toLowerCase())) ||
+      (ag.cliente_telefone && ag.cliente_telefone.toLowerCase().includes(filters.cliente.toLowerCase()))
+    );
+    const isUnidadeFilterMatch = !filters.unidade || ag.unidade_id === filters.unidade;
+    const isProfissionalMatch = !filters.profissional || ag.profissional_id === filters.profissional;
+    const isServicoMatch = !filters.servico || ag.servico_id === filters.servico;
+    const isStatusMatch = !filters.status || ag.status === filters.status;
+    const isDataFilterMatch = !filters.data || ag.data === filters.data;
+    
+    const isBloqueio = ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO";
+    
+    if (isBloqueio) {
+      console.log(`🔒 BLOQUEIO ENCONTRADO:`, {
+        id: ag.id,
+        data: ag.data,
+        dataMatch: isDataMatch,
+        horario: ag.hora_inicio,
+        profissional: ag.profissional_nome,
+        unidade: ag.unidade_nome,
+        unidadeMatch: isUnidadeMatch,
+        passaNoFiltro: isDataMatch && isUnidadeMatch
+      });
+    }
+    
+    // Retornar apenas se TODOS os filtros passarem
+    if (!isDataMatch) return false;
+    if (!isUnidadeMatch) return false;
+    if (!isUnidadeFilterMatch) return false;
+    if (!isClienteMatch) return false;
+    if (!isProfissionalMatch) return false;
+    if (!isServicoMatch) return false;
+    if (!isStatusMatch) return false;
+    if (!isDataFilterMatch) return false;
+    
     return true;
+  });
+
+  console.log("📊 TOTAL APÓS FILTRO:", agendamentosFiltrados.length);
+  
+  const bloqueiosFiltrados = agendamentosFiltrados.filter(ag => 
+    ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO"
+  );
+  console.log("🔒 BLOQUEIOS NO FILTRO:", bloqueiosFiltrados.length);
+  bloqueiosFiltrados.forEach(b => {
+    console.log(`  🔒 ${b.hora_inicio} | ${b.profissional_nome} | Data: ${b.data}`);
   });
 
   const unidadeAtual = unidadeSelecionada || unidades[0];
@@ -1043,8 +1116,8 @@ export default function AgendaPage() {
   // Verificar se é admin, gerência ou pós-venda - todos têm permissões administrativas
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades" || usuarioAtual?.cargo === "pos_venda";
 
-  // Loading enquanto carrega dados essenciais
-  if (!usuarioAtual || unidades.length === 0) {
+  // Loading enquanto carrega dados
+  if (!usuarioAtual || unidades.length === 0 || agendamentos.length === 0) {
     return (
       <div className="h-screen flex flex-col bg-gray-50">
         <div className="flex-1 flex items-center justify-center">
