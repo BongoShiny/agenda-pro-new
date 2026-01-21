@@ -154,10 +154,11 @@ Deno.serve(async (req) => {
           const dataFormatada = new Date(proximo.data + 'T12:00:00').toLocaleDateString('pt-BR');
           const mensagemConfirmacao = `✅ Agendamento confirmado com sucesso!\n\n📅 Data: ${dataFormatada}\n⏰ Horário: ${proximo.hora_inicio}\n👨‍⚕️ Profissional: ${proximo.profissional_nome}\n📍 Unidade: ${proximo.unidade_nome}\n\nNos vemos em breve! 😊`;
           
-          const telefoneFormatado = '55' + telefone.replace(/\D/g, '');
+          const telefoneFormatado = '55' + telefoneLimpo;
           const url = `https://api.z-api.io/instances/${WHATSAPP_INSTANCE_ID}/token/${WHATSAPP_INSTANCE_TOKEN}/send-text`;
           
-          await fetch(url, {
+          console.log('📤 Enviando mensagem de confirmação para:', telefoneFormatado);
+          const responseMsg = await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -168,8 +169,12 @@ Deno.serve(async (req) => {
               message: mensagemConfirmacao
             })
           });
+          
+          const responseData = await responseMsg.json();
+          console.log('📤 Resposta da Z-API:', JSON.stringify(responseData, null, 2));
+          console.log('✅ Mensagem de confirmação enviada com sucesso!');
         } catch (error) {
-          console.error('Erro ao enviar mensagem de confirmação:', error);
+          console.error('❌ Erro ao enviar mensagem de confirmação:', error.message);
         }
       }
       
@@ -233,10 +238,11 @@ Deno.serve(async (req) => {
           const dataFormatada = new Date(proximo.data + 'T12:00:00').toLocaleDateString('pt-BR');
           const mensagemCancelamento = `❌ Agendamento cancelado com sucesso.\n\n📅 Data: ${dataFormatada}\n⏰ Horário: ${proximo.hora_inicio}\n👨‍⚕️ Profissional: ${proximo.profissional_nome}\n📍 Unidade: ${proximo.unidade_nome}\n\nSe desejar reagendar, entre em contato conosco. 📞`;
           
-          const telefoneFormatado = '55' + telefone.replace(/\D/g, '');
+          const telefoneFormatado = '55' + telefoneLimpo;
           const url = `https://api.z-api.io/instances/${WHATSAPP_INSTANCE_ID}/token/${WHATSAPP_INSTANCE_TOKEN}/send-text`;
           
-          await fetch(url, {
+          console.log('📤 Enviando mensagem de cancelamento para:', telefoneFormatado);
+          const responseMsg = await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -247,8 +253,12 @@ Deno.serve(async (req) => {
               message: mensagemCancelamento
             })
           });
+          
+          const responseData = await responseMsg.json();
+          console.log('📤 Resposta da Z-API:', JSON.stringify(responseData, null, 2));
+          console.log('❌ Mensagem de cancelamento enviada com sucesso!');
         } catch (error) {
-          console.error('Erro ao enviar mensagem de cancelamento:', error);
+          console.error('❌ Erro ao enviar mensagem de cancelamento:', error.message);
         }
       }
       
