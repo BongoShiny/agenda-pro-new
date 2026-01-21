@@ -36,6 +36,10 @@ export default function ConfiguracaoSabadoPage() {
   const [unidadeConfigTerapeuta, setUnidadeConfigTerapeuta] = useState(null);
   const [configTerapeutaEditando, setConfigTerapeutaEditando] = useState(null);
   const [modoEdicaoTerapeuta, setModoEdicaoTerapeuta] = useState(false);
+  const [dialogDeletarSabadosAberto, setDialogDeletarSabadosAberto] = useState(false);
+  const [unidadeDeletar, setUnidadeDeletar] = useState("");
+  const [sabadoEspecificoDeletar, setSabadoEspecificoDeletar] = useState(null);
+  const [tipoDeletarSabado, setTipoDeletarSabado] = useState("todas");
 
   const queryClient = useQueryClient();
 
@@ -347,6 +351,48 @@ export default function ConfiguracaoSabadoPage() {
     deletarConfigTerapeutaMutation.mutate(id);
   };
 
+  const handleApagarSabados = async () => {
+    let configsParaDeletar = [];
+
+    if (tipoDeletarSabado === "todas") {
+      // Apagar todos os sábados de todas as unidades
+      configsParaDeletar = configuracoes;
+    } else if (tipoDeletarSabado === "unidade" && unidadeDeletar) {
+      // Apagar todos os sábados de uma unidade específica
+      configsParaDeletar = configuracoes.filter(c => c.unidade_id === unidadeDeletar);
+    } else if (tipoDeletarSabado === "especifico" && sabadoEspecificoDeletar) {
+      // Apagar um sábado específico de todas as unidades
+      const dataFormatada = format(sabadoEspecificoDeletar, "yyyy-MM-dd");
+      configsParaDeletar = configuracoes.filter(c => c.data_sabado === dataFormatada);
+      
+      if (unidadeDeletar) {
+        // Filtrar apenas pela unidade se selecionada
+        configsParaDeletar = configsParaDeletar.filter(c => c.unidade_id === unidadeDeletar);
+      }
+    }
+
+    if (configsParaDeletar.length === 0) {
+      alert("⚠️ Nenhuma configuração encontrada para deletar");
+      return;
+    }
+
+    const mensagem = `Tem certeza que deseja deletar ${configsParaDeletar.length} configuração(ões) de sábado?`;
+    if (!window.confirm(mensagem)) return;
+
+    try {
+      await Promise.all(configsParaDeletar.map(config => 
+        deletarConfigMutation.mutateAsync(config.id)
+      ));
+      alert(`✅ ${configsParaDeletar.length} configuração(ões) deletada(s) com sucesso!`);
+      setDialogDeletarSabadosAberto(false);
+      setUnidadeDeletar("");
+      setSabadoEspecificoDeletar(null);
+      setTipoDeletarSabado("todas");
+    } catch (error) {
+      alert("❌ Erro ao deletar configurações: " + error.message);
+    }
+  };
+
   const gerarTodosSabadosAnoAtual = () => {
     if (!unidadeSelecionada) {
       alert("⚠️ Selecione uma unidade primeiro");
@@ -398,10 +444,20 @@ export default function ConfiguracaoSabadoPage() {
             </Link>
             <h1 className="text-3xl font-bold text-gray-900">⚙️ Configurar Sábados</h1>
           </div>
-          <Button onClick={handleNovaConfig} className="bg-blue-600 hover:bg-blue-700">
-            <Plus className="w-4 h-4 mr-2" />
-            Nova Configuração
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => setDialogDeletarSabadosAberto(true)} 
+              variant="outline"
+              className="border-red-500 text-red-600 hover:bg-red-50"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Apagar Sábados
+            </Button>
+            <Button onClick={handleNovaConfig} className="bg-blue-600 hover:bg-blue-700">
+              <Plus className="w-4 h-4 mr-2" />
+              Nova Configuração
+            </Button>
+          </div>
         </div>
 
         <Card className="mb-6 bg-blue-50 border-blue-200">
@@ -811,6 +867,94 @@ export default function ConfiguracaoSabadoPage() {
             </Button>
             <Button onClick={handleSalvarConfigTerapeuta} className="bg-blue-600 hover:bg-blue-700">
               {modoEdicaoTerapeuta ? "Salvar Alterações" : "Salvar Configuração"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Apagar Sábados */}
+      <Dialog open={dialogDeletarSabadosAberto} onOpenChange={setDialogDeletarSabadosAberto}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="text-red-600">🗑️ Apagar Configurações de Sábados</DialogTitle>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-sm text-red-900">
+                <strong>⚠️ Atenção:</strong> Esta ação não pode ser desfeita!
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Tipo de Deleção</Label>
+              <Select value={tipoDeletarSabado} onValueChange={setTipoDeletarSabado}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todas">Todas as unidades</SelectItem>
+                  <SelectItem value="unidade">Unidade específica</SelectItem>
+                  <SelectItem value="especifico">Sábado específico</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {(tipoDeletarSabado === "unidade" || tipoDeletarSabado === "especifico") && (
+              <div className="space-y-2">
+                <Label>Unidade {tipoDeletarSabado === "especifico" && "(Opcional)"}</Label>
+                <Select value={unidadeDeletar} onValueChange={setUnidadeDeletar}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={tipoDeletarSabado === "especifico" ? "Todas as unidades" : "Selecione a unidade"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {unidades.map(u => (
+                      <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {tipoDeletarSabado === "especifico" && (
+              <div className="space-y-2">
+                <Label>Data do Sábado</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="w-full justify-start">
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {sabadoEspecificoDeletar ? format(sabadoEspecificoDeletar, "dd/MM/yyyy", { locale: ptBR }) : "Selecionar sábado"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={sabadoEspecificoDeletar}
+                      onSelect={setSabadoEspecificoDeletar}
+                      locale={ptBR}
+                      disabled={(date) => date.getDay() !== 6}
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setDialogDeletarSabadosAberto(false);
+              setUnidadeDeletar("");
+              setSabadoEspecificoDeletar(null);
+              setTipoDeletarSabado("todas");
+            }}>
+              Cancelar
+            </Button>
+            <Button 
+              onClick={handleApagarSabados} 
+              className="bg-red-600 hover:bg-red-700"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              Apagar Configurações
             </Button>
           </DialogFooter>
         </DialogContent>
