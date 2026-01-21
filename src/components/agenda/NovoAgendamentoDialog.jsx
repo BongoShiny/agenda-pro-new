@@ -54,7 +54,8 @@ export default function NovoAgendamentoDialog({
   modoEdicao = false,
   agendamentos = [],
   isTerapeuta = false,
-  excecoesHorario = []
+  excecoesHorario = [],
+  configuracoesTerapeutaSabado = []
 }) {
   const [formData, setFormData] = useState({
      cliente_id: "",
@@ -450,10 +451,14 @@ export default function NovoAgendamentoDialog({
         return;
       }
 
-      // Verificar se horário está dentro do expediente do profissional (considerando exceções)
+      // Verificar se horário está dentro do expediente do profissional (considerando exceções e sábados)
       const profissional = profissionais.find(p => p.id === formData.profissional_id);
       if (profissional && formData.data) {
-        // Buscar exceção de horário para esta data
+        // Verificar se é sábado
+        const dataSelecionada = new Date(formData.data + 'T12:00:00');
+        const isSabado = dataSelecionada.getDay() === 6;
+
+        // Buscar exceção de horário para esta data (EXCETO almoço)
         const excecao = excecoesHorario.find(e => 
           e.profissional_id === profissional.id && 
           e.data === formData.data &&
@@ -469,6 +474,25 @@ export default function NovoAgendamentoDialog({
           
           // Se é folga (00:00 - 00:00), bloquear
           if (horarioInicio === "00:00" && horarioFim === "00:00") {
+            setErroHorarioFechado(true);
+            setTimeout(() => setErroHorarioFechado(false), 3000);
+            return;
+          }
+        } else if (isSabado) {
+          // Se é sábado, verificar configuração específica
+          const configSabado = configuracoesTerapeutaSabado.find(c => 
+            c.profissional_id === profissional.id &&
+            c.unidade_id === formData.unidade_id &&
+            (c.data_sabado === formData.data || !c.data_sabado || c.data_sabado === "") &&
+            c.ativo
+          );
+
+          if (configSabado) {
+            // Tem configuração de sábado, usar esse horário
+            horarioInicio = configSabado.horario_inicio || "08:00";
+            horarioFim = configSabado.horario_fim || "18:00";
+          } else {
+            // Não tem configuração de sábado = não trabalha
             setErroHorarioFechado(true);
             setTimeout(() => setErroHorarioFechado(false), 3000);
             return;

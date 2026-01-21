@@ -367,6 +367,12 @@ export default function AgendaPage() {
     initialData: [],
   });
 
+  const { data: configuracoesTerapeutaSabado = [] } = useQuery({
+    queryKey: ['configuracoes-terapeuta-sabado'],
+    queryFn: () => base44.entities.ConfiguracaoTerapeutaSabado.list(),
+    initialData: [],
+  });
+
   const criarAgendamentoMutation = useMutation({
     mutationFn: async (dados) => {
       console.log("📤 ENVIANDO AO BANCO:", {
@@ -1201,6 +1207,7 @@ export default function AgendaPage() {
         agendamentos={agendamentos}
         isTerapeuta={isProfissional}
         excecoesHorario={excecoesHorario}
+        configuracoesTerapeutaSabado={configuracoesTerapeutaSabado}
       />
 
       <DetalhesAgendamentoDialog
