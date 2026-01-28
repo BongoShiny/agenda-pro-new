@@ -67,13 +67,15 @@ Deno.serve(async (req) => {
       console.log('✅✅✅ PROCESSANDO CONFIRMAÇÃO ✅✅✅');
       console.log('📱 Telefone do cliente (limpo):', telefoneLimpo);
 
-      const agendamentos = await base44.asServiceRole.entities.Agendamento.filter({ status: 'agendado' });
-      const agendamentosArray = Array.isArray(agendamentos) ? agendamentos : [];
+      const todosAgendamentos = await base44.asServiceRole.entities.Agendamento.list();
+      const agendamentosArray = Array.isArray(todosAgendamentos) ? todosAgendamentos : [];
+      const agendamentosAgendados = agendamentosArray.filter(ag => ag.status === 'agendado');
 
-      console.log(`🔍 Total de agendamentos 'agendado': ${agendamentosArray.length}`);
-      console.log(`🔍 Agendamentos completos:`, JSON.stringify(agendamentosArray, null, 2));
+      console.log(`🔍 Total de agendamentos no sistema: ${agendamentosArray.length}`);
+      console.log(`🔍 Total com status 'agendado': ${agendamentosAgendados.length}`);
+      console.log(`🔍 Agendamentos 'agendado':`, JSON.stringify(agendamentosAgendados, null, 2));
 
-      const agendamentosCliente = agendamentosArray.filter(ag => {
+      const agendamentosCliente = agendamentosAgendados.filter(ag => {
         if (!ag.cliente_telefone) {
           return false;
         }
@@ -173,13 +175,11 @@ Deno.serve(async (req) => {
       console.log('❌ Processando cancelamento...');
 
       // Buscar agendamentos agendados OU confirmados
-      const todosAgendamentosAgendados = await base44.asServiceRole.entities.Agendamento.filter({ status: 'agendado' });
-      const todosAgendamentosConfirmados = await base44.asServiceRole.entities.Agendamento.filter({ status: 'confirmado' });
-      const arr1 = Array.isArray(todosAgendamentosAgendados) ? todosAgendamentosAgendados : [];
-      const arr2 = Array.isArray(todosAgendamentosConfirmados) ? todosAgendamentosConfirmados : [];
-      const todosAgendamentos = [...arr1, ...arr2];
+      const todosAgendamentos = await base44.asServiceRole.entities.Agendamento.list();
+      const todosArray = Array.isArray(todosAgendamentos) ? todosAgendamentos : [];
+      const agendamentosFiltrados = todosArray.filter(ag => ag.status === 'agendado' || ag.status === 'confirmado');
 
-      const agendamentosCliente = todosAgendamentos.filter(ag => {
+      const agendamentosCliente = agendamentosFiltrados.filter(ag => {
         let telAg = (ag.cliente_telefone || '').replace(/\D/g, '');
         if (telAg.startsWith('55')) {
           telAg = telAg.substring(2);
