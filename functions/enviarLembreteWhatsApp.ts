@@ -72,10 +72,7 @@ Deno.serve(async (req) => {
       // Determinar se deve enviar agora
       let deveEnviar = false;
 
-      if (envioImediato) {
-        // Envio imediato ao ativar
-        deveEnviar = true;
-      } else if (numeroTeste) {
+      if (numeroTeste) {
         // Modo teste
         deveEnviar = true;
       } else {
@@ -94,7 +91,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      if (!deveEnviar && !numeroTeste && !envioImediato) {
+      if (!deveEnviar && !numeroTeste) {
         console.log(`⏭️ Não é hora de enviar para ${config.unidade_nome}`);
         continue;
       }
@@ -122,8 +119,8 @@ Deno.serve(async (req) => {
           }
         }
 
-        // Verificar se já foi enviado (exceto teste/imediato)
-        if (!numeroTeste && !envioImediato && ag.lembrete_enviado) {
+        // Verificar se já foi enviado (exceto teste)
+        if (!numeroTeste && ag.lembrete_enviado) {
           console.log(`⏭️ Lembrete já enviado para ${ag.cliente_nome}`);
           continue;
         }
@@ -181,11 +178,9 @@ Deno.serve(async (req) => {
             // Log
             await base44.asServiceRole.entities.LogAcao.create({
               tipo: "editou_agendamento",
-              usuario_email: numeroTeste || envioImediato ? (user?.email || "sistema-whatsapp") : "sistema-whatsapp",
+              usuario_email: numeroTeste ? (user?.email || "sistema-whatsapp") : "sistema-whatsapp",
               descricao: numeroTeste 
                 ? `Teste WhatsApp enviado para ${ag.cliente_nome}`
-                : envioImediato
-                ? `WhatsApp enviado na ativação para ${ag.cliente_nome}`
                 : `Lembrete WhatsApp enviado para ${ag.cliente_nome}`,
               entidade_tipo: "Agendamento",
               entidade_id: ag.id
@@ -210,8 +205,7 @@ Deno.serve(async (req) => {
       success: true,
       mensagensEnviadas,
       erros: erros.length > 0 ? erros : undefined,
-      modoTeste: !!numeroTeste,
-      envioImediato: !!envioImediato
+      modoTeste: !!numeroTeste
     });
 
   } catch (error) {

@@ -64,7 +64,8 @@ export default function WhatsAppCompleto() {
 
   const handleToggleAtivo = async (config) => {
     if (!config.ativo) {
-      const confirmar = window.confirm(`Ativar WhatsApp para ${config.unidade_nome}?\n\nIsso enviará mensagens automaticamente para todos os agendamentos de amanhã desta unidade.`);
+      const tipoEnvio = config.tipo_envio === '24_horas_antes' ? '18h' : config.horario_fixo || '18:00';
+      const confirmar = window.confirm(`Ativar WhatsApp para ${config.unidade_nome}?\n\nOs lembretes serão enviados diariamente às ${tipoEnvio} para agendamentos do dia seguinte.`);
       if (!confirmar) return;
       
       try {
@@ -73,18 +74,7 @@ export default function WhatsAppCompleto() {
           data: { ativo: true } 
         });
         
-        const response = await base44.functions.invoke('enviarLembreteWhatsApp', {
-          envioImediato: true,
-          unidadeId: config.unidade_id
-        });
-        
-        const mensagensEnviadas = response.data?.mensagensEnviadas || 0;
-        
-        if (mensagensEnviadas > 0) {
-          alert(`✅ WhatsApp ativado!\n\n${mensagensEnviadas} mensagem(ns) enviada(s) com sucesso.`);
-        } else {
-          alert(`⚠️ WhatsApp ativado, mas nenhuma mensagem foi enviada.\n\nPossíveis motivos:\n• Não há agendamentos para amanhã\n• Clientes sem telefone cadastrado`);
-        }
+        alert(`✅ WhatsApp ativado!\n\nOs lembretes serão enviados automaticamente todos os dias no horário configurado.`);
       } catch (error) {
         alert('❌ Erro ao ativar: ' + error.message);
       }
