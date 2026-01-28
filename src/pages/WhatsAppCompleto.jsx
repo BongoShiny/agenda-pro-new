@@ -70,7 +70,33 @@ export default function WhatsAppCompleto() {
       if (!confirmar) return;
       
       try {
-        await updateConfig.mutateAsync({ id: config.id, data: { ativo: true } });
+        // Pegar horário editável ou horário atual da config
+        const horarioEnvio = horariosEditaveis[config.id] || config.horario_envio || "18:00";
+        
+        // Atualizar config com novo horário e ativar
+        await updateConfig.mutateAsync({ 
+          id: config.id, 
+          data: { 
+            ativo: true,
+            horario_envio: horarioEnvio 
+          } 
+        });
+        
+        // Limpar horário editável
+        setHorariosEditaveis(prev => {
+          const novo = { ...prev };
+          delete novo[config.id];
+          return novo;
+        });
+        
+        // Atualizar automação com novo horário
+        try {
+          await base44.functions.invoke('atualizarHorarioAutomacao', {
+            horario: horarioEnvio
+          });
+        } catch (error) {
+          console.error('Erro ao atualizar horário da automação:', error);
+        }
         
         const response = await base44.functions.invoke('enviarLembreteWhatsApp', {
           envioImediato: true,
