@@ -292,10 +292,13 @@ export default function WhatsAppCompleto() {
                               id: config.id, 
                               data: { horario_fixo: e.target.value } 
                             })}
+                            disabled={config.ativo}
                             className="mt-1 max-w-xs"
                           />
                           <p className="text-xs text-gray-500 mt-1">
-                            Este horário será usado todos os dias para enviar lembretes do dia seguinte
+                            {config.ativo 
+                              ? "⚠️ Desative o WhatsApp para alterar o horário"
+                              : "Este horário será usado todos os dias para enviar lembretes do dia seguinte"}
                           </p>
                         </div>
                       )}
