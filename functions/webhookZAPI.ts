@@ -27,7 +27,15 @@ Deno.serve(async (req) => {
     const WHATSAPP_CLIENT_TOKEN = (Deno.env.get("WHATSAPP_CLIENT_TOKEN") || "").trim();
 
     // Extrair dados da Z-API - TODOS OS FORMATOS POSSÍVEIS
-    const mensagem = body.text?.message || body.text || body.message || body.body || body.content || '';
+    let mensagem = '';
+    if (typeof body.text === 'object' && body.text !== null) {
+      mensagem = body.text.message || '';
+    } else if (typeof body.text === 'string') {
+      mensagem = body.text;
+    } else {
+      mensagem = body.message || body.body || body.content || '';
+    }
+    
     const telefone = body.phone || body.wuid || body.phoneNumber || body.from || body.sender || body.chatId || '';
 
     console.log('📱 Telefone extraído:', telefone);

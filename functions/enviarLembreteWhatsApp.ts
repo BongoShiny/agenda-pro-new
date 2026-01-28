@@ -187,56 +187,40 @@ Deno.serve(async (req) => {
 
     // Para cada configuração
     for (const config of configuracoes) {
-      // Buscar agendamentos da unidade
+      // Buscar agendamentos da unidade que são de amanhã e ainda não receberam lembrete
       let filtroAgendamentos = {
         unidade_id: config.unidade_id,
         status: 'agendado'
       };
 
-      // Se for envio imediato, filtrar por data de amanhã
-      if (envioImediato && dataAmanha) {
-        filtroAgendamentos.data = dataAmanha;
-      }
-
       const agendamentos = await base44.asServiceRole.entities.Agendamento.filter(filtroAgendamentos);
+
+      // Calcular data de amanhã
+      const amanha = new Date(agoraBrasilia);
+      amanha.setDate(amanha.getDate() + 1);
+      const dataAmanha = amanha.toISOString().split('T')[0];
 
       for (const ag of agendamentos) {
          // Verificar se tem telefone
-         if (!ag.cliente_telefone) continue;
+         if (!ag.cliente_telefone) {
+           console.log(`⚠️ Agendamento sem telefone: ${ag.cliente_nome}`);
+           continue;
+         }
 
-        // Converter data do agendamento para Date
-        const [ano, mes, dia] = ag.data.split('-').map(Number);
-        const [hora, minuto] = ag.hora_inicio.split(':').map(Number);
-        const dataAgendamento = new Date(ano, mes - 1, dia, hora, minuto);
-
-        // Determinar se deve enviar
-        let deveEnviar = false;
-        let tipoLembrete = null;
-        
-        if (numeroTeste || envioImediato) {
-          deveEnviar = true; // Modo teste ou envio imediato: sempre envia
-          tipoLembrete = 'teste';
-        } else {
-          // Verificar se já foi enviado
-          if (ag.lembrete_1_dia_enviado && ag.lembrete_12_horas_enviado) {
-            continue; // Já enviou os dois lembretes
+        // Se for modo normal (não teste), só enviar para agendamentos de AMANHÃ
+        if (!numeroTeste && !envioImediato) {
+          if (ag.data !== dataAmanha) {
+            continue; // Pular se não for agendamento de amanhã
           }
-
-          // Modo normal: verificar se precisa enviar lembrete de 1 dia ou 12 horas
-          const diff1Dia = Math.abs(dataAgendamento - umDiaFrente);
-          const diff12Horas = Math.abs(dataAgendamento - dozeHorasFrente);
-
-          if (config.enviar_1_dia && diff1Dia < 3600000 && !ag.lembrete_1_dia_enviado) { // Dentro de 1 hora de diferença
-            deveEnviar = true;
-            tipoLembrete = '1_dia';
-          }
-          if (config.enviar_12_horas && diff12Horas < 3600000 && !ag.lembrete_12_horas_enviado) { // Dentro de 1 hora de diferença
-            deveEnviar = true;
-            tipoLembrete = '12_horas';
+          
+          // Se já enviou lembrete de 1 dia, pular
+          if (ag.lembrete_1_dia_enviado) {
+            console.log(`⏭️ Lembrete já enviado para ${ag.cliente_nome}`);
+            continue;
           }
         }
 
-        if (!deveEnviar) continue;
+        let tipoLembrete = numeroTeste || envioImediato ? 'teste' : '1_dia';
 
         // Montar mensagem usando template personalizado
         const dataFormatada = new Date(ag.data + 'T12:00:00').toLocaleDateString('pt-BR');
