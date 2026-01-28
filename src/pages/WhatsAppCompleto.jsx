@@ -21,8 +21,6 @@ export default function WhatsAppCompleto() {
   const [resultado, setResultado] = useState(null);
   const [telefone, setTelefone] = useState("");
   const [mensagem, setMensagem] = useState("");
-  const [horariosEditaveis, setHorariosEditaveis] = useState({});
-  const [delaysEditaveis, setDelaysEditaveis] = useState({});
 
   const queryClient = useQueryClient();
 
@@ -70,33 +68,10 @@ export default function WhatsAppCompleto() {
       if (!confirmar) return;
       
       try {
-        // Pegar horário editável ou horário atual da config
-        const horarioEnvio = horariosEditaveis[config.id] || config.horario_envio || "18:00";
-        
-        // Atualizar config com novo horário e ativar
         await updateConfig.mutateAsync({ 
           id: config.id, 
-          data: { 
-            ativo: true,
-            horario_envio: horarioEnvio 
-          } 
+          data: { ativo: true } 
         });
-        
-        // Limpar horário editável
-        setHorariosEditaveis(prev => {
-          const novo = { ...prev };
-          delete novo[config.id];
-          return novo;
-        });
-        
-        // Atualizar automação com novo horário
-        try {
-          await base44.functions.invoke('atualizarHorarioAutomacao', {
-            horario: horarioEnvio
-          });
-        } catch (error) {
-          console.error('Erro ao atualizar horário da automação:', error);
-        }
         
         const response = await base44.functions.invoke('enviarLembreteWhatsApp', {
           envioImediato: true,
@@ -104,16 +79,11 @@ export default function WhatsAppCompleto() {
         });
         
         const mensagensEnviadas = response.data?.mensagensEnviadas || 0;
-        const erros = response.data?.erros || [];
         
         if (mensagensEnviadas > 0) {
           alert(`✅ WhatsApp ativado!\n\n${mensagensEnviadas} mensagem(ns) enviada(s) com sucesso.`);
         } else {
-          alert(`⚠️ WhatsApp ativado, mas nenhuma mensagem foi enviada.\n\nPossíveis motivos:\n• Não há agendamentos para amanhã\n• Clientes sem telefone cadastrado\n• Verifique se as credenciais Z-API estão corretas`);
-        }
-        
-        if (erros.length > 0) {
-          console.error('Erros ao enviar:', erros);
+          alert(`⚠️ WhatsApp ativado, mas nenhuma mensagem foi enviada.\n\nPossíveis motivos:\n• Não há agendamentos para amanhã\n• Clientes sem telefone cadastrado`);
         }
       } catch (error) {
         alert('❌ Erro ao ativar: ' + error.message);
@@ -138,23 +108,15 @@ export default function WhatsAppCompleto() {
     }
   };
 
-
-
   const handleCriarConfiguracao = async (unidadeId, unidadeNome) => {
     await createConfig.mutateAsync({
       unidade_id: unidadeId,
       unidade_nome: unidadeNome,
       ativo: false,
       mensagem_template: "Olá {cliente}! 🗓️\n\nLembramos que você tem um agendamento:\n\n📅 Data: {data}\n⏰ Horário: {hora}\n👨‍⚕️ Profissional: {profissional}\n💼 Serviço: {servico}\n📍 Unidade: {unidade}\n\n✅ Responda *Confirmar* para confirmar\n❌ Responda *Cancelar* para cancelar",
-      enviar_24_horas: true,
-      enviar_12_horas: false,
-      enviar_6_horas: false,
-      enviar_2_horas: false,
-      horario_envio_24h: "18:00",
-      horario_envio_12h: "09:00",
-      delay_segundos: 50,
-      max_envios_por_vez: 100,
-      enviar_apenas_dias_uteis: false
+      tipo_envio: "24_horas_antes",
+      horario_fixo: "18:00",
+      delay_segundos: 50
     });
   };
 
@@ -183,7 +145,7 @@ export default function WhatsAppCompleto() {
   };
 
   const copiarUrl = () => {
-    const webhookUrl = window.location.origin + "/api/webhookWhatsApp";
+    const webhookUrl = window.location.origin + "/api/webhookZAPI";
     navigator.clipboard.writeText(webhookUrl);
     alert("✅ URL copiada!");
   };
@@ -221,7 +183,7 @@ export default function WhatsAppCompleto() {
     return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
   }
 
-  const webhookUrl = window.location.origin + "/api/webhookWhatsApp";
+  const webhookUrl = window.location.origin + "/api/webhookZAPI";
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -232,173 +194,29 @@ export default function WhatsAppCompleto() {
               <ArrowLeft className="h-4 w-4" />
             </Button>
           </Link>
-          <h1 className="text-3xl font-bold">WhatsApp - Configuração Completa</h1>
+          <h1 className="text-3xl font-bold">WhatsApp - Configuração</h1>
         </div>
 
-        <Tabs defaultValue="setup" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="setup">📱 Setup</TabsTrigger>
+        <Tabs defaultValue="config" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="config">⚙️ Configuração</TabsTrigger>
             <TabsTrigger value="webhook">🔗 Webhook</TabsTrigger>
             <TabsTrigger value="teste">🧪 Teste</TabsTrigger>
           </TabsList>
 
-          {/* ABA SETUP */}
-          <TabsContent value="setup" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>📱 Como Configurar WhatsApp Business API</CardTitle>
-                <CardDescription>Siga este guia passo a passo para configurar sua integração</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                {/* Passo 1 - Z-API */}
-                <div className="border-l-4 border-blue-500 pl-4">
-                  <h3 className="font-bold text-lg mb-2">1️⃣ Criar Conta na Z-API (Recomendado)</h3>
-                  <p className="text-sm mb-2">Z-API é a melhor opção brasileira - simples, confiável e com suporte excelente.</p>
-                  <div className="bg-blue-50 p-3 rounded space-y-2">
-                    <ol className="list-decimal list-inside space-y-2 text-xs ml-2">
-                      <li>Acesse: <a href="https://z-api.io" target="_blank" className="text-blue-600 underline">z-api.io</a></li>
-                      <li>Crie uma conta gratuita (teste com saldo inicial)</li>
-                      <li>Faça login no painel</li>
-                      <li>Vá em <strong>Canais → WhatsApp</strong></li>
-                    </ol>
-                  </div>
-                </div>
-
-                {/* Passo 2 */}
-                <div className="border-l-4 border-green-500 pl-4">
-                  <h3 className="font-bold text-lg mb-2">2️⃣ Conectar WhatsApp Business</h3>
-                  <ol className="list-decimal list-inside space-y-2 text-sm">
-                    <li>No painel Z-API, clique em <strong>"+ Instância"</strong></li>
-                    <li>Escolha <strong>WhatsApp Business</strong></li>
-                    <li>Dê um nome (ex: "vibe_terapias")</li>
-                    <li>Escaneie o QR Code com seu WhatsApp Business</li>
-                    <li>✅ Instância conectada com sucesso!</li>
-                  </ol>
-                </div>
-
-                {/* Passo 3 */}
-                <div className="border-l-4 border-purple-500 pl-4">
-                  <h3 className="font-bold text-lg mb-2">3️⃣ Obter Credenciais da API</h3>
-                  <div className="space-y-3">
-                    <div className="bg-gray-50 p-3 rounded">
-                      <p className="font-semibold mb-1">🔗 URL da API:</p>
-                      <code className="text-xs bg-white px-2 py-1 rounded block">https://api.z-api.io</code>
-                      <p className="text-xs text-gray-600 mt-1">
-                        • É sempre a mesma para todos os usuários<br/>
-                        • URL oficial da Z-API
-                      </p>
-                    </div>
-
-                    <div className="bg-gray-50 p-3 rounded">
-                      <p className="font-semibold mb-1">🔑 API Token:</p>
-                      <code className="text-xs bg-white px-2 py-1 rounded block">seu_token_aqui</code>
-                      <p className="text-xs text-gray-600 mt-1">
-                        • No painel Z-API, vá em <strong>Configurações → Tokens</strong><br/>
-                        • Copie o token (formato: alfanumérico sem hífens)<br/>
-                        • ⚠️ Guarde com segurança!
-                      </p>
-                    </div>
-
-                    <div className="bg-gray-50 p-3 rounded">
-                      <p className="font-semibold mb-1">📱 ID da Instância:</p>
-                      <code className="text-xs bg-white px-2 py-1 rounded block">seu_id_instancia</code>
-                      <p className="text-xs text-gray-600 mt-1">
-                        • Clique em sua instância no painel<br/>
-                        • Copie o ID mostrado (geralmente um UUID)<br/>
-                        • Ou encontre em <strong>Configurações → ID da Instância</strong>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Passo 4 */}
-                <div className="border-l-4 border-orange-500 pl-4">
-                  <h3 className="font-bold text-lg mb-2">4️⃣ Configurar no Dashboard Base44</h3>
-                  <ol className="list-decimal list-inside space-y-2 text-sm">
-                    <li>Acesse <strong>Dashboard → Configurações → Environment Variables</strong></li>
-                    <li>Configure os seguintes secrets:</li>
-                  </ol>
-                  <div className="mt-2 space-y-2 ml-6">
-                    <div className="bg-white border p-2 rounded text-sm">
-                      <strong>WHATSAPP_API_URL</strong><br/>
-                      <span className="text-xs text-gray-600">Cole a URL da sua Evolution API</span>
-                    </div>
-                    <div className="bg-white border p-2 rounded text-sm">
-                      <strong>WHATSAPP_API_TOKEN</strong><br/>
-                      <span className="text-xs text-gray-600">Cole a API Key</span>
-                    </div>
-                    <div className="bg-white border p-2 rounded text-sm">
-                      <strong>WHATSAPP_INSTANCE_NAME</strong><br/>
-                      <span className="text-xs text-gray-600">Cole o nome da instância</span>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Passo 5 */}
-                <div className="border-l-4 border-red-500 pl-4">
-                  <h3 className="font-bold text-lg mb-2">5️⃣ Testar Integração</h3>
-                  <ol className="list-decimal list-inside space-y-2 text-sm">
-                    <li>Vá para a aba <strong>"🧪 Teste"</strong> nesta página</li>
-                    <li>Digite seu número de telefone (com DDD, ex: 5511987654321)</li>
-                    <li>Digite uma mensagem de teste</li>
-                    <li>Clique em <strong>"Enviar Mensagem WhatsApp"</strong></li>
-                    <li>✅ Verifique se recebeu no seu WhatsApp Business</li>
-                    <li>Veja o log abaixo para erros (se houver)</li>
-                  </ol>
-                </div>
-
-                {/* Troubleshooting Z-API */}
-                <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">❌ Erros Comuns Z-API:</h4>
-                  <ul className="space-y-2 text-sm">
-                    <li><strong>401 Unauthorized:</strong> Token incorreto - copie novamente de Configurações</li>
-                    <li><strong>404 Not Found:</strong> ID da instância errado - verifique no painel</li>
-                    <li><strong>Sem saldo:</strong> Compre créditos no painel Z-API</li>
-                    <li><strong>Instância offline:</strong> Reconecte no painel (escanear QR novamente)</li>
-                    <li><strong>Mensagem não chega:</strong> Verifique o número (com DDD + 55)</li>
-                  </ul>
-                </div>
-
-                {/* Links Úteis */}
-                <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">🔗 Links Úteis Z-API:</h4>
-                  <ul className="space-y-1 text-xs">
-                    <li>📖 <a href="https://z-api.io/documentacao" target="_blank" className="text-blue-600 underline">Documentação oficial</a></li>
-                    <li>💬 <a href="https://discord.gg/z-api" target="_blank" className="text-blue-600 underline">Discord da comunidade</a></li>
-                    <li>📧 <a href="https://z-api.io/suporte" target="_blank" className="text-blue-600 underline">Suporte por email</a></li>
-                    <li>🎓 <a href="https://youtube.com/z-api" target="_blank" className="text-blue-600 underline">Canal YouTube com tutoriais</a></li>
-                  </ul>
-                </div>
-
-                {/* Troubleshooting */}
-                <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">❌ Problemas Comuns:</h4>
-                  <ul className="space-y-2 text-sm">
-                    <li><strong>Erro 401 (Unauthorized):</strong> Token incorreto ou expirado - gere um novo</li>
-                    <li><strong>Erro 404:</strong> URL da API incorreta - verifique o formato</li>
-                    <li><strong>Mensagem não chega:</strong> Verifique se o WhatsApp está conectado na Octadesk</li>
-                    <li><strong>Instância não encontrada:</strong> Confirme o nome exato da instância</li>
-                  </ul>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
           {/* ABA CONFIGURAÇÃO */}
           <TabsContent value="config" className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle>📋 Guia de Configuração</CardTitle>
+                <CardTitle>📋 Como Funciona</CardTitle>
               </CardHeader>
               <CardContent>
                 <ol className="list-decimal list-inside space-y-2 text-sm">
-                  <li>Configure suas credenciais de API (URL, Token e Instância) no Dashboard</li>
-                  <li>Ative o WhatsApp para as unidades desejadas abaixo</li>
-                  <li>Configure os horários de envio (1 dia antes e/ou 12 horas antes)</li>
-                  <li>Personalize a mensagem para cada unidade</li>
+                  <li>Ative o WhatsApp para as unidades desejadas</li>
+                  <li>Escolha o tipo de envio: 24 horas antes ou horário personalizado</li>
+                  <li>Personalize a mensagem se desejar</li>
                   <li>Configure o webhook na aba "Webhook"</li>
-                  <li>Teste o envio na aba "Teste"</li>
+                  <li>Os lembretes serão enviados automaticamente no dia anterior ao agendamento</li>
                 </ol>
               </CardContent>
             </Card>
@@ -441,213 +259,103 @@ export default function WhatsAppCompleto() {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <div>
-                        <Label>Enviar lembretes:</Label>
-                        <div className="grid grid-cols-2 gap-3 mt-2">
+                        <Label>Tipo de envio:</Label>
+                        <div className="flex gap-4 mt-2">
                           <label className="flex items-center gap-2">
                             <Switch 
-                              checked={config.enviar_24_horas}
-                              onCheckedChange={() => updateConfig.mutate({ 
-                                id: config.id, 
-                                data: { enviar_24_horas: !config.enviar_24_horas } 
-                              })}
+                              checked={config.tipo_envio === '24_horas_antes'}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  updateConfig.mutate({ 
+                                    id: config.id, 
+                                    data: { tipo_envio: '24_horas_antes' } 
+                                  });
+                                }
+                              }}
                             />
-                            <span>24 horas antes</span>
+                            <span>24 horas antes (18h)</span>
                           </label>
                           <label className="flex items-center gap-2">
                             <Switch 
-                              checked={config.enviar_12_horas}
-                              onCheckedChange={() => updateConfig.mutate({ 
-                                id: config.id, 
-                                data: { enviar_12_horas: !config.enviar_12_horas } 
-                              })}
+                              checked={config.tipo_envio === 'horario_personalizado'}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  updateConfig.mutate({ 
+                                    id: config.id, 
+                                    data: { tipo_envio: 'horario_personalizado' } 
+                                  });
+                                }
+                              }}
                             />
-                            <span>12 horas antes</span>
-                          </label>
-                          <label className="flex items-center gap-2">
-                            <Switch 
-                              checked={config.enviar_6_horas}
-                              onCheckedChange={() => updateConfig.mutate({ 
-                                id: config.id, 
-                                data: { enviar_6_horas: !config.enviar_6_horas } 
-                              })}
-                            />
-                            <span>6 horas antes</span>
-                          </label>
-                          <label className="flex items-center gap-2">
-                            <Switch 
-                              checked={config.enviar_2_horas}
-                              onCheckedChange={() => updateConfig.mutate({ 
-                                id: config.id, 
-                                data: { enviar_2_horas: !config.enviar_2_horas } 
-                              })}
-                            />
-                            <span>2 horas antes</span>
+                            <span>Horário personalizado</span>
                           </label>
                         </div>
                       </div>
 
-                      <div className="space-y-4">
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          <div>
-                            <Label>⏰ Horário Envio 24h</Label>
-                            <Input
-                              type="time"
-                              value={config.horario_envio_24h || "18:00"}
-                              onChange={(e) => updateConfig.mutate({ 
-                                id: config.id, 
-                                data: { horario_envio_24h: e.target.value } 
-                              })}
-                              className="mt-1"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">Horário de envio do lembrete de 24h</p>
-                          </div>
-
-                          <div>
-                            <Label>⏰ Horário Envio 12h</Label>
-                            <Input
-                              type="time"
-                              value={config.horario_envio_12h || "09:00"}
-                              onChange={(e) => updateConfig.mutate({ 
-                                id: config.id, 
-                                data: { horario_envio_12h: e.target.value } 
-                              })}
-                              className="mt-1"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">Horário de envio do lembrete de 12h</p>
-                          </div>
-
-                          <div>
-                            <Label>⏱️ Delay entre Envios (seg)</Label>
-                            <Input
-                              type="number"
-                              min="10"
-                              max="120"
-                              value={config.delay_segundos || 50}
-                              onChange={(e) => {
-                                const valor = parseInt(e.target.value, 10);
-                                if (!isNaN(valor) && valor >= 10 && valor <= 120) {
-                                  updateConfig.mutate({ 
-                                    id: config.id, 
-                                    data: { delay_segundos: valor } 
-                                  });
-                                }
-                              }}
-                              className="mt-1"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">Delay entre cada mensagem</p>
-                          </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <Label>📊 Máx. Envios por Vez</Label>
-                            <Input
-                              type="number"
-                              min="10"
-                              max="500"
-                              value={config.max_envios_por_vez || 100}
-                              onChange={(e) => {
-                                const valor = parseInt(e.target.value, 10);
-                                if (!isNaN(valor) && valor >= 10) {
-                                  updateConfig.mutate({ 
-                                    id: config.id, 
-                                    data: { max_envios_por_vez: valor } 
-                                  });
-                                }
-                              }}
-                              className="mt-1"
-                            />
-                            <p className="text-xs text-gray-500 mt-1">Limite de mensagens por execução</p>
-                          </div>
-
-                          <div>
-                            <Label>📅 Apenas Dias Úteis</Label>
-                            <div className="flex items-center gap-2 mt-3">
-                              <Switch 
-                                checked={config.enviar_apenas_dias_uteis || false}
-                                onCheckedChange={(checked) => updateConfig.mutate({ 
-                                  id: config.id, 
-                                  data: { enviar_apenas_dias_uteis: checked } 
-                                })}
-                              />
-                              <span className="text-sm">Não enviar aos sábados e domingos</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-4">
+                      {config.tipo_envio === 'horario_personalizado' && (
                         <div>
-                          <Label>📝 Mensagem Padrão (24h):</Label>
-                          <Textarea
-                            value={mensagensEditaveis[config.id] !== undefined 
-                              ? mensagensEditaveis[config.id] 
-                              : config.mensagem_template}
-                            onChange={(e) => setMensagensEditaveis(prev => ({
-                              ...prev,
-                              [config.id]: e.target.value
-                            }))}
-                            rows={6}
-                            className="font-mono text-sm mt-1"
-                          />
-                          <p className="text-xs text-gray-500 mt-1">
-                            Use: {"{cliente}"}, {"{profissional}"}, {"{data}"}, {"{hora}"}, {"{unidade}"}, {"{servico}"}
-                          </p>
-                          {mensagensEditaveis[config.id] && (
-                            <Button 
-                              onClick={() => handleSalvarMensagem(config)}
-                              className="mt-2"
-                              size="sm"
-                            >
-                              Salvar Mensagem
-                            </Button>
-                          )}
-                        </div>
-
-                        <div>
-                          <Label>📝 Mensagem Específica 12h (opcional):</Label>
-                          <Textarea
-                            value={config.mensagem_template_12h || ''}
+                          <Label>⏰ HORÁRIO FIXO DE LEMBRETE</Label>
+                          <Input
+                            type="time"
+                            value={config.horario_fixo || "18:00"}
                             onChange={(e) => updateConfig.mutate({ 
                               id: config.id, 
-                              data: { mensagem_template_12h: e.target.value } 
+                              data: { horario_fixo: e.target.value } 
                             })}
-                            rows={4}
-                            className="font-mono text-sm mt-1"
-                            placeholder="Deixe vazio para usar a mensagem padrão"
+                            className="mt-1 max-w-xs"
                           />
-                          <p className="text-xs text-gray-500 mt-1">Mensagem diferente para lembrete de 12h</p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Este horário será usado todos os dias para enviar lembretes do dia seguinte
+                          </p>
                         </div>
+                      )}
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <div>
-                            <Label>📝 Mensagem 6h:</Label>
-                            <Textarea
-                              value={config.mensagem_template_6h || ''}
-                              onChange={(e) => updateConfig.mutate({ 
+                      <div>
+                        <Label>⏱️ Delay entre Envios (segundos)</Label>
+                        <Input
+                          type="number"
+                          min="10"
+                          max="120"
+                          value={config.delay_segundos || 50}
+                          onChange={(e) => {
+                            const valor = parseInt(e.target.value, 10);
+                            if (!isNaN(valor) && valor >= 10 && valor <= 120) {
+                              updateConfig.mutate({ 
                                 id: config.id, 
-                                data: { mensagem_template_6h: e.target.value } 
-                              })}
-                              rows={3}
-                              className="font-mono text-xs mt-1"
-                              placeholder="Opcional"
-                            />
-                          </div>
+                                data: { delay_segundos: valor } 
+                              });
+                            }
+                          }}
+                          className="mt-1 max-w-xs"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Tempo de espera entre cada mensagem</p>
+                      </div>
 
-                          <div>
-                            <Label>📝 Mensagem 2h:</Label>
-                            <Textarea
-                              value={config.mensagem_template_2h || ''}
-                              onChange={(e) => updateConfig.mutate({ 
-                                id: config.id, 
-                                data: { mensagem_template_2h: e.target.value } 
-                              })}
-                              rows={3}
-                              className="font-mono text-xs mt-1"
-                              placeholder="Opcional"
-                            />
-                          </div>
-                        </div>
+                      <div>
+                        <Label>📝 Mensagem Padrão:</Label>
+                        <Textarea
+                          value={mensagensEditaveis[config.id] !== undefined 
+                            ? mensagensEditaveis[config.id] 
+                            : config.mensagem_template}
+                          onChange={(e) => setMensagensEditaveis(prev => ({
+                            ...prev,
+                            [config.id]: e.target.value
+                          }))}
+                          rows={8}
+                          className="font-mono text-sm mt-1"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">
+                          Use: {"{cliente}"}, {"{profissional}"}, {"{data}"}, {"{hora}"}, {"{unidade}"}, {"{servico}"}
+                        </p>
+                        {mensagensEditaveis[config.id] && (
+                          <Button 
+                            onClick={() => handleSalvarMensagem(config)}
+                            className="mt-2"
+                            size="sm"
+                          >
+                            Salvar Mensagem
+                          </Button>
+                        )}
                       </div>
                     </CardContent>
                   </Card>
@@ -685,30 +393,18 @@ export default function WhatsAppCompleto() {
                   <ol className="list-decimal list-inside space-y-2 text-sm">
                     <li>Acesse o painel da <strong>Z-API</strong></li>
                     <li>Clique em sua instância de WhatsApp</li>
-                    <li>Vá em <strong>Webhooks</strong> ou <strong>Integrações</strong></li>
-                    <li>Procure por <strong>"Ao receber"</strong> (On Receive)</li>
-                    <li>Cole a URL acima no campo de webhook</li>
+                    <li>Vá em <strong>Webhooks</strong></li>
+                    <li>Procure por <strong>"Ao receber"</strong></li>
+                    <li>Cole a URL acima</li>
                     <li>Salve as configurações</li>
-                    <li>✅ Pronto! Agora o sistema receberá as mensagens dos clientes</li>
                   </ol>
-                </div>
-
-                <div className="bg-yellow-50 border-2 border-yellow-200 rounded-lg p-4">
-                  <h4 className="font-semibold mb-2">⚙️ Configurações Recomendadas Z-API:</h4>
-                  <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li><strong>Ao receber:</strong> ATIVADO (cole a URL acima)</li>
-                    <li><strong>Receber status da mensagem:</strong> Opcional (para saber quando foi entregue/lida)</li>
-                    <li><strong>Ao conectar:</strong> Desativado (não necessário)</li>
-                    <li><strong>Ao desconectar:</strong> Desativado (não necessário)</li>
-                  </ul>
                 </div>
 
                 <div className="bg-green-50 border-2 border-green-200 rounded-lg p-4">
                   <h4 className="font-semibold mb-2">✅ Funcionamento:</h4>
                   <ul className="list-disc list-inside space-y-1 text-sm">
-                    <li>Cliente responde "Confirmar" → agendamento fica confirmado</li>
-                    <li>Cliente responde "Cancelar" → agendamento é cancelado</li>
-                    <li>Sistema identifica automaticamente pelo número</li>
+                    <li>Cliente responde "Confirmar" → agendamento confirmado</li>
+                    <li>Cliente responde "Cancelar" → agendamento cancelado</li>
                   </ul>
                 </div>
               </CardContent>
@@ -726,7 +422,7 @@ export default function WhatsAppCompleto() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label>Telefone do Cliente (ex: 5511999999999)</Label>
+                  <Label>Telefone (ex: 5511999999999)</Label>
                   <Input
                     value={telefone}
                     onChange={(e) => setTelefone(e.target.value)}
@@ -735,11 +431,11 @@ export default function WhatsAppCompleto() {
                 </div>
 
                 <div>
-                  <Label>Mensagem para enviar</Label>
+                  <Label>Mensagem</Label>
                   <Textarea
                     value={mensagem}
                     onChange={(e) => setMensagem(e.target.value)}
-                    placeholder="Digite a mensagem que deseja enviar..."
+                    placeholder="Digite a mensagem..."
                     rows={4}
                   />
                 </div>
@@ -750,7 +446,7 @@ export default function WhatsAppCompleto() {
                   className="w-full bg-green-600 hover:bg-green-700"
                 >
                   <Send className="mr-2 h-4 w-4" />
-                  {testando ? "Enviando..." : "📱 Enviar Mensagem WhatsApp"}
+                  {testando ? "Enviando..." : "Enviar WhatsApp"}
                 </Button>
 
                 {resultado && (
@@ -758,7 +454,7 @@ export default function WhatsAppCompleto() {
                     {resultado.sucesso ? (
                       <div className="space-y-2">
                         <div className="text-green-800 font-bold text-lg flex items-center gap-2">
-                          <Check className="h-5 w-5" /> Mensagem enviada!
+                          <Check className="h-5 w-5" /> Enviado!
                         </div>
                         <pre className="text-xs bg-white p-2 rounded overflow-x-auto">
                           {JSON.stringify(resultado.dados, null, 2)}
@@ -767,7 +463,7 @@ export default function WhatsAppCompleto() {
                     ) : (
                       <div className="space-y-2">
                         <div className="text-red-800 font-bold text-lg flex items-center gap-2">
-                          <AlertCircle className="h-5 w-5" /> Erro no envio
+                          <AlertCircle className="h-5 w-5" /> Erro
                         </div>
                         <p className="text-red-700">{resultado.erro}</p>
                       </div>
@@ -781,7 +477,7 @@ export default function WhatsAppCompleto() {
               <CardHeader>
                 <CardTitle>🔍 Testar com Número Específico</CardTitle>
                 <CardDescription>
-                  Teste o envio automático para um número de telefone específico
+                  Teste o envio para um número específico
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -792,9 +488,6 @@ export default function WhatsAppCompleto() {
                     onChange={(e) => setNumeroTeste(e.target.value)}
                     placeholder="Ex: 11999999999"
                   />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Sistema buscará agendamentos deste número e enviará mensagem de teste
-                  </p>
                 </div>
 
                 <Button 
