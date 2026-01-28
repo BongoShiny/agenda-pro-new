@@ -203,10 +203,13 @@ Deno.serve(async (req) => {
       console.log('❌ Processando cancelamento...');
 
       // Buscar agendamentos agendados OU confirmados
-      const todosAgendamentosCancel = await base44.asServiceRole.entities.Agendamento.list();
-      const agendamentos = todosAgendamentosCancel.filter(ag => 
-        ag.status === 'agendado' || ag.status === 'confirmado'
-      );
+      const agendamentos = await base44.asServiceRole.entities.Agendamento.filter({
+        status: 'agendado'
+      });
+      const agendamentosConfirmados = await base44.asServiceRole.entities.Agendamento.filter({
+        status: 'confirmado'
+      });
+      const todosAgendamentos = [...agendamentos, ...agendamentosConfirmados];
 
       const agendamentosCliente = agendamentos.filter(ag => {
         let telAg = (ag.cliente_telefone || '').replace(/\D/g, '');
