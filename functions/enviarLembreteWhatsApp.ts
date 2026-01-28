@@ -85,12 +85,14 @@ Deno.serve(async (req) => {
         } else if (config.tipo_envio === 'horario_personalizado') {
           // Enviar no horário fixo configurado
           const [horaConfig, minutoConfig] = (config.horario_fixo || '18:00').split(':').map(Number);
-          // Verificar se está na janela de 5 minutos após o horário configurado
+          // Verificar se está na janela de 10 minutos após o horário configurado
           const horarioAtualMinutos = horaAtual * 60 + minutoAtual;
           const horarioConfigMinutos = horaConfig * 60 + minutoConfig;
           const diferencaMinutos = horarioAtualMinutos - horarioConfigMinutos;
-          
-          if (diferencaMinutos >= 0 && diferencaMinutos < 5) {
+
+          console.log(`⏰ Config ${config.unidade_nome}: horario_fixo=${config.horario_fixo}, horaAtual=${horaAtual}:${minutoAtual}, diferença=${diferencaMinutos} minutos`);
+
+          if (diferencaMinutos >= 0 && diferencaMinutos < 10) {
             deveEnviar = true;
           }
         }
