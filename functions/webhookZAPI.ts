@@ -67,15 +67,16 @@ Deno.serve(async (req) => {
       console.log('✅✅✅ PROCESSANDO CONFIRMAÇÃO ✅✅✅');
       console.log('📱 Telefone do cliente (limpo):', telefoneLimpo);
 
-      const todosAgendamentos = await base44.asServiceRole.entities.Agendamento.list();
-      const agendamentosArray = Array.isArray(todosAgendamentos) ? todosAgendamentos : [];
-      const agendamentosAgendados = agendamentosArray.filter(ag => ag.status === 'agendado');
+      const agendamentosCliente = await base44.asServiceRole.entities.Agendamento.filter({
+        cliente_telefone: telefoneLimpo,
+        status: 'agendado'
+      });
 
-      console.log(`🔍 Total de agendamentos no sistema: ${agendamentosArray.length}`);
-      console.log(`🔍 Total com status 'agendado': ${agendamentosAgendados.length}`);
-      console.log(`🔍 Agendamentos 'agendado':`, JSON.stringify(agendamentosAgendados, null, 2));
+      console.log(`🔍 Agendamentos encontrados: ${agendamentosCliente?.length || 0}`);
 
-      const agendamentosCliente = agendamentosAgendados.filter(ag => {
+      const agendamentosArray = Array.isArray(agendamentosCliente) ? agendamentosCliente : [];
+
+      const agendamentosFiltrados = agendamentosArray.filter(ag => {
         if (!ag.cliente_telefone) {
           return false;
         }
@@ -88,11 +89,11 @@ Deno.serve(async (req) => {
           console.log(`✅ MATCH ENCONTRADO: "${telAg}" === "${telefoneLimpo}" (${ag.cliente_nome}, ID: ${ag.id})`);
         }
         return match;
-      });
+        });
 
-      console.log(`🔍 Agendamentos encontrados para este telefone: ${agendamentosCliente.length}`);
-      
-      if (agendamentosCliente.length === 0) {
+        console.log(`🔍 Após filtro de telefone: ${agendamentosFiltrados.length}`);
+
+        if (agendamentosFiltrados.length === 0) {
         console.log('❌ Nenhum agendamento encontrado para confirmar');
         return Response.json({ 
           success: true,
@@ -174,12 +175,16 @@ Deno.serve(async (req) => {
     if (mensagemLower.includes('cancelar') || mensagemLower === 'cancelar') {
       console.log('❌ Processando cancelamento...');
 
-      // Buscar agendamentos agendados OU confirmados
-      const todosAgendamentos = await base44.asServiceRole.entities.Agendamento.list();
-      const todosArray = Array.isArray(todosAgendamentos) ? todosAgendamentos : [];
-      const agendamentosFiltrados = todosArray.filter(ag => ag.status === 'agendado' || ag.status === 'confirmado');
+      const agendados = await base44.asServiceRole.entities.Agendamento.filter({ cliente_telefone: telefoneLimpo, status: 'agendado' });
+      const confirmados = await base44.asServiceRole.entities.Agendamento.filter({ cliente_telefone: telefoneLimpo, status: 'confirmado' });
 
-      const agendamentosCliente = agendamentosFiltrados.filter(ag => {
+      const arr1 = Array.isArray(agendados) ? agendados : [];
+      const arr2 = Array.isArray(confirmados) ? confirmados : [];
+      const todosAgendamentos = [...arr1, ...arr2];
+
+      console.log(`🔍 Agendamentos encontrados: ${todosAgendamentos.length}`);
+
+      const agendamentosCliente = todosAgendamentos.filter(ag => {
         let telAg = (ag.cliente_telefone || '').replace(/\D/g, '');
         if (telAg.startsWith('55')) {
           telAg = telAg.substring(2);
