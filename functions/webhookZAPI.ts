@@ -79,8 +79,9 @@ Deno.serve(async (req) => {
       console.log('✅✅✅ PROCESSANDO CONFIRMAÇÃO ✅✅✅');
       console.log('📱 Telefone do cliente (limpo):', telefoneLimpo);
 
-      const todosAgendamentos = await base44.asServiceRole.entities.Agendamento.list();
-      const agendamentos = todosAgendamentos.filter(ag => ag.status === 'agendado');
+      const agendamentos = await base44.asServiceRole.entities.Agendamento.filter({
+        status: 'agendado'
+      });
 
       console.log(`🔍 Total de agendamentos 'agendado': ${agendamentos?.length || 0}`);
 
