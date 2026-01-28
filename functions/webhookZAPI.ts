@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      const agendamentosCliente = agendamentos.filter(ag => {
+      const agendamentosCliente = (agendamentos || []).filter(ag => {
         if (!ag.cliente_telefone) {
           console.log(`⚠️ Agendamento sem telefone: ${ag.cliente_nome} (ID: ${ag.id})`);
           return false;
