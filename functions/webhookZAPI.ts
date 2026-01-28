@@ -68,7 +68,8 @@ Deno.serve(async (req) => {
       console.log('📱 Telefone do cliente (limpo):', telefoneLimpo);
 
       const todosAgendamentosObj = await base44.asServiceRole.entities.Agendamento.list();
-      const agendamentos = (todosAgendamentosObj?.items || todosAgendamentosObj || []).filter(ag => ag.status === 'agendado');
+      const allAgendamentos = Array.isArray(todosAgendamentosObj) ? todosAgendamentosObj : (todosAgendamentosObj?.items || []);
+      const agendamentos = allAgendamentos.filter(ag => ag.status === 'agendado');
 
       console.log(`🔍 Total de agendamentos 'agendado': ${agendamentos?.length || 0}`);
 
@@ -173,7 +174,8 @@ Deno.serve(async (req) => {
 
       // Buscar agendamentos agendados OU confirmados
       const todosAgendamentosObj = await base44.asServiceRole.entities.Agendamento.list();
-      const todosAgendamentos = (todosAgendamentosObj?.items || todosAgendamentosObj || []).filter(ag => 
+      const allAgendamentosCancel = Array.isArray(todosAgendamentosObj) ? todosAgendamentosObj : (todosAgendamentosObj?.items || []);
+      const todosAgendamentos = allAgendamentosCancel.filter(ag => 
         ag.status === 'agendado' || ag.status === 'confirmado'
       );
 
