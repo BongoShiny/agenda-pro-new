@@ -71,6 +71,7 @@ Deno.serve(async (req) => {
       const agendamentosArray = Array.isArray(agendamentos) ? agendamentos : [];
 
       console.log(`🔍 Total de agendamentos 'agendado': ${agendamentosArray.length}`);
+      console.log(`🔍 Agendamentos completos:`, JSON.stringify(agendamentosArray, null, 2));
 
       const agendamentosCliente = agendamentosArray.filter(ag => {
         if (!ag.cliente_telefone) {
