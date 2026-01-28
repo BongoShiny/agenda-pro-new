@@ -101,7 +101,7 @@ Deno.serve(async (req) => {
         }, { status: 200 });
       }
 
-      const proximo = agendamentosCliente.sort((a, b) => 
+      const proximo = agendamentosFiltrados.sort((a, b) => 
         new Date(a.data + 'T' + a.hora_inicio) - new Date(b.data + 'T' + b.hora_inicio)
       )[0];
 
