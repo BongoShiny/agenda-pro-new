@@ -68,10 +68,11 @@ Deno.serve(async (req) => {
       console.log('📱 Telefone do cliente (limpo):', telefoneLimpo);
 
       const agendamentos = await base44.asServiceRole.entities.Agendamento.filter({ status: 'agendado' });
+      const agendamentosArray = Array.isArray(agendamentos) ? agendamentos : [];
 
-      console.log(`🔍 Total de agendamentos 'agendado': ${agendamentos?.length || 0}`);
+      console.log(`🔍 Total de agendamentos 'agendado': ${agendamentosArray.length}`);
 
-      const agendamentosCliente = agendamentos.filter(ag => {
+      const agendamentosCliente = agendamentosArray.filter(ag => {
         if (!ag.cliente_telefone) {
           return false;
         }
@@ -173,7 +174,9 @@ Deno.serve(async (req) => {
       // Buscar agendamentos agendados OU confirmados
       const todosAgendamentosAgendados = await base44.asServiceRole.entities.Agendamento.filter({ status: 'agendado' });
       const todosAgendamentosConfirmados = await base44.asServiceRole.entities.Agendamento.filter({ status: 'confirmado' });
-      const todosAgendamentos = [...todosAgendamentosAgendados, ...todosAgendamentosConfirmados];
+      const arr1 = Array.isArray(todosAgendamentosAgendados) ? todosAgendamentosAgendados : [];
+      const arr2 = Array.isArray(todosAgendamentosConfirmados) ? todosAgendamentosConfirmados : [];
+      const todosAgendamentos = [...arr1, ...arr2];
 
       const agendamentosCliente = todosAgendamentos.filter(ag => {
         let telAg = (ag.cliente_telefone || '').replace(/\D/g, '');
