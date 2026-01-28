@@ -67,9 +67,7 @@ Deno.serve(async (req) => {
       console.log('✅✅✅ PROCESSANDO CONFIRMAÇÃO ✅✅✅');
       console.log('📱 Telefone do cliente (limpo):', telefoneLimpo);
 
-      const todosAgendamentosObj = await base44.asServiceRole.entities.Agendamento.list();
-      const allAgendamentos = Array.isArray(todosAgendamentosObj) ? todosAgendamentosObj : (todosAgendamentosObj?.items || []);
-      const agendamentos = allAgendamentos.filter(ag => ag.status === 'agendado');
+      const agendamentos = await base44.asServiceRole.entities.Agendamento.filter({ status: 'agendado' });
 
       console.log(`🔍 Total de agendamentos 'agendado': ${agendamentos?.length || 0}`);
 
@@ -173,11 +171,9 @@ Deno.serve(async (req) => {
       console.log('❌ Processando cancelamento...');
 
       // Buscar agendamentos agendados OU confirmados
-      const todosAgendamentosObj = await base44.asServiceRole.entities.Agendamento.list();
-      const allAgendamentosCancel = Array.isArray(todosAgendamentosObj) ? todosAgendamentosObj : (todosAgendamentosObj?.items || []);
-      const todosAgendamentos = allAgendamentosCancel.filter(ag => 
-        ag.status === 'agendado' || ag.status === 'confirmado'
-      );
+      const todosAgendamentosAgendados = await base44.asServiceRole.entities.Agendamento.filter({ status: 'agendado' });
+      const todosAgendamentosConfirmados = await base44.asServiceRole.entities.Agendamento.filter({ status: 'confirmado' });
+      const todosAgendamentos = [...todosAgendamentosAgendados, ...todosAgendamentosConfirmados];
 
       const agendamentosCliente = todosAgendamentos.filter(ag => {
         let telAg = (ag.cliente_telefone || '').replace(/\D/g, '');
