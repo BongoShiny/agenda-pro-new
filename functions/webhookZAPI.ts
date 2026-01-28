@@ -134,33 +134,28 @@ Deno.serve(async (req) => {
       console.log('ID do agendamento:', proximo.id);
       console.log('Status anterior:', proximo.status);
       
-      const resultado = await base44.asServiceRole.entities.Agendamento.update(proximo.id, {
-        status: 'confirmado'
-      });
+      try {
+        // 1️⃣ PRIMEIRO: Atualizar status no banco de dados
+        await base44.asServiceRole.entities.Agendamento.update(proximo.id, {
+          status: 'confirmado'
+        });
 
-      console.log('✅ ATUALIZAÇÃO CONCLUÍDA!');
-      console.log('Resultado:', JSON.stringify(resultado, null, 2));
+        console.log('✅ STATUS ATUALIZADO NO BANCO!');
 
-      await base44.asServiceRole.entities.LogAcao.create({
-        tipo: "editou_agendamento",
-        usuario_email: "sistema-whatsapp",
-        descricao: `Confirmado via WhatsApp (Z-API): ${proximo.cliente_nome} - ${proximo.data} ${proximo.hora_inicio}`,
-        entidade_tipo: "Agendamento",
-        entidade_id: proximo.id,
-        dados_antigos: JSON.stringify({ status: proximo.status }),
-        dados_novos: JSON.stringify({ status: 'confirmado' })
-      });
+        // 2️⃣ SEGUNDO: Registrar log
+        await base44.asServiceRole.entities.LogAcao.create({
+          tipo: "editou_agendamento",
+          usuario_email: "sistema-whatsapp",
+          descricao: `Confirmado via WhatsApp (Z-API): ${proximo.cliente_nome} - ${proximo.data} ${proximo.hora_inicio}`,
+          entidade_tipo: "Agendamento",
+          entidade_id: proximo.id,
+          dados_antigos: JSON.stringify({ status: proximo.status }),
+          dados_novos: JSON.stringify({ status: 'confirmado' })
+        });
 
-      console.log('✅✅✅ AGENDAMENTO CONFIRMADO COM SUCESSO ✅✅✅');
-      console.log('ID:', proximo.id);
-      console.log('Cliente:', proximo.cliente_nome);
-      console.log('Data/Hora:', proximo.data, proximo.hora_inicio);
-
-      // Enviar mensagem de confirmação
-      if (WHATSAPP_INSTANCE_ID && WHATSAPP_INSTANCE_TOKEN && WHATSAPP_CLIENT_TOKEN) {
-        try {
-          const dataFormatada = new Date(proximo.data + 'T12:00:00').toLocaleDateString('pt-BR');
-          const mensagemConfirmacao = `✅ Agendamento confirmado com sucesso!\n\n📅 Data: ${dataFormatada}\n⏰ Horário: ${proximo.hora_inicio}\n👨‍⚕️ Profissional: ${proximo.profissional_nome}\n📍 Unidade: ${proximo.unidade_nome}\n\nNos vemos em breve! 😊`;
+        // 3️⃣ TERCEIRO: Enviar mensagem de confirmação
+        if (WHATSAPP_INSTANCE_ID && WHATSAPP_INSTANCE_TOKEN && WHATSAPP_CLIENT_TOKEN) {
+          const mensagemConfirmacao = `Seu agendamento está confirmado! ✅`;
           
           const telefoneFormatado = '55' + telefoneLimpo;
           const url = `https://api.z-api.io/instances/${WHATSAPP_INSTANCE_ID}/token/${WHATSAPP_INSTANCE_TOKEN}/send-text`;
@@ -180,10 +175,18 @@ Deno.serve(async (req) => {
           
           const responseData = await responseMsg.json();
           console.log('📤 Resposta da Z-API:', JSON.stringify(responseData, null, 2));
-          console.log('✅ Mensagem de confirmação enviada com sucesso!');
-        } catch (error) {
-          console.error('❌ Erro ao enviar mensagem de confirmação:', error.message);
+          
+          if (responseData.error) {
+            console.error('❌ Erro ao enviar mensagem:', responseData.error);
+          } else {
+            console.log('✅ Mensagem de confirmação enviada!');
+          }
         }
+
+        console.log('✅✅✅ CONFIRMAÇÃO COMPLETA ✅✅✅');
+      } catch (error) {
+        console.error('❌ ERRO ao processar confirmação:', error.message);
+        throw error;
       }
       
       return Response.json({ 
@@ -224,27 +227,28 @@ Deno.serve(async (req) => {
         new Date(a.data + 'T' + a.hora_inicio) - new Date(b.data + 'T' + b.hora_inicio)
       )[0];
 
-      await base44.asServiceRole.entities.Agendamento.update(proximo.id, {
-        status: 'cancelado'
-      });
+      try {
+        // 1️⃣ PRIMEIRO: Atualizar status no banco de dados
+        await base44.asServiceRole.entities.Agendamento.update(proximo.id, {
+          status: 'cancelado'
+        });
 
-      await base44.asServiceRole.entities.LogAcao.create({
-        tipo: "editou_agendamento",
-        usuario_email: "sistema-whatsapp",
-        descricao: `Cancelado via WhatsApp (Z-API): ${proximo.cliente_nome} - ${proximo.data} ${proximo.hora_inicio}`,
-        entidade_tipo: "Agendamento",
-        entidade_id: proximo.id,
-        dados_antigos: JSON.stringify({ status: proximo.status }),
-        dados_novos: JSON.stringify({ status: 'cancelado' })
-      });
+        console.log('✅ STATUS ATUALIZADO NO BANCO!');
 
-      console.log('❌ Agendamento cancelado:', proximo.id);
+        // 2️⃣ SEGUNDO: Registrar log
+        await base44.asServiceRole.entities.LogAcao.create({
+          tipo: "editou_agendamento",
+          usuario_email: "sistema-whatsapp",
+          descricao: `Cancelado via WhatsApp (Z-API): ${proximo.cliente_nome} - ${proximo.data} ${proximo.hora_inicio}`,
+          entidade_tipo: "Agendamento",
+          entidade_id: proximo.id,
+          dados_antigos: JSON.stringify({ status: proximo.status }),
+          dados_novos: JSON.stringify({ status: 'cancelado' })
+        });
 
-      // Enviar mensagem de cancelamento
-      if (WHATSAPP_INSTANCE_ID && WHATSAPP_INSTANCE_TOKEN && WHATSAPP_CLIENT_TOKEN) {
-        try {
-          const dataFormatada = new Date(proximo.data + 'T12:00:00').toLocaleDateString('pt-BR');
-          const mensagemCancelamento = `❌ Agendamento cancelado com sucesso.\n\n📅 Data: ${dataFormatada}\n⏰ Horário: ${proximo.hora_inicio}\n👨‍⚕️ Profissional: ${proximo.profissional_nome}\n📍 Unidade: ${proximo.unidade_nome}\n\nSe desejar reagendar, entre em contato conosco. 📞`;
+        // 3️⃣ TERCEIRO: Enviar mensagem de cancelamento
+        if (WHATSAPP_INSTANCE_ID && WHATSAPP_INSTANCE_TOKEN && WHATSAPP_CLIENT_TOKEN) {
+          const mensagemCancelamento = `Seu agendamento está cancelado! ❎`;
           
           const telefoneFormatado = '55' + telefoneLimpo;
           const url = `https://api.z-api.io/instances/${WHATSAPP_INSTANCE_ID}/token/${WHATSAPP_INSTANCE_TOKEN}/send-text`;
@@ -264,10 +268,18 @@ Deno.serve(async (req) => {
           
           const responseData = await responseMsg.json();
           console.log('📤 Resposta da Z-API:', JSON.stringify(responseData, null, 2));
-          console.log('❌ Mensagem de cancelamento enviada com sucesso!');
-        } catch (error) {
-          console.error('❌ Erro ao enviar mensagem de cancelamento:', error.message);
+          
+          if (responseData.error) {
+            console.error('❌ Erro ao enviar mensagem:', responseData.error);
+          } else {
+            console.log('✅ Mensagem de cancelamento enviada!');
+          }
         }
+
+        console.log('❌ CANCELAMENTO COMPLETO ❌');
+      } catch (error) {
+        console.error('❌ ERRO ao processar cancelamento:', error.message);
+        throw error;
       }
       
       return Response.json({ 
