@@ -136,7 +136,7 @@ export default function WhatsAppCompleto() {
 
   const copiarUrl = () => {
     // Sempre usar URL de produção (remover preview se existir)
-    const prodOrigin = window.location.origin.replace(/https:\/\/preview-sandbox-[^.]+\./, 'https://');
+    const prodOrigin = window.location.origin.replace(/https:\/\/preview-sandbox--[^.]+\./, 'https://');
     const webhookUrl = prodOrigin + "/api/webhookZAPI";
     navigator.clipboard.writeText(webhookUrl);
     alert("✅ URL copiada!");
