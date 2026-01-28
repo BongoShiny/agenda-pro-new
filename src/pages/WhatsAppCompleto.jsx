@@ -138,13 +138,7 @@ export default function WhatsAppCompleto() {
     }
   };
 
-  const handleToggleHorario = async (config, tipo) => {
-    const campo = tipo === '1_dia' ? 'enviar_1_dia' : 'enviar_12_horas';
-    await updateConfig.mutateAsync({ 
-      id: config.id, 
-      data: { [campo]: !config[campo] } 
-    });
-  };
+
 
   const handleCriarConfiguracao = async (unidadeId, unidadeNome) => {
     await createConfig.mutateAsync({
@@ -152,10 +146,15 @@ export default function WhatsAppCompleto() {
       unidade_nome: unidadeNome,
       ativo: false,
       mensagem_template: "Olá {cliente}! 🗓️\n\nLembramos que você tem um agendamento:\n\n📅 Data: {data}\n⏰ Horário: {hora}\n👨‍⚕️ Profissional: {profissional}\n💼 Serviço: {servico}\n📍 Unidade: {unidade}\n\n✅ Responda *Confirmar* para confirmar\n❌ Responda *Cancelar* para cancelar",
-      enviar_1_dia: true,
-      enviar_12_horas: true,
-      horario_envio: "18:00",
-      delay_segundos: 50
+      enviar_24_horas: true,
+      enviar_12_horas: false,
+      enviar_6_horas: false,
+      enviar_2_horas: false,
+      horario_envio_24h: "18:00",
+      horario_envio_12h: "09:00",
+      delay_segundos: 50,
+      max_envios_por_vez: 100,
+      enviar_apenas_dias_uteis: false
     });
   };
 
@@ -443,80 +442,88 @@ export default function WhatsAppCompleto() {
                     <CardContent className="space-y-4">
                       <div>
                         <Label>Enviar lembretes:</Label>
-                        <div className="flex gap-4 mt-2">
+                        <div className="grid grid-cols-2 gap-3 mt-2">
                           <label className="flex items-center gap-2">
                             <Switch 
-                              checked={config.enviar_1_dia}
-                              onCheckedChange={() => handleToggleHorario(config, '1_dia')}
+                              checked={config.enviar_24_horas}
+                              onCheckedChange={() => updateConfig.mutate({ 
+                                id: config.id, 
+                                data: { enviar_24_horas: !config.enviar_24_horas } 
+                              })}
                             />
-                            <span>1 dia antes</span>
+                            <span>24 horas antes</span>
                           </label>
                           <label className="flex items-center gap-2">
                             <Switch 
                               checked={config.enviar_12_horas}
-                              onCheckedChange={() => handleToggleHorario(config, '12_horas')}
+                              onCheckedChange={() => updateConfig.mutate({ 
+                                id: config.id, 
+                                data: { enviar_12_horas: !config.enviar_12_horas } 
+                              })}
                             />
                             <span>12 horas antes</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <Switch 
+                              checked={config.enviar_6_horas}
+                              onCheckedChange={() => updateConfig.mutate({ 
+                                id: config.id, 
+                                data: { enviar_6_horas: !config.enviar_6_horas } 
+                              })}
+                            />
+                            <span>6 horas antes</span>
+                          </label>
+                          <label className="flex items-center gap-2">
+                            <Switch 
+                              checked={config.enviar_2_horas}
+                              onCheckedChange={() => updateConfig.mutate({ 
+                                id: config.id, 
+                                data: { enviar_2_horas: !config.enviar_2_horas } 
+                              })}
+                            />
+                            <span>2 horas antes</span>
                           </label>
                         </div>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label>⏰ Horário de Envio</Label>
-                          <Input
-                            type="time"
-                            value={horariosEditaveis[config.id] !== undefined 
-                              ? horariosEditaveis[config.id] 
-                              : config.horario_envio || "18:00"}
-                            onChange={(e) => {
-                              if (!config.ativo) {
-                                setHorariosEditaveis(prev => ({
-                                  ...prev,
-                                  [config.id]: e.target.value
-                                }));
-                              }
-                            }}
-                            onBlur={(e) => {
-                              if (!config.ativo && horariosEditaveis[config.id] !== undefined) {
-                                updateConfig.mutate({ 
-                                  id: config.id, 
-                                  data: { horario_envio: e.target.value } 
-                                });
-                                setHorariosEditaveis(prev => {
-                                  const novo = { ...prev };
-                                  delete novo[config.id];
-                                  return novo;
-                                });
-                              }
-                            }}
-                            disabled={config.ativo}
-                            className="mt-1"
-                          />
-                          <p className="text-xs text-gray-500 mt-1">
-                            {config.ativo ? "⚠️ Desative para editar" : "Horário que as mensagens serão enviadas"}
-                          </p>
-                        </div>
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                          <div>
+                            <Label>⏰ Horário Envio 24h</Label>
+                            <Input
+                              type="time"
+                              value={config.horario_envio_24h || "18:00"}
+                              onChange={(e) => updateConfig.mutate({ 
+                                id: config.id, 
+                                data: { horario_envio_24h: e.target.value } 
+                              })}
+                              className="mt-1"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Horário de envio do lembrete de 24h</p>
+                          </div>
 
-                        <div>
-                          <Label>⏱️ Delay entre Clientes (segundos)</Label>
-                          <Input
-                            type="number"
-                            min="10"
-                            max="120"
-                            value={delaysEditaveis[config.id] !== undefined 
-                              ? delaysEditaveis[config.id] 
-                              : config.delay_segundos || 50}
-                            onChange={(e) => {
-                              if (!config.ativo) {
-                                setDelaysEditaveis(prev => ({
-                                  ...prev,
-                                  [config.id]: e.target.value
-                                }));
-                              }
-                            }}
-                            onBlur={(e) => {
-                              if (!config.ativo && delaysEditaveis[config.id] !== undefined) {
+                          <div>
+                            <Label>⏰ Horário Envio 12h</Label>
+                            <Input
+                              type="time"
+                              value={config.horario_envio_12h || "09:00"}
+                              onChange={(e) => updateConfig.mutate({ 
+                                id: config.id, 
+                                data: { horario_envio_12h: e.target.value } 
+                              })}
+                              className="mt-1"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Horário de envio do lembrete de 12h</p>
+                          </div>
+
+                          <div>
+                            <Label>⏱️ Delay entre Envios (seg)</Label>
+                            <Input
+                              type="number"
+                              min="10"
+                              max="120"
+                              value={config.delay_segundos || 50}
+                              onChange={(e) => {
                                 const valor = parseInt(e.target.value, 10);
                                 if (!isNaN(valor) && valor >= 10 && valor <= 120) {
                                   updateConfig.mutate({ 
@@ -524,47 +531,123 @@ export default function WhatsAppCompleto() {
                                     data: { delay_segundos: valor } 
                                   });
                                 }
-                                setDelaysEditaveis(prev => {
-                                  const novo = { ...prev };
-                                  delete novo[config.id];
-                                  return novo;
-                                });
-                              }
-                            }}
-                            disabled={config.ativo}
-                            className="mt-1"
-                          />
-                          <p className="text-xs text-gray-500 mt-1">
-                            {config.ativo ? "⚠️ Desative para editar" : "Tempo de espera entre cada envio"}
-                          </p>
+                              }}
+                              className="mt-1"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Delay entre cada mensagem</p>
+                          </div>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label>📊 Máx. Envios por Vez</Label>
+                            <Input
+                              type="number"
+                              min="10"
+                              max="500"
+                              value={config.max_envios_por_vez || 100}
+                              onChange={(e) => {
+                                const valor = parseInt(e.target.value, 10);
+                                if (!isNaN(valor) && valor >= 10) {
+                                  updateConfig.mutate({ 
+                                    id: config.id, 
+                                    data: { max_envios_por_vez: valor } 
+                                  });
+                                }
+                              }}
+                              className="mt-1"
+                            />
+                            <p className="text-xs text-gray-500 mt-1">Limite de mensagens por execução</p>
+                          </div>
+
+                          <div>
+                            <Label>📅 Apenas Dias Úteis</Label>
+                            <div className="flex items-center gap-2 mt-3">
+                              <Switch 
+                                checked={config.enviar_apenas_dias_uteis || false}
+                                onCheckedChange={(checked) => updateConfig.mutate({ 
+                                  id: config.id, 
+                                  data: { enviar_apenas_dias_uteis: checked } 
+                                })}
+                              />
+                              <span className="text-sm">Não enviar aos sábados e domingos</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
 
-                      <div>
-                        <Label>Mensagem personalizada:</Label>
-                        <Textarea
-                          value={mensagensEditaveis[config.id] !== undefined 
-                            ? mensagensEditaveis[config.id] 
-                            : config.mensagem_template}
-                          onChange={(e) => setMensagensEditaveis(prev => ({
-                            ...prev,
-                            [config.id]: e.target.value
-                          }))}
-                          rows={8}
-                          className="font-mono text-sm"
-                        />
-                        <p className="text-xs text-gray-500 mt-1">
-                          Use: {"{cliente}"}, {"{profissional}"}, {"{data}"}, {"{hora}"}, {"{unidade}"}, {"{servico}"}
-                        </p>
-                        {mensagensEditaveis[config.id] && (
-                          <Button 
-                            onClick={() => handleSalvarMensagem(config)}
-                            className="mt-2"
-                            size="sm"
-                          >
-                            Salvar Mensagem
-                          </Button>
-                        )}
+                      <div className="space-y-4">
+                        <div>
+                          <Label>📝 Mensagem Padrão (24h):</Label>
+                          <Textarea
+                            value={mensagensEditaveis[config.id] !== undefined 
+                              ? mensagensEditaveis[config.id] 
+                              : config.mensagem_template}
+                            onChange={(e) => setMensagensEditaveis(prev => ({
+                              ...prev,
+                              [config.id]: e.target.value
+                            }))}
+                            rows={6}
+                            className="font-mono text-sm mt-1"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">
+                            Use: {"{cliente}"}, {"{profissional}"}, {"{data}"}, {"{hora}"}, {"{unidade}"}, {"{servico}"}
+                          </p>
+                          {mensagensEditaveis[config.id] && (
+                            <Button 
+                              onClick={() => handleSalvarMensagem(config)}
+                              className="mt-2"
+                              size="sm"
+                            >
+                              Salvar Mensagem
+                            </Button>
+                          )}
+                        </div>
+
+                        <div>
+                          <Label>📝 Mensagem Específica 12h (opcional):</Label>
+                          <Textarea
+                            value={config.mensagem_template_12h || ''}
+                            onChange={(e) => updateConfig.mutate({ 
+                              id: config.id, 
+                              data: { mensagem_template_12h: e.target.value } 
+                            })}
+                            rows={4}
+                            className="font-mono text-sm mt-1"
+                            placeholder="Deixe vazio para usar a mensagem padrão"
+                          />
+                          <p className="text-xs text-gray-500 mt-1">Mensagem diferente para lembrete de 12h</p>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div>
+                            <Label>📝 Mensagem 6h:</Label>
+                            <Textarea
+                              value={config.mensagem_template_6h || ''}
+                              onChange={(e) => updateConfig.mutate({ 
+                                id: config.id, 
+                                data: { mensagem_template_6h: e.target.value } 
+                              })}
+                              rows={3}
+                              className="font-mono text-xs mt-1"
+                              placeholder="Opcional"
+                            />
+                          </div>
+
+                          <div>
+                            <Label>📝 Mensagem 2h:</Label>
+                            <Textarea
+                              value={config.mensagem_template_2h || ''}
+                              onChange={(e) => updateConfig.mutate({ 
+                                id: config.id, 
+                                data: { mensagem_template_2h: e.target.value } 
+                              })}
+                              rows={3}
+                              className="font-mono text-xs mt-1"
+                              placeholder="Opcional"
+                            />
+                          </div>
+                        </div>
                       </div>
                     </CardContent>
                   </Card>
