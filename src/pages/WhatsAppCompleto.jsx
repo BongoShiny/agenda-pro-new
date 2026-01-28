@@ -135,7 +135,11 @@ export default function WhatsAppCompleto() {
   };
 
   const copiarUrl = () => {
-    const webhookUrl = window.location.origin + "/api/webhookZAPI";
+    // Detectar se está em ambiente de preview
+    const isPreview = window.location.hostname.includes('preview-sandbox');
+    const webhookUrl = isPreview 
+      ? "⚠️ ATENÇÃO: Você está em Preview. Use a URL de PRODUÇÃO: https://[seu-app].base44.app/api/webhookZAPI"
+      : window.location.origin + "/api/webhookZAPI";
     navigator.clipboard.writeText(webhookUrl);
     alert("✅ URL copiada!");
   };
@@ -381,6 +385,19 @@ export default function WhatsAppCompleto() {
                   </div>
                 </div>
 
+                {window.location.hostname.includes('preview-sandbox') && (
+                  <div className="bg-red-50 border-2 border-red-500 rounded-lg p-4 mb-4">
+                    <h4 className="font-semibold text-red-800 mb-2">⚠️ ATENÇÃO: Ambiente de Preview</h4>
+                    <p className="text-sm text-red-700">
+                      Você está no ambiente de preview/sandbox. A Z-API NÃO consegue acessar URLs de preview.
+                      <br/><br/>
+                      <strong>Use a URL de PRODUÇÃO do seu app:</strong>
+                      <br/>
+                      https://[seu-app].base44.app/api/webhookZAPI
+                    </p>
+                  </div>
+                )}
+
                 <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
                   <h4 className="font-semibold mb-2">📋 Como configurar na Z-API:</h4>
                   <ol className="list-decimal list-inside space-y-2 text-sm">
@@ -388,7 +405,7 @@ export default function WhatsAppCompleto() {
                     <li>Clique em sua instância de WhatsApp</li>
                     <li>Vá em <strong>Webhooks</strong></li>
                     <li>Procure por <strong>"Ao receber"</strong></li>
-                    <li>Cole a URL acima</li>
+                    <li>Cole a URL de <strong>PRODUÇÃO</strong> (não a de preview)</li>
                     <li>Salve as configurações</li>
                   </ol>
                 </div>
