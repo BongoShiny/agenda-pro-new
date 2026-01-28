@@ -67,19 +67,10 @@ Deno.serve(async (req) => {
       console.log('✅✅✅ PROCESSANDO CONFIRMAÇÃO ✅✅✅');
       console.log('📱 Telefone do cliente (limpo):', telefoneLimpo);
 
-      const agendamentos = await base44.asServiceRole.entities.Agendamento.filter({
-        status: 'agendado'
-      });
+      const todosAgendamentosObj = await base44.asServiceRole.entities.Agendamento.list();
+      const agendamentos = todosAgendamentosObj.items.filter(ag => ag.status === 'agendado');
 
       console.log(`🔍 Total de agendamentos 'agendado': ${agendamentos?.length || 0}`);
-
-      if (!Array.isArray(agendamentos)) {
-        console.log('❌ Erro: agendamentos não é array');
-        return Response.json({ 
-          success: true,
-          message: 'Erro ao buscar agendamentos' 
-        }, { status: 200 });
-      }
 
       const agendamentosCliente = agendamentos.filter(ag => {
         if (!ag.cliente_telefone) {
@@ -181,17 +172,10 @@ Deno.serve(async (req) => {
       console.log('❌ Processando cancelamento...');
 
       // Buscar agendamentos agendados OU confirmados
-      const agendamentosAgendados = await base44.asServiceRole.entities.Agendamento.filter({
-        status: 'agendado'
-      });
-      const agendamentosConfirmados = await base44.asServiceRole.entities.Agendamento.filter({
-        status: 'confirmado'
-      });
-      
-      const todosAgendamentos = [
-        ...(Array.isArray(agendamentosAgendados) ? agendamentosAgendados : []),
-        ...(Array.isArray(agendamentosConfirmados) ? agendamentosConfirmados : [])
-      ];
+      const todosAgendamentosObj = await base44.asServiceRole.entities.Agendamento.list();
+      const todosAgendamentos = todosAgendamentosObj.items.filter(ag => 
+        ag.status === 'agendado' || ag.status === 'confirmado'
+      );
 
       const agendamentosCliente = todosAgendamentos.filter(ag => {
         let telAg = (ag.cliente_telefone || '').replace(/\D/g, '');
