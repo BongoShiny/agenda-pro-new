@@ -79,20 +79,23 @@ Deno.serve(async (req) => {
       console.log('✅✅✅ PROCESSANDO CONFIRMAÇÃO ✅✅✅');
       console.log('📱 Telefone do cliente (limpo):', telefoneLimpo);
 
-      const todosAgendamentos = await base44.asServiceRole.entities.Agendamento.list();
-      const agendamentos = todosAgendamentos.filter(ag => ag.status === 'agendado');
+      const agendamentos = await base44.asServiceRole.entities.Agendamento.filter({
+        status: 'agendado'
+      });
 
-      console.log(`🔍 Total de agendamentos 'agendado': ${agendamentos.length}`);
+      console.log(`🔍 Total de agendamentos 'agendado': ${agendamentos?.length || 0}`);
 
       // Debug: mostrar todos os telefones
-      console.log('📋 Todos os telefones cadastrados:');
-      agendamentos.forEach(ag => {
-        let telAg = (ag.cliente_telefone || '').replace(/\D/g, '');
-        if (telAg.startsWith('55')) {
-          telAg = telAg.substring(2);
-        }
-        console.log(`  - ${ag.cliente_nome}: ${ag.cliente_telefone} → ${telAg}`);
-      });
+      if (Array.isArray(agendamentos)) {
+        console.log('📋 Todos os telefones cadastrados:');
+        agendamentos.forEach(ag => {
+          let telAg = (ag.cliente_telefone || '').replace(/\D/g, '');
+          if (telAg.startsWith('55')) {
+            telAg = telAg.substring(2);
+          }
+          console.log(`  - ${ag.cliente_nome}: ${ag.cliente_telefone} → ${telAg}`);
+        });
+      }
 
       const agendamentosCliente = agendamentos.filter(ag => {
         if (!ag.cliente_telefone) {
@@ -200,10 +203,10 @@ Deno.serve(async (req) => {
       console.log('❌ Processando cancelamento...');
       
       // Buscar agendamentos agendados OU confirmados
-      const todosAgendamentos = await base44.asServiceRole.entities.Agendamento.list();
-      const agendamentos = todosAgendamentos.filter(ag => 
-        ag.status === 'agendado' || ag.status === 'confirmado'
-      );
+      const todosAgendamentos = await base44.asServiceRole.entities.Agendamento.filter({});
+      const agendamentos = Array.isArray(todosAgendamentos) 
+        ? todosAgendamentos.filter(ag => ag.status === 'agendado' || ag.status === 'confirmado')
+        : [];
 
       const agendamentosCliente = agendamentos.filter(ag => {
         let telAg = (ag.cliente_telefone || '').replace(/\D/g, '');
