@@ -2,56 +2,75 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
-    // Parsear URL para extrair rota
-    const url = new URL(req.url);
-    const pathname = url.pathname;
-
-    // Permitir TODOS os métodos HTTP
+    // Headers CORS padrão
     const headers = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-      'Access-Control-Allow-Headers': '*',
+      'Access-Control-Allow-Headers': 'Content-Type, Client-Token',
       'Content-Type': 'application/json'
     };
 
-    console.log('📨 Método HTTP recebido:', req.method);
-    console.log('📍 Rota recebida:', pathname);
+    console.log('✅ WEBHOOK RECEBIDO');
+    console.log('📨 Método HTTP:', req.method);
+    console.log('🔗 URL:', req.url);
 
-    // OPTIONS - CORS preflight
+    // OPTIONS - responder imediatamente
     if (req.method === 'OPTIONS') {
-      return Response.json({ success: true }, { status: 200, headers });
+      console.log('✅ Respondendo CORS preflight');
+      return new Response(JSON.stringify({ success: true }), { 
+        status: 200, 
+        headers 
+      });
     }
 
     // GET - verificação de status
     if (req.method === 'GET') {
-      return Response.json({ 
+      console.log('✅ GET recebido - retornando status');
+      return new Response(JSON.stringify({ 
         success: true,
-        status: 'Webhook ativo',
+        status: 'Webhook ativo e funcionando',
         message: 'Configure este webhook na Z-API'
-      }, { status: 200, headers });
+      }), { 
+        status: 200, 
+        headers 
+      });
     }
 
-    // PUT, PATCH, DELETE - aceitar mas processar como POST
-    if (req.method === 'PUT' || req.method === 'PATCH' || req.method === 'DELETE') {
-      console.log(`⚠️ Método ${req.method} recebido, processando como POST`);
+    // POST, PUT, PATCH, DELETE - processar payload
+    if (req.method !== 'POST' && req.method !== 'PUT' && req.method !== 'PATCH' && req.method !== 'DELETE') {
+      console.log('⚠️ Método não suportado:', req.method);
+      return new Response(JSON.stringify({ error: 'Método não suportado' }), { 
+        status: 405, 
+        headers 
+      });
     }
 
-    // Receber dados do webhook da Z-API
-    const body = await req.json().catch(() => ({}));
-    
-    console.log('🔔🔔🔔 ==================== WEBHOOK Z-API RECEBIDO ==================== 🔔🔔🔔');
-    console.log('📥 BODY COMPLETO (JSON):', JSON.stringify(body, null, 2));
-    console.log('📥 TODAS AS CHAVES:', Object.keys(body));
+    // Receber dados do webhook
+    let body = {};
+    try {
+      const text = await req.text();
+      if (text) {
+        body = JSON.parse(text);
+      }
+    } catch (e) {
+      console.log('⚠️ Erro ao parsear JSON:', e.message);
+      body = {};
+    }
 
-    // Criar cliente base44 APÓS receber os dados
+    console.log('📥 BODY RECEBIDO:', JSON.stringify(body, null, 2));
+    console.log('📥 CHAVES DO BODY:', Object.keys(body));
+
+    // Criar cliente base44
     const base44 = createClientFromRequest(req);
 
-    // Configurações da API do WhatsApp (Z-API)
+    // Configurações WhatsApp
     const WHATSAPP_INSTANCE_ID = (Deno.env.get("WHATSAPP_INSTANCE_ID") || "").trim();
     const WHATSAPP_INSTANCE_TOKEN = (Deno.env.get("WHATSAPP_INSTANCE_TOKEN") || "").trim();
     const WHATSAPP_CLIENT_TOKEN = (Deno.env.get("WHATSAPP_CLIENT_TOKEN") || "").trim();
 
-    // Extrair dados da Z-API - TODOS OS FORMATOS POSSÍVEIS
+    console.log('🔧 WhatsApp configurado:', !!WHATSAPP_INSTANCE_ID && !!WHATSAPP_INSTANCE_TOKEN && !!WHATSAPP_CLIENT_TOKEN);
+
+    // Extrair mensagem
     let mensagem = '';
     if (typeof body.text === 'object' && body.text !== null) {
       mensagem = body.text.message || '';
@@ -60,108 +79,95 @@ Deno.serve(async (req) => {
     } else {
       mensagem = body.message || body.body || body.content || '';
     }
-    
+
+    // Extrair telefone
     const telefone = body.phone || body.wuid || body.phoneNumber || body.from || body.sender || body.chatId || '';
 
-    console.log('📱 Telefone extraído:', telefone);
-    console.log('💬 Mensagem extraída:', mensagem);
+    console.log('📱 Telefone:', telefone);
+    console.log('💬 Mensagem:', mensagem);
 
     // Se não tem dados suficientes
     if (!mensagem || !telefone) {
-      console.log('⚠️⚠️⚠️ DADOS INSUFICIENTES - ABORTANDO');
-      return Response.json({ 
+      console.log('⚠️ DADOS INSUFICIENTES - Abortando processamento');
+      return new Response(JSON.stringify({ 
         success: true,
-        message: 'Processado - dados insuficientes'
-      }, { status: 200 });
+        message: 'Dados insuficientes para processar'
+      }), { 
+        status: 200,
+        headers
+      });
     }
 
-    // Limpar telefone - remover código do país 55 se existir
+    // Limpar e formatar telefone
     let telefoneLimpo = telefone.replace(/\D/g, '');
-    
     if (telefoneLimpo.startsWith('55')) {
       telefoneLimpo = telefoneLimpo.substring(2);
     }
-    
-    console.log('🔢 TELEFONE FINAL LIMPO:', telefoneLimpo);
+
+    console.log('🔢 TELEFONE LIMPO:', telefoneLimpo);
 
     const mensagemLower = mensagem.toLowerCase().trim();
-    console.log('💬 Mensagem em lowercase:', mensagemLower);
-    
-    // CONFIRMAR
-    if (mensagemLower.includes('confirmar') || mensagemLower === 'confirmar') {
-      console.log('✅✅✅ PROCESSANDO CONFIRMAÇÃO ✅✅✅');
-      console.log('📱 Telefone do cliente (limpo):', telefoneLimpo);
 
-      const agendamentosCliente = await base44.asServiceRole.entities.Agendamento.filter({
+    // ==================== CONFIRMAR ====================
+    if (mensagemLower.includes('confirmar') || mensagemLower === 'confirmar') {
+      console.log('✅ PROCESSANDO CONFIRMAÇÃO...');
+
+      const agendamentos = await base44.asServiceRole.entities.Agendamento.filter({
         cliente_telefone: telefoneLimpo,
         status: 'agendado'
       });
 
-      console.log(`🔍 Agendamentos encontrados: ${agendamentosCliente?.length || 0}`);
+      console.log(`🔍 Agendamentos encontrados: ${agendamentos?.length || 0}`);
 
-      const agendamentosArray = Array.isArray(agendamentosCliente) ? agendamentosCliente : [];
+      const agendamentosArray = Array.isArray(agendamentos) ? agendamentos : [];
 
-      const agendamentosFiltrados = agendamentosArray.filter(ag => {
-        if (!ag.cliente_telefone) {
-          return false;
-        }
-        let telAg = (ag.cliente_telefone || '').replace(/\D/g, '');
-        if (telAg.startsWith('55')) {
-          telAg = telAg.substring(2);
-        }
-        const match = telAg === telefoneLimpo;
-        if (match) {
-          console.log(`✅ MATCH ENCONTRADO: "${telAg}" === "${telefoneLimpo}" (${ag.cliente_nome}, ID: ${ag.id})`);
-        }
-        return match;
-        });
-
-        console.log(`🔍 Após filtro de telefone: ${agendamentosFiltrados.length}`);
-
-        if (agendamentosFiltrados.length === 0) {
+      if (agendamentosArray.length === 0) {
         console.log('❌ Nenhum agendamento encontrado para confirmar');
-        return Response.json({ 
+        return new Response(JSON.stringify({ 
           success: true,
           message: 'Nenhum agendamento encontrado' 
-        }, { status: 200 });
+        }), { 
+          status: 200,
+          headers
+        });
       }
 
-      const proximo = agendamentosFiltrados.sort((a, b) => 
+      // Pegar próximo agendamento
+      const proximo = agendamentosArray.sort((a, b) => 
         new Date(a.data + 'T' + a.hora_inicio) - new Date(b.data + 'T' + b.hora_inicio)
       )[0];
 
-      console.log('🔄 Atualizando status para CONFIRMADO...');
-      console.log('ID do agendamento:', proximo.id);
-      console.log('Status anterior:', proximo.status);
-      
+      console.log('🔄 Atualizando agendamento:', proximo.id);
+
       try {
-        // 1️⃣ PRIMEIRO: Atualizar status no banco de dados
+        // Atualizar status
         await base44.asServiceRole.entities.Agendamento.update(proximo.id, {
           status: 'confirmado'
         });
 
-        console.log('✅ STATUS ATUALIZADO NO BANCO!');
+        console.log('✅ STATUS ATUALIZADO!');
 
-        // 2️⃣ SEGUNDO: Registrar log
+        // Registrar log
         await base44.asServiceRole.entities.LogAcao.create({
           tipo: "editou_agendamento",
           usuario_email: "sistema-whatsapp",
-          descricao: `Confirmado via WhatsApp (Z-API): ${proximo.cliente_nome} - ${proximo.data} ${proximo.hora_inicio}`,
+          descricao: `Confirmado via WhatsApp: ${proximo.cliente_nome} - ${proximo.data} ${proximo.hora_inicio}`,
           entidade_tipo: "Agendamento",
           entidade_id: proximo.id,
           dados_antigos: JSON.stringify({ status: proximo.status }),
           dados_novos: JSON.stringify({ status: 'confirmado' })
         });
 
-        // 3️⃣ TERCEIRO: Enviar mensagem de confirmação
+        console.log('✅ LOG REGISTRADO!');
+
+        // Enviar confirmação via WhatsApp
         if (WHATSAPP_INSTANCE_ID && WHATSAPP_INSTANCE_TOKEN && WHATSAPP_CLIENT_TOKEN) {
-          const mensagemConfirmacao = `Seu agendamento está confirmado! ✅`;
-          
           const telefoneFormatado = '55' + telefoneLimpo;
           const url = `https://api.z-api.io/instances/${WHATSAPP_INSTANCE_ID}/token/${WHATSAPP_INSTANCE_TOKEN}/send-text`;
-          
-          console.log('📤 Enviando mensagem de confirmação para:', telefoneFormatado);
-          const responseMsg = await fetch(url, {
+
+          console.log('📤 Enviando confirmação para:', telefoneFormatado);
+
+          const respMsg = await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -169,95 +175,99 @@ Deno.serve(async (req) => {
             },
             body: JSON.stringify({
               phone: telefoneFormatado,
-              message: mensagemConfirmacao
+              message: '✅ Seu agendamento foi confirmado! Obrigado!'
             })
           });
-          
-          const responseData = await responseMsg.json();
-          console.log('📤 Resposta da Z-API:', JSON.stringify(responseData, null, 2));
-          
-          if (responseData.error) {
-            console.error('❌ Erro ao enviar mensagem:', responseData.error);
-          } else {
-            console.log('✅ Mensagem de confirmação enviada!');
-          }
+
+          const respData = await respMsg.json();
+          console.log('📤 Resposta Z-API:', JSON.stringify(respData, null, 2));
         }
 
-        console.log('✅✅✅ CONFIRMAÇÃO COMPLETA ✅✅✅');
+        console.log('✅✅✅ CONFIRMAÇÃO SUCESSO!');
+
+        return new Response(JSON.stringify({ 
+          success: true, 
+          message: 'Agendamento confirmado',
+          agendamento_id: proximo.id
+        }), { 
+          status: 200,
+          headers
+        });
+
       } catch (error) {
-        console.error('❌ ERRO ao processar confirmação:', error.message);
+        console.error('❌ ERRO na confirmação:', error.message);
         throw error;
       }
-      
-      return Response.json({ 
-        success: true, 
-        message: 'Agendamento confirmado',
-        agendamento_id: proximo.id
-      }, { status: 200 });
     }
-    
-    // CANCELAR
+
+    // ==================== CANCELAR ====================
     if (mensagemLower.includes('cancelar') || mensagemLower === 'cancelar') {
-      console.log('❌ Processando cancelamento...');
+      console.log('❌ PROCESSANDO CANCELAMENTO...');
 
-      const agendados = await base44.asServiceRole.entities.Agendamento.filter({ cliente_telefone: telefoneLimpo, status: 'agendado' });
-      const confirmados = await base44.asServiceRole.entities.Agendamento.filter({ cliente_telefone: telefoneLimpo, status: 'confirmado' });
-
-      const arr1 = Array.isArray(agendados) ? agendados : [];
-      const arr2 = Array.isArray(confirmados) ? confirmados : [];
-      const todosAgendamentos = [...arr1, ...arr2];
-
-      console.log(`🔍 Agendamentos encontrados: ${todosAgendamentos.length}`);
-
-      const agendamentosCliente = todosAgendamentos.filter(ag => {
-        let telAg = (ag.cliente_telefone || '').replace(/\D/g, '');
-        if (telAg.startsWith('55')) {
-          telAg = telAg.substring(2);
-        }
-        console.log(`📞 Comparando: ${telAg} === ${telefoneLimpo}`);
-        return telAg === telefoneLimpo;
+      const agendados = await base44.asServiceRole.entities.Agendamento.filter({
+        cliente_telefone: telefoneLimpo,
+        status: 'agendado'
       });
 
-      if (agendamentosCliente.length === 0) {
-        console.log('❌ Nenhum agendamento encontrado');
-        return Response.json({ 
+      const confirmados = await base44.asServiceRole.entities.Agendamento.filter({
+        cliente_telefone: telefoneLimpo,
+        status: 'confirmado'
+      });
+
+      const todos = [
+        ...(Array.isArray(agendados) ? agendados : []),
+        ...(Array.isArray(confirmados) ? confirmados : [])
+      ];
+
+      console.log(`🔍 Agendamentos encontrados: ${todos.length}`);
+
+      if (todos.length === 0) {
+        console.log('❌ Nenhum agendamento encontrado para cancelar');
+        return new Response(JSON.stringify({ 
           success: true,
           message: 'Nenhum agendamento encontrado' 
-        }, { status: 200 });
+        }), { 
+          status: 200,
+          headers
+        });
       }
 
-      const proximo = agendamentosCliente.sort((a, b) => 
+      // Pegar próximo agendamento
+      const proximo = todos.sort((a, b) => 
         new Date(a.data + 'T' + a.hora_inicio) - new Date(b.data + 'T' + b.hora_inicio)
       )[0];
 
+      console.log('🔄 Cancelando agendamento:', proximo.id);
+
       try {
-        // 1️⃣ PRIMEIRO: Atualizar status no banco de dados
+        // Atualizar status
         await base44.asServiceRole.entities.Agendamento.update(proximo.id, {
           status: 'cancelado'
         });
 
-        console.log('✅ STATUS ATUALIZADO NO BANCO!');
+        console.log('✅ CANCELADO NO BANCO!');
 
-        // 2️⃣ SEGUNDO: Registrar log
+        // Registrar log
         await base44.asServiceRole.entities.LogAcao.create({
           tipo: "editou_agendamento",
           usuario_email: "sistema-whatsapp",
-          descricao: `Cancelado via WhatsApp (Z-API): ${proximo.cliente_nome} - ${proximo.data} ${proximo.hora_inicio}`,
+          descricao: `Cancelado via WhatsApp: ${proximo.cliente_nome} - ${proximo.data} ${proximo.hora_inicio}`,
           entidade_tipo: "Agendamento",
           entidade_id: proximo.id,
           dados_antigos: JSON.stringify({ status: proximo.status }),
           dados_novos: JSON.stringify({ status: 'cancelado' })
         });
 
-        // 3️⃣ TERCEIRO: Enviar mensagem de cancelamento
+        console.log('✅ LOG REGISTRADO!');
+
+        // Enviar cancelamento via WhatsApp
         if (WHATSAPP_INSTANCE_ID && WHATSAPP_INSTANCE_TOKEN && WHATSAPP_CLIENT_TOKEN) {
-          const mensagemCancelamento = `Seu agendamento está cancelado! ❎`;
-          
           const telefoneFormatado = '55' + telefoneLimpo;
           const url = `https://api.z-api.io/instances/${WHATSAPP_INSTANCE_ID}/token/${WHATSAPP_INSTANCE_TOKEN}/send-text`;
-          
-          console.log('📤 Enviando mensagem de cancelamento para:', telefoneFormatado);
-          const responseMsg = await fetch(url, {
+
+          console.log('📤 Enviando cancelamento para:', telefoneFormatado);
+
+          const respMsg = await fetch(url, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -265,55 +275,51 @@ Deno.serve(async (req) => {
             },
             body: JSON.stringify({
               phone: telefoneFormatado,
-              message: mensagemCancelamento
+              message: '❌ Seu agendamento foi cancelado!'
             })
           });
-          
-          const responseData = await responseMsg.json();
-          console.log('📤 Resposta da Z-API:', JSON.stringify(responseData, null, 2));
-          
-          if (responseData.error) {
-            console.error('❌ Erro ao enviar mensagem:', responseData.error);
-          } else {
-            console.log('✅ Mensagem de cancelamento enviada!');
-          }
+
+          const respData = await respMsg.json();
+          console.log('📤 Resposta Z-API:', JSON.stringify(respData, null, 2));
         }
 
-        console.log('❌ CANCELAMENTO COMPLETO ❌');
+        console.log('✅✅✅ CANCELAMENTO SUCESSO!');
+
+        return new Response(JSON.stringify({ 
+          success: true, 
+          message: 'Agendamento cancelado',
+          agendamento_id: proximo.id
+        }), { 
+          status: 200,
+          headers
+        });
+
       } catch (error) {
-        console.error('❌ ERRO ao processar cancelamento:', error.message);
+        console.error('❌ ERRO no cancelamento:', error.message);
         throw error;
       }
-      
-      return Response.json({ 
-        success: true, 
-        message: 'Agendamento cancelado',
-        agendamento_id: proximo.id
-      }, { status: 200 });
     }
 
-    console.log('⚠️ Comando não reconhecido');
-    return Response.json({ 
+    // Comando não reconhecido
+    console.log('⚠️ Comando não reconhecido:', mensagemLower);
+    return new Response(JSON.stringify({ 
       success: true,
-      message: 'Comando não reconhecido' 
-    }, { 
+      message: 'Comando não reconhecido. Use "confirmar" ou "cancelar"'
+    }), { 
       status: 200,
-      headers: {
-        'Access-Control-Allow-Origin': '*',
-        'Content-Type': 'application/json'
-      }
+      headers
     });
 
   } catch (error) {
-    console.error('🔴 Erro:', error);
+    console.error('🔴 ERRO GERAL:', error.message);
     console.error('🔴 Stack:', error.stack);
-    return Response.json({ 
-      success: true,
-      message: 'Erro processado',
-      error: error.message,
-      stack: error.stack
-    }, { 
-      status: 200,
+    
+    return new Response(JSON.stringify({ 
+      success: false,
+      message: 'Erro ao processar webhook',
+      error: error.message
+    }), { 
+      status: 500,
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Content-Type': 'application/json'
