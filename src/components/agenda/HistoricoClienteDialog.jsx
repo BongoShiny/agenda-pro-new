@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Calendar, Clock, User, MapPin, ChevronRight, ArrowLeft, UserPlus, Edit } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import DetalhesAgendamentoDialog from "./DetalhesAgendamentoDialog";
 
 const criarDataPura = (dataString) => {
   if (!dataString) return new Date();
@@ -34,9 +35,11 @@ export default function HistoricoClienteDialog({
   filtroProfissional = null,
   filtroServico = null,
   filtroStatus = null,
-  filtroData = null
+  filtroData = null,
+  usuarioAtual = null
 }) {
   const [sessaoSelecionada, setSessaoSelecionada] = useState(null);
+  const [detalhesAberto, setDetalhesAberto] = useState(false);
 
   // Filtrar agendamentos pelo cliente/telefone E pelos outros filtros ativos
   const agendamentosCliente = agendamentos
@@ -74,6 +77,11 @@ export default function HistoricoClienteDialog({
       setSessaoSelecionada(null);
     }
     onOpenChange(isOpen);
+  };
+
+  const handleVerDetalhesCompletos = (ag) => {
+    setSessaoSelecionada(ag);
+    setDetalhesAberto(true);
   };
 
   return (
@@ -265,7 +273,7 @@ export default function HistoricoClienteDialog({
                     <div 
                       key={ag.id} 
                       className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:border-blue-300 transition-all cursor-pointer"
-                      onClick={() => setSessaoSelecionada(ag)}
+                      onClick={() => handleVerDetalhesCompletos(ag)}
                     >
                       <div className="flex items-start justify-between">
                         <div className="flex-1">
@@ -316,6 +324,17 @@ export default function HistoricoClienteDialog({
             </>
           )}
         </div>
+
+        <DetalhesAgendamentoDialog
+          open={detalhesAberto}
+          onOpenChange={setDetalhesAberto}
+          agendamento={sessaoSelecionada}
+          usuarioAtual={{ ...usuarioAtual, cargo: 'administrador' }}
+          onDelete={() => {}}
+          onEdit={() => {}}
+          onConfirmar={() => {}}
+          modoVisualizacao={true}
+        />
       </DialogContent>
     </Dialog>
   );

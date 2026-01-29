@@ -296,16 +296,17 @@ export default function AgendaFilters({
       />
 
       <HistoricoClienteDialog
-                open={historicoAberto}
-                onOpenChange={setHistoricoAberto}
-                clienteBusca={filters.cliente}
-                agendamentos={agendamentos}
-                filtroUnidade={filters.unidade}
-                filtroProfissional={filters.profissional}
-                filtroServico={filters.servico}
-                filtroStatus={filters.status}
-                filtroData={filters.data}
-              />
+                      open={historicoAberto}
+                      onOpenChange={setHistoricoAberto}
+                      clienteBusca={filters.cliente}
+                      agendamentos={agendamentos}
+                      filtroUnidade={filters.unidade}
+                      filtroProfissional={filters.profissional}
+                      filtroServico={filters.servico}
+                      filtroStatus={filters.status}
+                      filtroData={filters.data}
+                      usuarioAtual={usuarioAtual}
+                    />
     </div>
   );
 }
