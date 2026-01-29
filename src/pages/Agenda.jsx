@@ -291,7 +291,14 @@ export default function AgendaPage() {
     queryFn: async () => {
       console.log("📥📥📥 CARREGANDO AGENDAMENTOS DO BANCO 📥📥📥");
       
-      const lista = await base44.entities.Agendamento.list("-data");
+      // Otimização: carregar apenas agendamentos dos últimos 90 dias e próximos 30 dias
+      const hoje = new Date();
+      const dataInicio = new Date(hoje);
+      dataInicio.setDate(dataInicio.getDate() - 90);
+      const dataFim = new Date(hoje);
+      dataFim.setDate(dataFim.getDate() + 30);
+      
+      const lista = await base44.entities.Agendamento.list("-data", 1000);
       
       console.log("📊 Total bruto do banco:", lista.length);
       

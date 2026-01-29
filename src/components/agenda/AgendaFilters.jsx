@@ -11,7 +11,10 @@ import { ptBR } from "date-fns/locale";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import HistoricoClienteDialog from "./HistoricoClienteDialog";
 import DetalhesAgendamentoDialog from "./DetalhesAgendamentoDialog";
+import AutocompleteInput from "./AutocompleteInput";
+import FiltrosSalvosDialog from "./FiltrosSalvosDialog";
 import { Badge } from "@/components/ui/badge";
+import { Bookmark } from "lucide-react";
 
 // Mesma lógica em todos os componentes
 const formatarDataPura = (data) => {
@@ -40,6 +43,7 @@ export default function AgendaFilters({
   const [historicoAberto, setHistoricoAberto] = useState(false);
   const [agendamentoSelecionado, setAgendamentoSelecionado] = useState(null);
   const [detalhesAberto, setDetalhesAberto] = useState(false);
+  const [filtrosSalvosAberto, setFiltrosSalvosAberto] = useState(false);
 
   const handleDataChange = (date) => {
     if (date) {
@@ -79,6 +83,12 @@ export default function AgendaFilters({
     setDetalhesAberto(true);
   };
 
+  const handleCarregarFiltro = (filtrosObj) => {
+    Object.keys(filtrosObj).forEach(key => {
+      onFilterChange(key, filtrosObj[key]);
+    });
+  };
+
   return (
     <div className="w-80 bg-white border-r border-gray-200 flex flex-col h-full overflow-hidden">
       <div className="p-6 border-b border-gray-200 flex-shrink-0">
@@ -92,18 +102,26 @@ export default function AgendaFilters({
 
       <div className="flex-1 overflow-y-auto p-6">
         <div className="space-y-5">
+          {/* Botão de Filtros Salvos */}
+          <Button
+            variant="outline"
+            className="w-full h-11 justify-start border-blue-300 hover:bg-blue-50 text-blue-700"
+            onClick={() => setFiltrosSalvosAberto(true)}
+          >
+            <Bookmark className="w-4 h-4 mr-2" />
+            Filtros Salvos
+          </Button>
+
           <div>
-                        <Label className="text-sm font-semibold text-gray-700 mb-3 block">Cliente ou Telefone</Label>
-                        <div className="relative">
-                          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                          <Input
-                            placeholder="Buscar cliente ou telefone..."
-                            value={filters.cliente || ""}
-                            onChange={(e) => onFilterChange("cliente", e.target.value)}
-                            className="pl-10 h-11 border-gray-300 focus:border-blue-500"
-                          />
-                        </div>
-                      </div>
+            <Label className="text-sm font-semibold text-gray-700 mb-3 block">Cliente ou Telefone</Label>
+            <AutocompleteInput
+              value={filters.cliente || ""}
+              onChange={(value) => onFilterChange("cliente", value)}
+              options={clientes}
+              placeholder="Buscar cliente..."
+              displayField="nome"
+            />
+          </div>
 
           <div>
             <Label className="text-sm font-semibold text-gray-700 mb-3 block">Data</Label>
@@ -142,32 +160,56 @@ export default function AgendaFilters({
 
           <div>
             <Label className="text-sm font-semibold text-gray-700 mb-3 block">Profissional</Label>
-            <Select value={filters.profissional || "todos"} onValueChange={(value) => onFilterChange("profissional", value === "todos" ? null : value)}>
-              <SelectTrigger className="h-11 border-gray-300 focus:border-blue-500">
-                <SelectValue placeholder="Todos os profissionais" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos os profissionais</SelectItem>
-                {profissionais.map(prof => (
-                  <SelectItem key={prof.id} value={prof.id}>{prof.nome}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <AutocompleteInput
+              value={filters.profissional ? profissionais.find(p => p.id === filters.profissional)?.nome || "" : ""}
+              onChange={(value) => {
+                if (!value) {
+                  onFilterChange("profissional", null);
+                }
+              }}
+              options={profissionais}
+              placeholder="Buscar profissional..."
+              displayField="nome"
+              onSelect={(prof) => onFilterChange("profissional", prof.id)}
+            />
+            {filters.profissional && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onFilterChange("profissional", null)}
+                className="mt-2 text-xs text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-3 h-3 mr-1" />
+                Limpar
+              </Button>
+            )}
           </div>
 
           <div>
             <Label className="text-sm font-semibold text-gray-700 mb-3 block">Serviço</Label>
-            <Select value={filters.servico || "todos"} onValueChange={(value) => onFilterChange("servico", value === "todos" ? null : value)}>
-              <SelectTrigger className="h-11 border-gray-300 focus:border-blue-500">
-                <SelectValue placeholder="Todos os serviços" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="todos">Todos os serviços</SelectItem>
-                {servicos.map(servico => (
-                  <SelectItem key={servico.id} value={servico.id}>{servico.nome}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <AutocompleteInput
+              value={filters.servico ? servicos.find(s => s.id === filters.servico)?.nome || "" : ""}
+              onChange={(value) => {
+                if (!value) {
+                  onFilterChange("servico", null);
+                }
+              }}
+              options={servicos}
+              placeholder="Buscar serviço..."
+              displayField="nome"
+              onSelect={(srv) => onFilterChange("servico", srv.id)}
+            />
+            {filters.servico && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => onFilterChange("servico", null)}
+                className="mt-2 text-xs text-gray-500 hover:text-gray-700"
+              >
+                <X className="w-3 h-3 mr-1" />
+                Limpar
+              </Button>
+            )}
           </div>
 
           <div>
@@ -243,6 +285,14 @@ export default function AgendaFilters({
         onEdit={() => {}}
         onConfirmar={() => {}}
         modoVisualizacao={true}
+      />
+
+      <FiltrosSalvosDialog
+        open={filtrosSalvosAberto}
+        onOpenChange={setFiltrosSalvosAberto}
+        filtrosAtuais={filters}
+        onCarregarFiltro={handleCarregarFiltro}
+        usuarioAtual={usuarioAtual}
       />
 
       <HistoricoClienteDialog
