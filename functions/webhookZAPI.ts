@@ -2,6 +2,10 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
+    // Parsear URL para extrair rota
+    const url = new URL(req.url);
+    const pathname = url.pathname;
+
     // Permitir TODOS os métodos HTTP
     const headers = {
       'Access-Control-Allow-Origin': '*',
@@ -11,6 +15,7 @@ Deno.serve(async (req) => {
     };
 
     console.log('📨 Método HTTP recebido:', req.method);
+    console.log('📍 Rota recebida:', pathname);
 
     // OPTIONS - CORS preflight
     if (req.method === 'OPTIONS') {
