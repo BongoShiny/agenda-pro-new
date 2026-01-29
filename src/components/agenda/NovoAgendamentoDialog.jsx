@@ -902,7 +902,7 @@ export default function NovoAgendamentoDialog({
               <PopoverContent className="w-auto p-0">
                 <Calendar
                   mode="single"
-                  selected={formData.data_pagamento ? new Date(formData.data_pagamento) : undefined}
+                  selected={formData.data_pagamento ? criarDataPura(formData.data_pagamento) : undefined}
                   onSelect={(date) => {
                     if (date) {
                       const ano = date.getFullYear();
