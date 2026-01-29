@@ -271,6 +271,7 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                        <TableHead>Observações</TableHead>
                        <TableHead>Observações Vendedor</TableHead>
                        <TableHead className="min-w-[200px]">Anotações</TableHead>
+                       <TableHead>Notificar Vendedor</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
