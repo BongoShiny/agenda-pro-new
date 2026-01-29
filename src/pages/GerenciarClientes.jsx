@@ -13,10 +13,12 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, UserPlus, Edit, Trash2, ArrowLeft, Users, Phone, Mail, MapPin, Calendar, Package, DollarSign, TrendingUp } from "lucide-react";
+import { Search, UserPlus, Edit, Trash2, ArrowLeft, Users, Phone, Mail, MapPin, Calendar, Package, DollarSign, TrendingUp, Filter, X } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import TrajetoriaClienteDialog from "../components/cliente/TrajetoriaClienteDialog";
 
 export default function GerenciarClientes() {
@@ -25,6 +27,8 @@ export default function GerenciarClientes() {
   const [clienteEditando, setClienteEditando] = useState(null);
   const [trajetoriaAberta, setTrajetoriaAberta] = useState(false);
   const [clienteTrajetoria, setClienteTrajetoria] = useState(null);
+  const [unidadesSelecionadas, setUnidadesSelecionadas] = useState([]);
+  const [statusPacienteSelecionado, setStatusPacienteSelecionado] = useState("");
   const [formData, setFormData] = useState({
     nome: "",
     telefone: "",
@@ -44,6 +48,12 @@ export default function GerenciarClientes() {
   const { data: agendamentos = [] } = useQuery({
     queryKey: ['agendamentos-clientes'],
     queryFn: () => base44.entities.Agendamento.list("-data"),
+    initialData: [],
+  });
+
+  const { data: unidades = [] } = useQuery({
+    queryKey: ['unidades'],
+    queryFn: () => base44.entities.Unidade.list("nome"),
     initialData: [],
   });
 
@@ -141,13 +151,33 @@ export default function GerenciarClientes() {
   };
 
   const clientesFiltrados = clientes.filter(cliente => {
-    if (!busca) return true;
-    const buscaLower = busca.toLowerCase();
-    return (
-      cliente.nome?.toLowerCase().includes(buscaLower) ||
-      cliente.telefone?.toLowerCase().includes(buscaLower) ||
-      cliente.email?.toLowerCase().includes(buscaLower)
-    );
+    // Filtro de busca
+    if (busca) {
+      const buscaLower = busca.toLowerCase();
+      const matchBusca = (
+        cliente.nome?.toLowerCase().includes(buscaLower) ||
+        cliente.telefone?.toLowerCase().includes(buscaLower) ||
+        cliente.email?.toLowerCase().includes(buscaLower)
+      );
+      if (!matchBusca) return false;
+    }
+
+    // Filtro de unidades
+    if (unidadesSelecionadas.length > 0) {
+      const agendamentosCliente = agendamentos.filter(ag => ag.cliente_id === cliente.id);
+      const unidadesCliente = [...new Set(agendamentosCliente.map(ag => ag.unidade_nome))].filter(Boolean);
+      const temUnidadeSelecionada = unidadesCliente.some(u => unidadesSelecionadas.includes(u));
+      if (!temUnidadeSelecionada) return false;
+    }
+
+    // Filtro de status do paciente
+    if (statusPacienteSelecionado) {
+      const agendamentosCliente = agendamentos.filter(ag => ag.cliente_id === cliente.id);
+      const temStatus = agendamentosCliente.some(ag => ag.status_paciente === statusPacienteSelecionado);
+      if (!temStatus) return false;
+    }
+
+    return true;
   });
 
   // Análise de dados do cliente
@@ -201,6 +231,20 @@ export default function GerenciarClientes() {
   const handleVerTrajetoria = (cliente) => {
     setClienteTrajetoria(cliente);
     setTrajetoriaAberta(true);
+  };
+
+  const toggleUnidade = (unidadeNome) => {
+    setUnidadesSelecionadas(prev => 
+      prev.includes(unidadeNome)
+        ? prev.filter(u => u !== unidadeNome)
+        : [...prev, unidadeNome]
+    );
+  };
+
+  const limparFiltros = () => {
+    setUnidadesSelecionadas([]);
+    setStatusPacienteSelecionado("");
+    setBusca("");
   };
 
   // Pegar iniciais do nome
@@ -261,17 +305,160 @@ export default function GerenciarClientes() {
             </Button>
           </div>
 
-          {/* Barra de busca */}
-          <div className="mt-6">
-            <div className="relative max-w-xl">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                placeholder="Buscar por nome, telefone ou email..."
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                className="pl-12 h-14 bg-white/95 backdrop-blur-sm border-0 shadow-lg text-lg"
-              />
+          {/* Barra de busca e filtros */}
+          <div className="mt-6 space-y-4">
+            <div className="flex items-center gap-3 max-w-5xl">
+              {/* Busca */}
+              <div className="relative flex-1">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Input
+                  placeholder="Buscar por nome, telefone ou email..."
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  className="pl-12 h-14 bg-white/95 backdrop-blur-sm border-0 shadow-lg text-lg"
+                />
+              </div>
+
+              {/* Filtro de Unidades */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="h-14 bg-white/95 border-0 shadow-lg hover:bg-white px-6"
+                  >
+                    <Filter className="w-5 h-5 mr-2" />
+                    Unidades
+                    {unidadesSelecionadas.length > 0 && (
+                      <Badge className="ml-2 bg-blue-600 text-white">
+                        {unidadesSelecionadas.length}
+                      </Badge>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-72" align="start">
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm text-gray-700">Filtrar por Unidade</h4>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {unidades.map(unidade => (
+                        <div key={unidade.id} className="flex items-center space-x-2">
+                          <Checkbox
+                            id={unidade.id}
+                            checked={unidadesSelecionadas.includes(unidade.nome)}
+                            onCheckedChange={() => toggleUnidade(unidade.nome)}
+                          />
+                          <label
+                            htmlFor={unidade.id}
+                            className="text-sm font-medium leading-none cursor-pointer"
+                          >
+                            {unidade.nome}
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                    {unidadesSelecionadas.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setUnidadesSelecionadas([])}
+                        className="w-full text-xs"
+                      >
+                        Limpar seleção
+                      </Button>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Filtro de Status do Paciente */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    className="h-14 bg-white/95 border-0 shadow-lg hover:bg-white px-6"
+                  >
+                    <Filter className="w-5 h-5 mr-2" />
+                    Status
+                    {statusPacienteSelecionado && (
+                      <Badge className="ml-2 bg-purple-600 text-white">1</Badge>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-64" align="start">
+                  <div className="space-y-3">
+                    <h4 className="font-semibold text-sm text-gray-700">Status do Paciente</h4>
+                    <div className="space-y-2">
+                      <Button
+                        variant={statusPacienteSelecionado === "paciente_novo" ? "default" : "outline"}
+                        size="sm"
+                        className="w-full justify-start"
+                        onClick={() => setStatusPacienteSelecionado(
+                          statusPacienteSelecionado === "paciente_novo" ? "" : "paciente_novo"
+                        )}
+                      >
+                        Paciente Novo
+                      </Button>
+                      <Button
+                        variant={statusPacienteSelecionado === "ultima_sessao" ? "default" : "outline"}
+                        size="sm"
+                        className="w-full justify-start"
+                        onClick={() => setStatusPacienteSelecionado(
+                          statusPacienteSelecionado === "ultima_sessao" ? "" : "ultima_sessao"
+                        )}
+                      >
+                        Última Sessão
+                      </Button>
+                    </div>
+                    {statusPacienteSelecionado && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setStatusPacienteSelecionado("")}
+                        className="w-full text-xs"
+                      >
+                        Limpar filtro
+                      </Button>
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
+
+              {/* Botão Limpar Todos os Filtros */}
+              {(unidadesSelecionadas.length > 0 || statusPacienteSelecionado || busca) && (
+                <Button
+                  variant="outline"
+                  onClick={limparFiltros}
+                  className="h-14 bg-red-50 border-red-200 text-red-700 hover:bg-red-100 shadow-lg px-6"
+                >
+                  <X className="w-5 h-5 mr-2" />
+                  Limpar
+                </Button>
+              )}
             </div>
+
+            {/* Filtros Ativos */}
+            {(unidadesSelecionadas.length > 0 || statusPacienteSelecionado) && (
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm text-white/80">Filtros ativos:</span>
+                {unidadesSelecionadas.map(unidade => (
+                  <Badge key={unidade} variant="secondary" className="bg-white/20 text-white border-white/30">
+                    {unidade}
+                    <X 
+                      className="w-3 h-3 ml-1 cursor-pointer" 
+                      onClick={() => toggleUnidade(unidade)}
+                    />
+                  </Badge>
+                ))}
+                {statusPacienteSelecionado && (
+                  <Badge variant="secondary" className="bg-white/20 text-white border-white/30">
+                    {statusPacienteSelecionado === "paciente_novo" ? "Paciente Novo" : "Última Sessão"}
+                    <X 
+                      className="w-3 h-3 ml-1 cursor-pointer" 
+                      onClick={() => setStatusPacienteSelecionado("")}
+                    />
+                  </Badge>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
