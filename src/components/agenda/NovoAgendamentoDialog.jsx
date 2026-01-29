@@ -896,7 +896,7 @@ export default function NovoAgendamentoDialog({
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start">
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.data_pagamento ? format(new Date(formData.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
+                  {formData.data_pagamento ? format(criarDataPura(formData.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0">
