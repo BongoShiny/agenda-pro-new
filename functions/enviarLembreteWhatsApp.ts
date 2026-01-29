@@ -76,13 +76,6 @@ Deno.serve(async (req) => {
         // Modo teste
         deveEnviar = true;
       } else {
-        // Verificar se já enviou HOJE para esta configuração
-        const dataHoje = agoraBrasilia.toISOString().split('T')[0];
-        if (config.ultimo_envio_data === dataHoje) {
-          console.log(`✅ Já enviou hoje para ${config.unidade_nome} (último envio: ${config.ultimo_envio_data})`);
-          continue;
-        }
-
         // Verificar tipo de envio e horário
         if (config.tipo_envio === '24_horas_antes') {
           // Enviar às 18h ou depois (até 23:59)
@@ -221,14 +214,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Marcar que enviou hoje para esta unidade (apenas se enviou pelo menos 1)
-      if (!numeroTeste && enviadosNestaUnidade > 0) {
-        const dataHoje = agoraBrasilia.toISOString().split('T')[0];
-        await base44.asServiceRole.entities.ConfiguracaoWhatsApp.update(config.id, {
-          ultimo_envio_data: dataHoje
-        });
-        console.log(`📆 Marcado último envio para ${config.unidade_nome}: ${dataHoje}`);
-      }
+      console.log(`📊 ${config.unidade_nome}: ${enviadosNestaUnidade} lembretes enviados`);
     }
 
     console.log(`📊 Total: ${mensagensEnviadas} mensagens enviadas`);
