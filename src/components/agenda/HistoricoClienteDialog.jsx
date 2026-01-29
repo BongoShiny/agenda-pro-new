@@ -7,7 +7,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar, Clock, User, MapPin, ChevronRight, ArrowLeft, UserPlus, Edit } from "lucide-react";
+import { Calendar, Clock, User, MapPin, ChevronRight } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import DetalhesAgendamentoDialog from "./DetalhesAgendamentoDialog";
@@ -89,172 +89,14 @@ export default function HistoricoClienteDialog({
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {sessaoSelecionada ? (
-              <>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={() => setSessaoSelecionada(null)}
-                  className="mr-2 p-1 h-auto"
-                >
-                  <ArrowLeft className="w-5 h-5" />
-                </Button>
-                Detalhes da Sessão
-              </>
-            ) : (
-              <>
-                <User className="w-5 h-5 text-blue-600" />
-                Histórico de Sessões: "{clienteBusca}"
-              </>
-            )}
+            <User className="w-5 h-5 text-blue-600" />
+            Histórico de Sessões: "{clienteBusca}"
           </DialogTitle>
         </DialogHeader>
 
         <div className="flex-1 overflow-y-auto">
-          {sessaoSelecionada ? (
-            // Vista de detalhes da sessão
-            <div className="space-y-4">
-              <div className="bg-white border border-gray-200 rounded-lg p-5">
-                <div className="flex items-center gap-3 mb-4">
-                  <span className="text-xl font-bold text-gray-900">{sessaoSelecionada.cliente_nome}</span>
-                  <Badge className={statusLabels[sessaoSelecionada.status]?.cor || "bg-gray-100 text-gray-800"}>
-                    {statusLabels[sessaoSelecionada.status]?.label || sessaoSelecionada.status}
-                  </Badge>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                      <Calendar className="w-5 h-5 text-blue-600" />
-                      <div>
-                        <div className="text-xs text-gray-500">Data</div>
-                        <div className="font-medium">
-                          {sessaoSelecionada.data ? format(criarDataPura(sessaoSelecionada.data), "dd/MM/yyyy", { locale: ptBR }) : "-"}
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                      <Clock className="w-5 h-5 text-blue-600" />
-                      <div>
-                        <div className="text-xs text-gray-500">Horário</div>
-                        <div className="font-medium">{sessaoSelecionada.hora_inicio} - {sessaoSelecionada.hora_fim}</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                      <User className="w-5 h-5 text-blue-600" />
-                      <div>
-                        <div className="text-xs text-gray-500">Profissional</div>
-                        <div className="font-medium">{sessaoSelecionada.profissional_nome}</div>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                      <MapPin className="w-5 h-5 text-blue-600" />
-                      <div>
-                        <div className="text-xs text-gray-500">Unidade</div>
-                        <div className="font-medium">{sessaoSelecionada.unidade_nome}</div>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    {sessaoSelecionada.cliente_telefone && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-xs text-gray-500">Telefone</div>
-                        <div className="font-medium">{sessaoSelecionada.cliente_telefone}</div>
-                      </div>
-                    )}
-
-                    {sessaoSelecionada.servico_nome && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-xs text-gray-500">Serviço</div>
-                        <div className="font-medium">{sessaoSelecionada.servico_nome}</div>
-                      </div>
-                    )}
-
-                    {sessaoSelecionada.equipamento && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-xs text-gray-500">Tipo / Equipamento</div>
-                        <div className="font-medium">{sessaoSelecionada.equipamento}</div>
-                      </div>
-                    )}
-
-                    {sessaoSelecionada.sala && (
-                      <div className="p-3 bg-gray-50 rounded-lg">
-                        <div className="text-xs text-gray-500">Sala</div>
-                        <div className="font-medium">{sessaoSelecionada.sala}</div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-
-                {sessaoSelecionada.observacoes && (
-                  <div className="mt-4 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                    <div className="text-xs text-amber-700 font-medium mb-1">Observações</div>
-                    <div className="text-sm text-amber-900">{sessaoSelecionada.observacoes}</div>
-                  </div>
-                )}
-
-                {/* Informações de criação e edição */}
-                <div className="mt-4 pt-4 border-t border-gray-200">
-                  <div className="text-xs text-gray-500 font-medium mb-2">Informações do Sistema</div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
-                    {sessaoSelecionada.criador_email && (
-                      <div className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
-                        <UserPlus className="w-4 h-4 text-green-600" />
-                        <div>
-                          <div className="text-xs text-green-700">Criado por</div>
-                          <div className="font-medium text-green-900">{sessaoSelecionada.criador_email}</div>
-                        </div>
-                      </div>
-                    )}
-
-                    {sessaoSelecionada.created_by && !sessaoSelecionada.criador_email && (
-                      <div className="flex items-center gap-2 p-2 bg-green-50 rounded-lg">
-                        <UserPlus className="w-4 h-4 text-green-600" />
-                        <div>
-                          <div className="text-xs text-green-700">Criado por</div>
-                          <div className="font-medium text-green-900">{sessaoSelecionada.created_by}</div>
-                        </div>
-                      </div>
-                    )}
-
-                    {sessaoSelecionada.editor_email && (
-                      <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-lg">
-                        <Edit className="w-4 h-4 text-blue-600" />
-                        <div>
-                          <div className="text-xs text-blue-700">Última edição por</div>
-                          <div className="font-medium text-blue-900">{sessaoSelecionada.editor_email}</div>
-                        </div>
-                      </div>
-                    )}
-
-                    {sessaoSelecionada.created_date && (
-                      <div className="p-2 bg-gray-50 rounded-lg">
-                        <div className="text-xs text-gray-500">Data de criação</div>
-                        <div className="font-medium text-gray-700">
-                          {format(new Date(sessaoSelecionada.created_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                        </div>
-                      </div>
-                    )}
-
-                    {sessaoSelecionada.updated_date && (
-                      <div className="p-2 bg-gray-50 rounded-lg">
-                        <div className="text-xs text-gray-500">Última atualização</div>
-                        <div className="font-medium text-gray-700">
-                          {format(new Date(sessaoSelecionada.updated_date), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ) : (
-            // Lista de sessões
-            <>
+          {/* Lista de sessões */}
+          <>
               {agendamentosCliente.length === 0 ? (
                 <div className="text-center py-12 text-gray-500">
                   <User className="w-12 h-12 mx-auto mb-4 text-gray-300" />
@@ -322,7 +164,6 @@ export default function HistoricoClienteDialog({
                 </div>
               )}
             </>
-          )}
         </div>
 
         <DetalhesAgendamentoDialog
