@@ -238,7 +238,10 @@ export default function AgendaFilters({
         open={detalhesAberto}
         onOpenChange={setDetalhesAberto}
         agendamento={agendamentoSelecionado}
-        usuarioAtual={usuarioAtual}
+        usuarioAtual={{ ...usuarioAtual, cargo: 'administrador' }}
+        onDelete={() => {}}
+        onEdit={() => {}}
+        onConfirmar={() => {}}
         modoVisualizacao={true}
       />
 
