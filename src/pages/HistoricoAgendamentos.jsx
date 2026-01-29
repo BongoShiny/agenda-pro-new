@@ -501,7 +501,21 @@ export default function HistoricoAgendamentosPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {logsAcoesFiltrados.map(log => (
+                      {logsAcoesFiltrados.map(log => {
+                        // Extrair cliente_nome e cliente_telefone da descrição se disponível
+                        const clienteInfo = (() => {
+                          try {
+                            const dados = JSON.parse(log.dados_novos || '{}');
+                            const antigos = JSON.parse(log.dados_antigos || '{}');
+                            const nome = dados.cliente_nome || antigos.cliente_nome;
+                            const telefone = dados.cliente_telefone || antigos.cliente_telefone;
+                            return { nome, telefone };
+                          } catch {
+                            return { nome: null, telefone: null };
+                          }
+                        })();
+
+                        return (
                         <TableRow key={log.id}>
                           <TableCell>
                             <div className="flex items-center gap-2 text-sm">
@@ -574,10 +588,21 @@ export default function HistoricoAgendamentosPage() {
                                   })()}
                                 </div>
                               )}
+                              
+                              {/* Mostrar cliente com número se disponível */}
+                              {clienteInfo.nome && (
+                                <div className="mt-2 pt-2 border-t border-gray-200">
+                                  <div className="text-sm font-semibold text-gray-700">
+                                    {clienteInfo.nome}
+                                    {clienteInfo.telefone && <span className="text-gray-500 font-normal"> ({clienteInfo.telefone})</span>}
+                                  </div>
+                                </div>
+                              )}
                             </div>
                           </TableCell>
                         </TableRow>
-                      ))}
+                      );
+                      })}
                     </TableBody>
                   </Table>
                 </div>
