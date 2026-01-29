@@ -2,13 +2,26 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
+    // Permitir CORS (OPTIONS) e GET/POST
+    const headers = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Content-Type': 'application/json'
+    };
+
+    // OPTIONS - CORS preflight
+    if (req.method === 'OPTIONS') {
+      return new Response(null, { status: 204, headers });
+    }
+
     // GET - verificação de status
     if (req.method === 'GET') {
       return Response.json({ 
         success: true,
         status: 'Webhook ativo',
         message: 'Configure este webhook na Z-API'
-      }, { status: 200 });
+      }, { status: 200, headers });
     }
 
     // Receber dados do webhook da Z-API
@@ -271,7 +284,13 @@ Deno.serve(async (req) => {
     return Response.json({ 
       success: true,
       message: 'Comando não reconhecido' 
-    }, { status: 200 });
+    }, { 
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+      }
+    });
 
   } catch (error) {
     console.error('🔴 Erro:', error);
@@ -281,6 +300,12 @@ Deno.serve(async (req) => {
       message: 'Erro processado',
       error: error.message,
       stack: error.stack
-    }, { status: 200 });
+    }, { 
+      status: 200,
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Content-Type': 'application/json'
+      }
+    });
   }
 });
