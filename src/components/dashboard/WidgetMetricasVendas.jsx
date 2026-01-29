@@ -276,10 +276,7 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                                {venda.data ? format(new Date(venda.data + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR }) : "-"}
                              </TableCell>
                              <TableCell>
-                               {venda.data_pagamento ? (() => {
-                                 const parts = venda.data_pagamento.split('-');
-                                 return `${parts[2]}/${parts[1]}/${parts[0]}`;
-                               })() : "-"}
+                               {venda.data_pagamento ? format(new Date(venda.data_pagamento + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR }) : "-"}
                              </TableCell>
                             <TableCell>
                               {venda.cliente_pacote === "Sim" ? (
