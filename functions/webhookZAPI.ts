@@ -2,17 +2,19 @@ import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
 Deno.serve(async (req) => {
   try {
-    // Permitir CORS (OPTIONS) e GET/POST
+    // Permitir TODOS os métodos HTTP
     const headers = {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': '*',
       'Content-Type': 'application/json'
     };
 
+    console.log('📨 Método HTTP recebido:', req.method);
+
     // OPTIONS - CORS preflight
     if (req.method === 'OPTIONS') {
-      return new Response(null, { status: 204, headers });
+      return Response.json({ success: true }, { status: 200, headers });
     }
 
     // GET - verificação de status
@@ -22,6 +24,11 @@ Deno.serve(async (req) => {
         status: 'Webhook ativo',
         message: 'Configure este webhook na Z-API'
       }, { status: 200, headers });
+    }
+
+    // PUT, PATCH, DELETE - aceitar mas processar como POST
+    if (req.method === 'PUT' || req.method === 'PATCH' || req.method === 'DELETE') {
+      console.log(`⚠️ Método ${req.method} recebido, processando como POST`);
     }
 
     // Receber dados do webhook da Z-API
