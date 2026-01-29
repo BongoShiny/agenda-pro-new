@@ -57,6 +57,8 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
   const [observacoesDialog, setObservacoesDialog] = useState(null);
   const [modoEdicao, setModoEdicao] = useState(false);
   const [anotacoes, setAnotacoes] = useState({});
+  const [notificacaoDialog, setNotificacaoDialog] = useState(null);
+  const [mensagemNotificacao, setMensagemNotificacao] = useState("");
   const queryClient = useQueryClient();
 
   const atualizarAgendamentoMutation = useMutation({
