@@ -471,12 +471,33 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
          </DialogContent>
        </Dialog>
 
-       <Dialog open={!!notificacaoDialog} onOpenChange={(open) => !open && setNotificacaoDialog(null)}>
+       <Dialog open={!!notificacaoDialog} onOpenChange={(open) => {
+         if (!open) {
+           setNotificacaoDialog(null);
+           setMensagemNotificacao("");
+           setEmailSelecionado("");
+         }
+       }}>
          <DialogContent className="max-w-2xl">
            <DialogHeader>
              <DialogTitle>📢 Notificar Vendedor - {notificacaoDialog?.cliente}</DialogTitle>
            </DialogHeader>
            <div className="space-y-4">
+             <div>
+               <label className="text-sm font-medium block mb-2">Selecionar Email</label>
+               <Select value={emailSelecionado} onValueChange={setEmailSelecionado}>
+                 <SelectTrigger className="w-full">
+                   <SelectValue placeholder="Escolha o email do vendedor para notificar" />
+                 </SelectTrigger>
+                 <SelectContent>
+                   {vendedores.map(v => (
+                     <SelectItem key={v.id} value={v.email || v.nome}>
+                       {v.nome} {v.email ? `(${v.email})` : ""}
+                     </SelectItem>
+                   ))}
+                 </SelectContent>
+               </Select>
+             </div>
              <div>
                <label className="text-sm font-medium block mb-2">Mensagem de Erro</label>
                <Textarea
@@ -492,18 +513,23 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                  onClick={() => {
                    setNotificacaoDialog(null);
                    setMensagemNotificacao("");
+                   setEmailSelecionado("");
                  }}
                >
                  Cancelar
                </Button>
                <Button
                  onClick={() => {
+                   if (!emailSelecionado.trim()) {
+                     alert("Por favor, selecione um email!");
+                     return;
+                   }
                    if (!mensagemNotificacao.trim()) {
                      alert("Por favor, descreva o erro!");
                      return;
                    }
                    criarAlertaMutation.mutate({
-                     vendedorEmail: notificacaoDialog.vendedorEmail,
+                     vendedorEmail: emailSelecionado,
                      agendamentoId: notificacaoDialog.agendamentoId,
                      mensagem: mensagemNotificacao
                    });
