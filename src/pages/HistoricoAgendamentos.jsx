@@ -113,7 +113,11 @@ export default function HistoricoAgendamentosPage() {
   const [buscaTelefone, setBuscaTelefone] = useState("");
   const [buscaEmail, setBuscaEmail] = useState("");
   const [unidadeFiltro, setUnidadeFiltro] = useState("");
-  const [buscaLogs, setBuscaLogs] = useState("");
+  
+  // Filtros da aba Ações de Usuários
+  const [buscaUsuarioLogs, setBuscaUsuarioLogs] = useState("");
+  const [buscaClienteLogs, setBuscaClienteLogs] = useState("");
+  const [unidadeFiltroLogs, setUnidadeFiltroLogs] = useState("");
   const [tipoAcaoFiltro, setTipoAcaoFiltro] = useState("");
 
   const { data: agendamentos = [] } = useQuery({
@@ -162,13 +166,25 @@ export default function HistoricoAgendamentosPage() {
   });
 
   const logsAcoesFiltrados = logsAcoes.filter(log => {
-    const buscaLower = buscaLogs.toLowerCase();
-    const matchBusca = !buscaLogs || (
-      log.usuario_email?.toLowerCase().includes(buscaLower) ||
-      log.descricao?.toLowerCase().includes(buscaLower)
+    // Filtro de usuário
+    const matchUsuario = !buscaUsuarioLogs || (
+      log.usuario_email?.toLowerCase().includes(buscaUsuarioLogs.toLowerCase())
     );
+    
+    // Filtro de cliente (buscar na descrição)
+    const matchCliente = !buscaClienteLogs || (
+      log.descricao?.toLowerCase().includes(buscaClienteLogs.toLowerCase())
+    );
+    
+    // Filtro de unidade (buscar na descrição)
+    const matchUnidade = !unidadeFiltroLogs || (
+      log.descricao?.includes(unidadeFiltroLogs)
+    );
+    
+    // Filtro de tipo de ação
     const matchTipo = !tipoAcaoFiltro || log.tipo === tipoAcaoFiltro;
-    return matchBusca && matchTipo;
+    
+    return matchUsuario && matchCliente && matchUnidade && matchTipo;
   });
 
   const tiposAcoesUnicos = [...new Set(logsAcoes.map(log => log.tipo).filter(Boolean))].sort();
@@ -182,12 +198,14 @@ export default function HistoricoAgendamentosPage() {
   };
 
   const limparFiltrosLogs = () => {
-    setBuscaLogs("");
+    setBuscaUsuarioLogs("");
+    setBuscaClienteLogs("");
+    setUnidadeFiltroLogs("");
     setTipoAcaoFiltro("");
   };
 
   const temFiltrosAtivos = buscaUsuario || buscaCliente || buscaTelefone || buscaEmail || unidadeFiltro;
-  const temFiltrosAtivosLogs = buscaLogs || tipoAcaoFiltro;
+  const temFiltrosAtivosLogs = buscaUsuarioLogs || buscaClienteLogs || unidadeFiltroLogs || tipoAcaoFiltro;
 
   const formatarDataHora = (dateString) => {
     try {
@@ -416,30 +434,58 @@ export default function HistoricoAgendamentosPage() {
                     )}
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                      <Input
-                        placeholder="Buscar por usuário ou descrição..."
-                        value={buscaLogs}
-                        onChange={(e) => setBuscaLogs(e.target.value)}
-                        className="pl-10"
-                      />
+                  <div className="space-y-3">
+                    {/* Primeira linha */}
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input
+                          placeholder="Buscar por usuário..."
+                          value={buscaUsuarioLogs}
+                          onChange={(e) => setBuscaUsuarioLogs(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+                      
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input
+                          placeholder="Buscar por cliente..."
+                          value={buscaClienteLogs}
+                          onChange={(e) => setBuscaClienteLogs(e.target.value)}
+                          className="pl-10"
+                        />
+                      </div>
+
+                      <Select value={unidadeFiltroLogs} onValueChange={setUnidadeFiltroLogs}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Por Unidade" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={null}>Todas as Unidades</SelectItem>
+                          {unidadesUnicas.map(unidade => (
+                            <SelectItem key={unidade} value={unidade}>{unidade}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                    
-                    <Select value={tipoAcaoFiltro} onValueChange={setTipoAcaoFiltro}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Filtrar por Tipo de Ação" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={null}>Todas as Ações</SelectItem>
-                        {tiposAcoesUnicos.map(tipo => (
-                          <SelectItem key={tipo} value={tipo}>
-                            {tipoAcaoLabels[tipo] || tipo}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+
+                    {/* Segunda linha */}
+                    <div className="grid grid-cols-1 gap-4">
+                      <Select value={tipoAcaoFiltro} onValueChange={setTipoAcaoFiltro}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Filtrar por Tipo de Ação" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={null}>Todas as Ações</SelectItem>
+                          {tiposAcoesUnicos.map(tipo => (
+                            <SelectItem key={tipo} value={tipo}>
+                              {tipoAcaoLabels[tipo] || tipo}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
               </CardHeader>
@@ -479,7 +525,56 @@ export default function HistoricoAgendamentosPage() {
                             </Badge>
                           </TableCell>
                           <TableCell>
-                            <span className="text-sm text-gray-700">{log.descricao}</span>
+                            <div className="space-y-1">
+                              <span className="text-sm text-gray-700">{log.descricao}</span>
+                              
+                              {/* Mostrar detalhes das alterações se houver dados_antigos e dados_novos */}
+                              {log.dados_antigos && log.dados_novos && (
+                                <div className="mt-2 p-2 bg-gray-50 rounded text-xs space-y-1">
+                                  {(() => {
+                                    try {
+                                      const antigos = JSON.parse(log.dados_antigos);
+                                      const novos = JSON.parse(log.dados_novos);
+                                      const mudancas = [];
+                                      
+                                      // Comparar campos importantes
+                                      const camposImportantes = [
+                                        'status', 'data', 'hora_inicio', 'hora_fim', 
+                                        'profissional_nome', 'cliente_nome', 'unidade_nome',
+                                        'servico_nome', 'observacoes', 'valor_combinado',
+                                        'health_score', 'status_paciente'
+                                      ];
+                                      
+                                      camposImportantes.forEach(campo => {
+                                        if (antigos[campo] !== novos[campo] && (antigos[campo] || novos[campo])) {
+                                          const nomeFormatado = campo
+                                            .replace(/_/g, ' ')
+                                            .replace(/\b\w/g, l => l.toUpperCase());
+                                          
+                                          mudancas.push(
+                                            <div key={campo} className="text-gray-600">
+                                              <span className="font-semibold">{nomeFormatado}:</span>{' '}
+                                              <span className="text-red-600 line-through">{antigos[campo] || '(vazio)'}</span>
+                                              {' → '}
+                                              <span className="text-green-600">{novos[campo] || '(vazio)'}</span>
+                                            </div>
+                                          );
+                                        }
+                                      });
+                                      
+                                      return mudancas.length > 0 ? (
+                                        <>
+                                          <div className="font-semibold text-gray-700 mb-1">Alterações:</div>
+                                          {mudancas}
+                                        </>
+                                      ) : null;
+                                    } catch {
+                                      return null;
+                                    }
+                                  })()}
+                                </div>
+                              )}
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
