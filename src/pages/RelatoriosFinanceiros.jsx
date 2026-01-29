@@ -1338,6 +1338,7 @@ export default function RelatoriosFinanceirosPage() {
                                  <TableHead>Profissional</TableHead>
                                  <TableHead>Unidade</TableHead>
                                  <TableHead>Vendedor</TableHead>
+                                 <TableHead>Data do Pagamento</TableHead>
                                  <TableHead className="text-right">Vlr. Combinado</TableHead>
                                  <TableHead className="text-right">Total Pago</TableHead>
                                  <TableHead className="text-right">A Receber</TableHead>
@@ -1360,6 +1361,7 @@ export default function RelatoriosFinanceirosPage() {
                                      <TableCell>{ag.profissional_nome}</TableCell>
                                      <TableCell>{ag.unidade_nome}</TableCell>
                                      <TableCell>{ag.vendedor_nome || "-"}</TableCell>
+                                     <TableCell>{ag.data_pagamento ? format(criarDataPura(ag.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : "-"}</TableCell>
                                      <TableCell className="text-right">{formatarMoeda(ag.valor_combinado)}</TableCell>
                                      <TableCell className="text-right text-emerald-600 font-semibold">{formatarMoeda(totalPagoAg)}</TableCell>
                                      <TableCell className="text-right text-orange-600">{formatarMoeda(ag.falta_quanto)}</TableCell>
