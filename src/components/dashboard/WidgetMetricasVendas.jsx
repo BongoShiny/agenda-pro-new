@@ -458,17 +458,63 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
       </Dialog>
 
       <Dialog open={!!observacoesDialog} onOpenChange={() => setObservacoesDialog(null)}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{observacoesDialog?.tipo} - {observacoesDialog?.cliente}</DialogTitle>
-          </DialogHeader>
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-700 whitespace-pre-wrap">
-              {observacoesDialog?.texto}
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
-    </Card>
-  );
-}
+         <DialogContent className="max-w-2xl">
+           <DialogHeader>
+             <DialogTitle>{observacoesDialog?.tipo} - {observacoesDialog?.cliente}</DialogTitle>
+           </DialogHeader>
+           <div className="bg-gray-50 rounded-lg p-4">
+             <p className="text-sm text-gray-700 whitespace-pre-wrap">
+               {observacoesDialog?.texto}
+             </p>
+           </div>
+         </DialogContent>
+       </Dialog>
+
+       <Dialog open={!!notificacaoDialog} onOpenChange={(open) => !open && setNotificacaoDialog(null)}>
+         <DialogContent className="max-w-2xl">
+           <DialogHeader>
+             <DialogTitle>📢 Notificar Vendedor - {notificacaoDialog?.cliente}</DialogTitle>
+           </DialogHeader>
+           <div className="space-y-4">
+             <div>
+               <label className="text-sm font-medium block mb-2">Mensagem de Erro</label>
+               <Textarea
+                 value={mensagemNotificacao}
+                 onChange={(e) => setMensagemNotificacao(e.target.value)}
+                 placeholder="Descreva o que está faltando ou o erro encontrado..."
+                 className="min-h-[120px]"
+               />
+             </div>
+             <div className="flex justify-end gap-2">
+               <Button
+                 variant="outline"
+                 onClick={() => {
+                   setNotificacaoDialog(null);
+                   setMensagemNotificacao("");
+                 }}
+               >
+                 Cancelar
+               </Button>
+               <Button
+                 onClick={() => {
+                   if (!mensagemNotificacao.trim()) {
+                     alert("Por favor, descreva o erro!");
+                     return;
+                   }
+                   criarAlertaMutation.mutate({
+                     vendedorEmail: notificacaoDialog.vendedorEmail,
+                     agendamentoId: notificacaoDialog.agendamentoId,
+                     mensagem: mensagemNotificacao
+                   });
+                 }}
+                 className="bg-red-600 hover:bg-red-700"
+               >
+                 Enviar Notificação
+               </Button>
+             </div>
+           </div>
+         </DialogContent>
+       </Dialog>
+      </Card>
+      );
+      }
