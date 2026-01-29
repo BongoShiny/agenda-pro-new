@@ -1186,6 +1186,8 @@ export default function AgendaPage() {
                       unidades={unidades}
                       agendamentos={agendamentos}
                       usuarioAtual={usuarioAtual}
+                      onEditAgendamento={handleEditarAgendamento}
+                      onDeleteAgendamento={handleDeletarAgendamento}
                     />
                   </div>
                 )}
