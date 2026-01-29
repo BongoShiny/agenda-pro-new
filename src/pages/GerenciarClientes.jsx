@@ -13,15 +13,18 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
-import { Search, UserPlus, Edit, Trash2, ArrowLeft, Users, Phone, Mail, MapPin, Calendar, Package, DollarSign } from "lucide-react";
+import { Search, UserPlus, Edit, Trash2, ArrowLeft, Users, Phone, Mail, MapPin, Calendar, Package, DollarSign, TrendingUp } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Badge } from "@/components/ui/badge";
+import TrajetoriaClienteDialog from "../components/cliente/TrajetoriaClienteDialog";
 
 export default function GerenciarClientes() {
   const [busca, setBusca] = useState("");
   const [dialogAberto, setDialogAberto] = useState(false);
   const [clienteEditando, setClienteEditando] = useState(null);
+  const [trajetoriaAberta, setTrajetoriaAberta] = useState(false);
+  const [clienteTrajetoria, setClienteTrajetoria] = useState(null);
   const [formData, setFormData] = useState({
     nome: "",
     telefone: "",
@@ -171,6 +174,17 @@ export default function GerenciarClientes() {
 
     const status = agendamentosRecentes.length > 0 ? "Em Andamento" : "Inativo";
 
+    // Unidade mais frequente
+    const unidadesCount = {};
+    agendamentosCliente.forEach(ag => {
+      if (ag.unidade_nome) {
+        unidadesCount[ag.unidade_nome] = (unidadesCount[ag.unidade_nome] || 0) + 1;
+      }
+    });
+    const unidadePrincipal = Object.keys(unidadesCount).length > 0 
+      ? Object.keys(unidadesCount).reduce((a, b) => unidadesCount[a] > unidadesCount[b] ? a : b)
+      : null;
+
     return {
       totalAgendamentos: agendamentosCliente.length,
       temPacote: !!agendamentoComPacote,
@@ -179,8 +193,14 @@ export default function GerenciarClientes() {
       valorPacote,
       formaPagamento,
       progresso,
-      status
+      status,
+      unidadePrincipal
     };
+  };
+
+  const handleVerTrajetoria = (cliente) => {
+    setClienteTrajetoria(cliente);
+    setTrajetoriaAberta(true);
   };
 
   // Pegar iniciais do nome
@@ -294,17 +314,26 @@ export default function GerenciarClientes() {
                             {cliente.nome}
                           </h3>
                           
-                          {/* Status Badge */}
-                          <Badge 
-                            className={`mt-2 ${
-                              analise.status === "Em Andamento" 
-                                ? "bg-green-100 text-green-700 border-green-200" 
-                                : "bg-gray-100 text-gray-600 border-gray-200"
-                            }`}
-                            variant="outline"
-                          >
-                            {analise.status}
-                          </Badge>
+                          {/* Status e Unidade */}
+                          <div className="mt-2 flex items-center gap-2 flex-wrap">
+                            <Badge 
+                              className={`${
+                                analise.status === "Em Andamento" 
+                                  ? "bg-green-100 text-green-700 border-green-200" 
+                                  : "bg-gray-100 text-gray-600 border-gray-200"
+                              }`}
+                              variant="outline"
+                            >
+                              {analise.status}
+                            </Badge>
+                            
+                            {analise.unidadePrincipal && (
+                              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                <MapPin className="w-3 h-3 mr-1" />
+                                {analise.unidadePrincipal}
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -397,23 +426,33 @@ export default function GerenciarClientes() {
                       )}
 
                       {/* Botões de Ação */}
-                      <div className="flex gap-2 pt-2">
+                      <div className="space-y-2 pt-2">
                         <Button
-                          variant="outline"
-                          className="flex-1 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
-                          onClick={() => handleEditarCliente(cliente)}
+                          className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-md"
+                          onClick={() => handleVerTrajetoria(cliente)}
                         >
-                          <Edit className="w-4 h-4 mr-2" />
-                          Editar
+                          <TrendingUp className="w-4 h-4 mr-2" />
+                          Ver Trajetória Completa
                         </Button>
-                        <Button
-                          variant="outline"
-                          className="flex-1 border-red-200 text-red-700 hover:bg-red-50 hover:border-red-300"
-                          onClick={() => handleDeletarCliente(cliente)}
-                        >
-                          <Trash2 className="w-4 h-4 mr-2" />
-                          Remover
-                        </Button>
+                        
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            className="flex-1 border-blue-200 text-blue-700 hover:bg-blue-50 hover:border-blue-300"
+                            onClick={() => handleEditarCliente(cliente)}
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Editar
+                          </Button>
+                          <Button
+                            variant="outline"
+                            className="flex-1 border-red-200 text-red-700 hover:bg-red-50 hover:border-red-300"
+                            onClick={() => handleDeletarCliente(cliente)}
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Remover
+                          </Button>
+                        </div>
                       </div>
                     </div>
                   </CardContent>
@@ -499,6 +538,14 @@ export default function GerenciarClientes() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Dialog de Trajetória */}
+      <TrajetoriaClienteDialog
+        open={trajetoriaAberta}
+        onOpenChange={setTrajetoriaAberta}
+        cliente={clienteTrajetoria}
+        agendamentos={agendamentos}
+      />
     </div>
   );
 }
