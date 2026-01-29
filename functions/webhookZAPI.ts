@@ -1,6 +1,7 @@
 import { createClientFromRequest } from 'npm:@base44/sdk@0.8.6';
 
-export default async function webhookZAPI(req) {
+Deno.serve(async (req) => {
+  // Handle os métodos HTTP
   try {
     const headers = {
       'Access-Control-Allow-Origin': '*',
