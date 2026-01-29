@@ -84,6 +84,7 @@ export default function NovoAgendamentoDialog({
     forma_pagamento: "-",
     vendedor_id: "",
     vendedor_nome: "",
+    data_pagamento: "",
     comprovante_1: "",
     comprovante_2: "",
     comprovante_3: "",
@@ -198,6 +199,7 @@ export default function NovoAgendamentoDialog({
           falta_quanto: agendamentoInicial?.falta_quanto || null,
           vendedor_id: agendamentoInicial?.vendedor_id || "",
           vendedor_nome: agendamentoInicial?.vendedor_nome || "",
+          data_pagamento: agendamentoInicial?.data_pagamento || "",
           comprovante_1: agendamentoInicial?.comprovante_1 || "",
           comprovante_2: agendamentoInicial?.comprovante_2 || "",
           comprovante_3: agendamentoInicial?.comprovante_3 || "",
@@ -886,6 +888,33 @@ export default function NovoAgendamentoDialog({
                 ))}
               </SelectContent>
             </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Data do Pagamento</Label>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" className="w-full justify-start">
+                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  {formData.data_pagamento ? format(new Date(formData.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0">
+                <Calendar
+                  mode="single"
+                  selected={formData.data_pagamento ? new Date(formData.data_pagamento) : undefined}
+                  onSelect={(date) => {
+                    if (date) {
+                      const ano = date.getFullYear();
+                      const mes = String(date.getMonth() + 1).padStart(2, '0');
+                      const dia = String(date.getDate()).padStart(2, '0');
+                      setFormData(prev => ({ ...prev, data_pagamento: `${ano}-${mes}-${dia}` }));
+                    }
+                  }}
+                  locale={ptBR}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
 
           <div className="space-y-2">
