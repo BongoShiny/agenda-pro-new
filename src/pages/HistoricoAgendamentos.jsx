@@ -450,7 +450,7 @@ export default function HistoricoAgendamentosPage() {
                       <div className="relative">
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                         <Input
-                          placeholder="Buscar por cliente..."
+                          placeholder="Buscar por cliente ou número..."
                           value={buscaClienteLogs}
                           onChange={(e) => setBuscaClienteLogs(e.target.value)}
                           className="pl-10"
