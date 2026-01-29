@@ -108,8 +108,10 @@ const tipoAcaoColors = {
 };
 
 export default function HistoricoAgendamentosPage() {
-  const [busca, setBusca] = useState("");
-  const [profissionalFiltro, setProfissionalFiltro] = useState("");
+  const [buscaUsuario, setBuscaUsuario] = useState("");
+  const [buscaCliente, setBuscaCliente] = useState("");
+  const [buscaTelefone, setBuscaTelefone] = useState("");
+  const [buscaEmail, setBuscaEmail] = useState("");
   const [unidadeFiltro, setUnidadeFiltro] = useState("");
   const [buscaLogs, setBuscaLogs] = useState("");
   const [tipoAcaoFiltro, setTipoAcaoFiltro] = useState("");
@@ -126,29 +128,37 @@ export default function HistoricoAgendamentosPage() {
     initialData: [],
   });
 
-  // Extrair lista única de profissionais e unidades
-  const profissionaisUnicos = [...new Set(agendamentos.map(ag => ag.profissional_nome).filter(Boolean))].sort();
+  // Extrair lista única de unidades
   const unidadesUnicas = [...new Set(agendamentos.map(ag => ag.unidade_nome).filter(Boolean))].sort();
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
     // CRÍTICO: Aba "Agendamentos" mostra APENAS registros do sistema (sem criador_email)
     if (ag.criador_email) return false;
     
-    const buscaLower = busca.toLowerCase();
-    
-    // Filtro de busca geral (cliente/telefone)
-    const matchBusca = !busca || (
-      ag.cliente_nome?.toLowerCase().includes(buscaLower) ||
-      ag.cliente_telefone?.toLowerCase().includes(buscaLower)
+    // Filtro de usuário (criador)
+    const matchUsuario = !buscaUsuario || (
+      ag.criador_email?.toLowerCase().includes(buscaUsuario.toLowerCase())
     );
     
-    // Filtro de profissional
-    const matchProfissional = !profissionalFiltro || ag.profissional_nome === profissionalFiltro;
+    // Filtro de cliente
+    const matchCliente = !buscaCliente || (
+      ag.cliente_nome?.toLowerCase().includes(buscaCliente.toLowerCase())
+    );
+    
+    // Filtro de telefone
+    const matchTelefone = !buscaTelefone || (
+      ag.cliente_telefone?.includes(buscaTelefone)
+    );
+    
+    // Filtro de email (cliente)
+    const matchEmail = !buscaEmail || (
+      ag.cliente_email?.toLowerCase().includes(buscaEmail.toLowerCase())
+    );
     
     // Filtro de unidade
     const matchUnidade = !unidadeFiltro || ag.unidade_nome === unidadeFiltro;
     
-    return matchBusca && matchProfissional && matchUnidade;
+    return matchUsuario && matchCliente && matchTelefone && matchEmail && matchUnidade;
   });
 
   const logsAcoesFiltrados = logsAcoes.filter(log => {
@@ -164,8 +174,10 @@ export default function HistoricoAgendamentosPage() {
   const tiposAcoesUnicos = [...new Set(logsAcoes.map(log => log.tipo).filter(Boolean))].sort();
 
   const limparFiltros = () => {
-    setBusca("");
-    setProfissionalFiltro("");
+    setBuscaUsuario("");
+    setBuscaCliente("");
+    setBuscaTelefone("");
+    setBuscaEmail("");
     setUnidadeFiltro("");
   };
 
@@ -174,7 +186,7 @@ export default function HistoricoAgendamentosPage() {
     setTipoAcaoFiltro("");
   };
 
-  const temFiltrosAtivos = busca || profissionalFiltro || unidadeFiltro;
+  const temFiltrosAtivos = buscaUsuario || buscaCliente || buscaTelefone || buscaEmail || unidadeFiltro;
   const temFiltrosAtivosLogs = buscaLogs || tipoAcaoFiltro;
 
   const formatarDataHora = (dateString) => {
@@ -242,40 +254,64 @@ export default function HistoricoAgendamentosPage() {
                     )}
                   </div>
               
-              <div className="grid grid-cols-3 gap-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                  <Input
-                    placeholder="Buscar cliente/telefone..."
-                    value={busca}
-                    onChange={(e) => setBusca(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                
-                <Select value={profissionalFiltro} onValueChange={setProfissionalFiltro}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filtrar por Profissional" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={null}>Todos os Profissionais</SelectItem>
-                    {profissionaisUnicos.map(prof => (
-                      <SelectItem key={prof} value={prof}>{prof}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+              <div className="space-y-3">
+                {/* Primeira linha */}
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      placeholder="Buscar por usuário..."
+                      value={buscaUsuario}
+                      onChange={(e) => setBuscaUsuario(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      placeholder="Buscar por cliente..."
+                      value={buscaCliente}
+                      onChange={(e) => setBuscaCliente(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
 
-                <Select value={unidadeFiltro} onValueChange={setUnidadeFiltro}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Filtrar por Unidade" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={null}>Todas as Unidades</SelectItem>
-                    {unidadesUnicas.map(unidade => (
-                      <SelectItem key={unidade} value={unidade}>{unidade}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  <Select value={unidadeFiltro} onValueChange={setUnidadeFiltro}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Por Unidade" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={null}>Todas as Unidades</SelectItem>
+                      {unidadesUnicas.map(unidade => (
+                        <SelectItem key={unidade} value={unidade}>{unidade}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Segunda linha */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      placeholder="Por número do cliente..."
+                      value={buscaTelefone}
+                      onChange={(e) => setBuscaTelefone(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Input
+                      placeholder="Por email..."
+                      value={buscaEmail}
+                      onChange={(e) => setBuscaEmail(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                </div>
               </div>
             </div>
           </CardHeader>
