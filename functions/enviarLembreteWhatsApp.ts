@@ -85,14 +85,14 @@ Deno.serve(async (req) => {
         } else if (config.tipo_envio === 'horario_personalizado') {
           // Enviar no horário fixo configurado
           const [horaConfig, minutoConfig] = (config.horario_fixo || '18:00').split(':').map(Number);
-          // Verificar se está na janela de 1 hora após o horário configurado
+          // Verificar se está na janela de 5 minutos após o horário configurado
           const horarioAtualMinutos = horaAtual * 60 + minutoAtual;
           const horarioConfigMinutos = horaConfig * 60 + minutoConfig;
           const diferencaMinutos = horarioAtualMinutos - horarioConfigMinutos;
 
           console.log(`⏰ Config ${config.unidade_nome}: horario_fixo=${config.horario_fixo}, horaAtual=${horaAtual}:${minutoAtual}, diferença=${diferencaMinutos} minutos`);
 
-          if (diferencaMinutos >= 0 && diferencaMinutos < 60) {
+          if (diferencaMinutos >= 0 && diferencaMinutos < 5) {
             deveEnviar = true;
           }
         }
@@ -150,6 +150,14 @@ Deno.serve(async (req) => {
         const telefoneLimpo = ag.cliente_telefone.replace(/\D/g, '');
         const telefoneFormatado = '55' + telefoneLimpo;
 
+        // MARCAR COMO ENVIADO ANTES DE ENVIAR (evita duplicatas)
+        if (!numeroTeste) {
+          await base44.asServiceRole.entities.Agendamento.update(ag.id, {
+            lembrete_enviado: true,
+            lembrete_data_envio: new Date().toISOString()
+          });
+        }
+
         try {
           const url = `https://api.z-api.io/instances/${WHATSAPP_INSTANCE_ID}/token/${WHATSAPP_INSTANCE_TOKEN}/send-text`;
           
@@ -170,17 +178,16 @@ Deno.serve(async (req) => {
           if (resposta.error) {
             erros.push(`${ag.cliente_nome}: ${resposta.error}`);
             console.error('❌', resposta.error);
-          } else {
-            mensagensEnviadas++;
-            console.log(`✅ Enviado para ${ag.cliente_nome}`);
-            
-            // Marcar como enviado (exceto teste)
+            // Reverter marcação se falhou
             if (!numeroTeste) {
               await base44.asServiceRole.entities.Agendamento.update(ag.id, {
-                lembrete_enviado: true,
-                lembrete_data_envio: new Date().toISOString()
+                lembrete_enviado: false,
+                lembrete_data_envio: null
               });
             }
+          } else {
+            mensagensEnviadas++;
+            console.log(`✅ Enviado para ${ag.cliente_nome}`)
             
             // Log
             await base44.asServiceRole.entities.LogAcao.create({
