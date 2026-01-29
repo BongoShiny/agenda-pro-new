@@ -426,7 +426,7 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
       <Dialog open={!!observacoesDialog} onOpenChange={() => setObservacoesDialog(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Observações do Vendedor - {observacoesDialog?.cliente}</DialogTitle>
+            <DialogTitle>{observacoesDialog?.tipo} - {observacoesDialog?.cliente}</DialogTitle>
           </DialogHeader>
           <div className="bg-gray-50 rounded-lg p-4">
             <p className="text-sm text-gray-700 whitespace-pre-wrap">
