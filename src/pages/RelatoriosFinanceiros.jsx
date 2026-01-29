@@ -1544,6 +1544,7 @@ export default function RelatoriosFinanceirosPage() {
                           <TableHeader>
                             <TableRow>
                               <TableHead>Vendedor</TableHead>
+                              <TableHead>Data do Pagamento</TableHead>
                               <TableHead className="text-right">Qtd</TableHead>
                               <TableHead className="text-right">Vlr. Combinado</TableHead>
                               <TableHead className="text-right">Sinal</TableHead>
@@ -1557,9 +1558,9 @@ export default function RelatoriosFinanceirosPage() {
                             {Object.entries(porVendedor).map(([nome, dados]) => (
                                <TableRow key={nome}>
                                  <TableCell className="font-medium">{nome}</TableCell>
-                                 <TableCell className="text-right">
+                                 <TableCell>
                                    {agendamentosMesAnalise.find(ag => ag.vendedor_nome === nome)?.data_pagamento 
-                                     ? format(new Date(agendamentosMesAnalise.find(ag => ag.vendedor_nome === nome).data_pagamento), "dd/MM/yyyy", { locale: ptBR })
+                                     ? format(criarDataPura(agendamentosMesAnalise.find(ag => ag.vendedor_nome === nome).data_pagamento), "dd/MM/yyyy", { locale: ptBR })
                                      : "-"}
                                  </TableCell>
                                  <TableCell className="text-right">{dados.quantidade}</TableCell>
