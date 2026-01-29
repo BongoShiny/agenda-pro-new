@@ -345,22 +345,42 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                               )}
                             </TableCell>
                             <TableCell className="max-w-xs">
-                              {venda.observacoes_vendedores ? (
-                                <button
-                                  onClick={() => setObservacoesDialog({
-                                    cliente: venda.cliente_nome,
-                                    texto: venda.observacoes_vendedores
-                                  })}
-                                  className="flex items-start gap-1 hover:bg-gray-50 p-1 rounded transition-colors cursor-pointer text-left w-full"
-                                >
-                                  <FileText className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
-                                  <span className="text-xs text-gray-600 line-clamp-2">
-                                    {venda.observacoes_vendedores}
-                                  </span>
-                                </button>
-                              ) : (
-                                <span className="text-gray-400 text-xs">-</span>
-                              )}
+                               {venda.observacoes ? (
+                                 <button
+                                   onClick={() => setObservacoesDialog({
+                                     cliente: venda.cliente_nome,
+                                     tipo: "Observações",
+                                     texto: venda.observacoes
+                                   })}
+                                   className="flex items-start gap-1 hover:bg-gray-50 p-1 rounded transition-colors cursor-pointer text-left w-full"
+                                 >
+                                   <FileText className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+                                   <span className="text-xs text-gray-600 line-clamp-2">
+                                     {venda.observacoes}
+                                   </span>
+                                 </button>
+                               ) : (
+                                 <span className="text-gray-400 text-xs">-</span>
+                               )}
+                            </TableCell>
+                            <TableCell className="max-w-xs">
+                               {venda.observacoes_vendedores ? (
+                                 <button
+                                   onClick={() => setObservacoesDialog({
+                                     cliente: venda.cliente_nome,
+                                     tipo: "Observações do Vendedor",
+                                     texto: venda.observacoes_vendedores
+                                   })}
+                                   className="flex items-start gap-1 hover:bg-gray-50 p-1 rounded transition-colors cursor-pointer text-left w-full"
+                                 >
+                                   <FileText className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+                                   <span className="text-xs text-gray-600 line-clamp-2">
+                                     {venda.observacoes_vendedores}
+                                   </span>
+                                 </button>
+                               ) : (
+                                 <span className="text-gray-400 text-xs">-</span>
+                               )}
                             </TableCell>
                             <TableCell>
                               {modoEdicao ? (
