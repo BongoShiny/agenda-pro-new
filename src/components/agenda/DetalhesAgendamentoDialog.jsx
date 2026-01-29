@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { Calendar, Clock, User, Briefcase, MapPin, Tag, FileText, Ban, Unlock, CheckCircle, FileImage } from "lucide-react";
+import { Calendar, Clock, User, Briefcase, MapPin, Tag, FileText, Ban, Unlock, CheckCircle, FileImage, DollarSign, Package, Users } from "lucide-react";
 import AbaProntuario from "./AbaProntuario";
 import AbaContrato from "./AbaContrato";
 import AbaAvaliacaoTermal from "./AbaAvaliacaoTermal";
@@ -226,12 +226,101 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               </div>
             )}
 
-            {agendamento.equipamento && (
+            {agendamento.status_paciente && (
               <div className="flex items-start gap-3">
-                <FileText className="w-5 h-5 text-gray-500 mt-0.5" />
+                <Tag className="w-5 h-5 text-gray-500 mt-0.5" />
                 <div>
-                  <div className="text-sm text-gray-500">Equipamento</div>
-                  <div className="font-medium">{agendamento.equipamento}</div>
+                  <div className="text-sm text-gray-500">Status do Paciente</div>
+                  <div className="font-medium capitalize">{agendamento.status_paciente.replace(/_/g, ' ')}</div>
+                </div>
+              </div>
+            )}
+
+            {(agendamento.cliente_pacote || agendamento.quantas_sessoes || agendamento.sessoes_feitas) && (
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Package className="w-5 h-5 text-purple-600" />
+                  <div className="font-semibold text-purple-900">Informações do Pacote</div>
+                </div>
+                <div className="space-y-2">
+                  {agendamento.cliente_pacote && (
+                    <div className="text-sm">
+                      <span className="text-purple-600">Cliente tem pacote:</span> {agendamento.cliente_pacote}
+                    </div>
+                  )}
+                  {agendamento.quantas_sessoes && (
+                    <div className="text-sm">
+                      <span className="text-purple-600">Total de sessões:</span> {agendamento.quantas_sessoes}
+                    </div>
+                  )}
+                  {agendamento.sessoes_feitas !== undefined && (
+                    <div className="text-sm">
+                      <span className="text-purple-600">Sessões realizadas:</span> {agendamento.sessoes_feitas}
+                    </div>
+                  )}
+                  {agendamento.quantas_sessoes && agendamento.sessoes_feitas !== undefined && (
+                    <div className="text-sm">
+                      <span className="text-purple-600">Sessões restantes:</span> {agendamento.quantas_sessoes - agendamento.sessoes_feitas}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {(agendamento.valor_combinado || agendamento.sinal || agendamento.recebimento_2 || agendamento.final_pagamento || agendamento.falta_quanto) && (
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <DollarSign className="w-5 h-5 text-green-600" />
+                  <div className="font-semibold text-green-900">Informações Financeiras</div>
+                </div>
+                <div className="space-y-2">
+                  {agendamento.valor_combinado !== undefined && (
+                    <div className="text-sm">
+                      <span className="text-green-600">Valor combinado:</span> R$ {agendamento.valor_combinado?.toFixed(2) || '0,00'}
+                    </div>
+                  )}
+                  {agendamento.sinal !== undefined && (
+                    <div className="text-sm">
+                      <span className="text-green-600">Sinal:</span> R$ {agendamento.sinal?.toFixed(2) || '0,00'}
+                    </div>
+                  )}
+                  {agendamento.recebimento_2 !== undefined && (
+                    <div className="text-sm">
+                      <span className="text-green-600">2º Recebimento:</span> R$ {agendamento.recebimento_2?.toFixed(2) || '0,00'}
+                    </div>
+                  )}
+                  {agendamento.final_pagamento !== undefined && (
+                    <div className="text-sm">
+                      <span className="text-green-600">Pagamento final:</span> R$ {agendamento.final_pagamento?.toFixed(2) || '0,00'}
+                    </div>
+                  )}
+                  {agendamento.falta_quanto !== undefined && (
+                    <div className="text-sm font-semibold">
+                      <span className="text-green-600">Falta pagar:</span> R$ {agendamento.falta_quanto?.toFixed(2) || '0,00'}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {agendamento.vendedor_nome && (
+              <div className="flex items-start gap-3">
+                <Users className="w-5 h-5 text-gray-500 mt-0.5" />
+                <div>
+                  <div className="text-sm text-gray-500">Vendedor</div>
+                  <div className="font-medium">{agendamento.vendedor_nome}</div>
+                </div>
+              </div>
+            )}
+
+            {agendamento.anotacao_venda && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div className="flex items-start gap-3">
+                  <FileText className="w-5 h-5 text-amber-600 mt-0.5" />
+                  <div>
+                    <div className="text-sm text-amber-600 font-medium">Anotação de Venda</div>
+                    <div className="text-gray-700 mt-1">{agendamento.anotacao_venda}</div>
+                  </div>
                 </div>
               </div>
             )}
@@ -286,38 +375,37 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               </div>
             )}
 
-            {(agendamento.comprovante_url || agendamento.comprovante_url_2) && (
-              <div className="flex items-start gap-3">
-                <FileImage className="w-5 h-5 text-gray-500 mt-0.5" />
-                <div>
-                  <div className="text-sm text-gray-500">Comprovantes de Pagamento</div>
-                  <div className="flex gap-2 mt-1">
-                    {agendamento.comprovante_url && (
-                      <a 
-                        href={agendamento.comprovante_url} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-blue-600 hover:underline text-sm"
-                      >
-                        <FileImage className="w-4 h-4" />
-                        Comprovante 1
-                      </a>
-                    )}
-                    {agendamento.comprovante_url_2 && (
-                      <a 
-                        href={agendamento.comprovante_url_2} 
-                        target="_blank" 
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-1 text-blue-600 hover:underline text-sm"
-                      >
-                        <FileImage className="w-4 h-4" />
-                        Comprovante 2
-                      </a>
-                    )}
+            {(() => {
+              const comprovantes = [];
+              for (let i = 1; i <= 5; i++) {
+                const key = i === 1 ? 'comprovante_1' : `comprovante_${i}`;
+                if (agendamento[key]) {
+                  comprovantes.push({ num: i, url: agendamento[key] });
+                }
+              }
+              return comprovantes.length > 0 && (
+                <div className="flex items-start gap-3">
+                  <FileImage className="w-5 h-5 text-gray-500 mt-0.5" />
+                  <div>
+                    <div className="text-sm text-gray-500">Comprovantes de Pagamento</div>
+                    <div className="flex flex-wrap gap-2 mt-1">
+                      {comprovantes.map(comp => (
+                        <a 
+                          key={comp.num}
+                          href={comp.url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-1 text-blue-600 hover:underline text-sm"
+                        >
+                          <FileImage className="w-4 h-4" />
+                          Comprovante {comp.num}
+                        </a>
+                      ))}
+                    </div>
                   </div>
                 </div>
-              </div>
-            )}
+              );
+            })()}
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
               <div className="space-y-2">
