@@ -42,12 +42,12 @@ const formatarDataHoraBrasilia = (dataISO) => {
   return { data, hora };
 };
 
-const criarDataPura = (dataString) => {
+const formatarDataPagamento = (dataString) => {
   if (!dataString || !/^\d{4}-\d{2}-\d{2}$/.test(dataString)) {
-    return new Date();
+    return "-";
   }
   const [ano, mes, dia] = dataString.split('-').map(Number);
-  return new Date(ano, mes - 1, dia, 12, 0, 0);
+  return `${String(dia).padStart(2, '0')}/${String(mes).padStart(2, '0')}/${ano}`;
 };
 
 export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim }) {
