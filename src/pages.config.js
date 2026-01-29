@@ -52,6 +52,7 @@ import Agenda from './pages/Agenda';
 import ConfiguracaoSabado from './pages/ConfiguracaoSabado';
 import ConfiguracaoTerapeutas from './pages/ConfiguracaoTerapeutas';
 import ConfigurarUnidades from './pages/ConfigurarUnidades';
+import GerenciarClientes from './pages/GerenciarClientes';
 import GerenciarContratos from './pages/GerenciarContratos';
 import GerenciarProntuarios from './pages/GerenciarProntuarios';
 import GerenciarServicos from './pages/GerenciarServicos';
@@ -62,7 +63,6 @@ import RelatoriosAvancados from './pages/RelatoriosAvancados';
 import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
 import WhatsAppCompleto from './pages/WhatsAppCompleto';
-import GerenciarClientes from './pages/GerenciarClientes';
 import __Layout from './Layout.jsx';
 
 
@@ -72,6 +72,7 @@ export const PAGES = {
     "ConfiguracaoSabado": ConfiguracaoSabado,
     "ConfiguracaoTerapeutas": ConfiguracaoTerapeutas,
     "ConfigurarUnidades": ConfigurarUnidades,
+    "GerenciarClientes": GerenciarClientes,
     "GerenciarContratos": GerenciarContratos,
     "GerenciarProntuarios": GerenciarProntuarios,
     "GerenciarServicos": GerenciarServicos,
@@ -82,7 +83,6 @@ export const PAGES = {
     "RelatoriosClientes": RelatoriosClientes,
     "RelatoriosFinanceiros": RelatoriosFinanceiros,
     "WhatsAppCompleto": WhatsAppCompleto,
-    "GerenciarClientes": GerenciarClientes,
 }
 
 export const pagesConfig = {

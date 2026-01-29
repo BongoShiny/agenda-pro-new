@@ -171,10 +171,26 @@ export default function HistoricoAgendamentosPage() {
       log.usuario_email?.toLowerCase().includes(buscaUsuarioLogs.toLowerCase())
     );
     
-    // Filtro de cliente (buscar na descrição)
-    const matchCliente = !buscaClienteLogs || (
-      log.descricao?.toLowerCase().includes(buscaClienteLogs.toLowerCase())
-    );
+    // Filtro de cliente (buscar na descrição E nos dados JSON)
+    const matchCliente = !buscaClienteLogs || (() => {
+      const buscaLower = buscaClienteLogs.toLowerCase();
+      
+      // Buscar na descrição
+      if (log.descricao?.toLowerCase().includes(buscaLower)) return true;
+      
+      // Buscar nos dados JSON (cliente_nome e cliente_telefone)
+      try {
+        const dados = JSON.parse(log.dados_novos || '{}');
+        const antigos = JSON.parse(log.dados_antigos || '{}');
+        
+        if (dados.cliente_nome?.toLowerCase().includes(buscaLower)) return true;
+        if (dados.cliente_telefone?.includes(buscaClienteLogs)) return true;
+        if (antigos.cliente_nome?.toLowerCase().includes(buscaLower)) return true;
+        if (antigos.cliente_telefone?.includes(buscaClienteLogs)) return true;
+      } catch {}
+      
+      return false;
+    })();
     
     // Filtro de unidade (buscar na descrição)
     const matchUnidade = !unidadeFiltroLogs || (
