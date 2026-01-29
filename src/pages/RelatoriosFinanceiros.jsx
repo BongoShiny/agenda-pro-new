@@ -1585,6 +1585,7 @@ export default function RelatoriosFinanceirosPage() {
                               <TableRow>
                                 <TableHead>Data/Hora Criação</TableHead>
                                 <TableHead>Cliente</TableHead>
+                                <TableHead>Telefone</TableHead>
                                 <TableHead>Unidade</TableHead>
                                 <TableHead>Profissional</TableHead>
                                 <TableHead>Data Agendamento</TableHead>
@@ -1613,6 +1614,7 @@ export default function RelatoriosFinanceirosPage() {
                                         </div>
                                       </TableCell>
                                       <TableCell className="font-medium">{venda.cliente_nome}</TableCell>
+                                      <TableCell className="text-sm">{venda.cliente_telefone || "-"}</TableCell>
                                       <TableCell>
                                         <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
                                           {venda.unidade_nome || "-"}
