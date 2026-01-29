@@ -1185,6 +1185,7 @@ export default function AgendaPage() {
                       servicos={servicos}
                       unidades={unidades}
                       agendamentos={agendamentos}
+                      usuarioAtual={usuarioAtual}
                     />
                   </div>
                 )}
