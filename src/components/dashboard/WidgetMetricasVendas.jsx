@@ -249,8 +249,9 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                       <TableHead className="text-right">Pago</TableHead>
                       <TableHead className="text-right">A Receber</TableHead>
                       <TableHead>Comprovante 1</TableHead>
-                      <TableHead>Observações Vendedor</TableHead>
-                      <TableHead className="min-w-[200px]">Anotações</TableHead>
+                       <TableHead>Observações</TableHead>
+                       <TableHead>Observações Vendedor</TableHead>
+                       <TableHead className="min-w-[200px]">Anotações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
