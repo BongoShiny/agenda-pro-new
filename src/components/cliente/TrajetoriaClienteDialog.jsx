@@ -254,10 +254,58 @@ export default function TrajetoriaClienteDialog({ open, onOpenChange, cliente, a
                           </div>
                         )}
 
-                        {ag.observacoes && (
-                          <div className="mt-2 text-sm bg-amber-50 border border-amber-200 rounded p-2">
-                            <FileText className="w-3 h-3 inline mr-1 text-amber-600" />
-                            <span className="text-amber-900">{ag.observacoes}</span>
+                        {/* Observações */}
+                        {(ag.observacoes || ag.observacoes_vendedores || ag.observacoes_terapeuta || ag.observacoes_recepcionista || ag.observacoes_pos_venda) && (
+                          <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
+                            {ag.observacoes && (
+                              <div className="text-sm bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                <div className="font-semibold text-amber-900 mb-1 flex items-center gap-2">
+                                  <FileText className="w-4 h-4" />
+                                  Observações Gerais
+                                </div>
+                                <p className="text-amber-800">{ag.observacoes}</p>
+                              </div>
+                            )}
+                            
+                            {ag.observacoes_vendedores && (
+                              <div className="text-sm bg-blue-50 border border-blue-200 rounded-lg p-3">
+                                <div className="font-semibold text-blue-900 mb-1 flex items-center gap-2">
+                                  <FileText className="w-4 h-4" />
+                                  Observações Vendedores
+                                </div>
+                                <p className="text-blue-800">{ag.observacoes_vendedores}</p>
+                              </div>
+                            )}
+                            
+                            {ag.observacoes_terapeuta && (
+                              <div className="text-sm bg-green-50 border border-green-200 rounded-lg p-3">
+                                <div className="font-semibold text-green-900 mb-1 flex items-center gap-2">
+                                  <FileText className="w-4 h-4" />
+                                  Observações Terapeuta
+                                </div>
+                                <p className="text-green-800">{ag.observacoes_terapeuta}</p>
+                              </div>
+                            )}
+                            
+                            {ag.observacoes_recepcionista && (
+                              <div className="text-sm bg-purple-50 border border-purple-200 rounded-lg p-3">
+                                <div className="font-semibold text-purple-900 mb-1 flex items-center gap-2">
+                                  <FileText className="w-4 h-4" />
+                                  Observações Recepcionista
+                                </div>
+                                <p className="text-purple-800">{ag.observacoes_recepcionista}</p>
+                              </div>
+                            )}
+                            
+                            {ag.observacoes_pos_venda && (
+                              <div className="text-sm bg-pink-50 border border-pink-200 rounded-lg p-3">
+                                <div className="font-semibold text-pink-900 mb-1 flex items-center gap-2">
+                                  <FileText className="w-4 h-4" />
+                                  Observações Pós Venda
+                                </div>
+                                <p className="text-pink-800">{ag.observacoes_pos_venda}</p>
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
