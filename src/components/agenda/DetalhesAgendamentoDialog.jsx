@@ -326,6 +326,11 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
                   <div>
                     <div className="text-xs text-blue-600 font-medium">Criado por</div>
                     <div className="text-sm text-blue-800">{agendamento.criador_email || "Não disponível"}</div>
+                    {agendamento.created_date && (
+                      <div className="text-xs text-blue-600 mt-1">
+                        {new Date(agendamento.created_date).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
+                      </div>
+                    )}
                   </div>
                 </div>
                 {agendamento.editor_email && agendamento.editor_email !== agendamento.criador_email && (
@@ -334,6 +339,11 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
                     <div>
                       <div className="text-xs text-blue-600 font-medium">Última edição por</div>
                       <div className="text-sm text-blue-800">{agendamento.editor_email}</div>
+                      {agendamento.updated_date && (
+                        <div className="text-xs text-blue-600 mt-1">
+                          {new Date(agendamento.updated_date).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -488,6 +498,11 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               <div>
                 <div className="text-xs text-blue-600 font-medium">Criado por</div>
                 <div className="text-sm text-blue-800">{agendamento.criador_email || "Não disponível"}</div>
+                {agendamento.created_date && (
+                  <div className="text-xs text-blue-600 mt-1">
+                    {new Date(agendamento.created_date).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
+                  </div>
+                )}
               </div>
             </div>
             {agendamento.editor_email && agendamento.editor_email !== agendamento.criador_email && (
@@ -496,6 +511,11 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
                 <div>
                   <div className="text-xs text-blue-600 font-medium">Última edição por</div>
                   <div className="text-sm text-blue-800">{agendamento.editor_email}</div>
+                  {agendamento.updated_date && (
+                    <div className="text-xs text-blue-600 mt-1">
+                      {new Date(agendamento.updated_date).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
