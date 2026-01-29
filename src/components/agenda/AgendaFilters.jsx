@@ -414,7 +414,7 @@ export default function AgendaFilters({
               Limpar Filtros
             </Button>
           )}
-          </div>
+        </div>
         )}
       </div>
 
