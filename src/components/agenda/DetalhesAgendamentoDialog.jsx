@@ -328,7 +328,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
                     <div className="text-sm text-blue-800">{agendamento.criador_email || "Não disponível"}</div>
                     {agendamento.created_date && (
                       <div className="text-xs text-blue-600 mt-1">
-                        {new Date(agendamento.created_date).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
+                        {format(new Date(agendamento.created_date), "dd/MM/yyyy 'às' HH:mm:ss", { locale: ptBR })}
                       </div>
                     )}
                   </div>
@@ -341,7 +341,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
                       <div className="text-sm text-blue-800">{agendamento.editor_email}</div>
                       {agendamento.updated_date && (
                         <div className="text-xs text-blue-600 mt-1">
-                          {new Date(agendamento.updated_date).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
+                          {format(new Date(agendamento.updated_date), "dd/MM/yyyy 'às' HH:mm:ss", { locale: ptBR })}
                         </div>
                       )}
                     </div>
@@ -500,7 +500,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
                 <div className="text-sm text-blue-800">{agendamento.criador_email || "Não disponível"}</div>
                 {agendamento.created_date && (
                   <div className="text-xs text-blue-600 mt-1">
-                    {new Date(agendamento.created_date).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
+                    {format(new Date(agendamento.created_date), "dd/MM/yyyy 'às' HH:mm:ss", { locale: ptBR })}
                   </div>
                 )}
               </div>
@@ -513,7 +513,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
                   <div className="text-sm text-blue-800">{agendamento.editor_email}</div>
                   {agendamento.updated_date && (
                     <div className="text-xs text-blue-600 mt-1">
-                      {new Date(agendamento.updated_date).toLocaleString('pt-BR', { timeZone: 'America/Sao_Paulo' })}
+                      {format(new Date(agendamento.updated_date), "dd/MM/yyyy 'às' HH:mm:ss", { locale: ptBR })}
                     </div>
                   )}
                 </div>
