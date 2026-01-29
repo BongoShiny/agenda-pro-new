@@ -573,8 +573,9 @@ export default function RelatoriosFinanceirosPage() {
                   <td>${ag.profissional_nome || "-"}</td>
                   <td>${ag.unidade_nome || "-"}</td>
                   <td>${ag.servico_nome || "-"}</td>
-                  <td>${ag.vendedor_nome || "-"}</td>
-                  <td class="text-right">${formatarMoeda(ag.valor_combinado)}</td>
+                   <td>${ag.vendedor_nome || "-"}</td>
+                   <td>${ag.data_pagamento ? format(criarDataPura(ag.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : "-"}</td>
+                   <td class="text-right">${formatarMoeda(ag.valor_combinado)}</td>
                   <td class="text-right" style="color: #10b981;">${formatarMoeda(ag.sinal)}</td>
                   <td class="text-right" style="color: #10b981;">${formatarMoeda(ag.recebimento_2)}</td>
                   <td class="text-right" style="color: #10b981;">${formatarMoeda(ag.final_pagamento)}</td>
@@ -1552,9 +1553,14 @@ export default function RelatoriosFinanceirosPage() {
                           </TableHeader>
                           <TableBody>
                             {Object.entries(porVendedor).map(([nome, dados]) => (
-                              <TableRow key={nome}>
-                                <TableCell className="font-medium">{nome}</TableCell>
-                                <TableCell className="text-right">{dados.quantidade}</TableCell>
+                               <TableRow key={nome}>
+                                 <TableCell className="font-medium">{nome}</TableCell>
+                                 <TableCell className="text-right">
+                                   {agendamentosMesAnalise.find(ag => ag.vendedor_nome === nome)?.data_pagamento 
+                                     ? format(new Date(agendamentosMesAnalise.find(ag => ag.vendedor_nome === nome).data_pagamento), "dd/MM/yyyy", { locale: ptBR })
+                                     : "-"}
+                                 </TableCell>
+                                 <TableCell className="text-right">{dados.quantidade}</TableCell>
                                 <TableCell className="text-right">{formatarMoeda(dados.totalCombinado)}</TableCell>
                                 <TableCell className="text-right text-green-600">{formatarMoeda(dados.totalSinal)}</TableCell>
                                 <TableCell className="text-right text-green-600">{formatarMoeda(dados.totalRecebimento2)}</TableCell>
@@ -1579,8 +1585,9 @@ export default function RelatoriosFinanceirosPage() {
                                 <TableHead>Unidade</TableHead>
                                 <TableHead>Profissional</TableHead>
                                 <TableHead>Data Agendamento</TableHead>
-                                <TableHead>Pacote</TableHead>
-                                <TableHead className="text-right">Valor</TableHead>
+                                 <TableHead>Data do Pagamento</TableHead>
+                                 <TableHead>Pacote</TableHead>
+                                 <TableHead className="text-right">Valor</TableHead>
                                 <TableHead className="text-right">Pago</TableHead>
                                 <TableHead className="text-right">A Receber</TableHead>
                                 <TableHead>Comprovante 1</TableHead>
@@ -1611,6 +1618,9 @@ export default function RelatoriosFinanceirosPage() {
                                       <TableCell>{venda.profissional_nome}</TableCell>
                                       <TableCell>
                                         {venda.data ? format(criarDataPura(venda.data), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                                      </TableCell>
+                                      <TableCell>
+                                        {venda.data_pagamento ? format(criarDataPura(venda.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : "-"}
                                       </TableCell>
                                       <TableCell>
                                         {venda.cliente_pacote === "Sim" ? (
