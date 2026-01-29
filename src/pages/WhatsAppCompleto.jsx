@@ -136,10 +136,17 @@ export default function WhatsAppCompleto() {
 
   const copiarUrl = () => {
     // Sempre usar URL de produção (remover preview se existir)
-    const prodOrigin = window.location.origin.replace(/preview-sandbox--/, '');
+    let prodOrigin = window.location.origin;
+    
+    // Remover preview-sandbox-- se existir
+    prodOrigin = prodOrigin.replace(/preview-sandbox--/, '');
+    
+    // Remover qualquer subdomínio de preview
+    prodOrigin = prodOrigin.replace(/https:\/\/preview-[^.]+\./, 'https://');
+    
     const webhookUrl = prodOrigin + "/api/webhookZAPI";
     navigator.clipboard.writeText(webhookUrl);
-    alert("✅ URL copiada!");
+    alert("✅ URL DE PRODUÇÃO copiada!\n\nIMPORTANTE: Cole esta URL na Z-API e salve.");
   };
 
   const enviarMensagem = async () => {
@@ -175,7 +182,14 @@ export default function WhatsAppCompleto() {
     return <div className="flex items-center justify-center min-h-screen">Carregando...</div>;
   }
 
-  const webhookUrl = window.location.origin + "/api/webhookZAPI";
+  // URL de produção correta (sem preview)
+  let prodOrigin = window.location.origin;
+  prodOrigin = prodOrigin.replace(/preview-sandbox--/, '');
+  prodOrigin = prodOrigin.replace(/https:\/\/preview-[^.]+\./, 'https://');
+  const webhookUrl = prodOrigin + "/api/webhookZAPI";
+  
+  // Verificar se está em preview
+  const isPreview = window.location.origin.includes('preview');
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -370,8 +384,17 @@ export default function WhatsAppCompleto() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {isPreview && (
+                  <div className="bg-red-50 border-2 border-red-500 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2 text-red-800">🚨 ATENÇÃO - VOCÊ ESTÁ EM PREVIEW!</h4>
+                    <p className="text-sm text-red-700 mb-2">
+                      A URL abaixo é a URL DE PRODUÇÃO correta. Use ela na Z-API, não a URL de preview!
+                    </p>
+                  </div>
+                )}
+
                 <div>
-                  <Label>URL do Webhook:</Label>
+                  <Label>URL do Webhook (PRODUÇÃO):</Label>
                   <div className="flex gap-2 mt-2">
                     <Input 
                       value={webhookUrl} 
@@ -382,6 +405,9 @@ export default function WhatsAppCompleto() {
                       <Copy className="h-4 w-4" />
                     </Button>
                   </div>
+                  <p className="text-xs text-gray-600 mt-2">
+                    ⚠️ Use ESTA URL na Z-API (sem "preview")
+                  </p>
                 </div>
 
                 <div className="bg-blue-50 border-2 border-blue-200 rounded-lg p-4">
@@ -518,13 +544,22 @@ export default function WhatsAppCompleto() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-3">
+                  {isPreview && (
+                    <div className="bg-red-50 border-2 border-red-500 rounded-lg p-4">
+                      <h4 className="font-semibold mb-2 text-red-800">🚨 VOCÊ ESTÁ EM PREVIEW</h4>
+                      <p className="text-sm text-red-700">
+                        A URL abaixo é a URL DE PRODUÇÃO. Certifique-se de usar esta na Z-API!
+                      </p>
+                    </div>
+                  )}
+
                   <div className="bg-white border-2 rounded-lg p-4">
-                    <h4 className="font-semibold mb-2">📌 URL Atual do Webhook:</h4>
+                    <h4 className="font-semibold mb-2">📌 URL Correta do Webhook (PRODUÇÃO):</h4>
                     <code className="block bg-gray-100 p-3 rounded text-sm break-all">
                       {webhookUrl}
                     </code>
                     <p className="text-xs text-gray-600 mt-2">
-                      ⚠️ Esta é a URL que deve estar na Z-API
+                      ⚠️ Esta é a URL que deve estar na Z-API (SEM "preview")
                     </p>
                   </div>
 
@@ -558,12 +593,19 @@ export default function WhatsAppCompleto() {
                     <h4 className="font-semibold mb-2 text-yellow-800">🤔 Por que não está funcionando?</h4>
                     <div className="space-y-2 text-sm">
                       <p><strong>Cenário:</strong> Você envia "Confirmar" pelo WhatsApp mas nada acontece.</p>
-                      <p><strong>Causa mais comum:</strong> A Z-API não está enviando as mensagens recebidas para o webhook.</p>
-                      <p><strong>Solução:</strong></p>
+                      <p><strong>Causas comuns:</strong></p>
+                      <ol className="list-decimal list-inside ml-4 space-y-2">
+                        <li><strong>URL ERRADA na Z-API:</strong> Se a URL tem "preview" no meio, está errada! Use a URL de PRODUÇÃO (sem preview).</li>
+                        <li><strong>"Ler mensagens automático" DESATIVADO:</strong> Deve estar ativado na Z-API.</li>
+                        <li><strong>"Notificar as enviadas por mim também" ATIVADO:</strong> Deve estar desativado.</li>
+                      </ol>
+                      <p className="mt-2"><strong>Solução:</strong></p>
                       <ul className="list-disc list-inside ml-4 space-y-1">
-                        <li>Verifique se "Ler mensagens automático" está ATIVADO</li>
-                        <li>Certifique-se que salvou as configurações</li>
-                        <li>Aguarde 1-2 minutos e teste novamente</li>
+                        <li>Copie a URL de PRODUÇÃO (acima, sem "preview")</li>
+                        <li>Cole na Z-API em "Ao receber"</li>
+                        <li>Ative "Ler mensagens automático"</li>
+                        <li>Desative "Notificar as enviadas por mim também"</li>
+                        <li>SALVE e aguarde 1-2 minutos</li>
                       </ul>
                     </div>
                   </div>
