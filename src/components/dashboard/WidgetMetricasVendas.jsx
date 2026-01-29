@@ -68,6 +68,24 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
     },
   });
 
+  const criarAlertaMutation = useMutation({
+    mutationFn: ({ vendedorEmail, agendamentoId, mensagem }) =>
+      base44.entities.Alerta.create({
+        usuario_email: vendedorEmail,
+        titulo: "Erro em Agendamento",
+        mensagem: mensagem,
+        tipo: "error",
+        agendamento_id: agendamentoId,
+        lido: false,
+        enviado_por: "sistema"
+      }),
+    onSuccess: () => {
+      setNotificacaoDialog(null);
+      setMensagemNotificacao("");
+      alert("✅ Notificação enviada ao vendedor!");
+    },
+  });
+
   // Buscar todos os vendedores cadastrados
   const { data: vendedores = [], isLoading: carregandoVendedores } = useQuery({
     queryKey: ['vendedores'],
