@@ -76,30 +76,36 @@ Deno.serve(async (req) => {
         // Modo teste
         deveEnviar = true;
       } else {
+        // Verificar se já enviou HOJE para esta configuração
+        const dataHoje = agoraBrasilia.toISOString().split('T')[0];
+        if (config.ultimo_envio_data === dataHoje) {
+          console.log(`✅ Já enviou hoje para ${config.unidade_nome} (último envio: ${config.ultimo_envio_data})`);
+          continue;
+        }
+
         // Verificar tipo de envio e horário
         if (config.tipo_envio === '24_horas_antes') {
-          // Enviar às 18h
-          if (horaAtual === 18 && minutoAtual < 5) {
+          // Enviar às 18h ou depois (até 23:59)
+          if (horaAtual >= 18) {
             deveEnviar = true;
           }
         } else if (config.tipo_envio === 'horario_personalizado') {
-          // Enviar no horário fixo configurado
+          // Enviar no horário configurado ou depois
           const [horaConfig, minutoConfig] = (config.horario_fixo || '18:00').split(':').map(Number);
-          // Verificar se está na janela de 5 minutos após o horário configurado
           const horarioAtualMinutos = horaAtual * 60 + minutoAtual;
           const horarioConfigMinutos = horaConfig * 60 + minutoConfig;
-          const diferencaMinutos = horarioAtualMinutos - horarioConfigMinutos;
 
-          console.log(`⏰ Config ${config.unidade_nome}: horario_fixo=${config.horario_fixo}, horaAtual=${horaAtual}:${minutoAtual}, diferença=${diferencaMinutos} minutos`);
+          console.log(`⏰ Config ${config.unidade_nome}: horario_fixo=${config.horario_fixo}, horaAtual=${horaAtual}:${minutoAtual}`);
 
-          if (diferencaMinutos >= 0 && diferencaMinutos < 5) {
+          // Enviar se já passou o horário configurado
+          if (horarioAtualMinutos >= horarioConfigMinutos) {
             deveEnviar = true;
           }
         }
       }
 
       if (!deveEnviar && !numeroTeste) {
-        console.log(`⏭️ Não é hora de enviar para ${config.unidade_nome}`);
+        console.log(`⏭️ Ainda não é hora de enviar para ${config.unidade_nome}`);
         continue;
       }
 
@@ -111,6 +117,8 @@ Deno.serve(async (req) => {
       });
 
       console.log(`📅 Agendamentos de amanhã em ${config.unidade_nome}: ${todosAgendamentos.length}`);
+
+      let enviadosNestaUnidade = 0;
 
       for (const ag of todosAgendamentos) {
         if (!ag.cliente_telefone) {
@@ -187,6 +195,7 @@ Deno.serve(async (req) => {
             }
           } else {
             mensagensEnviadas++;
+            enviadosNestaUnidade++;
             console.log(`✅ Enviado para ${ag.cliente_nome}`)
             
             // Log
@@ -210,6 +219,15 @@ Deno.serve(async (req) => {
           erros.push(`Erro ao enviar para ${ag.cliente_nome}: ${error.message}`);
           console.error('❌', error);
         }
+      }
+
+      // Marcar que enviou hoje para esta unidade (apenas se enviou pelo menos 1)
+      if (!numeroTeste && enviadosNestaUnidade > 0) {
+        const dataHoje = agoraBrasilia.toISOString().split('T')[0];
+        await base44.asServiceRole.entities.ConfiguracaoWhatsApp.update(config.id, {
+          ultimo_envio_data: dataHoje
+        });
+        console.log(`📆 Marcado último envio para ${config.unidade_nome}: ${dataHoje}`);
       }
     }
 
