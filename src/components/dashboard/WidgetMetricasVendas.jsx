@@ -277,8 +277,8 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                              </TableCell>
                              <TableCell>
                                {venda.data_pagamento ? (() => {
-                                 const [ano, mes, dia] = venda.data_pagamento.split('-');
-                                 return `${dia}/${mes}/${ano}`;
+                                 const parts = venda.data_pagamento.split('-');
+                                 return `${parts[2]}/${parts[1]}/${parts[0]}`;
                                })() : "-"}
                              </TableCell>
                             <TableCell>
