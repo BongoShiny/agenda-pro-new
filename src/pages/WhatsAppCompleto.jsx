@@ -190,10 +190,11 @@ export default function WhatsAppCompleto() {
         </div>
 
         <Tabs defaultValue="config" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="config">⚙️ Configuração</TabsTrigger>
             <TabsTrigger value="webhook">🔗 Webhook</TabsTrigger>
             <TabsTrigger value="teste">🧪 Teste</TabsTrigger>
+            <TabsTrigger value="diagnostico">🔍 Diagnóstico</TabsTrigger>
           </TabsList>
 
           {/* ABA CONFIGURAÇÃO */}
@@ -402,6 +403,16 @@ export default function WhatsAppCompleto() {
                     <li>Cliente responde "Cancelar" → agendamento cancelado</li>
                   </ul>
                 </div>
+
+                <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
+                  <h4 className="font-semibold mb-2 text-yellow-800">⚠️ IMPORTANTE - Ler mensagens automático:</h4>
+                  <ol className="list-decimal list-inside space-y-2 text-sm">
+                    <li>Na Z-API, ative <strong>"Ler mensagens automático"</strong></li>
+                    <li>Desative <strong>"Notificar as enviadas por mim também"</strong> (evita loops)</li>
+                    <li>Salve as configurações na Z-API</li>
+                    <li>Aguarde 1-2 minutos para sincronizar</li>
+                  </ol>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
@@ -492,6 +503,82 @@ export default function WhatsAppCompleto() {
                 >
                   {testando ? "Enviando..." : "🧪 Enviar Teste"}
                 </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* ABA DIAGNÓSTICO */}
+          <TabsContent value="diagnostico" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>🔍 Diagnóstico de Conexão</CardTitle>
+                <CardDescription>
+                  Verifique se tudo está configurado corretamente
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="bg-white border-2 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2">📌 URL Atual do Webhook:</h4>
+                    <code className="block bg-gray-100 p-3 rounded text-sm break-all">
+                      {webhookUrl}
+                    </code>
+                    <p className="text-xs text-gray-600 mt-2">
+                      ⚠️ Esta é a URL que deve estar na Z-API
+                    </p>
+                  </div>
+
+                  <div className="bg-blue-50 border-2 border-blue-300 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2">✅ Checklist - O que verificar na Z-API:</h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-start gap-2">
+                        <span className="text-blue-600">□</span>
+                        <span>Webhook "Ao receber" configurado com a URL acima</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-blue-600">□</span>
+                        <span><strong>"Ler mensagens automático"</strong> está ATIVADO</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-blue-600">□</span>
+                        <span><strong>"Notificar as enviadas por mim também"</strong> está DESATIVADO</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-blue-600">□</span>
+                        <span>Clicou em "Salvar" após fazer as alterações</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-blue-600">□</span>
+                        <span>Aguardou 1-2 minutos após salvar</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-yellow-50 border-2 border-yellow-300 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2 text-yellow-800">🤔 Por que não está funcionando?</h4>
+                    <div className="space-y-2 text-sm">
+                      <p><strong>Cenário:</strong> Você envia "Confirmar" pelo WhatsApp mas nada acontece.</p>
+                      <p><strong>Causa mais comum:</strong> A Z-API não está enviando as mensagens recebidas para o webhook.</p>
+                      <p><strong>Solução:</strong></p>
+                      <ul className="list-disc list-inside ml-4 space-y-1">
+                        <li>Verifique se "Ler mensagens automático" está ATIVADO</li>
+                        <li>Certifique-se que salvou as configurações</li>
+                        <li>Aguarde 1-2 minutos e teste novamente</li>
+                      </ul>
+                    </div>
+                  </div>
+
+                  <div className="bg-green-50 border-2 border-green-300 rounded-lg p-4">
+                    <h4 className="font-semibold mb-2 text-green-800">💡 Como testar se está funcionando:</h4>
+                    <ol className="list-decimal list-inside space-y-2 text-sm">
+                      <li>Envie um lembrete de teste na aba "Teste"</li>
+                      <li>Responda "Confirmar" do WhatsApp</li>
+                      <li>Aguarde 2-3 segundos</li>
+                      <li>Verifique na agenda se o status mudou para "confirmado"</li>
+                      <li>Você deve receber uma mensagem: "Seu agendamento está confirmado! ✅"</li>
+                    </ol>
+                  </div>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
