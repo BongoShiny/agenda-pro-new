@@ -403,21 +403,35 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                                )}
                             </TableCell>
                             <TableCell>
-                              {modoEdicao ? (
-                                <Textarea
-                                  value={anotacoes[venda.id] !== undefined ? anotacoes[venda.id] : (venda.anotacao_venda || "")}
-                                  onChange={(e) => setAnotacoes(prev => ({ ...prev, [venda.id]: e.target.value }))}
-                                  placeholder="Adicionar anotação..."
-                                  className="text-xs min-h-[60px]"
-                                  rows={2}
-                                />
-                              ) : (
-                                <span className="text-xs text-gray-600">
-                                  {venda.anotacao_venda || "-"}
-                                </span>
-                              )}
+                               {modoEdicao ? (
+                                 <Textarea
+                                   value={anotacoes[venda.id] !== undefined ? anotacoes[venda.id] : (venda.anotacao_venda || "")}
+                                   onChange={(e) => setAnotacoes(prev => ({ ...prev, [venda.id]: e.target.value }))}
+                                   placeholder="Adicionar anotação..."
+                                   className="text-xs min-h-[60px]"
+                                   rows={2}
+                                 />
+                               ) : (
+                                 <span className="text-xs text-gray-600">
+                                   {venda.anotacao_venda || "-"}
+                                 </span>
+                               )}
                             </TableCell>
-                          </TableRow>
+                            <TableCell>
+                              <Button
+                                onClick={() => setNotificacaoDialog({
+                                  vendedorEmail: venda.vendedor_nome,
+                                  agendamentoId: venda.id,
+                                  cliente: venda.cliente_nome
+                                })}
+                                variant="outline"
+                                size="sm"
+                                className="text-xs bg-red-50 hover:bg-red-100 text-red-600"
+                              >
+                                ⚠️ Notificar
+                              </Button>
+                            </TableCell>
+                            </TableRow>
                         );
                       })}
                   </TableBody>
