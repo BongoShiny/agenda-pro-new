@@ -36,7 +36,9 @@ export default function HistoricoClienteDialog({
   filtroServico = null,
   filtroStatus = null,
   filtroData = null,
-  usuarioAtual = null
+  usuarioAtual = null,
+  onEditAgendamento = null,
+  onDeleteAgendamento = null
 }) {
   const [sessaoSelecionada, setSessaoSelecionada] = useState(null);
   const [detalhesAberto, setDetalhesAberto] = useState(false);
@@ -170,11 +172,20 @@ export default function HistoricoClienteDialog({
           open={detalhesAberto}
           onOpenChange={setDetalhesAberto}
           agendamento={sessaoSelecionada}
-          usuarioAtual={{ ...usuarioAtual, cargo: 'administrador' }}
-          onDelete={() => {}}
-          onEdit={() => {}}
-          onConfirmar={() => {}}
-          modoVisualizacao={true}
+          usuarioAtual={usuarioAtual}
+          onDelete={(id) => {
+            if (onDeleteAgendamento) {
+              onDeleteAgendamento(id);
+            }
+            setDetalhesAberto(false);
+          }}
+          onEdit={(agendamento) => {
+            if (onEditAgendamento) {
+              onEditAgendamento(agendamento);
+            }
+            setDetalhesAberto(false);
+          }}
+          modoVisualizacao={false}
         />
       </DialogContent>
     </Dialog>

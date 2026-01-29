@@ -38,7 +38,9 @@ export default function AgendaFilters({
   servicos = [],
   unidades = [],
   agendamentos = [],
-  usuarioAtual = null
+  usuarioAtual = null,
+  onEditAgendamento = null,
+  onDeleteAgendamento = null
 }) {
   const [historicoAberto, setHistoricoAberto] = useState(false);
   const [agendamentoSelecionado, setAgendamentoSelecionado] = useState(null);
@@ -306,6 +308,8 @@ export default function AgendaFilters({
                       filtroStatus={filters.status}
                       filtroData={filters.data}
                       usuarioAtual={usuarioAtual}
+                      onEditAgendamento={onEditAgendamento}
+                      onDeleteAgendamento={onDeleteAgendamento}
                     />
     </div>
   );
