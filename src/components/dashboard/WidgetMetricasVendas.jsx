@@ -228,10 +228,12 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                     <TableRow>
                       <TableHead>Data/Hora Criação</TableHead>
                       <TableHead>Cliente</TableHead>
+                      <TableHead>Telefone</TableHead>
                       <TableHead>Unidade</TableHead>
                       <TableHead>Vendedor</TableHead>
                       <TableHead>Profissional</TableHead>
                       <TableHead>Data Agendamento</TableHead>
+                      <TableHead>Data do Pagamento</TableHead>
                       <TableHead>Pacote</TableHead>
                       <TableHead>Forma de Pagamento</TableHead>
                       <TableHead className="text-right">Valor</TableHead>
@@ -258,20 +260,24 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                               </div>
                             </TableCell>
                             <TableCell className="font-medium">{venda.cliente_nome}</TableCell>
-                            <TableCell>
-                              <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                                {venda.unidade_nome || "-"}
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              <span className="text-blue-600 font-medium">
-                                {venda.vendedor_nome || "-"}
-                              </span>
-                            </TableCell>
-                            <TableCell>{venda.profissional_nome}</TableCell>
-                            <TableCell>
-                              {venda.data ? format(new Date(venda.data + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR }) : "-"}
-                            </TableCell>
+                             <TableCell className="text-sm">{venda.cliente_telefone || "-"}</TableCell>
+                             <TableCell>
+                               <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                 {venda.unidade_nome || "-"}
+                               </span>
+                             </TableCell>
+                             <TableCell>
+                               <span className="text-blue-600 font-medium">
+                                 {venda.vendedor_nome || "-"}
+                               </span>
+                             </TableCell>
+                             <TableCell>{venda.profissional_nome}</TableCell>
+                             <TableCell>
+                               {venda.data ? format(new Date(venda.data + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                             </TableCell>
+                             <TableCell>
+                               {venda.data_pagamento ? format(new Date(venda.data_pagamento + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                             </TableCell>
                             <TableCell>
                               {venda.cliente_pacote === "Sim" ? (
                                 <div className="text-xs">
