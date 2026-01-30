@@ -4,12 +4,15 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Filter, UserPlus, TrendingUp, Clock, CheckCircle, XCircle } from "lucide-react";
+import { Plus, Search, Filter, UserPlus, TrendingUp, Clock, CheckCircle, XCircle, ArrowLeft } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import LeadCard from "../components/crm/LeadCard";
 import NovoLeadDialog from "../components/crm/NovoLeadDialog";
 import DetalhesLeadDialog from "../components/crm/DetalhesLeadDialog";
 
 export default function CRMPage() {
+  const navigate = useNavigate();
   const [user, setUser] = useState(null);
   const [novoLeadOpen, setNovoLeadOpen] = useState(false);
   const [leadSelecionado, setLeadSelecionado] = useState(null);
@@ -111,12 +114,21 @@ export default function CRMPage() {
         {/* Header */}
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <div className="flex items-center justify-between mb-6">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                <TrendingUp className="w-8 h-8 text-blue-600" />
-                CRM - Gestão de Leads
-              </h1>
-              <p className="text-gray-600 mt-1">Gerencie seus leads e conversões</p>
+            <div className="flex items-center gap-4">
+              <Button 
+                variant="outline" 
+                size="icon"
+                onClick={() => navigate(createPageUrl("Agenda"))}
+              >
+                <ArrowLeft className="w-4 h-4" />
+              </Button>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                  <TrendingUp className="w-8 h-8 text-blue-600" />
+                  CRM - Gestão de Leads
+                </h1>
+                <p className="text-gray-600 mt-1">Gerencie seus leads e conversões</p>
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <Button onClick={() => setNovoLeadOpen(true)} className="bg-blue-600 hover:bg-blue-700">
