@@ -39,11 +39,33 @@ export default function CRMPage() {
     loadUser();
   }, []);
 
-  const { data: leads = [] } = useQuery({
+  const { data: leads = [], refetch: refetchLeads } = useQuery({
     queryKey: ['leads'],
     queryFn: () => base44.entities.Lead.list("-created_date"),
     initialData: [],
+    refetchInterval: 2000, // Atualizar a cada 2 segundos
   });
+
+  // Subscrição em tempo real para sincronizar com outros usuários
+  useEffect(() => {
+    console.log('🔔 Ativando subscrição em tempo real para leads');
+    
+    const unsubscribe = base44.entities.Lead.subscribe((event) => {
+      console.log(`🔔 EVENTO TEMPO REAL: ${event.type} - ID: ${event.id}`);
+      
+      if (event.type === 'create' || event.type === 'update' || event.type === 'delete') {
+        console.log('✅ Lead atualizado em tempo real:', event.data);
+        // Forçar atualização imediata
+        refetchLeads();
+        queryClient.invalidateQueries({ queryKey: ['leads'] });
+      }
+    });
+
+    return () => {
+      console.log('🔕 Desativando subscrição de leads');
+      unsubscribe();
+    };
+  }, [refetchLeads, queryClient]);
 
   const { data: unidades = [] } = useQuery({
     queryKey: ['unidades'],
@@ -118,36 +140,30 @@ export default function CRMPage() {
   const handleStatusChange = async (leadId, novoStatus) => {
     try {
       const lead = leads.find(l => l.id === leadId);
-      if (!lead) return;
+      if (!lead || lead.status === novoStatus) return; // Nenhuma mudança
 
       // Validar permissões de mudança de status
       if (isVendedor) {
-        // Vendedor: Lead → Avulso/Plano | Avulso → Plano
-        if (lead.status === "lead" && !["avulso", "plano_terapeutico"].includes(novoStatus)) {
-          alert("❌ Vendedor pode mover Lead apenas para Avulso ou Plano Terapêutico.");
-          return;
-        }
-        if (lead.status === "avulso" && novoStatus !== "plano_terapeutico") {
-          alert("❌ Vendedor pode mover Avulso apenas para Plano Terapêutico.");
-          return;
-        }
-        if (lead.status === "plano_terapeutico" || novoStatus === "renovacao") {
-          alert("❌ Vendedor não pode mover leads para Renovação.");
-          return;
+        // Vendedor: Lead → Avulso/Plano | Avulso → Plano | Plano fica igual
+        const transicaoValida = (
+          (lead.status === "lead" && ["avulso", "plano_terapeutico"].includes(novoStatus)) ||
+          (lead.status === "avulso" && novoStatus === "plano_terapeutico")
+        );
+        
+        if (!transicaoValida) {
+          console.warn("❌ Transição não permitida para vendedor:", lead.status, "→", novoStatus);
+          return; // Silenciosamente rejeitar, sem alert
         }
       } else if (isRecepcao) {
         // Recepção: Avulso → Plano/Renovação | Plano → Renovação
-        if (lead.status === "avulso" && !["plano_terapeutico", "renovacao"].includes(novoStatus)) {
-          alert("❌ Recepção pode mover Avulso apenas para Plano Terapêutico ou Renovação.");
-          return;
-        }
-        if (lead.status === "plano_terapeutico" && novoStatus !== "renovacao") {
-          alert("❌ Recepção pode mover Plano Terapêutico apenas para Renovação.");
-          return;
-        }
-        if (lead.status === "lead") {
-          alert("❌ Recepção não pode mexer em leads com status 'Lead'.");
-          return;
+        const transicaoValida = (
+          (lead.status === "avulso" && ["plano_terapeutico", "renovacao"].includes(novoStatus)) ||
+          (lead.status === "plano_terapeutico" && novoStatus === "renovacao")
+        );
+        
+        if (!transicaoValida) {
+          console.warn("❌ Transição não permitida para recepção:", lead.status, "→", novoStatus);
+          return; // Silenciosamente rejeitar, sem alert
         }
       }
 
@@ -157,7 +173,6 @@ export default function CRMPage() {
       });
     } catch (error) {
       console.error("Erro ao atualizar status:", error);
-      alert("Erro ao atualizar status do lead");
     }
   };
 
