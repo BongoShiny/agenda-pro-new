@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { base44 } from "@/api/base44Client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const statusColors = {
   confirmado: "bg-emerald-500",
@@ -56,6 +57,7 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownPacienteOpen, setDropdownPacienteOpen] = useState(false);
   const [enviandoWhatsApp, setEnviandoWhatsApp] = useState(false);
+  const queryClient = useQueryClient();
   
   console.log(`🎴 CARD | ${agendamento.cliente_nome} | Data: ${agendamento.data} | ${agendamento.hora_inicio}`);
   
@@ -128,7 +130,8 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
 
       if (response.data.success) {
         alert(response.data.message);
-        window.location.reload(); // Recarregar para atualizar o status
+        // Atualizar apenas os registros de WhatsApp
+        queryClient.invalidateQueries({ queryKey: ['registrosWhatsApp'] });
       } else {
         alert(`Erro: ${response.data.error}`);
       }
