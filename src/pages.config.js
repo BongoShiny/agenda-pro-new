@@ -52,7 +52,6 @@ import Agenda from './pages/Agenda';
 import ConfiguracaoSabado from './pages/ConfiguracaoSabado';
 import ConfiguracaoTerapeutas from './pages/ConfiguracaoTerapeutas';
 import ConfigurarUnidades from './pages/ConfigurarUnidades';
-import GerenciarClientes from './pages/GerenciarClientes';
 import GerenciarContratos from './pages/GerenciarContratos';
 import GerenciarProntuarios from './pages/GerenciarProntuarios';
 import GerenciarServicos from './pages/GerenciarServicos';
@@ -73,7 +72,6 @@ export const PAGES = {
     "ConfiguracaoSabado": ConfiguracaoSabado,
     "ConfiguracaoTerapeutas": ConfiguracaoTerapeutas,
     "ConfigurarUnidades": ConfigurarUnidades,
-    "GerenciarClientes": GerenciarClientes,
     "GerenciarContratos": GerenciarContratos,
     "GerenciarProntuarios": GerenciarProntuarios,
     "GerenciarServicos": GerenciarServicos,
