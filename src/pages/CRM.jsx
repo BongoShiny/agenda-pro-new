@@ -87,6 +87,11 @@ export default function CRMPage() {
 
   // Filtrar leads
   const leadsFiltrados = leads.filter(lead => {
+    // Vendedor só vê seus próprios leads
+    if (!isSuperior && lead.vendedor_id !== user?.id) {
+      return false;
+    }
+
     const matchBusca = lead.nome?.toLowerCase().includes(busca.toLowerCase()) ||
                        lead.telefone?.includes(busca);
     const matchStatus = filtroStatus === "todos" || lead.status === filtroStatus;
@@ -273,6 +278,7 @@ export default function CRMPage() {
         unidades={unidades}
         vendedores={vendedores}
         user={user}
+        leadsExistentes={leads}
       />
 
       {leadSelecionado && (
