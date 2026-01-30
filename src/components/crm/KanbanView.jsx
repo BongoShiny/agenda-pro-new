@@ -16,13 +16,18 @@ const temperaturaConfig = {
   frio: { icon: "❄️", label: "Frio", color: "text-blue-600", bg: "bg-blue-50" },
 };
 
-export default function KanbanView({ leads, onStatusChange, onLeadClick }) {
-  const columns = [
+export default function KanbanView({ leads, onStatusChange, onLeadClick, colunasVisiveis }) {
+  const todasColunas = [
     { id: "lead", title: "Lead" },
     { id: "avulso", title: "Avulso" },
     { id: "plano_terapeutico", title: "Plano Terapêutico" },
     { id: "renovacao", title: "Renovação" },
   ];
+
+  // Filtrar colunas baseado no que o usuário pode ver
+  const columns = colunasVisiveis 
+    ? todasColunas.filter(col => colunasVisiveis.includes(col.id))
+    : todasColunas;
 
   const handleDragEnd = (result) => {
     if (!result.destination) return;

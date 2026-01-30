@@ -147,6 +147,12 @@ export default function CRMPage() {
 
   const isAdmin = user?.role === 'admin';
   const isSuperior = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades";
+  const isVendedor = user?.cargo === "vendedor";
+
+  // Definir quais colunas o usuário pode ver
+  const colunasVisiveis = isVendedor 
+    ? ["lead", "avulso"] 
+    : ["lead", "avulso", "plano_terapeutico", "renovacao"];
 
   // Detectar leads duplicados (mesmo telefone)
   const leadsDuplicados = new Set();
@@ -166,10 +172,17 @@ export default function CRMPage() {
 
   // Filtrar leads
   const leadsFiltrados = leads.filter(lead => {
-    // Vendedor só vê seus próprios leads
-    if (!isSuperior && lead.vendedor_id !== user?.id) {
-      return false;
+    // Vendedor só vê seus próprios leads E apenas status "lead" e "avulso"
+    if (isVendedor) {
+      if (lead.vendedor_id !== user?.id) {
+        return false;
+      }
+      if (!["lead", "avulso"].includes(lead.status)) {
+        return false;
+      }
     }
+    
+    // Admin/gerência vê tudo (já filtrado pelos outros filtros)
 
     const matchBusca = lead.nome?.toLowerCase().includes(busca.toLowerCase()) ||
                        lead.telefone?.includes(busca);
@@ -180,12 +193,16 @@ export default function CRMPage() {
     return matchBusca && matchStatus && matchUnidade && matchVendedor;
   });
 
-  // Estatísticas
+  // Estatísticas (filtradas por usuário)
+  const leadsDoUsuario = isVendedor 
+    ? leads.filter(l => l.vendedor_id === user?.id)
+    : leads;
+
   const stats = {
-    lead: leads.filter(l => l.status === "lead").length,
-    avulso: leads.filter(l => l.status === "avulso").length,
-    planoTerapeutico: leads.filter(l => l.status === "plano_terapeutico").length,
-    renovacao: leads.filter(l => l.status === "renovacao").length,
+    lead: leadsDoUsuario.filter(l => l.status === "lead").length,
+    avulso: leadsDoUsuario.filter(l => l.status === "avulso").length,
+    planoTerapeutico: leadsDoUsuario.filter(l => l.status === "plano_terapeutico").length,
+    renovacao: leadsDoUsuario.filter(l => l.status === "renovacao").length,
   };
 
   return (
@@ -243,7 +260,7 @@ export default function CRMPage() {
           </div>
 
           {/* Estatísticas */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className={`grid grid-cols-2 gap-4 ${isVendedor ? 'md:grid-cols-2' : 'md:grid-cols-4'}`}>
             <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
               <div className="flex items-center gap-2 text-green-700 mb-1">
                 <UserPlus className="w-5 h-5" />
@@ -258,20 +275,24 @@ export default function CRMPage() {
               </div>
               <p className="text-2xl font-bold text-yellow-900">{stats.avulso}</p>
             </div>
-            <div className="bg-amber-50 rounded-lg p-4 border-2 border-amber-200">
-              <div className="flex items-center gap-2 text-amber-700 mb-1">
-                <TrendingUp className="w-5 h-5" />
-                <span className="font-semibold">Plano Terapêutico</span>
-              </div>
-              <p className="text-2xl font-bold text-amber-900">{stats.planoTerapeutico}</p>
-            </div>
-            <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
-              <div className="flex items-center gap-2 text-blue-700 mb-1">
-                <CheckCircle className="w-5 h-5" />
-                <span className="font-semibold">Renovação</span>
-              </div>
-              <p className="text-2xl font-bold text-blue-900">{stats.renovacao}</p>
-            </div>
+            {!isVendedor && (
+              <>
+                <div className="bg-amber-50 rounded-lg p-4 border-2 border-amber-200">
+                  <div className="flex items-center gap-2 text-amber-700 mb-1">
+                    <TrendingUp className="w-5 h-5" />
+                    <span className="font-semibold">Plano Terapêutico</span>
+                  </div>
+                  <p className="text-2xl font-bold text-amber-900">{stats.planoTerapeutico}</p>
+                </div>
+                <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
+                  <div className="flex items-center gap-2 text-blue-700 mb-1">
+                    <CheckCircle className="w-5 h-5" />
+                    <span className="font-semibold">Renovação</span>
+                  </div>
+                  <p className="text-2xl font-bold text-blue-900">{stats.renovacao}</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -319,8 +340,12 @@ export default function CRMPage() {
                 <SelectItem value="todos">Todos os Status</SelectItem>
                 <SelectItem value="lead">Lead</SelectItem>
                 <SelectItem value="avulso">Avulso</SelectItem>
-                <SelectItem value="plano_terapeutico">Plano Terapêutico</SelectItem>
-                <SelectItem value="renovacao">Renovação</SelectItem>
+                {!isVendedor && (
+                  <>
+                    <SelectItem value="plano_terapeutico">Plano Terapêutico</SelectItem>
+                    <SelectItem value="renovacao">Renovação</SelectItem>
+                  </>
+                )}
               </SelectContent>
             </Select>
             <Select value={filtroUnidade} onValueChange={setFiltroUnidade}>
@@ -375,6 +400,7 @@ export default function CRMPage() {
               leads={leadsFiltrados}
               onStatusChange={handleStatusChange}
               onLeadClick={handleAbrirDetalhes}
+              colunasVisiveis={colunasVisiveis}
             />
           </div>
         ) : (
