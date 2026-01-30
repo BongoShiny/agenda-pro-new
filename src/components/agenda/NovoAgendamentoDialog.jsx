@@ -848,6 +848,7 @@ export default function NovoAgendamentoDialog({
               <SelectContent>
                 <SelectItem value={null}>-</SelectItem>
                 <SelectItem value="paciente_novo">Paciente Novo</SelectItem>
+                <SelectItem value="primeira_sessao">Primeira Sessão</SelectItem>
                 <SelectItem value="ultima_sessao">Última Sessão</SelectItem>
                 <SelectItem value="voucher" className="bg-black text-white font-semibold">Voucher</SelectItem>
               </SelectContent>
