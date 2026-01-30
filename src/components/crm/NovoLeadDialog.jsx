@@ -17,7 +17,7 @@ import { Calendar as CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
-export default function NovoLeadDialog({ open, onOpenChange, onSave, unidades, vendedores, user }) {
+export default function NovoLeadDialog({ open, onOpenChange, onSave, unidades, vendedores, user, leadsExistentes }) {
   const [formData, setFormData] = useState({
     nome: "",
     telefone: "",
@@ -54,6 +54,24 @@ export default function NovoLeadDialog({ open, onOpenChange, onSave, unidades, v
   };
 
   const handleSubmit = () => {
+    // Validar campos obrigatórios
+    if (!formData.nome || !formData.telefone || !formData.unidade_id || !formData.vendedor_id) {
+      alert("⚠️ Preencha os campos obrigatórios: Nome, Telefone, Unidade e Vendedor");
+      return;
+    }
+
+    // Verificar se já existe lead com este telefone
+    const telefoneNormalizado = formData.telefone.replace(/\D/g, '');
+    const leadDuplicado = leadsExistentes?.find(lead => {
+      const telExistente = lead.telefone.replace(/\D/g, '');
+      return telExistente === telefoneNormalizado;
+    });
+
+    if (leadDuplicado) {
+      alert("❌ Esse lead já foi cadastrado!\n\nNome: " + leadDuplicado.nome + "\nTelefone: " + leadDuplicado.telefone);
+      return;
+    }
+
     onSave(formData);
     setFormData({
       nome: "",
