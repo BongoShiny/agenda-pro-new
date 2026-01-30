@@ -175,15 +175,23 @@ export default function CRMPage() {
     v.nome === user?.full_name || v.email === user?.email
   );
 
-  // Filtrar leads
+  // Filtrar leads baseado no cargo
   const leadsFiltrados = leads.filter(lead => {
-    // Vendedor só vê seus próprios leads E apenas status "lead" e "avulso"
+    // VENDEDOR: vê seus próprios leads + avulso + plano terapêutico (que ele criou)
     if (isVendedor) {
-      // Usar o ID do vendedor da entidade Vendedor, não o user.id
+      // Deve ser do vendedor
       if (lead.vendedor_id !== vendedorDoUsuario?.id) {
         return false;
       }
-      if (!["lead", "avulso"].includes(lead.status)) {
+      // Pode ver: lead, avulso, plano_terapeutico (para acompanhar conversões)
+      if (!["lead", "avulso", "plano_terapeutico"].includes(lead.status)) {
+        return false;
+      }
+    }
+    
+    // RECEPÇÃO: vê avulso, plano_terapeutico e renovacao (de todos)
+    if (isRecepcao) {
+      if (!["avulso", "plano_terapeutico", "renovacao"].includes(lead.status)) {
         return false;
       }
     }
