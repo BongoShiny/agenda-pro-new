@@ -10,6 +10,7 @@ import { createPageUrl } from "@/utils";
 import LeadCard from "../components/crm/LeadCard";
 import NovoLeadDialog from "../components/crm/NovoLeadDialog";
 import DetalhesLeadDialog from "../components/crm/DetalhesLeadDialog";
+import KanbanView from "../components/crm/KanbanView";
 
 export default function CRMPage() {
   const navigate = useNavigate();
