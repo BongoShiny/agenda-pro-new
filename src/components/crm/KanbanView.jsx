@@ -32,9 +32,20 @@ export default function KanbanView({ leads, onStatusChange, onLeadClick, colunas
   const handleDragEnd = (result) => {
     if (!result.destination) return;
 
-    const { draggableId, destination } = result;
+    const { draggableId, destination, source } = result;
     const leadId = draggableId;
     const novoStatus = destination.droppableId;
+    const statusAnterior = source.droppableId;
+
+    // Não permitir drop em coluna que não é visível
+    if (!colunasVisiveis.includes(novoStatus)) {
+      return;
+    }
+
+    // Não fazer nada se for solto no mesmo lugar
+    if (statusAnterior === novoStatus) {
+      return;
+    }
 
     const lead = leads.find(l => l.id === leadId);
     if (lead && lead.status !== novoStatus) {
