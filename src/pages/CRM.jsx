@@ -89,6 +89,7 @@ export default function CRMPage() {
   };
 
   const isAdmin = user?.role === 'admin';
+  const isSuperior = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -103,10 +104,12 @@ export default function CRMPage() {
               </h1>
               <p className="text-gray-600 mt-1">Gerencie seus leads e conversões</p>
             </div>
-            <Button onClick={() => setNovoLeadOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-5 h-5 mr-2" />
-              Novo Lead
-            </Button>
+            {isSuperior && (
+              <Button onClick={() => setNovoLeadOpen(true)} className="bg-blue-600 hover:bg-blue-700">
+                <Plus className="w-5 h-5 mr-2" />
+                Novo
+              </Button>
+            )}
           </div>
 
           {/* Estatísticas */}
