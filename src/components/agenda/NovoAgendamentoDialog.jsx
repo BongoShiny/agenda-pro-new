@@ -797,7 +797,7 @@ export default function NovoAgendamentoDialog({
            {formData.tipo === "plano_terapeutico" && formData.cliente_pacote === "Sim" && (
             <>
               <div className="space-y-2">
-                <Label>Quantas Sessões (total do pacote)</Label>
+                <Label>Quantas Sessões (total do plano)</Label>
                 <Input
                   type="number"
                   min="1"
@@ -810,7 +810,7 @@ export default function NovoAgendamentoDialog({
                 />
                 {pacoteCliente && !modoEdicao && (
                   <p className="text-xs text-blue-600 bg-blue-50 p-2 rounded">
-                    ℹ️ Sincronizado automaticamente do pacote anterior do cliente
+                    ℹ️ Sincronizado automaticamente do plano anterior do cliente
                   </p>
                 )}
               </div>
