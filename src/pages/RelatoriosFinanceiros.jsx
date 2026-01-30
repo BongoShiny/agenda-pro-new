@@ -1263,7 +1263,8 @@ export default function RelatoriosFinanceirosPage() {
                    const hoje = format(new Date(), "yyyy-MM-dd");
                    const agendamentosHoje = agendamentos
                      .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
-                     .filter(ag => ag.data === hoje);
+                     .filter(ag => ag.data === hoje)
+                     .filter(ag => ag.status_paciente === "paciente_novo");
 
                    const totalCombinadoHoje = agendamentosHoje.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
                    const totalSinalHoje = agendamentosHoje.reduce((sum, ag) => sum + (ag.sinal || 0), 0);
