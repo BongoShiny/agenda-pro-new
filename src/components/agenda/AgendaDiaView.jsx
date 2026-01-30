@@ -28,15 +28,9 @@ export default function AgendaDiaView({
   usuarioAtual,
   dataAtual,
   excecoesHorario = [],
-  refetchAgendamentos // Nova prop para forçar atualização
+  prontuarios = [],
+  registrosWhatsApp = []
 }) {
-  // Buscar prontuários
-  const { data: prontuarios = [] } = useQuery({
-    queryKey: ['prontuarios-agenda'],
-    queryFn: () => base44.entities.Prontuario.list(),
-    initialData: [],
-    refetchInterval: 10000, // Atualizar a cada 10 segundos
-  });
 
   // Buscar configurações de sábado
    const { data: configuracoesSabado = [] } = useQuery({
@@ -676,6 +670,7 @@ export default function AgendaDiaView({
                                 onStatusChange={onStatusChange}
                                 onStatusPacienteChange={onStatusPacienteChange}
                                 prontuarios={prontuarios}
+                                registrosWhatsApp={registrosWhatsApp}
                               />
                             </div>
                           );
