@@ -203,6 +203,21 @@ export default function CRMPage() {
     }
   };
 
+  const handleSincronizarAgendamentos = async () => {
+    if (window.confirm("Sincronizar TODOS os agendamentos com o CRM?\n\nIsso criará/atualizará leads baseado nos agendamentos.")) {
+      setSincronizandoAgendamentos(true);
+      try {
+        const response = await base44.functions.invoke('sincronizarAgendamentosNosCRM', {});
+        alert(`✅ Sincronização concluída!\n\n${response.data.sincronizados} leads atualizados/criados\n${response.data.erros} erros`);
+        queryClient.invalidateQueries({ queryKey: ['leads'] });
+      } catch (error) {
+        alert(`❌ Erro na sincronização: ${error.message}`);
+      } finally {
+        setSincronizandoAgendamentos(false);
+      }
+    }
+  };
+
   const isAdmin = user?.role === 'admin';
   const isSuperior = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades";
   const isVendedor = user?.cargo === "vendedor";
