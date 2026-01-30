@@ -11,9 +11,9 @@ const statusConfig = {
 };
 
 const temperaturaConfig = {
-  quente: { icon: "🔥", color: "text-red-600", bg: "bg-red-50" },
-  morno: { icon: "☀️", color: "text-yellow-600", bg: "bg-yellow-50" },
-  frio: { icon: "❄️", color: "text-blue-600", bg: "bg-blue-50" },
+  quente: { icon: "🔥", label: "Quente", color: "text-red-600", bg: "bg-red-50" },
+  morno: { icon: "☀️", label: "Morno", color: "text-yellow-600", bg: "bg-yellow-50" },
+  frio: { icon: "❄️", label: "Frio", color: "text-blue-600", bg: "bg-blue-50" },
 };
 
 export default function KanbanView({ leads, onStatusChange, onLeadClick }) {
@@ -88,9 +88,10 @@ export default function KanbanView({ leads, onStatusChange, onLeadClick }) {
                                 <h4 className="font-semibold text-gray-900 text-sm line-clamp-1">
                                   {lead.nome}
                                 </h4>
-                                <span className={`text-lg ${temp.color}`}>
-                                  {temp.icon}
-                                </span>
+                                <div className={`flex items-center gap-1 ${temp.color} ${temp.bg} px-2 py-0.5 rounded-md`}>
+                                  <span className="text-sm">{temp.icon}</span>
+                                  <span className="text-xs font-medium">{temp.label}</span>
+                                </div>
                               </div>
 
                               {/* Vendedor */}
