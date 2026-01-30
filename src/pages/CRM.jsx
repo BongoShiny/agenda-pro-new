@@ -70,6 +70,40 @@ export default function CRMPage() {
     },
   });
 
+  const limparDuplicadosMutation = useMutation({
+    mutationFn: async () => {
+      const telefonesMap = new Map();
+      const idsParaDeletar = [];
+      
+      // Ordenar por data de criação (mais antigo primeiro) para manter o primeiro
+      const leadsOrdenados = [...leads].sort((a, b) => 
+        new Date(a.created_date) - new Date(b.created_date)
+      );
+      
+      leadsOrdenados.forEach(lead => {
+        const telefoneNormalizado = (lead.telefone || '').replace(/\D/g, '');
+        if (telefoneNormalizado.length >= 10) {
+          if (telefonesMap.has(telefoneNormalizado)) {
+            // É duplicado - adicionar para deletar
+            idsParaDeletar.push(lead.id);
+          } else {
+            // Primeiro lead com este telefone - manter
+            telefonesMap.set(telefoneNormalizado, lead.id);
+          }
+        }
+      });
+      
+      // Deletar todos os duplicados
+      await Promise.all(idsParaDeletar.map(id => base44.entities.Lead.delete(id)));
+      
+      return idsParaDeletar.length;
+    },
+    onSuccess: (qtdRemovidos) => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+      alert(`✅ ${qtdRemovidos} lead(s) duplicado(s) removido(s) com sucesso!`);
+    },
+  });
+
   const handleNovoLead = (leadData) => {
     createLeadMutation.mutate(leadData);
   };
@@ -156,6 +190,20 @@ export default function CRMPage() {
                 <Plus className="w-5 h-5 mr-2" />
                 Novo Lead
               </Button>
+              {isSuperior && leadsDuplicados.size > 0 && (
+                <Button 
+                  onClick={() => {
+                    if (window.confirm(`Deseja remover automaticamente ${leadsDuplicados.size} leads duplicados?\n\nSerão mantidos apenas os leads mais antigos.`)) {
+                      limparDuplicadosMutation.mutate();
+                    }
+                  }}
+                  className="bg-orange-600 hover:bg-orange-700"
+                  disabled={limparDuplicadosMutation.isPending}
+                >
+                  <XCircle className="w-5 h-5 mr-2" />
+                  {limparDuplicadosMutation.isPending ? "Limpando..." : "Limpar Duplicados"}
+                </Button>
+              )}
               {isSuperior && (
                 <Button 
                   variant={modoRemover ? "outline" : "destructive"} 
