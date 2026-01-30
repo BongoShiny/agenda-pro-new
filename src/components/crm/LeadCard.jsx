@@ -19,14 +19,14 @@ const temperaturaConfig = {
   frio: { icon: Snowflake, color: "text-blue-500", bg: "bg-blue-50" },
 };
 
-export default function LeadCard({ lead, onClick, modoRemover, onRemover }) {
+export default function LeadCard({ lead, onClick, modoRemover, onRemover, isDuplicado }) {
   const status = statusConfig[lead.status] || statusConfig.novo;
   const temp = temperaturaConfig[lead.temperatura] || temperaturaConfig.morno;
   const TempIcon = temp.icon;
 
   return (
     <Card 
-      className={`hover:shadow-xl transition-all border-2 hover:border-blue-400 relative ${modoRemover ? 'cursor-default' : 'cursor-pointer'}`}
+      className={`hover:shadow-xl transition-all border-2 ${isDuplicado ? 'border-orange-500 bg-orange-50/30' : 'hover:border-blue-400'} relative ${modoRemover ? 'cursor-default' : 'cursor-pointer'}`}
       onClick={onClick}
     >
       {modoRemover && (
@@ -56,10 +56,15 @@ export default function LeadCard({ lead, onClick, modoRemover, onRemover }) {
         </div>
 
         {/* Status */}
-        <div className="mb-4">
+        <div className="mb-4 flex items-center gap-2">
           <Badge className={`${status.color} text-white`}>
             {status.label}
           </Badge>
+          {isDuplicado && (
+            <Badge className="bg-orange-500 text-white">
+              ⚠️ Duplicado
+            </Badge>
+          )}
         </div>
 
         {/* Informações */}
