@@ -137,33 +137,44 @@ export default function CRMPage() {
     },
   });
 
+  // Definir a ordem das transições permitidas
+  const statusOrder = ["lead", "avulso", "plano_terapeutico", "renovacao"];
+
   const handleStatusChange = async (leadId, novoStatus) => {
     try {
       const lead = leads.find(l => l.id === leadId);
       if (!lead || lead.status === novoStatus) return; // Nenhuma mudança
 
-      // Validar permissões de mudança de status
-      if (isVendedor) {
-        // Vendedor: Lead → Avulso/Plano | Avulso → Plano | Plano fica igual
-        const transicaoValida = (
-          (lead.status === "lead" && ["avulso", "plano_terapeutico"].includes(novoStatus)) ||
-          (lead.status === "avulso" && novoStatus === "plano_terapeutico")
-        );
-        
-        if (!transicaoValida) {
-          console.warn("❌ Transição não permitida para vendedor:", lead.status, "→", novoStatus);
-          return; // Silenciosamente rejeitar, sem alert
-        }
-      } else if (isRecepcao) {
-        // Recepção: Avulso → Plano/Renovação | Plano → Renovação
-        const transicaoValida = (
-          (lead.status === "avulso" && ["plano_terapeutico", "renovacao"].includes(novoStatus)) ||
-          (lead.status === "plano_terapeutico" && novoStatus === "renovacao")
-        );
-        
-        if (!transicaoValida) {
-          console.warn("❌ Transição não permitida para recepção:", lead.status, "→", novoStatus);
-          return; // Silenciosamente rejeitar, sem alert
+      const statusAtualIndex = statusOrder.indexOf(lead.status);
+      const novoStatusIndex = statusOrder.indexOf(novoStatus);
+
+      // Permitir retrocesso sempre (qualquer um pode voltar para trás)
+      if (novoStatusIndex < statusAtualIndex) {
+        // Pode retroceder sem restrições
+      } else {
+        // Avançar requer permissão
+        if (isVendedor) {
+          // Vendedor: Lead → Avulso/Plano | Avulso → Plano
+          const transicaoValida = (
+            (lead.status === "lead" && ["avulso", "plano_terapeutico"].includes(novoStatus)) ||
+            (lead.status === "avulso" && novoStatus === "plano_terapeutico")
+          );
+          
+          if (!transicaoValida) {
+            console.warn("❌ Transição não permitida para vendedor:", lead.status, "→", novoStatus);
+            return;
+          }
+        } else if (isRecepcao) {
+          // Recepção: Avulso → Plano/Renovação | Plano → Renovação
+          const transicaoValida = (
+            (lead.status === "avulso" && ["plano_terapeutico", "renovacao"].includes(novoStatus)) ||
+            (lead.status === "plano_terapeutico" && novoStatus === "renovacao")
+          );
+          
+          if (!transicaoValida) {
+            console.warn("❌ Transição não permitida para recepção:", lead.status, "→", novoStatus);
+            return;
+          }
         }
       }
 
