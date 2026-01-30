@@ -76,12 +76,18 @@ export default function AbaConversao({ lead, onUpdate }) {
         data_interacao: new Date().toISOString(),
       });
 
+      // Calcular tempo de conversão em dias
+      const dataInicio = new Date(lead.data_primeiro_contato || lead.created_date);
+      const dataFim = new Date(formData.data_conversao);
+      const tempoConversaoDias = Math.ceil((dataFim - dataInicio) / (1000 * 60 * 60 * 24));
+
       await updateLeadMutation.mutateAsync({
         status: "fechado",
         convertido: true,
         data_conversao: formData.data_conversao,
         motivo_fechamento: `${formData.pacote_fechado} - ${formData.motivos_fechamento.join(", ")}`,
         valor_negociado: formData.valor_final ? parseFloat(formData.valor_final) : null,
+        anotacoes_internas: `${lead.anotacoes_internas || ""}\n\n⏱️ Tempo de conversão: ${tempoConversaoDias} dias`.trim(),
       });
 
       alert("🎉 Pacote fechado com sucesso!");
@@ -195,11 +201,16 @@ export default function AbaConversao({ lead, onUpdate }) {
             <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
               <CheckCircle className="w-6 h-6 text-white" />
             </div>
-            <div>
+            <div className="flex-1">
               <h3 className="font-bold text-green-900">Pacote Fechado com Sucesso!</h3>
               <p className="text-sm text-green-700">
                 O cliente converteu para: {lead.motivo_fechamento}. {lead.valor_negociado && `Valor final: R$ ${lead.valor_negociado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
               </p>
+              {lead.data_conversao && (lead.data_primeiro_contato || lead.created_date) && (
+                <p className="text-sm text-green-700 mt-1 font-semibold">
+                  ⏱️ Tempo de conversão: {Math.ceil((new Date(lead.data_conversao) - new Date(lead.data_primeiro_contato || lead.created_date)) / (1000 * 60 * 60 * 24))} dias
+                </p>
+              )}
             </div>
           </div>
         </div>
