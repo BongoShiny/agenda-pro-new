@@ -18,6 +18,7 @@ export default function CRMPage() {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroUnidade, setFiltroUnidade] = useState("todas");
   const [filtroVendedor, setFiltroVendedor] = useState("todos");
+  const [modoRemover, setModoRemover] = useState(false);
 
   const queryClient = useQueryClient();
 
@@ -59,6 +60,13 @@ export default function CRMPage() {
     },
   });
 
+  const deleteLeadMutation = useMutation({
+    mutationFn: (leadId) => base44.entities.Lead.delete(leadId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+    },
+  });
+
   const handleNovoLead = (leadData) => {
     createLeadMutation.mutate(leadData);
   };
@@ -66,6 +74,12 @@ export default function CRMPage() {
   const handleAbrirDetalhes = (lead) => {
     setLeadSelecionado(lead);
     setDetalhesOpen(true);
+  };
+
+  const handleRemoverLead = async (leadId) => {
+    if (window.confirm("Tem certeza que deseja excluir este lead?")) {
+      await deleteLeadMutation.mutateAsync(leadId);
+    }
   };
 
   // Filtrar leads
@@ -110,9 +124,13 @@ export default function CRMPage() {
                 Novo Lead
               </Button>
               {isSuperior && (
-                <Button variant="destructive" className="bg-red-600 hover:bg-red-700">
+                <Button 
+                  variant={modoRemover ? "outline" : "destructive"} 
+                  className={modoRemover ? "border-red-600 text-red-600 hover:bg-red-50" : "bg-red-600 hover:bg-red-700"}
+                  onClick={() => setModoRemover(!modoRemover)}
+                >
                   <XCircle className="w-5 h-5 mr-2" />
-                  Remover Lead
+                  {modoRemover ? "Cancelar" : "Remover Lead"}
                 </Button>
               )}
             </div>
@@ -220,7 +238,9 @@ export default function CRMPage() {
             <LeadCard 
               key={lead.id} 
               lead={lead}
-              onClick={() => handleAbrirDetalhes(lead)}
+              onClick={() => !modoRemover && handleAbrirDetalhes(lead)}
+              modoRemover={modoRemover}
+              onRemover={() => handleRemoverLead(lead.id)}
             />
           ))}
         </div>

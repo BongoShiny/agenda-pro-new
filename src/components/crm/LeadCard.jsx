@@ -1,7 +1,7 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Phone, Mail, MapPin, User, Flame, Snowflake, Sun } from "lucide-react";
+import { Phone, Mail, MapPin, User, Flame, Snowflake, Sun, X } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
@@ -19,16 +19,27 @@ const temperaturaConfig = {
   frio: { icon: Snowflake, color: "text-blue-500", bg: "bg-blue-50" },
 };
 
-export default function LeadCard({ lead, onClick }) {
+export default function LeadCard({ lead, onClick, modoRemover, onRemover }) {
   const status = statusConfig[lead.status] || statusConfig.novo;
   const temp = temperaturaConfig[lead.temperatura] || temperaturaConfig.morno;
   const TempIcon = temp.icon;
 
   return (
     <Card 
-      className="hover:shadow-xl transition-all cursor-pointer border-2 hover:border-blue-400"
+      className={`hover:shadow-xl transition-all border-2 hover:border-blue-400 relative ${modoRemover ? 'cursor-default' : 'cursor-pointer'}`}
       onClick={onClick}
     >
+      {modoRemover && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onRemover();
+          }}
+          className="absolute -top-2 -right-2 z-10 bg-red-600 hover:bg-red-700 text-white rounded-full p-2 shadow-lg transition-all hover:scale-110"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      )}
       <CardContent className="p-5">
         {/* Header */}
         <div className="flex items-start justify-between mb-4">
