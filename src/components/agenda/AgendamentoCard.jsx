@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, XCircle, Ban, ChevronDown, FileText, AlertTriangle, AlertCircle } from "lucide-react";
+import { CheckCircle, Clock, XCircle, Ban, ChevronDown, FileText, AlertTriangle, AlertCircle, MessageCircle, Loader2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { base44 } from "@/api/base44Client";
 
 const statusColors = {
   confirmado: "bg-emerald-500",
@@ -50,10 +51,11 @@ const statusPacienteColors = {
   "voucher": "#000000"
 };
 
-export default function AgendamentoCard({ agendamento, onClick, onStatusChange, onStatusPacienteChange, prontuarios = [] }) {
+export default function AgendamentoCard({ agendamento, onClick, onStatusChange, onStatusPacienteChange, prontuarios = [], registrosWhatsApp = [] }) {
   const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio" || agendamento.cliente_nome === "FECHADO";
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownPacienteOpen, setDropdownPacienteOpen] = useState(false);
+  const [enviandoWhatsApp, setEnviandoWhatsApp] = useState(false);
   
   console.log(`🎴 CARD | ${agendamento.cliente_nome} | Data: ${agendamento.data} | ${agendamento.hora_inicio}`);
   
@@ -80,6 +82,62 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
   };
 
   const statusProntuario = getStatusProntuario();
+
+  // Verificar status do WhatsApp
+  const getStatusWhatsApp = () => {
+    const registroEnviado = registrosWhatsApp.find(r => r.agendamento_id === agendamento.id && r.status === 'enviado');
+    
+    if (registroEnviado) {
+      return { 
+        icon: CheckCircle, 
+        cor: 'text-green-400', 
+        label: 'Confirmação enviada',
+        enviado: true
+      };
+    }
+    
+    return { 
+      icon: MessageCircle, 
+      cor: 'text-gray-300', 
+      label: 'Não enviado',
+      enviado: false
+    };
+  };
+
+  const statusWhatsApp = getStatusWhatsApp();
+
+  const handleEnviarWhatsApp = async (e) => {
+    e.stopPropagation();
+    
+    if (!agendamento.cliente_telefone) {
+      alert('Cliente não possui telefone cadastrado');
+      return;
+    }
+
+    if (statusWhatsApp.enviado) {
+      const confirmar = confirm('Uma confirmação já foi enviada. Deseja enviar novamente?');
+      if (!confirmar) return;
+    }
+
+    setEnviandoWhatsApp(true);
+
+    try {
+      const response = await base44.functions.invoke('enviarWhatsAppManual', {
+        agendamento_id: agendamento.id
+      });
+
+      if (response.data.success) {
+        alert(response.data.message);
+        window.location.reload(); // Recarregar para atualizar o status
+      } else {
+        alert(`Erro: ${response.data.error}`);
+      }
+    } catch (error) {
+      alert(`Erro ao enviar: ${error.message}`);
+    } finally {
+      setEnviandoWhatsApp(false);
+    }
+  };
   
   if (isBloqueio) {
     return (
@@ -126,6 +184,18 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
             )}
           </div>
           <div className="flex items-center gap-0.5">
+            <button
+              onClick={handleEnviarWhatsApp}
+              disabled={enviandoWhatsApp}
+              className="p-0.5 hover:bg-white/20 rounded transition-colors"
+              title={statusWhatsApp.label}
+            >
+              {enviandoWhatsApp ? (
+                <Loader2 className="w-3 md:w-4 h-3 md:h-4 animate-spin text-white" />
+              ) : (
+                <statusWhatsApp.icon className={`w-3 md:w-4 h-3 md:h-4 flex-shrink-0 ${statusWhatsApp.cor}`} />
+              )}
+            </button>
             <statusProntuario.icon className={`w-4 md:w-5 h-4 md:h-5 flex-shrink-0 ${statusProntuario.cor}`} title={`Prontuário ${statusProntuario.label}`} />
             <span className="text-[8px] md:text-[10px] font-medium whitespace-nowrap">{agendamento.hora_inicio}</span>
           </div>
