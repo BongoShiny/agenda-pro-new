@@ -411,7 +411,7 @@ export default function CRMPage() {
                   key={lead.id} 
                   lead={lead}
                   onClick={() => !modoRemover && handleAbrirDetalhes(lead)}
-                  modoRemover={modoRemover}
+                  modoRemover={modoRemover && isSuperior}
                   onRemover={() => handleRemoverLead(lead.id)}
                   isDuplicado={leadsDuplicados.has(lead.id)}
                 />
