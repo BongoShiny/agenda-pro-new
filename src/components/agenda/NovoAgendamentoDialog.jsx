@@ -831,7 +831,7 @@ export default function NovoAgendamentoDialog({
                   <p className="text-xs text-gray-500">
                     {formData.sessoes_feitas || 0} de {formData.quantas_sessoes} sessões realizadas
                     {formData.sessoes_feitas >= formData.quantas_sessoes && (
-                      <span className="text-green-600 font-bold ml-2">✅ PACOTE CONCLUÍDO</span>
+                      <span className="text-green-600 font-bold ml-2">✅ PLANO CONCLUÍDO</span>
                     )}
                   </p>
                 )}
