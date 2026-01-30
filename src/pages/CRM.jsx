@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Filter, UserPlus, TrendingUp, Clock, CheckCircle, XCircle, ArrowLeft } from "lucide-react";
+import { Plus, Search, Filter, UserPlus, TrendingUp, Clock, CheckCircle, XCircle, ArrowLeft, LayoutGrid, Columns3 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import LeadCard from "../components/crm/LeadCard";
@@ -23,6 +23,7 @@ export default function CRMPage() {
   const [filtroUnidade, setFiltroUnidade] = useState("todas");
   const [filtroVendedor, setFiltroVendedor] = useState("todos");
   const [modoRemover, setModoRemover] = useState(false);
+  const [visualizacao, setVisualizacao] = useState("kanban");
 
   const queryClient = useQueryClient();
 
@@ -71,6 +72,15 @@ export default function CRMPage() {
     },
   });
 
+  const atualizarLeadMutation = useMutation({
+    mutationFn: async ({ id, dados }) => {
+      return await base44.entities.Lead.update(id, dados);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['leads'] });
+    },
+  });
+
   const limparDuplicadosMutation = useMutation({
     mutationFn: async () => {
       const telefonesMap = new Map();
@@ -104,6 +114,21 @@ export default function CRMPage() {
       alert(`✅ ${qtdRemovidos} lead(s) duplicado(s) removido(s) com sucesso!`);
     },
   });
+
+  const handleStatusChange = async (leadId, novoStatus) => {
+    try {
+      const lead = leads.find(l => l.id === leadId);
+      if (!lead) return;
+
+      await atualizarLeadMutation.mutateAsync({
+        id: leadId,
+        dados: { ...lead, status: novoStatus }
+      });
+    } catch (error) {
+      console.error("Erro ao atualizar status:", error);
+      alert("Erro ao atualizar status do lead");
+    }
+  };
 
   const handleNovoLead = (leadData) => {
     createLeadMutation.mutate(leadData);
@@ -252,9 +277,29 @@ export default function CRMPage() {
 
         {/* Filtros */}
         <div className="bg-white rounded-xl shadow-lg p-4 mb-6">
-          <div className="flex items-center gap-2 mb-3">
-            <Filter className="w-5 h-5 text-gray-500" />
-            <span className="font-semibold text-gray-700">Filtros</span>
+          <div className="flex items-center justify-between mb-3">
+            <div className="flex items-center gap-2">
+              <Filter className="w-5 h-5 text-gray-500" />
+              <span className="font-semibold text-gray-700">Filtros</span>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant={visualizacao === "kanban" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setVisualizacao("kanban")}
+              >
+                <Columns3 className="w-4 h-4 mr-2" />
+                Kanban
+              </Button>
+              <Button
+                variant={visualizacao === "cards" ? "default" : "outline"}
+                size="sm"
+                onClick={() => setVisualizacao("cards")}
+              >
+                <LayoutGrid className="w-4 h-4 mr-2" />
+                Cards
+              </Button>
+            </div>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="relative">
@@ -323,26 +368,38 @@ export default function CRMPage() {
           </div>
         )}
 
-        {/* Cards de Leads */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {leadsFiltrados.map(lead => (
-            <LeadCard 
-              key={lead.id} 
-              lead={lead}
-              onClick={() => !modoRemover && handleAbrirDetalhes(lead)}
-              modoRemover={modoRemover}
-              onRemover={() => handleRemoverLead(lead.id)}
-              isDuplicado={leadsDuplicados.has(lead.id)}
+        {/* Visualização Kanban ou Cards */}
+        {visualizacao === "kanban" ? (
+          <div className="h-[calc(100vh-450px)] min-h-[600px]">
+            <KanbanView
+              leads={leadsFiltrados}
+              onStatusChange={handleStatusChange}
+              onLeadClick={handleAbrirDetalhes}
             />
-          ))}
-        </div>
-
-        {leadsFiltrados.length === 0 && (
-          <div className="bg-white rounded-xl shadow-lg p-12 text-center">
-            <UserPlus className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-            <p className="text-gray-500 text-lg">Nenhum lead encontrado</p>
-            <p className="text-gray-400 text-sm mt-2">Clique em "Novo Lead" para começar</p>
           </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {leadsFiltrados.map(lead => (
+                <LeadCard 
+                  key={lead.id} 
+                  lead={lead}
+                  onClick={() => !modoRemover && handleAbrirDetalhes(lead)}
+                  modoRemover={modoRemover}
+                  onRemover={() => handleRemoverLead(lead.id)}
+                  isDuplicado={leadsDuplicados.has(lead.id)}
+                />
+              ))}
+            </div>
+
+            {leadsFiltrados.length === 0 && (
+              <div className="bg-white rounded-xl shadow-lg p-12 text-center">
+                <UserPlus className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500 text-lg">Nenhum lead encontrado</p>
+                <p className="text-gray-400 text-sm mt-2">Clique em "Novo Lead" para começar</p>
+              </div>
+            )}
+          </>
         )}
       </div>
 
