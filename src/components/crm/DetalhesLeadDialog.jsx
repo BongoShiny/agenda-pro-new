@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Phone, Mail, MapPin, User, Calendar as CalendarIcon, X } from "lucide-react";
 import AbaDetalhes from "./AbaDetalhes";
 import AbaConversao from "./AbaConversao";
+import AbaSessoes from "./AbaSessoes";
 import AbaHistorico from "./AbaHistorico";
 
 const statusConfig = {
@@ -116,10 +117,8 @@ export default function DetalhesLeadDialog({ open, onOpenChange, lead, onUpdate 
           <AbaDetalhes lead={lead} onUpdate={onUpdate} />
         </TabsContent>
 
-        <TabsContent value="conversao" className="p-6 mt-0">
-          <div className="text-center py-8 text-gray-500">
-            <p>Nenhuma sessão registrada ainda</p>
-          </div>
+        <TabsContent value="conversao" className="mt-0">
+          <AbaSessoes lead={lead} />
         </TabsContent>
 
         <TabsContent value="historico" className="p-6 mt-0">
