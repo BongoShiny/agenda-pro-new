@@ -39,13 +39,15 @@ const statusLabels = {
 const statusPacienteLabels = {
   "": "-",
   "ultima_sessao": "Última Sessão",
-  "paciente_novo": "Paciente Novo"
+  "paciente_novo": "Paciente Novo",
+  "voucher": "Voucher"
 };
 
 const statusPacienteColors = {
   "": null,
   "paciente_novo": "#ec4899",
-  "ultima_sessao": "#dc2626"
+  "ultima_sessao": "#dc2626",
+  "voucher": "#000000"
 };
 
 export default function AgendamentoCard({ agendamento, onClick, onStatusChange, onStatusPacienteChange, prontuarios = [] }) {
