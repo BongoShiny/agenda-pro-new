@@ -595,6 +595,39 @@ export default function AgendaPage() {
     mutationFn: async ({ id, agendamento }) => {
       await base44.entities.Agendamento.delete(id);
       
+      // SINCRONIZAR COM CRM: Se deletou agendamento de um lead, atualizar status
+      if (agendamento.vendedor_id && !agendamento.tipo?.includes('bloqueio') && agendamento.cliente_nome !== "FECHADO") {
+        try {
+          const leads = await base44.entities.Lead.filter({ 
+            vendedor_id: agendamento.vendedor_id,
+            nome: agendamento.cliente_nome 
+          });
+          
+          if (leads.length > 0) {
+            const lead = leads[0];
+            // Se lead estava em 'plano_terapeutico' e não tem mais agendamentos, voltar para 'avulso'
+            if (lead.status === 'plano_terapeutico') {
+              const outrosAgendamentos = agendamentos.filter(ag => 
+                ag.cliente_nome === agendamento.cliente_nome && 
+                ag.id !== id &&
+                ag.status !== 'cancelado' &&
+                !ag.tipo?.includes('bloqueio') &&
+                ag.cliente_nome !== "FECHADO"
+              );
+              
+              if (outrosAgendamentos.length === 0) {
+                await base44.entities.Lead.update(lead.id, {
+                  status: 'avulso'
+                });
+                console.log("✅ Lead revertido: plano_terapeutico → avulso (sem agendamentos)");
+              }
+            }
+          }
+        } catch (error) {
+          console.warn("⚠️ Erro ao sincronizar exclusão com CRM:", error);
+        }
+      }
+      
       // Criar log de ação
       const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio" || agendamento.cliente_nome === "FECHADO";
       await base44.entities.LogAcao.create({
