@@ -120,6 +120,37 @@ export default function CRMPage() {
       const lead = leads.find(l => l.id === leadId);
       if (!lead) return;
 
+      // Validar permissões de mudança de status
+      if (isVendedor) {
+        // Vendedor: Lead → Avulso/Plano | Avulso → Plano
+        if (lead.status === "lead" && !["avulso", "plano_terapeutico"].includes(novoStatus)) {
+          alert("❌ Vendedor pode mover Lead apenas para Avulso ou Plano Terapêutico.");
+          return;
+        }
+        if (lead.status === "avulso" && novoStatus !== "plano_terapeutico") {
+          alert("❌ Vendedor pode mover Avulso apenas para Plano Terapêutico.");
+          return;
+        }
+        if (lead.status === "plano_terapeutico" || novoStatus === "renovacao") {
+          alert("❌ Vendedor não pode mover leads para Renovação.");
+          return;
+        }
+      } else if (isRecepcao) {
+        // Recepção: Avulso → Plano/Renovação | Plano → Renovação
+        if (lead.status === "avulso" && !["plano_terapeutico", "renovacao"].includes(novoStatus)) {
+          alert("❌ Recepção pode mover Avulso apenas para Plano Terapêutico ou Renovação.");
+          return;
+        }
+        if (lead.status === "plano_terapeutico" && novoStatus !== "renovacao") {
+          alert("❌ Recepção pode mover Plano Terapêutico apenas para Renovação.");
+          return;
+        }
+        if (lead.status === "lead") {
+          alert("❌ Recepção não pode mexer em leads com status 'Lead'.");
+          return;
+        }
+      }
+
       await atualizarLeadMutation.mutateAsync({
         id: leadId,
         dados: { ...lead, status: novoStatus }
@@ -148,11 +179,23 @@ export default function CRMPage() {
   const isAdmin = user?.role === 'admin';
   const isSuperior = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades";
   const isVendedor = user?.cargo === "vendedor";
+  const isRecepcao = user?.cargo === "recepcao";
 
-  // Definir quais colunas o usuário pode ver
-  const colunasVisiveis = isVendedor 
-    ? ["lead", "avulso"] 
-    : ["lead", "avulso", "plano_terapeutico", "renovacao"];
+  // Definir quais colunas o usuário pode ver baseado no cargo
+  const colunasVisiveis = (() => {
+    if (isAdmin || isSuperior) {
+      // Admin vê tudo
+      return ["lead", "avulso", "plano_terapeutico", "renovacao"];
+    } else if (isVendedor) {
+      // Vendedor vê Lead, Avulso e Plano Terapêutico (para acompanhar conversões)
+      return ["lead", "avulso", "plano_terapeutico"];
+    } else if (isRecepcao) {
+      // Recepção vê Avulso, Plano Terapêutico e Renovação
+      return ["avulso", "plano_terapeutico", "renovacao"];
+    }
+    // Default: nada
+    return [];
+  })();
 
   // Detectar leads duplicados (mesmo telefone)
   const leadsDuplicados = new Set();
@@ -274,14 +317,16 @@ export default function CRMPage() {
           </div>
 
           {/* Estatísticas */}
-          <div className={`grid grid-cols-2 gap-4 ${isVendedor ? 'md:grid-cols-2' : 'md:grid-cols-4'}`}>
-            <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
-              <div className="flex items-center gap-2 text-green-700 mb-1">
-                <UserPlus className="w-5 h-5" />
-                <span className="font-semibold">Lead</span>
+          <div className={`grid grid-cols-2 gap-4 ${isRecepcao ? 'md:grid-cols-3' : (isVendedor ? 'md:grid-cols-3' : 'md:grid-cols-4')}`}>
+            {!isRecepcao && (
+              <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
+                <div className="flex items-center gap-2 text-green-700 mb-1">
+                  <UserPlus className="w-5 h-5" />
+                  <span className="font-semibold">Lead</span>
+                </div>
+                <p className="text-2xl font-bold text-green-900">{stats.lead}</p>
               </div>
-              <p className="text-2xl font-bold text-green-900">{stats.lead}</p>
-            </div>
+            )}
             <div className="bg-yellow-50 rounded-lg p-4 border-2 border-yellow-200">
               <div className="flex items-center gap-2 text-yellow-700 mb-1">
                 <Clock className="w-5 h-5" />
@@ -289,23 +334,21 @@ export default function CRMPage() {
               </div>
               <p className="text-2xl font-bold text-yellow-900">{stats.avulso}</p>
             </div>
+            <div className="bg-amber-50 rounded-lg p-4 border-2 border-amber-200">
+              <div className="flex items-center gap-2 text-amber-700 mb-1">
+                <TrendingUp className="w-5 h-5" />
+                <span className="font-semibold">Plano Terapêutico</span>
+              </div>
+              <p className="text-2xl font-bold text-amber-900">{stats.planoTerapeutico}</p>
+            </div>
             {!isVendedor && (
-              <>
-                <div className="bg-amber-50 rounded-lg p-4 border-2 border-amber-200">
-                  <div className="flex items-center gap-2 text-amber-700 mb-1">
-                    <TrendingUp className="w-5 h-5" />
-                    <span className="font-semibold">Plano Terapêutico</span>
-                  </div>
-                  <p className="text-2xl font-bold text-amber-900">{stats.planoTerapeutico}</p>
+              <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
+                <div className="flex items-center gap-2 text-blue-700 mb-1">
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="font-semibold">Renovação</span>
                 </div>
-                <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
-                  <div className="flex items-center gap-2 text-blue-700 mb-1">
-                    <CheckCircle className="w-5 h-5" />
-                    <span className="font-semibold">Renovação</span>
-                  </div>
-                  <p className="text-2xl font-bold text-blue-900">{stats.renovacao}</p>
-                </div>
-              </>
+                <p className="text-2xl font-bold text-blue-900">{stats.renovacao}</p>
+              </div>
             )}
           </div>
         </div>
@@ -352,14 +395,10 @@ export default function CRMPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos os Status</SelectItem>
-                <SelectItem value="lead">Lead</SelectItem>
+                {!isRecepcao && <SelectItem value="lead">Lead</SelectItem>}
                 <SelectItem value="avulso">Avulso</SelectItem>
-                {!isVendedor && (
-                  <>
-                    <SelectItem value="plano_terapeutico">Plano Terapêutico</SelectItem>
-                    <SelectItem value="renovacao">Renovação</SelectItem>
-                  </>
-                )}
+                <SelectItem value="plano_terapeutico">Plano Terapêutico</SelectItem>
+                {!isVendedor && <SelectItem value="renovacao">Renovação</SelectItem>}
               </SelectContent>
             </Select>
             <Select value={filtroUnidade} onValueChange={setFiltroUnidade}>
