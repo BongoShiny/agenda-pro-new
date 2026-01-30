@@ -394,6 +394,18 @@ export default function AgendaPage() {
     initialData: [],
   });
 
+  // Buscar prontuários
+  const { data: prontuarios = [] } = useQuery({
+    queryKey: ['prontuarios'],
+    queryFn: () => base44.entities.Prontuario.list()
+  });
+
+  // Buscar registros de WhatsApp
+  const { data: registrosWhatsApp = [] } = useQuery({
+    queryKey: ['registrosWhatsApp'],
+    queryFn: () => base44.entities.RegistroEnvioWhatsApp.list()
+  });
+
   const criarAgendamentoMutation = useMutation({
     mutationFn: async (dados) => {
       console.log("📤 ENVIANDO AO BANCO:", {
@@ -1214,6 +1226,8 @@ export default function AgendaPage() {
             usuarioAtual={usuarioAtual}
             dataAtual={dataAtual}
             excecoesHorario={excecoesHorario}
+            prontuarios={prontuarios}
+            registrosWhatsApp={registrosWhatsApp}
           />
         )}
       </div>
