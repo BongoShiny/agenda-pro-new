@@ -63,6 +63,7 @@ import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
 import WhatsAppCompleto from './pages/WhatsAppCompleto';
 import CRM from './pages/CRM';
+import RelatoriosCRM from './pages/RelatoriosCRM';
 import __Layout from './Layout.jsx';
 
 
@@ -83,6 +84,7 @@ export const PAGES = {
     "RelatoriosFinanceiros": RelatoriosFinanceiros,
     "WhatsAppCompleto": WhatsAppCompleto,
     "CRM": CRM,
+    "RelatoriosCRM": RelatoriosCRM,
 }
 
 export const pagesConfig = {
