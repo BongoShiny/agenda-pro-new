@@ -5,8 +5,8 @@ Deno.serve(async (req) => {
     const base44 = createClientFromRequest(req);
     const user = await base44.auth.me();
 
-    if (user?.role !== 'admin') {
-      return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
+    if (user?.cargo !== 'superior' && user?.role !== 'admin') {
+      return Response.json({ error: 'Forbidden: Superior access required' }, { status: 403 });
     }
 
     console.log(`🔄 Iniciando sincronização de TODOS os agendamentos`);
