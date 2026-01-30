@@ -746,55 +746,55 @@ export default function NovoAgendamentoDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Tipo</Label>
-            <Select 
-              value={formData.tipo} 
-              onValueChange={(value) => {
-                setFormData(prev => ({ 
-                  ...prev, 
-                  tipo: value,
-                  cliente_pacote: value === "pacote" ? "Sim" : prev.cliente_pacote
-                }));
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="consulta">Consulta</SelectItem>
-                <SelectItem value="pacote">Pacote</SelectItem>
-                <SelectItem value="avaliacao">Avaliação</SelectItem>
-                <SelectItem value="avulsa">Avulsa</SelectItem>
-                <SelectItem value="funcionario">Funcionário</SelectItem>
-                <SelectItem value="pacote_outro_cliente">Pacote de Outro Cliente</SelectItem>
-                <SelectItem value="primeira_sessao_pacote">Primeira Sessão do Pacote</SelectItem>
-                <SelectItem value="ultima_sessao_pacote">Última Sessão do Pacote</SelectItem>
-                <SelectItem value="voucher">Voucher</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+             <Label>Tipo</Label>
+             <Select 
+               value={formData.tipo} 
+               onValueChange={(value) => {
+                 setFormData(prev => ({ 
+                   ...prev, 
+                   tipo: value,
+                   cliente_pacote: value === "plano_terapeutico" ? "Sim" : prev.cliente_pacote
+                 }));
+               }}
+             >
+               <SelectTrigger>
+                 <SelectValue />
+               </SelectTrigger>
+               <SelectContent>
+                 <SelectItem value="consulta">Consulta</SelectItem>
+                 <SelectItem value="plano_terapeutico">Plano Terapêutico</SelectItem>
+                 <SelectItem value="avaliacao">Avaliação</SelectItem>
+                 <SelectItem value="avulso">Avulso</SelectItem>
+                 <SelectItem value="funcionario">Funcionário</SelectItem>
+                 <SelectItem value="pacote_outro_cliente">Plano Terapêutico de Outro Cliente</SelectItem>
+                 <SelectItem value="primeira_sessao_pacote">Primeira Sessão do Plano</SelectItem>
+                 <SelectItem value="ultima_sessao_pacote">Última Sessão do Plano</SelectItem>
+                 <SelectItem value="voucher">Voucher</SelectItem>
+               </SelectContent>
+             </Select>
+           </div>
 
-          {formData.tipo === "pacote" && (
-            <>
-              <div className="space-y-2">
-                <Label>Cliente tem Pacote?</Label>
-                <Select 
-                  value={formData.cliente_pacote} 
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, cliente_pacote: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Sim">Sim</SelectItem>
-                    <SelectItem value="Não">Não</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </>
-          )}
+           {formData.tipo === "plano_terapeutico" && (
+             <>
+               <div className="space-y-2">
+                 <Label>Cliente tem Plano Terapêutico?</Label>
+                 <Select 
+                   value={formData.cliente_pacote} 
+                   onValueChange={(value) => setFormData(prev => ({ ...prev, cliente_pacote: value }))}
+                 >
+                   <SelectTrigger>
+                     <SelectValue />
+                   </SelectTrigger>
+                   <SelectContent>
+                     <SelectItem value="Sim">Sim</SelectItem>
+                     <SelectItem value="Não">Não</SelectItem>
+                   </SelectContent>
+                 </Select>
+               </div>
+             </>
+           )}
 
-          {formData.tipo === "pacote" && formData.cliente_pacote === "Sim" && (
+           {formData.tipo === "plano_terapeutico" && formData.cliente_pacote === "Sim" && (
             <>
               <div className="space-y-2">
                 <Label>Quantas Sessões (total do pacote)</Label>
