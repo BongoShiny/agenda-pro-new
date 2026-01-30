@@ -257,6 +257,17 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
               >
                 {agendamento.status_paciente === "ultima_sessao" && "✓ "}Última Sessão
               </DropdownMenuItem>
+              
+              <DropdownMenuItem 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (onStatusPacienteChange) onStatusPacienteChange(agendamento, "voucher");
+                  setDropdownPacienteOpen(false);
+                }}
+                className={agendamento.status_paciente === "voucher" ? "bg-black text-white font-semibold" : ""}
+              >
+                {agendamento.status_paciente === "voucher" && "✓ "}Voucher
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
