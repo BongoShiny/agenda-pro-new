@@ -179,12 +179,12 @@ export default function AgendaHeader({
                   Superior
                 </Button>
               </Link>
-              <a href="https://vibe-crm-acb7f8f2.base44.app/Clinics" target="_blank" rel="noopener noreferrer">
+              <Link to={createPageUrl("CRM")}>
                 <Button variant="outline" size="sm" className="bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100">
                   <ExternalLink className="w-4 h-4 mr-1" />
                   CRM
                 </Button>
-              </a>
+              </Link>
             </div>
           )}
         </div>
@@ -249,12 +249,12 @@ export default function AgendaHeader({
                      Superior
                    </Button>
                  </Link>
-                 <a href="https://vibe-crm-acb7f8f2.base44.app/Clinics" target="_blank" rel="noopener noreferrer">
+                 <Link to={createPageUrl("CRM")}>
                    <Button variant="outline" className="bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100">
                      <ExternalLink className="w-4 h-4 mr-2" />
                      CRM
                    </Button>
-                 </a>
+                 </Link>
                </>
              )}
 
