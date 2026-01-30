@@ -85,6 +85,9 @@ export default function CRMPage() {
     }
   };
 
+  const isAdmin = user?.role === 'admin';
+  const isSuperior = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades";
+
   // Filtrar leads
   const leadsFiltrados = leads.filter(lead => {
     // Vendedor só vê seus próprios leads
@@ -109,9 +112,6 @@ export default function CRMPage() {
     fechados: leads.filter(l => l.status === "fechado").length,
     perdidos: leads.filter(l => l.status === "perdido").length,
   };
-
-  const isAdmin = user?.role === 'admin';
-  const isSuperior = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades";
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
