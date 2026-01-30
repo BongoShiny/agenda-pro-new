@@ -140,7 +140,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               </div>
             )}
           </div>
-        ) : temAcessoProntuario || isTerapia ? (
+        ) : (
            <Tabs value={abaAtiva} onValueChange={setAbaAtiva} className="flex-1 flex flex-col overflow-hidden">
              <TabsList className="grid w-full grid-cols-4">
                <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
@@ -452,8 +452,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
           <AbaAvaliacaoTermal agendamento={agendamento} usuarioAtual={usuarioAtual} />
         </TabsContent>
         </Tabs>
-    ) : (
-      <div className="space-y-4 py-4 overflow-y-auto">
+    )}
         <div className="flex items-start gap-3">
           <User className="w-5 h-5 text-gray-500 mt-0.5" />
           <div>
@@ -578,39 +577,6 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
             </div>
           </div>
         )}
-
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
-          <div className="space-y-2">
-            <div className="flex items-start gap-3">
-              <User className="w-4 h-4 text-blue-600 mt-0.5" />
-              <div>
-                <div className="text-xs text-blue-600 font-medium">Criado por</div>
-                <div className="text-sm text-blue-800">{agendamento.criador_email || "Não disponível"}</div>
-                {agendamento.created_date && (
-                  <div className="text-xs text-blue-600 mt-1">
-                    {format(new Date(agendamento.created_date), "dd/MM/yyyy 'às' HH:mm:ss", { locale: ptBR })}
-                  </div>
-                )}
-              </div>
-            </div>
-            {agendamento.editor_email && agendamento.editor_email !== agendamento.criador_email && (
-              <div className="flex items-start gap-3 pt-2 border-t border-blue-200">
-                <User className="w-4 h-4 text-blue-600 mt-0.5" />
-                <div>
-                  <div className="text-xs text-blue-600 font-medium">Última edição por</div>
-                  <div className="text-sm text-blue-800">{agendamento.editor_email}</div>
-                  {agendamento.updated_date && (
-                    <div className="text-xs text-blue-600 mt-1">
-                      {format(new Date(agendamento.updated_date), "dd/MM/yyyy 'às' HH:mm:ss", { locale: ptBR })}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-    )}
 
         <DialogFooter className="flex-col sm:flex-row gap-2">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
