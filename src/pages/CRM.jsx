@@ -345,6 +345,16 @@ export default function CRMPage() {
                   {limparDuplicadosMutation.isPending ? "Limpando..." : "Limpar Duplicados"}
                 </Button>
               )}
+              {user?.cargo === "superior" && (
+                <Button 
+                  onClick={handleSincronizarAgendamentos}
+                  disabled={sincronizandoAgendamentos}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  <RotateCw className={`w-5 h-5 mr-2 ${sincronizandoAgendamentos ? 'animate-spin' : ''}`} />
+                  {sincronizandoAgendamentos ? "Sincronizando..." : "Sincronizar Todos"}
+                </Button>
+              )}
               {isSuperior && (
                 <Button 
                   variant={modoRemover ? "outline" : "destructive"} 
