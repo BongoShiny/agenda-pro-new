@@ -170,11 +170,17 @@ export default function CRMPage() {
     }
   });
 
+  // Buscar o vendedor do usuário logado
+  const vendedorDoUsuario = vendedores.find(v => 
+    v.nome === user?.full_name || v.email === user?.email
+  );
+
   // Filtrar leads
   const leadsFiltrados = leads.filter(lead => {
     // Vendedor só vê seus próprios leads E apenas status "lead" e "avulso"
     if (isVendedor) {
-      if (lead.vendedor_id !== user?.id) {
+      // Usar o ID do vendedor da entidade Vendedor, não o user.id
+      if (lead.vendedor_id !== vendedorDoUsuario?.id) {
         return false;
       }
       if (!["lead", "avulso"].includes(lead.status)) {
@@ -195,7 +201,7 @@ export default function CRMPage() {
 
   // Estatísticas (filtradas por usuário)
   const leadsDoUsuario = isVendedor 
-    ? leads.filter(l => l.vendedor_id === user?.id)
+    ? leads.filter(l => l.vendedor_id === vendedorDoUsuario?.id)
     : leads;
 
   const stats = {

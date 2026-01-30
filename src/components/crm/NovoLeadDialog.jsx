@@ -18,6 +18,11 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function NovoLeadDialog({ open, onOpenChange, onSave, unidades, vendedores, user, leadsExistentes }) {
+  // Buscar o vendedor baseado no nome ou email do usuário logado
+  const vendedorDoUsuario = vendedores.find(v => 
+    v.nome === user?.full_name || v.email === user?.email
+  );
+
   const [formData, setFormData] = useState({
     nome: "",
     telefone: "",
@@ -25,8 +30,8 @@ export default function NovoLeadDialog({ open, onOpenChange, onSave, unidades, v
     sexo: "Masculino",
     unidade_id: "",
     unidade_nome: "",
-    vendedor_id: user?.id || "",
-    vendedor_nome: user?.full_name || "",
+    vendedor_id: vendedorDoUsuario?.id || "",
+    vendedor_nome: vendedorDoUsuario?.nome || user?.full_name || "",
     status: "lead",
     origem: "whatsapp",
     interesse: "",
