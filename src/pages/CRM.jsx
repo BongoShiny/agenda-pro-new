@@ -104,12 +104,18 @@ export default function CRMPage() {
               </h1>
               <p className="text-gray-600 mt-1">Gerencie seus leads e conversões</p>
             </div>
-            {isSuperior && (
+            <div className="flex items-center gap-3">
               <Button onClick={() => setNovoLeadOpen(true)} className="bg-blue-600 hover:bg-blue-700">
                 <Plus className="w-5 h-5 mr-2" />
-                Novo
+                Novo Lead
               </Button>
-            )}
+              {isSuperior && (
+                <Button variant="destructive" className="bg-red-600 hover:bg-red-700">
+                  <XCircle className="w-5 h-5 mr-2" />
+                  Remover Lead
+                </Button>
+              )}
+            </div>
           </div>
 
           {/* Estatísticas */}
