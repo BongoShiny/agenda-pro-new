@@ -60,15 +60,23 @@ export default function NovoLeadDialog({ open, onOpenChange, onSave, unidades, v
       return;
     }
 
-    // Verificar se já existe lead com este telefone
+    // Normalizar telefone removendo tudo que não é número
     const telefoneNormalizado = formData.telefone.replace(/\D/g, '');
+    
+    // Verificar se tem pelo menos 10 dígitos (mínimo para um telefone válido)
+    if (telefoneNormalizado.length < 10) {
+      alert("⚠️ Telefone inválido! Digite um telefone completo.");
+      return;
+    }
+
+    // Verificar se já existe lead com este telefone (comparando apenas números)
     const leadDuplicado = leadsExistentes?.find(lead => {
-      const telExistente = lead.telefone.replace(/\D/g, '');
+      const telExistente = (lead.telefone || '').replace(/\D/g, '');
       return telExistente === telefoneNormalizado;
     });
 
     if (leadDuplicado) {
-      alert("❌ Esse lead já foi cadastrado!\n\nNome: " + leadDuplicado.nome + "\nTelefone: " + leadDuplicado.telefone);
+      alert("❌ Esse lead já foi cadastrado!\n\n📋 Nome: " + leadDuplicado.nome + "\n📞 Telefone: " + leadDuplicado.telefone + "\n\n⚠️ Não é permitido duplicar leads.");
       return;
     }
 

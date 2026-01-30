@@ -27,8 +27,9 @@ export default function DetalhesLeadDialog({ open, onOpenChange, lead, onUpdate 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
-        {/* Header com fundo branco e informações principais */}
-        <div className="sticky top-0 bg-white border-b z-10">
+        <Tabs defaultValue="detalhes" className="w-full">
+          {/* Header com fundo branco e informações principais */}
+          <div className="sticky top-0 bg-white border-b z-10">
           <div className="p-6">
             <div className="flex items-start justify-between mb-4">
               <div className="flex-1">
@@ -78,55 +79,52 @@ export default function DetalhesLeadDialog({ open, onOpenChange, lead, onUpdate 
           </div>
 
           {/* Tabs */}
-          <Tabs defaultValue="detalhes" className="w-full">
-            <TabsList className="w-full justify-start rounded-none border-b bg-transparent h-auto p-0">
-              <TabsTrigger 
-                value="detalhes" 
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent px-6 py-3"
-              >
-                Conversão
-              </TabsTrigger>
-              <TabsTrigger 
-                value="informacoes" 
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent px-6 py-3"
-              >
-                Informações
-              </TabsTrigger>
-              <TabsTrigger 
-                value="conversao" 
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent px-6 py-3"
-              >
-                Sessões
-              </TabsTrigger>
-              <TabsTrigger 
-                value="historico" 
-                className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent px-6 py-3"
-              >
-                Histórico
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <TabsList className="w-full justify-start rounded-none border-b bg-transparent h-auto p-0">
+            <TabsTrigger 
+              value="detalhes" 
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent px-6 py-3"
+            >
+              Conversão
+            </TabsTrigger>
+            <TabsTrigger 
+              value="informacoes" 
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent px-6 py-3"
+            >
+              Informações
+            </TabsTrigger>
+            <TabsTrigger 
+              value="conversao" 
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent px-6 py-3"
+            >
+              Sessões
+            </TabsTrigger>
+            <TabsTrigger 
+              value="historico" 
+              className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent px-6 py-3"
+            >
+              Histórico
+            </TabsTrigger>
+          </TabsList>
         </div>
 
         {/* Conteúdo das tabs */}
-        <Tabs defaultValue="detalhes" className="w-full">
-          <TabsContent value="detalhes" className="p-6 mt-0">
-            <AbaConversao lead={lead} onUpdate={onUpdate} />
-          </TabsContent>
+        <TabsContent value="detalhes" className="p-6 mt-0">
+          <AbaConversao lead={lead} onUpdate={onUpdate} />
+        </TabsContent>
 
-          <TabsContent value="informacoes" className="p-6 mt-0">
-            <AbaDetalhes lead={lead} onUpdate={onUpdate} />
-          </TabsContent>
+        <TabsContent value="informacoes" className="p-6 mt-0">
+          <AbaDetalhes lead={lead} onUpdate={onUpdate} />
+        </TabsContent>
 
-          <TabsContent value="conversao" className="p-6 mt-0">
-            <div className="text-center py-8 text-gray-500">
-              <p>Nenhuma sessão registrada ainda</p>
-            </div>
-          </TabsContent>
+        <TabsContent value="conversao" className="p-6 mt-0">
+          <div className="text-center py-8 text-gray-500">
+            <p>Nenhuma sessão registrada ainda</p>
+          </div>
+        </TabsContent>
 
-          <TabsContent value="historico" className="p-6 mt-0">
-            <AbaHistorico lead={lead} />
-          </TabsContent>
+        <TabsContent value="historico" className="p-6 mt-0">
+          <AbaHistorico lead={lead} />
+        </TabsContent>
         </Tabs>
       </DialogContent>
     </Dialog>
