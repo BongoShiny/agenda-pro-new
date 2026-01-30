@@ -49,6 +49,7 @@
  */
 import Administrador from './pages/Administrador';
 import Agenda from './pages/Agenda';
+import CRM from './pages/CRM';
 import ConfiguracaoSabado from './pages/ConfiguracaoSabado';
 import ConfiguracaoTerapeutas from './pages/ConfiguracaoTerapeutas';
 import ConfigurarUnidades from './pages/ConfigurarUnidades';
@@ -59,17 +60,17 @@ import GerenciarUsuarios from './pages/GerenciarUsuarios';
 import HistoricoAgendamentos from './pages/HistoricoAgendamentos';
 import Home from './pages/Home';
 import RelatoriosAvancados from './pages/RelatoriosAvancados';
+import RelatoriosCRM from './pages/RelatoriosCRM';
 import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
 import WhatsAppCompleto from './pages/WhatsAppCompleto';
-import CRM from './pages/CRM';
-import RelatoriosCRM from './pages/RelatoriosCRM';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Administrador": Administrador,
     "Agenda": Agenda,
+    "CRM": CRM,
     "ConfiguracaoSabado": ConfiguracaoSabado,
     "ConfiguracaoTerapeutas": ConfiguracaoTerapeutas,
     "ConfigurarUnidades": ConfigurarUnidades,
@@ -80,11 +81,10 @@ export const PAGES = {
     "HistoricoAgendamentos": HistoricoAgendamentos,
     "Home": Home,
     "RelatoriosAvancados": RelatoriosAvancados,
+    "RelatoriosCRM": RelatoriosCRM,
     "RelatoriosClientes": RelatoriosClientes,
     "RelatoriosFinanceiros": RelatoriosFinanceiros,
     "WhatsAppCompleto": WhatsAppCompleto,
-    "CRM": CRM,
-    "RelatoriosCRM": RelatoriosCRM,
 }
 
 export const pagesConfig = {

@@ -88,6 +88,22 @@ export default function CRMPage() {
   const isAdmin = user?.role === 'admin';
   const isSuperior = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades";
 
+  // Detectar leads duplicados (mesmo telefone)
+  const leadsDuplicados = new Set();
+  const telefonesMap = new Map();
+  
+  leads.forEach(lead => {
+    const telefoneNormalizado = (lead.telefone || '').replace(/\D/g, '');
+    if (telefoneNormalizado.length >= 10) {
+      if (telefonesMap.has(telefoneNormalizado)) {
+        leadsDuplicados.add(lead.id);
+        leadsDuplicados.add(telefonesMap.get(telefoneNormalizado));
+      } else {
+        telefonesMap.set(telefoneNormalizado, lead.id);
+      }
+    }
+  });
+
   // Filtrar leads
   const leadsFiltrados = leads.filter(lead => {
     // Vendedor só vê seus próprios leads
@@ -249,6 +265,24 @@ export default function CRMPage() {
           </div>
         </div>
 
+        {/* Alerta de Duplicados */}
+        {leadsDuplicados.size > 0 && (
+          <div className="bg-orange-50 border-2 border-orange-400 rounded-xl p-4 mb-6">
+            <div className="flex items-start gap-3">
+              <div className="bg-orange-500 text-white rounded-full p-2">
+                ⚠️
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-orange-900 mb-1">Leads Duplicados Detectados!</h3>
+                <p className="text-orange-700 text-sm">
+                  Encontramos {leadsDuplicados.size} leads com telefones duplicados. 
+                  Eles estão marcados em laranja. Use o botão "Remover Lead" para excluir duplicatas.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Cards de Leads */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {leadsFiltrados.map(lead => (
@@ -258,6 +292,7 @@ export default function CRMPage() {
               onClick={() => !modoRemover && handleAbrirDetalhes(lead)}
               modoRemover={modoRemover}
               onRemover={() => handleRemoverLead(lead.id)}
+              isDuplicado={leadsDuplicados.has(lead.id)}
             />
           ))}
         </div>
