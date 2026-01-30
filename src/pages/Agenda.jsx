@@ -443,7 +443,7 @@ export default function AgendaPage() {
       
       const resultado = await base44.entities.Agendamento.create(dadosComCriador);
       
-      // SINCRONIZAR COM CRM: Buscar lead do cliente e atualizar status
+      // SINCRONIZAR COM CRM: Buscar lead do cliente e atualizar status baseado no tipo
       if (dados.vendedor_id && !dados.tipo?.includes('bloqueio') && dados.cliente_nome !== "FECHADO") {
         try {
           const lead = await base44.entities.Lead.filter({ 
@@ -453,12 +453,19 @@ export default function AgendaPage() {
           
           if (lead) {
             console.log("🔄 SINCRONIZANDO COM CRM - Lead encontrado:", lead.id);
-            // Se lead está em 'avulso', mover para 'plano_terapeutico'
-            if (lead.status === 'avulso') {
+            let novoStatus = null;
+            
+            if (dados.tipo === 'avulsa' || dados.tipo === 'avulso') {
+              novoStatus = 'avulso';
+            } else if (dados.tipo === 'plano_terapeutico') {
+              novoStatus = 'plano_terapeutico';
+            }
+            
+            if (novoStatus && lead.status !== novoStatus) {
               await base44.entities.Lead.update(lead.id, {
-                status: 'plano_terapeutico'
+                status: novoStatus
               });
-              console.log("✅ Lead atualizado: avulso → plano_terapeutico");
+              console.log(`✅ Lead atualizado para: ${novoStatus}`);
             }
           }
         } catch (error) {
