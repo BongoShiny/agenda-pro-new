@@ -15,15 +15,14 @@ import AbaSessoes from "./AbaSessoes";
 import AbaHistorico from "./AbaHistorico";
 
 const statusConfig = {
-  novo: { label: "Novo", color: "bg-yellow-500" },
-  em_contato: { label: "Em Contato", color: "bg-blue-500" },
-  negociacao: { label: "Negociação", color: "bg-purple-500" },
-  fechado: { label: "Fechado", color: "bg-green-500" },
-  perdido: { label: "Perdido", color: "bg-red-500" },
+  lead: { label: "Lead", color: "bg-green-500" },
+  avulso: { label: "Avulso", color: "bg-yellow-500" },
+  plano_terapeutico: { label: "Plano Terapêutico", color: "bg-amber-700" },
+  renovacao: { label: "Renovação", color: "bg-blue-500" },
 };
 
 export default function DetalhesLeadDialog({ open, onOpenChange, lead, onUpdate }) {
-  const status = statusConfig[lead.status] || statusConfig.novo;
+  const status = statusConfig[lead.status] || statusConfig.lead;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

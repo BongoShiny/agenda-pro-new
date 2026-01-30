@@ -222,11 +222,10 @@ export default function AbaDetalhes({ lead, onUpdate }) {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="novo">Novo</SelectItem>
-              <SelectItem value="em_contato">Em Contato</SelectItem>
-              <SelectItem value="negociacao">Negociação</SelectItem>
-              <SelectItem value="fechado">Fechado</SelectItem>
-              <SelectItem value="perdido">Perdido</SelectItem>
+              <SelectItem value="lead">Lead</SelectItem>
+              <SelectItem value="avulso">Avulso</SelectItem>
+              <SelectItem value="plano_terapeutico">Plano Terapêutico</SelectItem>
+              <SelectItem value="renovacao">Renovação</SelectItem>
             </SelectContent>
           </Select>
         </div>

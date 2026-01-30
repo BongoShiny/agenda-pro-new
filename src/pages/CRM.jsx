@@ -156,11 +156,10 @@ export default function CRMPage() {
 
   // Estatísticas
   const stats = {
-    novos: leads.filter(l => l.status === "novo").length,
-    emContato: leads.filter(l => l.status === "em_contato").length,
-    negociacao: leads.filter(l => l.status === "negociacao").length,
-    fechados: leads.filter(l => l.status === "fechado").length,
-    perdidos: leads.filter(l => l.status === "perdido").length,
+    lead: leads.filter(l => l.status === "lead").length,
+    avulso: leads.filter(l => l.status === "avulso").length,
+    planoTerapeutico: leads.filter(l => l.status === "plano_terapeutico").length,
+    renovacao: leads.filter(l => l.status === "renovacao").length,
   };
 
   return (
@@ -218,41 +217,34 @@ export default function CRMPage() {
           </div>
 
           {/* Estatísticas */}
-          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
+              <div className="flex items-center gap-2 text-green-700 mb-1">
+                <UserPlus className="w-5 h-5" />
+                <span className="font-semibold">Lead</span>
+              </div>
+              <p className="text-2xl font-bold text-green-900">{stats.lead}</p>
+            </div>
             <div className="bg-yellow-50 rounded-lg p-4 border-2 border-yellow-200">
               <div className="flex items-center gap-2 text-yellow-700 mb-1">
-                <UserPlus className="w-5 h-5" />
-                <span className="font-semibold">Novos</span>
+                <Clock className="w-5 h-5" />
+                <span className="font-semibold">Avulso</span>
               </div>
-              <p className="text-2xl font-bold text-yellow-900">{stats.novos}</p>
+              <p className="text-2xl font-bold text-yellow-900">{stats.avulso}</p>
+            </div>
+            <div className="bg-amber-50 rounded-lg p-4 border-2 border-amber-200">
+              <div className="flex items-center gap-2 text-amber-700 mb-1">
+                <TrendingUp className="w-5 h-5" />
+                <span className="font-semibold">Plano Terapêutico</span>
+              </div>
+              <p className="text-2xl font-bold text-amber-900">{stats.planoTerapeutico}</p>
             </div>
             <div className="bg-blue-50 rounded-lg p-4 border-2 border-blue-200">
               <div className="flex items-center gap-2 text-blue-700 mb-1">
-                <Clock className="w-5 h-5" />
-                <span className="font-semibold">Em Contato</span>
-              </div>
-              <p className="text-2xl font-bold text-blue-900">{stats.emContato}</p>
-            </div>
-            <div className="bg-purple-50 rounded-lg p-4 border-2 border-purple-200">
-              <div className="flex items-center gap-2 text-purple-700 mb-1">
-                <TrendingUp className="w-5 h-5" />
-                <span className="font-semibold">Negociação</span>
-              </div>
-              <p className="text-2xl font-bold text-purple-900">{stats.negociacao}</p>
-            </div>
-            <div className="bg-green-50 rounded-lg p-4 border-2 border-green-200">
-              <div className="flex items-center gap-2 text-green-700 mb-1">
                 <CheckCircle className="w-5 h-5" />
-                <span className="font-semibold">Fechados</span>
+                <span className="font-semibold">Renovação</span>
               </div>
-              <p className="text-2xl font-bold text-green-900">{stats.fechados}</p>
-            </div>
-            <div className="bg-red-50 rounded-lg p-4 border-2 border-red-200">
-              <div className="flex items-center gap-2 text-red-700 mb-1">
-                <XCircle className="w-5 h-5" />
-                <span className="font-semibold">Perdidos</span>
-              </div>
-              <p className="text-2xl font-bold text-red-900">{stats.perdidos}</p>
+              <p className="text-2xl font-bold text-blue-900">{stats.renovacao}</p>
             </div>
           </div>
         </div>
@@ -279,11 +271,10 @@ export default function CRMPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos os Status</SelectItem>
-                <SelectItem value="novo">Novo</SelectItem>
-                <SelectItem value="em_contato">Em Contato</SelectItem>
-                <SelectItem value="negociacao">Negociação</SelectItem>
-                <SelectItem value="fechado">Fechado</SelectItem>
-                <SelectItem value="perdido">Perdido</SelectItem>
+                <SelectItem value="lead">Lead</SelectItem>
+                <SelectItem value="avulso">Avulso</SelectItem>
+                <SelectItem value="plano_terapeutico">Plano Terapêutico</SelectItem>
+                <SelectItem value="renovacao">Renovação</SelectItem>
               </SelectContent>
             </Select>
             <Select value={filtroUnidade} onValueChange={setFiltroUnidade}>

@@ -6,11 +6,10 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 const statusConfig = {
-  novo: { label: "Novo", color: "bg-yellow-500" },
-  em_contato: { label: "Em Contato", color: "bg-blue-500" },
-  negociacao: { label: "Negociação", color: "bg-purple-500" },
-  fechado: { label: "Fechado", color: "bg-green-500" },
-  perdido: { label: "Perdido", color: "bg-red-500" },
+  lead: { label: "Lead", color: "bg-green-500" },
+  avulso: { label: "Avulso", color: "bg-yellow-500" },
+  plano_terapeutico: { label: "Plano Terapêutico", color: "bg-amber-700" },
+  renovacao: { label: "Renovação", color: "bg-blue-500" },
 };
 
 const temperaturaConfig = {
@@ -20,7 +19,7 @@ const temperaturaConfig = {
 };
 
 export default function LeadCard({ lead, onClick, modoRemover, onRemover, isDuplicado }) {
-  const status = statusConfig[lead.status] || statusConfig.novo;
+  const status = statusConfig[lead.status] || statusConfig.lead;
   const temp = temperaturaConfig[lead.temperatura] || temperaturaConfig.morno;
   const TempIcon = temp.icon;
 
