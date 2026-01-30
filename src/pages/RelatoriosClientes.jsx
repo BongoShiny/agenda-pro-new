@@ -16,8 +16,7 @@ import {
   Edit,
   Eye,
   Save,
-  Upload,
-  ChevronRight
+  Upload
 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
@@ -29,7 +28,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import HistoricoServicosCliente from "../components/cliente/HistoricoServicosCliente";
 
 export default function RelatoriosClientesPage() {
   const [usuarioAtual, setUsuarioAtual] = useState(null);
@@ -48,7 +46,6 @@ export default function RelatoriosClientesPage() {
   const [unidadeTab, setUnidadeTab] = useState("todas");
   const [importandoCSV, setImportandoCSV] = useState(false);
   const [resultadoImportacao, setResultadoImportacao] = useState(null);
-  const [clienteSelecionado, setClienteSelecionado] = useState(null);
   const [paginaAtual, setPaginaAtual] = useState(1);
   const itensPorPagina = 50;
   const navigate = useNavigate();
@@ -597,28 +594,6 @@ export default function RelatoriosClientesPage() {
       </div>
 
       <div className="max-w-7xl mx-auto p-6">
-        {/* Visualização do histórico do cliente selecionado */}
-        {clienteSelecionado && (
-          <div className="mb-6 bg-white rounded-lg border border-gray-200 p-4">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold text-gray-900">📊 Histórico de {clienteSelecionado.nome}</h2>
-              </div>
-              <Button 
-                variant="ghost"
-                onClick={() => setClienteSelecionado(null)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                ✕
-              </Button>
-            </div>
-            <HistoricoServicosCliente 
-              clienteId={clienteSelecionado.id} 
-              clienteNome={clienteSelecionado.nome}
-            />
-          </div>
-        )}
-
         {/* Resultado da importação */}
         {resultadoImportacao && (
           <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4">
@@ -838,28 +813,15 @@ export default function RelatoriosClientesPage() {
                   agendamentosPaginados.map((ag, idx) => (
                     <tr key={ag.id} className={idx % 2 === 0 ? "bg-white" : "bg-gray-50"}>
                       <td className="px-4 py-3 font-medium text-gray-900">
-                        <div className="flex items-center gap-2">
-                          {modoEditor ? (
-                            <Input
-                              value={getValorCelula(ag, "cliente_nome")}
-                              onChange={(e) => handleEditarCelula(ag.id, "cliente_nome", e.target.value)}
-                              className="h-8 text-sm flex-1"
-                            />
-                          ) : (
-                            <>
-                              <span>{ag.cliente_nome}</span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setClienteSelecionado(clientes.find(c => c.id === ag.cliente_id))}
-                                className="p-0 h-6 w-6 text-blue-600 hover:text-blue-800"
-                                title="Ver histórico do cliente"
-                              >
-                                <ChevronRight className="w-4 h-4" />
-                              </Button>
-                            </>
-                          )}
-                        </div>
+                       {modoEditor ? (
+                         <Input
+                           value={getValorCelula(ag, "cliente_nome")}
+                           onChange={(e) => handleEditarCelula(ag.id, "cliente_nome", e.target.value)}
+                           className="h-8 text-sm"
+                         />
+                       ) : (
+                         <span>{ag.cliente_nome}</span>
+                       )}
                       </td>
                       <td className="px-4 py-3 text-gray-600">
                         {modoEditor ? (
