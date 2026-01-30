@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Filter, UserPlus, TrendingUp, Clock, CheckCircle, XCircle, ArrowLeft, LayoutGrid, Columns3 } from "lucide-react";
+import { Plus, Search, Filter, UserPlus, TrendingUp, Clock, CheckCircle, XCircle, ArrowLeft, LayoutGrid, Columns3, RotateCw } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import LeadCard from "../components/crm/LeadCard";
@@ -24,6 +24,7 @@ export default function CRMPage() {
   const [filtroVendedor, setFiltroVendedor] = useState("todos");
   const [modoRemover, setModoRemover] = useState(false);
   const [visualizacao, setVisualizacao] = useState("kanban");
+  const [sincronizandoAgendamentos, setSincronizandoAgendamentos] = useState(false);
 
   const queryClient = useQueryClient();
 
