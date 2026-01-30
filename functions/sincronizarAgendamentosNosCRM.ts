@@ -9,13 +9,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Forbidden: Admin access required' }, { status: 403 });
     }
 
-    // Data de corte: 14/01/2026
-    const dataCurte = new Date(2026, 0, 14); // Janeiro é mês 0
-    const dataCorteString = `${dataCurte.getFullYear()}-${String(dataCurte.getMonth() + 1).padStart(2, '0')}-${String(dataCurte.getDate()).padStart(2, '0')}`;
-    
-    console.log(`🔄 Iniciando sincronização de agendamentos desde ${dataCorteString}`);
+    console.log(`🔄 Iniciando sincronização de TODOS os agendamentos`);
 
-    // Buscar todos os agendamentos desde 14/01
+    // Buscar todos os agendamentos do banco
     const todosAgendamentos = await base44.entities.Agendamento.list("-created_date");
     
     const agendamentosParaSincronizar = todosAgendamentos.filter(ag => {
@@ -24,9 +20,7 @@ Deno.serve(async (req) => {
         return false;
       }
       
-      // Filtrar por data de criação
-      const dataCriacao = ag.created_date || ag.data;
-      return dataCriacao >= dataCorteString;
+      return true;
     });
 
     console.log(`📊 Total de agendamentos para sincronizar: ${agendamentosParaSincronizar.length}`);
