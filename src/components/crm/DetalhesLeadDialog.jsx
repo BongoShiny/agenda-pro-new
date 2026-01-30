@@ -26,59 +26,105 @@ export default function DetalhesLeadDialog({ open, onOpenChange, lead, onUpdate 
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <DialogTitle className="text-2xl">{lead.nome}</DialogTitle>
-              <div className="flex items-center gap-3 mt-2">
-                <Badge className={`${status.color} text-white`}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto p-0">
+        {/* Header com fundo branco e informações principais */}
+        <div className="sticky top-0 bg-white border-b z-10">
+          <div className="p-6">
+            <div className="flex items-start justify-between mb-4">
+              <div className="flex-1">
+                <DialogTitle className="text-2xl font-bold text-gray-900 mb-2">{lead.nome}</DialogTitle>
+                <Badge className={`${status.color} text-white text-xs px-3 py-1`}>
                   {status.label}
                 </Badge>
-                <span className="text-sm text-gray-500">ID: {lead.id}</span>
+              </div>
+            </div>
+
+            {/* Cards de informações rápidas */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                <div className="flex items-center gap-2 mb-1">
+                  <Phone className="w-4 h-4 text-blue-600" />
+                  <span className="text-xs text-blue-600 font-medium">Telefone</span>
+                </div>
+                <p className="text-sm font-semibold text-gray-900">{lead.telefone}</p>
+              </div>
+
+              {lead.email && (
+                <div className="bg-purple-50 rounded-lg p-3 border border-purple-100">
+                  <div className="flex items-center gap-2 mb-1">
+                    <Mail className="w-4 h-4 text-purple-600" />
+                    <span className="text-xs text-purple-600 font-medium">Email</span>
+                  </div>
+                  <p className="text-sm font-semibold text-gray-900 truncate">{lead.email}</p>
+                </div>
+              )}
+
+              <div className="bg-green-50 rounded-lg p-3 border border-green-100">
+                <div className="flex items-center gap-2 mb-1">
+                  <MapPin className="w-4 h-4 text-green-600" />
+                  <span className="text-xs text-green-600 font-medium">Unidade</span>
+                </div>
+                <p className="text-sm font-semibold text-gray-900">{lead.unidade_nome}</p>
+              </div>
+
+              <div className="bg-orange-50 rounded-lg p-3 border border-orange-100">
+                <div className="flex items-center gap-2 mb-1">
+                  <User className="w-4 h-4 text-orange-600" />
+                  <span className="text-xs text-orange-600 font-medium">Vendedor</span>
+                </div>
+                <p className="text-sm font-semibold text-gray-900">{lead.vendedor_nome}</p>
               </div>
             </div>
           </div>
-        </DialogHeader>
 
-        {/* Informações Rápidas */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center gap-2 text-sm">
-            <Phone className="w-4 h-4 text-gray-400" />
-            <span>{lead.telefone}</span>
-          </div>
-          {lead.email && (
-            <div className="flex items-center gap-2 text-sm">
-              <Mail className="w-4 h-4 text-gray-400" />
-              <span className="truncate">{lead.email}</span>
-            </div>
-          )}
-          <div className="flex items-center gap-2 text-sm">
-            <MapPin className="w-4 h-4 text-gray-400" />
-            <span>{lead.unidade_nome}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <User className="w-4 h-4 text-gray-400" />
-            <span>{lead.vendedor_nome}</span>
-          </div>
+          {/* Tabs */}
+          <Tabs defaultValue="detalhes" className="w-full">
+            <TabsList className="w-full justify-start rounded-none border-b bg-transparent h-auto p-0">
+              <TabsTrigger 
+                value="detalhes" 
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent px-6 py-3"
+              >
+                Conversão
+              </TabsTrigger>
+              <TabsTrigger 
+                value="informacoes" 
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent px-6 py-3"
+              >
+                Informações
+              </TabsTrigger>
+              <TabsTrigger 
+                value="conversao" 
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent px-6 py-3"
+              >
+                Sessões
+              </TabsTrigger>
+              <TabsTrigger 
+                value="historico" 
+                className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-600 data-[state=active]:bg-transparent px-6 py-3"
+              >
+                Histórico
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
 
+        {/* Conteúdo das tabs */}
         <Tabs defaultValue="detalhes" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
-            <TabsTrigger value="conversao">Conversão</TabsTrigger>
-            <TabsTrigger value="historico">Histórico</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="detalhes">
-            <AbaDetalhes lead={lead} onUpdate={onUpdate} />
-          </TabsContent>
-
-          <TabsContent value="conversao">
+          <TabsContent value="detalhes" className="p-6 mt-0">
             <AbaConversao lead={lead} onUpdate={onUpdate} />
           </TabsContent>
 
-          <TabsContent value="historico">
+          <TabsContent value="informacoes" className="p-6 mt-0">
+            <AbaDetalhes lead={lead} onUpdate={onUpdate} />
+          </TabsContent>
+
+          <TabsContent value="conversao" className="p-6 mt-0">
+            <div className="text-center py-8 text-gray-500">
+              <p>Nenhuma sessão registrada ainda</p>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="historico" className="p-6 mt-0">
             <AbaHistorico lead={lead} />
           </TabsContent>
         </Tabs>
