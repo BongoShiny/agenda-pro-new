@@ -325,21 +325,23 @@ export default function AbaConversao({ lead, onUpdate }) {
                 />
               </div>
 
-              {recepcionistasDaUnidade.length > 0 && (
-                <div>
-                  <Label>Recepção que Vendeu</Label>
-                  <Select value={formData.recepcao_vendeu} onValueChange={(value) => setFormData(prev => ({ ...prev, recepcao_vendeu: value }))}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione a recepcionista..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {recepcionistasDaUnidade.map(r => (
+              <div>
+                <Label>Recepção que Vendeu</Label>
+                <Select value={formData.recepcao_vendeu} onValueChange={(value) => setFormData(prev => ({ ...prev, recepcao_vendeu: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={recepcionistasDaUnidade.length === 0 ? "Nenhuma recepcionista cadastrada" : "Selecione a recepcionista..."} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {recepcionistasDaUnidade.length === 0 ? (
+                      <SelectItem value="none" disabled>Configure recepcionistas primeiro</SelectItem>
+                    ) : (
+                      recepcionistasDaUnidade.map(r => (
                         <SelectItem key={r.id} value={r.nome}>{r.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
 
               <div>
                 <Label>Plano Terapêutico Fechado *</Label>
