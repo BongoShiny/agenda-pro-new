@@ -516,6 +516,15 @@ export default function CRMPage() {
                   key={lead.id} 
                   lead={lead}
                   onClick={() => !modoRemover && handleAbrirDetalhes(lead)}
+                  onClickSessoes={(lead) => {
+                    setLeadSelecionado(lead);
+                    setDetalhesOpen(true);
+                    // Abrir diretamente na aba de sessões
+                    setTimeout(() => {
+                      const sessoesTab = document.querySelector('[value="sessoes"]');
+                      if (sessoesTab) sessoesTab.click();
+                    }, 100);
+                  }}
                   modoRemover={modoRemover && isSuperior}
                   onRemover={() => handleRemoverLead(lead.id)}
                   isDuplicado={leadsDuplicados.has(lead.id)}

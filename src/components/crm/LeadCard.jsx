@@ -1,9 +1,11 @@
 import React from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Phone, Mail, MapPin, User, Flame, Snowflake, Sun, X } from "lucide-react";
+import { Phone, Mail, MapPin, User, Flame, Snowflake, Sun, X, Calendar } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { base44 } from "@/api/base44Client";
+import { useQuery } from "@tanstack/react-query";
 
 const statusConfig = {
   lead: { label: "Lead", color: "bg-green-500" },
@@ -18,10 +20,21 @@ const temperaturaConfig = {
   frio: { icon: Snowflake, color: "text-blue-500", bg: "bg-blue-50" },
 };
 
-export default function LeadCard({ lead, onClick, modoRemover, onRemover, isDuplicado }) {
+export default function LeadCard({ lead, onClick, modoRemover, onRemover, isDuplicado, onClickSessoes }) {
   const status = statusConfig[lead.status] || statusConfig.lead;
   const temp = temperaturaConfig[lead.temperatura] || temperaturaConfig.morno;
   const TempIcon = temp.icon;
+
+  // Buscar agendamentos do lead
+  const { data: agendamentos = [] } = useQuery({
+    queryKey: ['agendamentos-lead-card', lead.telefone],
+    queryFn: async () => {
+      const todos = await base44.entities.Agendamento.list();
+      return todos.filter(ag => ag.cliente_telefone === lead.telefone);
+    },
+    initialData: [],
+    enabled: !!lead.telefone
+  });
 
   return (
     <Card 
@@ -89,6 +102,27 @@ export default function LeadCard({ lead, onClick, modoRemover, onRemover, isDupl
           <div className="bg-blue-50 rounded-lg p-2 mb-3">
             <p className="text-xs text-blue-700 font-semibold">Interesse:</p>
             <p className="text-sm text-blue-900">{lead.interesse}</p>
+          </div>
+        )}
+
+        {/* Sessões */}
+        {agendamentos.length > 0 && (
+          <div 
+            onClick={(e) => {
+              e.stopPropagation();
+              onClickSessoes && onClickSessoes(lead);
+            }}
+            className="bg-blue-50 hover:bg-blue-100 border border-blue-200 rounded-lg p-3 mb-3 cursor-pointer transition-colors"
+          >
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-blue-700">
+                <Calendar className="w-4 h-4" />
+                <span className="font-semibold text-sm">Sessões</span>
+              </div>
+              <Badge className="bg-blue-600 text-white">
+                {agendamentos.length}
+              </Badge>
+            </div>
           </div>
         )}
 
