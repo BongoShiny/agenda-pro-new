@@ -8,6 +8,7 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import DetalhesAgendamentoDialog from "../agenda/DetalhesAgendamentoDialog";
 
 const statusConfig = {
   agendado: { label: "Agendado", color: "bg-blue-500 text-white" },
@@ -19,6 +20,8 @@ const statusConfig = {
 
 export default function AbaSessoes({ lead }) {
   const navigate = useNavigate();
+  const [agendamentoSelecionado, setAgendamentoSelecionado] = useState(null);
+  const [dialogAberto, setDialogAberto] = useState(false);
 
   // Buscar agendamentos do lead pelo telefone
   const { data: agendamentos = [] } = useQuery({
@@ -34,6 +37,11 @@ export default function AbaSessoes({ lead }) {
   const handleNovaSessao = () => {
     // Redirecionar para agenda
     navigate(createPageUrl("Agenda"));
+  };
+
+  const handleAbrirDetalhes = (agendamento) => {
+    setAgendamentoSelecionado(agendamento);
+    setDialogAberto(true);
   };
 
   if (agendamentos.length === 0) {
@@ -72,7 +80,8 @@ export default function AbaSessoes({ lead }) {
           return (
             <div 
               key={agendamento.id}
-              className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow"
+              onClick={() => handleAbrirDetalhes(agendamento)}
+              className="bg-white border rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer hover:border-blue-400"
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1">
@@ -123,6 +132,15 @@ export default function AbaSessoes({ lead }) {
           );
         })}
       </div>
+
+      {agendamentoSelecionado && (
+        <DetalhesAgendamentoDialog
+          open={dialogAberto}
+          onOpenChange={setDialogAberto}
+          agendamento={agendamentoSelecionado}
+          usuarioAtual={{ role: 'admin' }}
+        />
+      )}
     </div>
   );
 }
