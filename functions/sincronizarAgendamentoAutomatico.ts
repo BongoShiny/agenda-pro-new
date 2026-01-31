@@ -66,12 +66,14 @@ Deno.serve(async (req) => {
       console.log(`✅ Lead ${lead.id} criado`);
     }
 
-    // Atualizar status se necessário
-    if (novoStatus && lead.status !== novoStatus) {
+    // Sempre atualizar status baseado na regra: COM vendedor = Avulso, SEM vendedor = Plano Terapêutico
+    if (lead.status !== novoStatus) {
       console.log(`🔄 Atualizando lead ${lead.id}: ${lead.status} → ${novoStatus}`);
       
       await base44.asServiceRole.entities.Lead.update(lead.id, {
         status: novoStatus,
+        vendedor_id: agendamento.vendedor_id || lead.vendedor_id,
+        vendedor_nome: agendamento.vendedor_nome || lead.vendedor_nome,
         data_primeiro_contato: agendamento.data,
         data_proxima_acao: agendamento.data_proxima_acao || agendamento.data
       });
