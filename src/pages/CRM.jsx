@@ -80,6 +80,12 @@ export default function CRMPage() {
     initialData: [],
   });
 
+  const { data: recepcionistas = [] } = useQuery({
+    queryKey: ['recepcionistas'],
+    queryFn: () => base44.entities.Recepcionista.list("nome"),
+    initialData: [],
+  });
+
   const createLeadMutation = useMutation({
     mutationFn: (leadData) => base44.entities.Lead.create(leadData),
     onSuccess: () => {
@@ -223,6 +229,11 @@ export default function CRMPage() {
   const isVendedor = user?.cargo === "vendedor";
   const isRecepcao = user?.cargo === "recepcao";
 
+  // Buscar recepcionista do usuário logado (se for recepção)
+  const recepcionistaDoUsuario = recepcionistas.find(r => 
+    r.email === user?.email
+  );
+
   // Definir quais colunas o usuário pode ver baseado no cargo
   const colunasVisiveis = (() => {
     if (isAdmin || isSuperior) {
@@ -274,8 +285,13 @@ export default function CRMPage() {
       }
     }
     
-    // RECEPÇÃO: vê avulso, plano_terapeutico e renovacao (de todos)
-    if (isRecepcao) {
+    // RECEPÇÃO: vê avulso, plano_terapeutico e renovacao (apenas da sua unidade)
+    if (isRecepcao && recepcionistaDoUsuario) {
+      // Deve ser da unidade da recepcionista
+      if (lead.unidade_id !== recepcionistaDoUsuario.unidade_id) {
+        return false;
+      }
+      // Pode ver: avulso, plano_terapeutico, renovacao
       if (!["avulso", "plano_terapeutico", "renovacao"].includes(lead.status)) {
         return false;
       }

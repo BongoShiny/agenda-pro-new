@@ -15,6 +15,7 @@ export default function AbaConversao({ lead, onUpdate }) {
   const [fechouPacote, setFechouPacote] = useState(null); // null, true, false
   const [formData, setFormData] = useState({
     data_conversao: format(new Date(), "yyyy-MM-dd"),
+    recepcao_vendeu: "",
     pacote_fechado: "",
     valor_original: "",
     desconto: "",
@@ -26,6 +27,15 @@ export default function AbaConversao({ lead, onUpdate }) {
   });
 
   const queryClient = useQueryClient();
+
+  // Buscar recepcionistas da unidade do lead
+  const { data: recepcionistas = [] } = useQuery({
+    queryKey: ['recepcionistas'],
+    queryFn: () => base44.entities.Recepcionista.list("nome"),
+    initialData: [],
+  });
+
+  const recepcionistasDaUnidade = recepcionistas.filter(r => r.unidade_id === lead.unidade_id);
 
   // Buscar interações do lead
   const { data: interacoes = [] } = useQuery({
@@ -122,6 +132,7 @@ export default function AbaConversao({ lead, onUpdate }) {
     setFechouPacote(null);
     setFormData({
       data_conversao: format(new Date(), "yyyy-MM-dd"),
+      recepcao_vendeu: "",
       pacote_fechado: "",
       valor_original: "",
       desconto: "",
@@ -314,8 +325,24 @@ export default function AbaConversao({ lead, onUpdate }) {
                 />
               </div>
 
+              {recepcionistasDaUnidade.length > 0 && (
+                <div>
+                  <Label>Recepção que Vendeu</Label>
+                  <Select value={formData.recepcao_vendeu} onValueChange={(value) => setFormData(prev => ({ ...prev, recepcao_vendeu: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione a recepcionista..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {recepcionistasDaUnidade.map(r => (
+                        <SelectItem key={r.id} value={r.nome}>{r.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
               <div>
-                <Label>Pacote Fechado *</Label>
+                <Label>Plano Terapêutico Fechado *</Label>
                 <Select value={formData.pacote_fechado} onValueChange={(value) => setFormData(prev => ({ ...prev, pacote_fechado: value }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o pacote..." />
