@@ -28,15 +28,15 @@ Deno.serve(async (req) => {
       return Response.json({ message: 'Bloqueio ignorado' });
     }
 
-    // Pular se não tiver vendedor
-    if (!agendamento.vendedor_id) {
-      console.log('⏭️ Sem vendedor, ignorando');
-      return Response.json({ message: 'Sem vendedor, ignorando' });
-    }
+    // Determinar status baseado na presença de vendedor
+    // COM vendedor → Avulso | SEM vendedor → Plano Terapêutico
+    const novoStatus = agendamento.vendedor_id ? 'avulso' : 'plano_terapeutico';
+    const vendedorId = agendamento.vendedor_id || 'sem_vendedor';
+    
+    console.log(`📊 Status definido: ${novoStatus} (${agendamento.vendedor_id ? 'COM' : 'SEM'} vendedor)`);
 
-    // Buscar leads existentes do cliente com esse vendedor
+    // Buscar leads existentes do cliente
     const leadsExistentes = await base44.asServiceRole.entities.Lead.filter({
-      vendedor_id: agendamento.vendedor_id,
       nome: agendamento.cliente_nome
     });
 
@@ -53,9 +53,9 @@ Deno.serve(async (req) => {
         sexo: "Outro",
         unidade_id: agendamento.unidade_id || "",
         unidade_nome: agendamento.unidade_nome || "",
-        vendedor_id: agendamento.vendedor_id,
-        vendedor_nome: agendamento.vendedor_nome || "",
-        status: "lead",
+        vendedor_id: agendamento.vendedor_id || "",
+        vendedor_nome: agendamento.vendedor_nome || "Sistema",
+        status: novoStatus,
         origem: "sistema_agendamento",
         interesse: agendamento.servico_nome || "",
         temperatura: "morno",
@@ -64,15 +64,6 @@ Deno.serve(async (req) => {
       });
       
       console.log(`✅ Lead ${lead.id} criado`);
-    }
-
-    // Determinar novo status baseado no tipo do agendamento
-    let novoStatus = null;
-
-    if (agendamento.tipo === 'avulso' || agendamento.tipo === 'avulsa') {
-      novoStatus = 'avulso';
-    } else if (agendamento.tipo === 'plano_terapeutico' || agendamento.tipo === 'pacote') {
-      novoStatus = 'plano_terapeutico';
     }
 
     // Atualizar status se necessário
