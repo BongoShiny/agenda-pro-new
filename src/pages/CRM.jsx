@@ -638,20 +638,23 @@ export default function CRMPage() {
             </Select>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
-            <Select value={tipoFiltroData} onValueChange={setTipoFiltroData}>
-              <SelectTrigger>
-                <SelectValue placeholder="Tipo de data" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="entrada">Data de Entrada</SelectItem>
-                <SelectItem value="conversao">Data de Conversão</SelectItem>
-                <SelectItem value="pagamento">Data de Pagamento</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mt-3">
+            <div>
+              <label className="text-xs text-gray-600 mb-1 block">Filtrar por:</label>
+              <Select value={tipoFiltroData} onValueChange={setTipoFiltroData}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tipo de data" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="entrada">Data de Entrada</SelectItem>
+                  <SelectItem value="conversao">Data de Conversão</SelectItem>
+                  <SelectItem value="pagamento">Data de Pagamento</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div>
               <label className="text-xs text-gray-600 mb-1 block">
-                {tipoFiltroData === "entrada" ? "Data entrada (Início)" :
+                {tipoFiltroData === "entrada" ? "Dia que o lead entrou (Início)" :
                  tipoFiltroData === "conversao" ? "Data conversão (Início)" :
                  "Data pagamento (Início)"}
               </label>
@@ -664,7 +667,7 @@ export default function CRMPage() {
             </div>
             <div>
               <label className="text-xs text-gray-600 mb-1 block">
-                {tipoFiltroData === "entrada" ? "Data entrada (Fim)" :
+                {tipoFiltroData === "entrada" ? "Dia que o lead entrou (Fim)" :
                  tipoFiltroData === "conversao" ? "Data conversão (Fim)" :
                  "Data pagamento (Fim)"}
               </label>
@@ -675,6 +678,9 @@ export default function CRMPage() {
                 className="w-full"
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
             <Select value={filtroRecepcao} onValueChange={setFiltroRecepcao}>
               <SelectTrigger>
                 <SelectValue placeholder="Recepção (vendedor)" />
