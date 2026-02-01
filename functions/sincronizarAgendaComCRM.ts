@@ -17,6 +17,7 @@ Deno.serve(async (req) => {
     let agendamentosCompletos = await base44.asServiceRole.entities.Agendamento.list();
     
     console.log(`📊 Total de agendamentos no banco: ${agendamentosCompletos?.length || 0}`);
+    console.log(`📋 Primeiro agendamento:`, agendamentosCompletos[0]);
     
     // Garantir que é um array
     if (!Array.isArray(agendamentosCompletos)) {
