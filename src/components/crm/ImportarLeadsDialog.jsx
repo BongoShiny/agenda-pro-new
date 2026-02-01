@@ -225,7 +225,7 @@ Se encontrar, retorne o ID da unidade. Se não encontrar, retorne null.`,
           }
 
           // Processar data de entrada da planilha
-          let dataEntrada = new Date().toISOString().split('T')[0];
+          let dataEntrada = new Date().toISOString();
           if (linha.data_entrada) {
             try {
               let dataParsed;
@@ -258,7 +258,7 @@ Se encontrar, retorne o ID da unidade. Se não encontrar, retorne null.`,
               }
               
               if (!isNaN(dataParsed.getTime())) {
-                dataEntrada = dataParsed.toISOString().split('T')[0];
+                dataEntrada = dataParsed.toISOString();
               }
             } catch (error) {
               console.warn("Erro ao parsear data:", linha.data_entrada, error);
