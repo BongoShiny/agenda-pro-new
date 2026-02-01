@@ -111,6 +111,10 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
     );
   }
 
+  // Definir filtros de data antes de usar
+  const dataInicioFiltro = dataInicioCustom || dataInicio;
+  const dataFimFiltro = dataFimCustom || dataFim;
+
   // Filtrar vendas baseado em data_pagamento (obrigatório) e que tenham vendedor
   const vendasPeriodo = agendamentos.filter(ag => {
     if (ag.status === "bloqueio" || ag.tipo === "bloqueio") return false;
@@ -132,9 +136,6 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
     const vendedorMatch = vendedorSelecionado === "todos" || (ag.vendedor_nome || "Sem Vendedor") === vendedorSelecionado;
     return unidadeMatch && vendedorMatch;
   });
-
-  const dataInicioFiltro = dataInicioCustom || dataInicio;
-  const dataFimFiltro = dataFimCustom || dataFim;
 
   const formatarPeriodo = () => {
     if (dataInicioFiltro === dataFimFiltro) {
