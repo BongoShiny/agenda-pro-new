@@ -140,7 +140,7 @@ export default function LancarVendasPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.cliente_nome || !formData.cliente_telefone || !formData.data_sessao || !formData.profissional_id || !formData.valor_combinado || formData.terapias.length === 0) {
+    if (!formData.cliente_nome || !formData.cliente_telefone || !formData.data_sessao || !formData.valor_combinado || formData.terapias.length === 0) {
       alert("⚠️ Preencha todos os campos obrigatórios!");
       return;
     }
@@ -310,7 +310,7 @@ export default function LancarVendasPage() {
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
-                  <Label>Terapeuta que Atendeu *</Label>
+                  <Label>Terapeuta que Atendeu</Label>
                   <Select value={formData.profissional_id} onValueChange={(value) => setFormData({ ...formData, profissional_id: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione..." />

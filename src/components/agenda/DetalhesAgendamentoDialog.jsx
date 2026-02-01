@@ -304,6 +304,20 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
                       <span className="text-green-600">Data do pagamento:</span> {format(criarDataPura(agendamento.data_pagamento), "dd/MM/yyyy", { locale: ptBR })}
                     </div>
                   )}
+                  {agendamento.forma_pagamento && (
+                    <div className="text-sm">
+                      <span className="text-green-600">Forma de pagamento:</span> {
+                        agendamento.forma_pagamento === "pix" ? "PIX" :
+                        agendamento.forma_pagamento === "link_pagamento" ? "Link de Pagamento" :
+                        agendamento.forma_pagamento === "pago_na_clinica" ? "Pago na Clínica" :
+                        agendamento.forma_pagamento === "dinheiro" ? "Dinheiro" :
+                        agendamento.forma_pagamento === "cartao_credito" ? "Cartão de Crédito" :
+                        agendamento.forma_pagamento === "cartao_debito" ? "Cartão de Débito" :
+                        agendamento.forma_pagamento === "boleto" ? "Boleto" :
+                        agendamento.forma_pagamento
+                      }
+                    </div>
+                  )}
                 </div>
               </div>
             )}
