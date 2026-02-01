@@ -524,6 +524,52 @@ export default function AbaConversao({ lead, onUpdate }) {
               <h4 className="font-semibold text-gray-900">Motivo de Não Conversão</h4>
               
               <div>
+                <Label>Terapeuta que Atendeu</Label>
+                <Select 
+                  value={formData.terapeuta_id} 
+                  onValueChange={(value) => {
+                    const terapeuta = terapeutasDaUnidade.find(t => t.id === value);
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      terapeuta_id: value,
+                      terapeuta_nome: terapeuta?.nome || ""
+                    }));
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={terapeutasDaUnidade.length === 0 ? "Nenhum terapeuta nesta unidade" : "Selecione o terapeuta..."} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {terapeutasDaUnidade.length === 0 ? (
+                      <SelectItem value="none" disabled>Configure terapeutas primeiro</SelectItem>
+                    ) : (
+                      terapeutasDaUnidade.map(t => (
+                        <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label>Recepção que Vendeu</Label>
+                <Select value={formData.recepcao_vendeu} onValueChange={(value) => setFormData(prev => ({ ...prev, recepcao_vendeu: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={recepcionistasDaUnidade.length === 0 ? "Nenhuma recepcionista cadastrada" : "Selecione a recepcionista..."} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {recepcionistasDaUnidade.length === 0 ? (
+                      <SelectItem value="none" disabled>Configure recepcionistas primeiro</SelectItem>
+                    ) : (
+                      recepcionistasDaUnidade.map(r => (
+                        <SelectItem key={r.id} value={r.nome}>{r.nome}</SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
                 <Label className="mb-2 block">Por que o cliente decidiu não fechar o plano? *</Label>
                 <div className="space-y-2 bg-white rounded-lg border p-3">
                   {motivosNaoConversao.map((motivo) => (
