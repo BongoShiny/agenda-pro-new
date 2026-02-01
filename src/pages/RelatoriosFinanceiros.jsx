@@ -144,6 +144,12 @@ export default function RelatoriosFinanceirosPage() {
     initialData: [],
   });
 
+  const { data: leads = [] } = useQuery({
+    queryKey: ['leads-terapeutas'],
+    queryFn: () => base44.entities.Lead.list(),
+    initialData: [],
+  });
+
   // Filtrar unidades baseado no acesso do usuário
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
   const unidadesFiltradas = isAdmin ? unidades : unidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
@@ -2190,12 +2196,6 @@ export default function RelatoriosFinanceirosPage() {
               </CardHeader>
               <CardContent>
                 {(() => {
-                  const { data: leads = [] } = useQuery({
-                    queryKey: ['leads-terapeutas'],
-                    queryFn: () => base44.entities.Lead.list(),
-                    initialData: [],
-                  });
-
                   // Filtrar apenas leads convertidos com plano terapêutico
                   const leadsConvertidos = leads.filter(lead => {
                     if (!lead.convertido) return false;
