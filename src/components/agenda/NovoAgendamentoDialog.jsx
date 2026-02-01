@@ -92,7 +92,8 @@ export default function NovoAgendamentoDialog({
     comprovante_5: "",
     cliente_pacote: "Não",
     quantas_sessoes: null,
-    sessoes_feitas: null
+    sessoes_feitas: null,
+    parcelas: null
   });
 
   const [clientePopoverAberto, setClientePopoverAberto] = useState(false);
@@ -208,7 +209,8 @@ export default function NovoAgendamentoDialog({
           cliente_pacote: agendamentoInicial?.cliente_pacote || "Não",
           quantas_sessoes: agendamentoInicial?.quantas_sessoes || null,
           sessoes_feitas: agendamentoInicial?.sessoes_feitas || null,
-          forma_pagamento: agendamentoInicial?.forma_pagamento || "-"
+          forma_pagamento: agendamentoInicial?.forma_pagamento || "-",
+          parcelas: agendamentoInicial?.parcelas || null
           };
         
         setFormData(dados);
@@ -857,7 +859,7 @@ export default function NovoAgendamentoDialog({
 
           <div className="space-y-2">
             <Label>Forma de Pagamento</Label>
-            <Select value={formData.forma_pagamento || "-"} onValueChange={(value) => setFormData(prev => ({ ...prev, forma_pagamento: value }))}>
+            <Select value={formData.forma_pagamento || "-"} onValueChange={(value) => setFormData(prev => ({ ...prev, forma_pagamento: value, parcelas: null }))}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -873,6 +875,22 @@ export default function NovoAgendamentoDialog({
               </SelectContent>
             </Select>
           </div>
+
+          {(formData.forma_pagamento === "cartao_credito" || formData.forma_pagamento === "boleto" || formData.forma_pagamento === "link_pagamento") && (
+            <div className="space-y-2">
+              <Label>Em quantas vezes?</Label>
+              <Input
+                type="number"
+                min="1"
+                placeholder="Número de parcelas"
+                value={formData.parcelas || ""}
+                onChange={(e) => setFormData(prev => ({ 
+                  ...prev, 
+                  parcelas: e.target.value ? parseInt(e.target.value) : null 
+                }))}
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Vendedor</Label>
