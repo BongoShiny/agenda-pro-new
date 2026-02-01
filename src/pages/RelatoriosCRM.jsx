@@ -126,17 +126,23 @@ export default function RelatoriosCRMPage() {
   const totalRenovacoes = leadsFiltrados.filter(l => l.status === "renovacao").length;
   const percentualRenovacao = totalGeralRegistros > 0 ? ((totalRenovacoes / totalGeralRegistros) * 100).toFixed(1) : 0;
 
-  // Taxa de conversão do dia (leads criados hoje vs conversões hoje)
-  const hoje = format(new Date(), "yyyy-MM-dd");
+  // Taxa de conversão do dia (leads criados HOJE vs conversões HOJE - ignora filtros de período)
+  const hoje = new Date();
+  hoje.setHours(0, 0, 0, 0);
+  
   const leadsDoDia = leads.filter(l => {
-    const dataLead = format(new Date(l.created_date), "yyyy-MM-dd");
-    return dataLead === hoje;
+    const dataLead = new Date(l.created_date);
+    dataLead.setHours(0, 0, 0, 0);
+    return dataLead.getTime() === hoje.getTime();
   });
+  
   const conversoesDoDia = leads.filter(l => {
     if (!l.data_conversao) return false;
-    const dataConv = format(new Date(l.data_conversao), "yyyy-MM-dd");
-    return dataConv === hoje;
+    const dataConv = new Date(l.data_conversao);
+    dataConv.setHours(0, 0, 0, 0);
+    return dataConv.getTime() === hoje.getTime();
   });
+  
   const taxaConversaoDia = leadsDoDia.length > 0 
     ? ((conversoesDoDia.length / leadsDoDia.length) * 100).toFixed(1) 
     : 0;
