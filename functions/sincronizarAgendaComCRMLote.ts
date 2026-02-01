@@ -37,8 +37,24 @@ Deno.serve(async (req) => {
 
     console.log(`🎯 Total de agendamentos válidos: ${agendamentosValidos.length}`);
 
-    // Buscar todos os leads existentes
-    let leads = await base44.asServiceRole.entities.Lead.list();
+    // Buscar todos os leads existentes com paginação
+    let leads = [];
+    skip = 0;
+    temMais = true;
+
+    while (temMais) {
+      const batch = await base44.asServiceRole.entities.Lead.list(null, 1000, skip);
+      if (!batch || !Array.isArray(batch) || batch.length === 0) {
+        temMais = false;
+      } else {
+        leads = leads.concat(batch);
+        skip += 1000;
+        console.log(`📥 Carregados ${leads.length} leads até agora...`);
+      }
+    }
+
+    console.log(`✅ Total de leads carregados: ${leads.length}`);
+
     const mapLeads = {};
     leads.forEach(lead => {
       if (lead.telefone) {
