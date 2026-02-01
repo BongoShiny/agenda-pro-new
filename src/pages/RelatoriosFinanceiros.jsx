@@ -1035,7 +1035,7 @@ export default function RelatoriosFinanceirosPage() {
          </div>
 
         {/* Tabelas por Profissional e Unidade */}
-         <Tabs defaultValue="dashboard" className="w-full">
+         <Tabs value={abaAtiva} onValueChange={setAbaAtiva} className="w-full">
            <TabsList>
              <TabsTrigger value="dashboard">📊 Dashboard</TabsTrigger>
              <TabsTrigger value="analise-dia">📅 Análise do Dia</TabsTrigger>
