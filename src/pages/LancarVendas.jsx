@@ -145,6 +145,12 @@ export default function LancarVendasPage() {
       return;
     }
 
+    // Validar data de pagamento se vendedor foi selecionado
+    if (formData.vendedor_id && !formData.data_pagamento) {
+      alert("⚠️ Data de pagamento é obrigatória quando um vendedor é selecionado!");
+      return;
+    }
+
     const profissional = profissionais.find(p => p.id === formData.profissional_id);
     const vendedor = vendedores.find(v => v.id === formData.vendedor_id);
     const recepcionista = recepcionistas.find(r => r.id === formData.recepcionista_id);
@@ -177,7 +183,7 @@ export default function LancarVendasPage() {
       final_pagamento: formData.restante_pagamento === "sim" ? valorPago : 0,
       falta_quanto: faltaQuanto,
       forma_pagamento: formData.forma_pagamento,
-      data_pagamento: formData.data_pagamento,
+      data_pagamento: formData.vendedor_id ? formData.data_pagamento : null,
       observacoes_vendedores: `Motivo: ${formData.motivo}\nQueixa: ${formData.queixa}\nPago por: ${formData.pago_por}${formData.parcelas ? `\nParcelas: ${formData.parcelas}x` : ""}`,
       anotacao_venda: formData.parcelas ? `${formData.forma_pagamento} - ${formData.parcelas}x` : formData.forma_pagamento,
       comprovante_1: formData.comprovante_url,
@@ -485,14 +491,16 @@ export default function LancarVendasPage() {
                 </div>
               </div>
 
-              <div>
-                <Label>Data do Pagamento *</Label>
-                <Input
-                  type="date"
-                  value={formData.data_pagamento}
-                  onChange={(e) => setFormData({ ...formData, data_pagamento: e.target.value })}
-                />
-              </div>
+              {formData.vendedor_id && (
+                <div>
+                  <Label>Data do Pagamento *</Label>
+                  <Input
+                    type="date"
+                    value={formData.data_pagamento}
+                    onChange={(e) => setFormData({ ...formData, data_pagamento: e.target.value })}
+                  />
+                </div>
+              )}
             </div>
 
             {/* Motivo e Queixa */}
