@@ -203,26 +203,27 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
               A planilha deve conter as seguintes colunas (nessa ordem):
             </p>
             <ul className="text-sm text-blue-700 list-disc list-inside space-y-1">
-              <li><strong>nome</strong> - Nome do lead (obrigatório)</li>
-              <li><strong>telefone</strong> - Telefone de contato (obrigatório)</li>
-              <li><strong>data_entrada</strong> - Data e hora de entrada (opcional - formato DD/MM/YYYY HH:MM)</li>
-              <li><strong>vendedor</strong> - Nome do vendedor (opcional)</li>
-              <li><strong>unidade</strong> - Nome da unidade (opcional)</li>
+              <li><strong>Nome</strong> - Nome do lead (coluna A)</li>
+              <li><strong>Telefone</strong> - Telefone de contato (coluna B)</li>
+              <li><strong>Data e hora de entrada</strong> - Formato DD/MM/YYYY HH:MM (coluna C)</li>
+              <li><strong>vendedor</strong> - Nome do vendedor (coluna D - opcional)</li>
+              <li><strong>unidade</strong> - Nome da unidade (coluna E - opcional)</li>
             </ul>
             <p className="text-xs text-blue-600 mt-2">
-              💡 Se vendedor ou unidade não forem especificados, serão usados os valores padrão abaixo.
+              💡 Se vendedor ou unidade estiverem vazios, será usado "SEM UNIDADE" ou deixado sem vendedor.
             </p>
           </div>
 
           {/* Valores Padrão */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <Label>Vendedor Padrão *</Label>
+              <Label>Vendedor Padrão (opcional)</Label>
               <Select value={vendedorPadrao} onValueChange={setVendedorPadrao}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value={null}>Sem vendedor padrão</SelectItem>
                   {vendedores.map(v => (
                     <SelectItem key={v.id} value={v.id}>{v.nome}</SelectItem>
                   ))}
@@ -231,12 +232,13 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
             </div>
 
             <div>
-              <Label>Unidade Padrão *</Label>
+              <Label>Unidade Padrão (opcional)</Label>
               <Select value={unidadePadrao} onValueChange={setUnidadePadrao}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value={null}>SEM UNIDADE</SelectItem>
                   {unidades.map(u => (
                     <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
                   ))}
@@ -324,7 +326,7 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
             </Button>
             <Button 
               onClick={processarArquivo}
-              disabled={!arquivo || !vendedorPadrao || !unidadePadrao || processando}
+              disabled={!arquivo || processando}
               className="bg-blue-600 hover:bg-blue-700"
             >
               <Upload className="w-4 h-4 mr-2" />
