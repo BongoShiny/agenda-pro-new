@@ -50,6 +50,7 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
           properties: {
             nome: { type: "string" },
             telefone: { type: "string" },
+            data_entrada: { type: "string" },
             vendedor: { type: "string" },
             unidade: { type: "string" },
           },
@@ -114,19 +115,43 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
             }
           }
 
+          // Processar data de entrada da planilha
+          let dataEntrada = new Date().toISOString().split('T')[0];
+          if (linha.data_entrada) {
+            try {
+              // Tentar parsear data no formato DD/MM/YYYY HH:MM ou DD/MM/YYYY
+              const dataStr = String(linha.data_entrada).trim();
+              let dataParsed;
+              
+              if (dataStr.includes('/')) {
+                const partes = dataStr.split(' ');
+                const [dia, mes, ano] = partes[0].split('/');
+                dataParsed = new Date(ano, mes - 1, dia);
+              } else {
+                dataParsed = new Date(dataStr);
+              }
+              
+              if (!isNaN(dataParsed.getTime())) {
+                dataEntrada = dataParsed.toISOString().split('T')[0];
+              }
+            } catch (error) {
+              console.warn("Erro ao parsear data:", linha.data_entrada);
+            }
+          }
+
           // Criar lead
           await base44.entities.Lead.create({
             nome: linha.nome || `Lead ${i + 1}`,
             telefone: linha.telefone || "",
             vendedor_id: vendedor_id,
             vendedor_nome: vendedor_nome,
-            unidade_id: unidade_id,
-            unidade_nome: unidade_nome,
+            unidade_id: unidade_id || "",
+            unidade_nome: unidade_nome || "SEM UNIDADE",
             status: "lead",
             origem: "importacao_planilha",
             temperatura: "morno",
-            data_entrada: new Date().toISOString().split('T')[0],
-            data_primeiro_contato: new Date().toISOString().split('T')[0],
+            data_entrada: dataEntrada,
+            data_primeiro_contato: dataEntrada,
           });
 
           sucesso++;
@@ -180,6 +205,7 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
             <ul className="text-sm text-blue-700 list-disc list-inside space-y-1">
               <li><strong>nome</strong> - Nome do lead (obrigatório)</li>
               <li><strong>telefone</strong> - Telefone de contato (obrigatório)</li>
+              <li><strong>data_entrada</strong> - Data e hora de entrada (opcional - formato DD/MM/YYYY HH:MM)</li>
               <li><strong>vendedor</strong> - Nome do vendedor (opcional)</li>
               <li><strong>unidade</strong> - Nome da unidade (opcional)</li>
             </ul>
