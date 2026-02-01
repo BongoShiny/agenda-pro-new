@@ -1343,6 +1343,10 @@ export default function RelatoriosFinanceirosPage() {
                                  <TableHead className="text-right">Total Pago</TableHead>
                                  <TableHead className="text-right">A Receber</TableHead>
                                  <TableHead>Forma Pagamento</TableHead>
+                                 <TableHead>Comprovante</TableHead>
+                                 <TableHead>Observações</TableHead>
+                                 <TableHead>Obs. Vendedor</TableHead>
+                                 <TableHead>Anotações</TableHead>
                                </TableRow>
                              </TableHeader>
                              <TableBody>
@@ -1366,6 +1370,74 @@ export default function RelatoriosFinanceirosPage() {
                                      <TableCell className="text-right text-emerald-600 font-semibold">{formatarMoeda(totalPagoAg)}</TableCell>
                                      <TableCell className="text-right text-orange-600">{formatarMoeda(ag.falta_quanto)}</TableCell>
                                      <TableCell>{formaLabel}</TableCell>
+                                     <TableCell>
+                                       <div className="flex gap-1 flex-wrap">
+                                         {[1, 2, 3, 4, 5].map(num => {
+                                           const comprovante = ag[`comprovante_${num}`];
+                                           if (!comprovante) return null;
+                                           return (
+                                             <Button
+                                               key={num}
+                                               variant="ghost"
+                                               size="sm"
+                                               onClick={() => setComprovanteVisualizacao(comprovante)}
+                                               className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-xs"
+                                             >
+                                               <Eye className="w-3 h-3 mr-1" />
+                                               {num}
+                                             </Button>
+                                           );
+                                         })}
+                                         {!ag.comprovante_1 && !ag.comprovante_2 && !ag.comprovante_3 && !ag.comprovante_4 && !ag.comprovante_5 && (
+                                           <span className="text-xs text-gray-400">-</span>
+                                         )}
+                                       </div>
+                                     </TableCell>
+                                     <TableCell className="max-w-xs">
+                                       {ag.observacoes ? (
+                                         <button
+                                           onClick={() => setObservacoesDialogAnalise({
+                                             cliente: ag.cliente_nome,
+                                             texto: ag.observacoes
+                                           })}
+                                           className="flex items-start gap-1 hover:bg-gray-50 p-1 rounded transition-colors cursor-pointer text-left w-full"
+                                         >
+                                           <FileText className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+                                           <span className="text-xs text-gray-600 line-clamp-2">
+                                             {ag.observacoes}
+                                           </span>
+                                         </button>
+                                       ) : (
+                                         <span className="text-gray-400 text-xs">-</span>
+                                       )}
+                                     </TableCell>
+                                     <TableCell className="max-w-xs">
+                                       {ag.observacoes_vendedores ? (
+                                         <button
+                                           onClick={() => setObservacoesDialogAnalise({
+                                             cliente: ag.cliente_nome,
+                                             texto: ag.observacoes_vendedores
+                                           })}
+                                           className="flex items-start gap-1 hover:bg-gray-50 p-1 rounded transition-colors cursor-pointer text-left w-full"
+                                         >
+                                           <FileText className="w-3 h-3 text-gray-400 mt-0.5 flex-shrink-0" />
+                                           <span className="text-xs text-gray-600 line-clamp-2">
+                                             {ag.observacoes_vendedores}
+                                           </span>
+                                         </button>
+                                       ) : (
+                                         <span className="text-gray-400 text-xs">-</span>
+                                       )}
+                                     </TableCell>
+                                     <TableCell className="max-w-xs">
+                                       {ag.anotacao_venda ? (
+                                         <span className="text-xs text-gray-600 line-clamp-2">
+                                           {ag.anotacao_venda}
+                                         </span>
+                                       ) : (
+                                         <span className="text-gray-400 text-xs">-</span>
+                                       )}
+                                     </TableCell>
                                    </TableRow>
                                  );
                                })}
