@@ -57,6 +57,7 @@ export default function RelatoriosFinanceirosPage() {
   const [dataPersonalizada, setDataPersonalizada] = useState(null);
   const [unidadeFiltro, setUnidadeFiltro] = useState("todas");
   const [profissionalFiltro, setProfissionalFiltro] = useState("todos");
+  const [tipoDataFiltro, setTipoDataFiltro] = useState("data_pagamento"); // "data_conversao" ou "data_pagamento"
   const [modoEditor, setModoEditor] = useState(false);
   const [dialogExportarPDF, setDialogExportarPDF] = useState(false);
   const [mesSelecionadoPDF, setMesSelecionadoPDF] = useState("");
@@ -189,9 +190,18 @@ export default function RelatoriosFinanceirosPage() {
   const agendamentosFiltrados = agendamentos
     .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
     .filter(ag => {
-      // Filtro de período
-      const dataAg = ag.data;
-      if (dataAg < dataInicio || dataAg > dataFim) return false;
+      // Filtro de período baseado no tipo de data selecionado
+      let dataParaFiltro;
+      if (tipoDataFiltro === "data_conversao") {
+        dataParaFiltro = ag.data_conversao;
+      } else {
+        dataParaFiltro = ag.data_pagamento;
+      }
+      
+      // Se não houver data do tipo selecionado, não incluir
+      if (!dataParaFiltro) return false;
+      
+      if (dataParaFiltro < dataInicio || dataParaFiltro > dataFim) return false;
 
       // Filtro de unidade
       if (unidadeFiltro !== "todas" && ag.unidade_id !== unidadeFiltro) return false;
@@ -892,7 +902,10 @@ export default function RelatoriosFinanceirosPage() {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900">Relatórios Financeiros</h1>
-              <p className="text-sm text-gray-500">{periodoLabels[periodo]} - {agendamentosFiltrados.length} agendamentos</p>
+              <p className="text-sm text-gray-500">
+                {periodoLabels[periodo]} - {agendamentosFiltrados.length} agendamentos
+                {tipoDataFiltro === "data_pagamento" ? " (por data de pagamento)" : " (por data de conversão)"}
+              </p>
             </div>
           </div>
           <div className="flex gap-2">
@@ -917,7 +930,22 @@ export default function RelatoriosFinanceirosPage() {
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Filtros no Header */}
         <div className="bg-white rounded-lg border border-gray-200 p-4">
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Tipo de Data</label>
+              <Select value={tipoDataFiltro} onValueChange={setTipoDataFiltro}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="data_pagamento">📅 Data de Pagamento</SelectItem>
+                  <SelectItem value="data_conversao">✅ Data de Conversão</SelectItem>
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-gray-500">
+                {tipoDataFiltro === "data_pagamento" ? "Filtrando por data de pagamento" : "Filtrando por data de conversão"}
+              </p>
+            </div>
             <div className="space-y-2">
               <label className="text-sm font-medium">Período</label>
               <Select value={periodo} onValueChange={(value) => {
