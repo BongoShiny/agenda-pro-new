@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
+import RankingVendedores from "./RankingVendedores";
 
 // Usar mesma lógica de formatação em todos os componentes
 // FUNÇÃO CRÍTICA: Garantir que NUNCA haja conversão de timezone
@@ -266,13 +267,16 @@ export default function AgendaHeader({
              )}
 
              {(isVendedor || isAdmin) && navigate && (
-               <Button 
-                 className="bg-green-600 hover:bg-green-700" 
-                 onClick={() => navigate(createPageUrl("LancarVendas"))}
-               >
-                 <DollarSign className="w-4 h-4 mr-2" />
-                 Lançar Vendas
-               </Button>
+               <>
+                 <RankingVendedores />
+                 <Button 
+                   className="bg-green-600 hover:bg-green-700" 
+                   onClick={() => navigate(createPageUrl("LancarVendas"))}
+                 >
+                   <DollarSign className="w-4 h-4 mr-2" />
+                   Lançar Vendas
+                 </Button>
+               </>
              )}
 
              <Button 
