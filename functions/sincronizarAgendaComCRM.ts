@@ -12,20 +12,34 @@ Deno.serve(async (req) => {
 
     console.log('🔄 INICIANDO SINCRONIZAÇÃO COMPLETA AGENDA → CRM');
 
-    // Buscar todos os agendamentos (exceto bloqueios)
-    let agendamentos = await base44.asServiceRole.entities.Agendamento.list();
+    // Buscar todos os agendamentos desde 01/01/2026
+    const dataCorte = '2026-01-01';
+    let agendamentos = await base44.asServiceRole.entities.Agendamento.filter({});
     
     // Garantir que agendamentos é um array
     if (!Array.isArray(agendamentos)) {
       agendamentos = [];
     }
     
-    const agendamentosValidos = agendamentos.filter(ag => 
-      ag.status !== "bloqueio" && 
-      ag.tipo !== "bloqueio" && 
-      ag.cliente_nome !== "FECHADO" &&
-      ag.cliente_nome
-    );
+    const agendamentosValidos = agendamentos.filter(ag => {
+      // Filtrar por data >= 2026-01-01
+      if (ag.data && ag.data < dataCorte) {
+        return false;
+      }
+      
+      // Excluir bloqueios e FECHADOS
+      if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO" || !ag.cliente_nome) {
+        return false;
+      }
+      
+      // Excluir agendamentos sem telefone
+      if (!ag.cliente_telefone || ag.cliente_telefone.replace(/\D/g, '').length < 10) {
+        console.log(`⚠️ Agendamento sem telefone válido: ${ag.cliente_nome} - ${ag.cliente_telefone || 'sem tel'}`);
+        return false;
+      }
+      
+      return true;
+    });
 
     console.log(`📊 Total de agendamentos válidos: ${agendamentosValidos.length}`);
 
