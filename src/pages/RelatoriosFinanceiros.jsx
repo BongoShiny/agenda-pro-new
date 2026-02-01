@@ -1256,14 +1256,14 @@ export default function RelatoriosFinanceirosPage() {
            <TabsContent value="analise-dia">
              <Card>
                <CardHeader>
-                 <CardTitle>📅 Análise do Dia - {format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}</CardTitle>
+                 <CardTitle>📅 Análise do Dia - {format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })} (por Data de Pagamento)</CardTitle>
                </CardHeader>
                <CardContent>
                  {(() => {
                    const hoje = format(new Date(), "yyyy-MM-dd");
                    const agendamentosHoje = agendamentos
                      .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
-                     .filter(ag => ag.data === hoje);
+                     .filter(ag => ag.data_pagamento === hoje);
 
                    const totalCombinadoHoje = agendamentosHoje.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
                    const totalSinalHoje = agendamentosHoje.reduce((sum, ag) => sum + (ag.sinal || 0), 0);
