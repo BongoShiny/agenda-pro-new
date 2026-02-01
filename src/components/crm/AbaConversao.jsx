@@ -26,6 +26,25 @@ export default function AbaConversao({ lead, onUpdate }) {
     motivo_nao_conversao: "",
   });
 
+  // Carregar dados do lead se já estiver convertido (modo edição)
+  useEffect(() => {
+    if (lead.convertido && modoRegistro) {
+      setFechouPacote(true);
+      setFormData({
+        data_conversao: lead.data_conversao ? format(new Date(lead.data_conversao), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+        recepcao_vendeu: lead.recepcao_vendeu || "",
+        pacote_fechado: lead.motivo_fechamento?.split(' - ')[0] || "",
+        valor_original: "",
+        desconto: "",
+        valor_final: lead.valor_negociado?.toString() || "",
+        forma_pagamento: lead.forma_pagamento || "pix",
+        motivos_fechamento: lead.motivo_fechamento?.split(' - ')[1]?.split(', ') || [],
+        observacoes: "",
+        motivo_nao_conversao: "",
+      });
+    }
+  }, [lead, modoRegistro]);
+
   const queryClient = useQueryClient();
 
   // Buscar recepcionistas da unidade do lead
@@ -69,12 +88,12 @@ export default function AbaConversao({ lead, onUpdate }) {
     if (fechouPacote === true) {
       // Validar campos obrigatórios
       if (!formData.data_conversao || !formData.pacote_fechado) {
-        alert("⚠️ Preencha os campos obrigatórios: Data de Conversão e Pacote Fechado");
+        alert("⚠️ Preencha os campos obrigatórios: Data de Conversão e Plano Fechado");
         return;
       }
 
       // Registrar conversão bem-sucedida
-      const descricao = `Pacote Fechado: ${formData.pacote_fechado}${formData.motivos_fechamento.length > 0 ? ` | Motivos: ${formData.motivos_fechamento.join(", ")}` : ""}${formData.observacoes ? ` | Obs: ${formData.observacoes}` : ""}`;
+      const descricao = `Plano Fechado: ${formData.pacote_fechado}${formData.motivos_fechamento.length > 0 ? ` | Motivos: ${formData.motivos_fechamento.join(", ")}` : ""}${formData.observacoes ? ` | Obs: ${formData.observacoes}` : ""}`;
 
       await createInteracaoMutation.mutateAsync({
         lead_id: lead.id,
@@ -100,7 +119,7 @@ export default function AbaConversao({ lead, onUpdate }) {
         anotacoes_internas: `${lead.anotacoes_internas || ""}\n\n⏱️ Tempo de conversão: ${tempoConversaoDias} dias`.trim(),
       });
 
-      alert("🎉 Pacote fechado com sucesso!");
+      alert("🎉 Plano fechado com sucesso!");
     } else {
       // Registrar tentativa sem conversão
       if (!formData.motivo_nao_conversao) {
@@ -208,21 +227,30 @@ export default function AbaConversao({ lead, onUpdate }) {
       {/* Status de conversão se já fechou */}
       {lead.convertido && (
         <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
-              <CheckCircle className="w-6 h-6 text-white" />
-            </div>
-            <div className="flex-1">
-              <h3 className="font-bold text-green-900">Pacote Fechado com Sucesso!</h3>
-              <p className="text-sm text-green-700">
-                O cliente converteu para: {lead.motivo_fechamento}. {lead.valor_negociado && `Valor final: R$ ${lead.valor_negociado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
-              </p>
-              {lead.data_conversao && (lead.data_primeiro_contato || lead.created_date) && (
-                <p className="text-sm text-green-700 mt-1 font-semibold">
-                  ⏱️ Tempo de conversão: {Math.ceil((new Date(lead.data_conversao) - new Date(lead.data_primeiro_contato || lead.created_date)) / (1000 * 60 * 60 * 24))} dias
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-green-900">Plano Fechado com Sucesso!</h3>
+                <p className="text-sm text-green-700">
+                  O cliente converteu para: {lead.motivo_fechamento}. {lead.valor_negociado && `Valor final: R$ ${lead.valor_negociado.toLocaleString("pt-BR", { minimumFractionDigits: 2 })}`}
                 </p>
-              )}
+                {lead.data_conversao && (lead.data_primeiro_contato || lead.created_date) && (
+                  <p className="text-sm text-green-700 mt-1 font-semibold">
+                    ⏱️ Tempo de conversão: {Math.ceil((new Date(lead.data_conversao) - new Date(lead.data_primeiro_contato || lead.created_date)) / (1000 * 60 * 60 * 24))} dias
+                  </p>
+                )}
+              </div>
             </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setModoRegistro(true)}
+            >
+              <Edit className="w-4 h-4" />
+            </Button>
           </div>
         </div>
       )}
@@ -231,7 +259,7 @@ export default function AbaConversao({ lead, onUpdate }) {
       {tentativasConversao.length > 0 && (
         <div className="space-y-3">
           <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-            <span className="text-lg">📋</span> Conversão de Pacote
+            <span className="text-lg">📋</span> Conversão de Plano
           </h3>
           {tentativasConversao.map((tentativa) => (
             <div 
@@ -255,7 +283,7 @@ export default function AbaConversao({ lead, onUpdate }) {
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-gray-900">
-                      {tentativa.tipo === "conversao_fechamento" ? "Pacote Fechado com Sucesso!" : "Tentativa de Conversão Registrada"}
+                      {tentativa.tipo === "conversao_fechamento" ? "Plano Fechado com Sucesso!" : "Tentativa de Conversão Registrada"}
                     </h4>
                     <p className="text-sm text-gray-700 mt-1 break-words">{tentativa.descricao}</p>
                     <p className="text-xs text-gray-500 mt-1">
@@ -273,24 +301,24 @@ export default function AbaConversao({ lead, onUpdate }) {
       )}
 
       {/* Botão para nova tentativa */}
-      {!modoRegistro && !lead.convertido && (
+      {!modoRegistro && (
         <Button 
           onClick={() => setModoRegistro(true)}
           className="w-full bg-green-600 hover:bg-green-700 text-white"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Registrar Nova Tentativa
+          {lead.convertido ? "Editar Plano Fechado" : "Registrar Nova Tentativa"}
         </Button>
       )}
 
       {/* Formulário de registro */}
-      {modoRegistro && !lead.convertido && (
+      {modoRegistro && (
         <div className="border-2 border-gray-200 rounded-lg p-6 bg-gray-50 space-y-6">
-          <h3 className="font-bold text-lg text-gray-900">Registrar Tentativa de Conversão</h3>
+          <h3 className="font-bold text-lg text-gray-900">{lead.convertido ? "Editar Plano Fechado" : "Registrar Tentativa de Conversão"}</h3>
 
           {/* Pergunta inicial */}
           <div className="space-y-3">
-            <Label className="text-base font-semibold">O cliente fechou um pacote?</Label>
+            <Label className="text-base font-semibold">O cliente fechou um plano?</Label>
             <div className="flex gap-3">
               <Button
                 type="button"
@@ -298,7 +326,7 @@ export default function AbaConversao({ lead, onUpdate }) {
                 onClick={() => setFechouPacote(true)}
                 className={fechouPacote === true ? "bg-green-600 hover:bg-green-700" : ""}
               >
-                Sim, fechou pacote
+                Sim, fechou plano
               </Button>
               <Button
                 type="button"
@@ -314,7 +342,7 @@ export default function AbaConversao({ lead, onUpdate }) {
           {/* Formulário quando fechou */}
           {fechouPacote === true && (
             <div className="space-y-4 pt-4 border-t">
-              <h4 className="font-semibold text-gray-900">Dados do Pacote Fechado</h4>
+              <h4 className="font-semibold text-gray-900">Dados do Plano Fechado</h4>
               
               <div>
                 <Label>Data da Conversão *</Label>
@@ -347,7 +375,7 @@ export default function AbaConversao({ lead, onUpdate }) {
                 <Label>Plano Terapêutico Fechado *</Label>
                 <Select value={formData.pacote_fechado} onValueChange={(value) => setFormData(prev => ({ ...prev, pacote_fechado: value }))}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Selecione o pacote..." />
+                    <SelectValue placeholder="Selecione o plano..." />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="plano_24_sessoes">Plano 24 Sessões (Caribe)</SelectItem>
@@ -408,7 +436,7 @@ export default function AbaConversao({ lead, onUpdate }) {
               </div>
 
               <div>
-                <Label className="mb-2 block">Por que o cliente decidiu fechar o pacote? *</Label>
+                <Label className="mb-2 block">Por que o cliente decidiu fechar o plano? *</Label>
                 <div className="space-y-2 max-h-60 overflow-y-auto bg-white rounded-lg border p-3">
                   {motivosFechamento.map((motivo) => (
                     <div key={motivo} className="flex items-start gap-2">
@@ -443,7 +471,7 @@ export default function AbaConversao({ lead, onUpdate }) {
               <h4 className="font-semibold text-gray-900">Motivo de Não Conversão</h4>
               
               <div>
-                <Label className="mb-2 block">Por que o cliente decidiu não fechar o pacote? *</Label>
+                <Label className="mb-2 block">Por que o cliente decidiu não fechar o plano? *</Label>
                 <div className="space-y-2 bg-white rounded-lg border p-3">
                   {motivosNaoConversao.map((motivo) => (
                     <div key={motivo} className="flex items-start gap-2">

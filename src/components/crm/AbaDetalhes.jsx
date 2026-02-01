@@ -88,7 +88,7 @@ export default function AbaDetalhes({ lead, onUpdate }) {
                 <p className="font-medium text-gray-900 capitalize">{lead.origem?.replace("_", " ")}</p>
               </div>
               <div>
-                <Label className="text-gray-500 text-xs">Pacote Contratado</Label>
+                <Label className="text-gray-500 text-xs">Plano Contratado</Label>
                 <p className="font-medium text-gray-900">{lead.interesse || "-"}</p>
               </div>
             </div>
