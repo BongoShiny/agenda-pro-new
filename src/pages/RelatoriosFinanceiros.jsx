@@ -232,6 +232,35 @@ export default function RelatoriosFinanceirosPage() {
 
   const listaProfissionais = Object.values(faturamentoPorProfissional).sort((a, b) => b.totalPago - a.totalPago);
 
+  // Calcular totais para o mês específico quando em análise mensal
+  const agendamentosMesSelecionado = React.useMemo(() => {
+    if (abaAtiva !== "analise-mensal") return null;
+    return agendamentos
+      .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
+      .filter(ag => {
+        if (!ag.data_pagamento) return false;
+        return ag.data_pagamento.substring(0, 7) === mesAnoAnalise;
+      });
+  }, [abaAtiva, mesAnoAnalise, agendamentos]);
+
+  // Usar totais do mês se em análise mensal, senão usar período global
+  const totalCombinadoDisplay = agendamentosMesSelecionado 
+    ? agendamentosMesSelecionado.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0)
+    : totalCombinado;
+  const totalSinalDisplay = agendamentosMesSelecionado 
+    ? agendamentosMesSelecionado.reduce((sum, ag) => sum + (ag.sinal || 0), 0)
+    : totalSinal;
+  const totalRecebimento2Display = agendamentosMesSelecionado 
+    ? agendamentosMesSelecionado.reduce((sum, ag) => sum + (ag.recebimento_2 || 0), 0)
+    : totalRecebimento2;
+  const totalFinalPagamentoDisplay = agendamentosMesSelecionado 
+    ? agendamentosMesSelecionado.reduce((sum, ag) => sum + (ag.final_pagamento || 0), 0)
+    : totalFinalPagamento;
+  const totalPagoDisplay = totalSinalDisplay + totalRecebimento2Display + totalFinalPagamentoDisplay;
+  const totalAReceberDisplay = agendamentosMesSelecionado 
+    ? agendamentosMesSelecionado.reduce((sum, ag) => sum + (ag.falta_quanto || 0), 0)
+    : totalAReceber;
+
   // Agrupar por unidade
   const faturamentoPorUnidade = agendamentosFiltrados.reduce((acc, ag) => {
     const unidade = ag.unidade_nome || "Sem Unidade";
