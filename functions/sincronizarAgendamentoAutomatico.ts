@@ -74,7 +74,6 @@ Deno.serve(async (req) => {
         status: novoStatus,
         vendedor_id: agendamento.vendedor_id || lead.vendedor_id,
         vendedor_nome: agendamento.vendedor_nome || lead.vendedor_nome,
-        data_primeiro_contato: agendamento.data,
         data_proxima_acao: agendamento.data_proxima_acao || agendamento.data
       });
     }
