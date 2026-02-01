@@ -69,6 +69,7 @@ export default function RelatoriosFinanceirosPage() {
   const [vendedorFiltroAnalise, setVendedorFiltroAnalise] = useState("todos");
   const [imagemDialogAnalise, setImagemDialogAnalise] = useState(null);
   const [observacoesDialogAnalise, setObservacoesDialogAnalise] = useState(null);
+  const [abaAtiva, setAbaAtiva] = useState("dashboard");
   const [novoVendedor, setNovoVendedor] = useState({
     nome: "",
     email: "",
