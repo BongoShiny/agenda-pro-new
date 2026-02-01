@@ -130,7 +130,7 @@ export default function RelatoriosCRMPage() {
   const totalRenovacoes = leadsFiltrados.filter(l => l.status === "renovacao").length;
   const percentualRenovacao = totalGeralRegistros > 0 ? ((totalRenovacoes / totalGeralRegistros) * 100).toFixed(1) : 0;
 
-  // Taxa de conversão do dia (leads criados HOJE vs conversões HOJE - ignora filtros de período)
+  // Taxa de conversão do dia - VENDAS DE HOJE (leads que viraram avulso/plano hoje)
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
   
@@ -140,8 +140,11 @@ export default function RelatoriosCRMPage() {
     return dataLead.getTime() === hoje.getTime();
   });
   
+  // Contar vendas de hoje = leads que viraram avulso ou plano terapêutico hoje
   const conversoesDoDia = leads.filter(l => {
     if (!l.data_conversao) return false;
+    if (l.status !== "avulso" && l.status !== "plano_terapeutico") return false;
+    
     const dataConv = new Date(l.data_conversao);
     dataConv.setHours(0, 0, 0, 0);
     return dataConv.getTime() === hoje.getTime();
