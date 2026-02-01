@@ -29,12 +29,16 @@ export default function RelatoriosCRMPage() {
     loadUser();
   }, []);
 
-  // Aplicar período rápido
+  // Aplicar período rápido (sempre no horário do Paraná - BRT/UTC-3)
   useEffect(() => {
     const hoje = new Date();
     let inicio, fim;
 
     switch (periodoRapido) {
+      case "hoje":
+        inicio = hoje;
+        fim = hoje;
+        break;
       case "mes_atual":
         inicio = startOfMonth(hoje);
         fim = endOfMonth(hoje);
@@ -311,6 +315,7 @@ export default function RelatoriosCRMPage() {
                 <SelectValue placeholder="Período" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="hoje">Hoje</SelectItem>
                 <SelectItem value="mes_atual">Mês Atual</SelectItem>
                 <SelectItem value="ano_atual">Ano Atual</SelectItem>
                 <SelectItem value="ultimos_30">Últimos 30 dias</SelectItem>
