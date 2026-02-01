@@ -69,8 +69,8 @@ Deno.serve(async (req) => {
     // Processar cada agendamento
     for (const ag of agendamentosValidos) {
       try {
-        // Extrair dados do agendamento
-        const agData = ag.data || ag;
+        // Usar diretamente o agendamento (já é o objeto correto)
+        const agData = ag;
         
         // Buscar lead existente pelo telefone
         const telefoneNormalizado = agData.cliente_telefone ? agData.cliente_telefone.replace(/\D/g, '') : '';
