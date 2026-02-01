@@ -18,18 +18,21 @@ Deno.serve(async (req) => {
       ag.status !== "bloqueio" && 
       ag.tipo !== "bloqueio" && 
       ag.cliente_nome !== "FECHADO" &&
-      ag.vendedor_id &&
       ag.cliente_nome
     );
 
     console.log(`📊 Total de agendamentos válidos: ${agendamentosValidos.length}`);
 
-    // Buscar todos os leads existentes
+    // Buscar todos os leads existentes (indexar por telefone)
     const leadsExistentes = await base44.asServiceRole.entities.Lead.list();
-    const mapLeads = {};
+    const mapLeadsPorTelefone = {};
     leadsExistentes.forEach(lead => {
-      const chave = `${lead.nome.toLowerCase()}_${lead.vendedor_id}`;
-      mapLeads[chave] = lead;
+      if (lead.telefone) {
+        const telefoneNormalizado = lead.telefone.replace(/\D/g, '');
+        if (telefoneNormalizado) {
+          mapLeadsPorTelefone[telefoneNormalizado] = lead;
+        }
+      }
     });
 
     let leadsAtualizados = 0;
@@ -39,53 +42,67 @@ Deno.serve(async (req) => {
     // Processar cada agendamento
     for (const ag of agendamentosValidos) {
       try {
-        const chave = `${ag.cliente_nome.toLowerCase()}_${ag.vendedor_id}`;
-        const leadExistente = mapLeads[chave];
+        // Buscar lead existente pelo telefone
+        const telefoneNormalizado = ag.cliente_telefone ? ag.cliente_telefone.replace(/\D/g, '') : '';
+        const leadExistente = telefoneNormalizado ? mapLeadsPorTelefone[telefoneNormalizado] : null;
 
         // Determinar status baseado no tipo de agendamento
-        let novoStatus = 'avulso';
-        if (ag.tipo === 'plano_terapeutico') {
-          novoStatus = 'plano_terapeutico';
-        } else if (ag.tipo === 'renovacao') {
-          novoStatus = 'renovacao';
+        // Tipo "avulsa" → Status "avulso"
+        // Outros tipos → Status "plano_terapeutico"
+        let novoStatus = 'plano_terapeutico';
+        if (ag.tipo === 'avulsa') {
+          novoStatus = 'avulso';
         }
 
         if (leadExistente) {
           // Atualizar lead existente
           const atualizacao = {
-            telefone: ag.cliente_telefone || leadExistente.telefone,
             status: novoStatus,
-            convertido: true,
-            data_conversao: ag.data || new Date().toISOString().split('T')[0],
             unidade_id: ag.unidade_id || leadExistente.unidade_id,
             unidade_nome: ag.unidade_nome || leadExistente.unidade_nome,
+            vendedor_id: ag.vendedor_id || leadExistente.vendedor_id,
+            vendedor_nome: ag.vendedor_nome || leadExistente.vendedor_nome,
+            terapeuta_id: ag.profissional_id || leadExistente.terapeuta_id,
+            terapeuta_nome: ag.profissional_nome || leadExistente.terapeuta_nome,
+            convertido: true,
+            data_conversao: ag.data || leadExistente.data_conversao || new Date().toISOString().split('T')[0],
             valor_negociado: ag.valor_combinado || leadExistente.valor_negociado
           };
 
           await base44.asServiceRole.entities.Lead.update(leadExistente.id, atualizacao);
           leadsAtualizados++;
         } else {
-          // Criar novo lead
+          // Criar novo lead (apenas se tiver telefone)
+          if (!ag.cliente_telefone) {
+            console.log(`⚠️ Agendamento sem telefone - pulando: ${ag.cliente_nome}`);
+            continue;
+          }
+
           const novoLead = {
             nome: ag.cliente_nome,
-            telefone: ag.cliente_telefone || "",
+            telefone: ag.cliente_telefone,
             email: "",
-            vendedor_id: ag.vendedor_id,
-            vendedor_nome: ag.vendedor_nome,
+            vendedor_id: ag.vendedor_id || "",
+            vendedor_nome: ag.vendedor_nome || "",
+            terapeuta_id: ag.profissional_id || "",
+            terapeuta_nome: ag.profissional_nome || "",
             unidade_id: ag.unidade_id || "",
             unidade_nome: ag.unidade_nome || "",
             status: novoStatus,
-            origem: "agenda",
+            origem: "sistema_agendamento",
             temperatura: "quente",
             convertido: true,
-            data_entrada: ag.data || new Date().toISOString().split('T')[0],
-            data_primeiro_contato: ag.data || new Date().toISOString().split('T')[0],
+            data_entrada: new Date().toISOString(),
+            data_primeiro_contato: null, // Não preencher para leads da agenda
             data_conversao: ag.data || new Date().toISOString().split('T')[0],
             valor_negociado: ag.valor_combinado || 0
           };
 
           await base44.asServiceRole.entities.Lead.create(novoLead);
           leadsCriados++;
+          
+          // Adicionar ao mapa para evitar duplicatas no mesmo lote
+          mapLeadsPorTelefone[telefoneNormalizado] = novoLead;
         }
       } catch (error) {
         console.error(`❌ Erro ao processar agendamento ${ag.id}:`, error);
