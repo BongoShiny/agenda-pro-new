@@ -266,17 +266,16 @@ export default function AgendaHeader({
                </Link>
              )}
 
+             <RankingVendedores />
+
              {(isVendedor || isAdmin) && navigate && (
-               <>
-                 <RankingVendedores />
-                 <Button 
-                   className="bg-green-600 hover:bg-green-700" 
-                   onClick={() => navigate(createPageUrl("LancarVendas"))}
-                 >
-                   <DollarSign className="w-4 h-4 mr-2" />
-                   Lançar Vendas
-                 </Button>
-               </>
+               <Button 
+                 className="bg-green-600 hover:bg-green-700" 
+                 onClick={() => navigate(createPageUrl("LancarVendas"))}
+               >
+                 <DollarSign className="w-4 h-4 mr-2" />
+                 Lançar Vendas
+               </Button>
              )}
 
              <Button 
