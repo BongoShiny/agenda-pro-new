@@ -59,7 +59,6 @@ Deno.serve(async (req) => {
         origem: "sistema_agendamento",
         interesse: agendamento.servico_nome || "",
         temperatura: "morno",
-        data_primeiro_contato: new Date().toISOString(),
         anotacoes_internas: `Sincronizado automaticamente do agendamento ${agendamento.id}`
       });
       
