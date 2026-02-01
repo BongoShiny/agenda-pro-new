@@ -133,17 +133,15 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
     return unidadeMatch && vendedorMatch;
   });
 
-  const formatarPeriodo = () => {
-    const inicio = dataInicioCustom || dataInicio;
-    const fim = dataFimCustom || dataFim;
-    if (inicio === fim) {
-      return format(new Date(inicio + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR });
-    }
-    return `${format(new Date(inicio + 'T12:00:00'), "dd/MM", { locale: ptBR })} - ${format(new Date(fim + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR })}`;
-  };
-
   const dataInicioFiltro = dataInicioCustom || dataInicio;
   const dataFimFiltro = dataFimCustom || dataFim;
+
+  const formatarPeriodo = () => {
+    if (dataInicioFiltro === dataFimFiltro) {
+      return format(new Date(dataInicioFiltro + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR });
+    }
+    return `${format(new Date(dataInicioFiltro + 'T12:00:00'), "dd/MM", { locale: ptBR })} - ${format(new Date(dataFimFiltro + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR })}`;
+  };
 
   const totalVendas = vendasFiltradas.length;
   const totalValor = vendasFiltradas.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
