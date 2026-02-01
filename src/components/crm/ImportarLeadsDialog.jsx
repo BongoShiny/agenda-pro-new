@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -16,8 +16,13 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
   const [processando, setProcessando] = useState(false);
   const [resultado, setResultado] = useState(null);
   const [errosDetalhados, setErrosDetalhados] = useState([]);
+  const [usuario, setUsuario] = useState(null);
 
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    base44.auth.me().then(setUsuario).catch(() => {});
+  }, []);
 
   const { data: vendedores = [] } = useQuery({
     queryKey: ['vendedores'],
@@ -30,6 +35,22 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
     queryFn: () => base44.entities.Unidade.list("nome"),
     initialData: [],
   });
+
+  const registrarErro = async (tipo, mensagem, nomeLead, telefoneLead, numeroLinha, dadosLinha) => {
+    try {
+      await base44.entities.ErroImportacaoLead.create({
+        usuario_email: usuario?.email || 'desconhecido',
+        tipo_erro: tipo,
+        mensagem_erro: mensagem,
+        nome_lead: nomeLead || '',
+        telefone_lead: telefoneLead || '',
+        numero_linha: numeroLinha,
+        dados_linha: JSON.stringify(dadosLinha)
+      });
+    } catch (error) {
+      console.error('Erro ao registrar erro:', error);
+    }
+  };
 
   const processarArquivo = async () => {
     if (!arquivo) {
@@ -81,6 +102,7 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
 
       for (let i = 0; i < dados.length; i++) {
         const linha = dados[i];
+        const numeroLinha = i + 2;
 
         try {
           // VENDEDOR: Prioridade 1) planilha, 2) padrão
@@ -184,14 +206,16 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
 
           sucesso++;
         } catch (error) {
-          console.error(`Erro na linha ${i + 1}:`, error);
+          console.error(`Erro na linha ${numeroLinha}:`, error);
+          const mensagem = error.message || "Erro desconhecido";
           erros++;
           listaErros.push({
-            linha: i + 2, // +2 porque linha 1 é header e array começa em 0
+            linha: numeroLinha,
             nome: linha.nome || "(sem nome)",
             telefone: linha.telefone || "(sem telefone)",
-            erro: error.message || "Erro desconhecido"
+            erro: mensagem
           });
+          await registrarErro('erro_criacao', mensagem, linha.nome, linha.telefone, numeroLinha, linha);
         }
 
         setProgresso({ total, processados: i + 1, sucesso, erros });

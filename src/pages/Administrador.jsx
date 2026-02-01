@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Settings, FileText, ShieldCheck, ArrowLeft, FileSpreadsheet, DollarSign, MessageCircle, BarChart3, Calendar, UserCheck } from "lucide-react";
+import { Users, Settings, FileText, ShieldCheck, ArrowLeft, FileSpreadsheet, DollarSign, MessageCircle, BarChart3, Calendar, UserCheck, AlertCircle } from "lucide-react";
 
 export default function AdministradorPage() {
   const [usuarioAtual, setUsuarioAtual] = useState(null);
@@ -254,7 +254,17 @@ export default function AdministradorPage() {
           </Link>
           )}
 
-
+          {(isAdmin || isGerencia) && (
+          <Link to={createPageUrl("RelatorioErrosImportacao")} className="block">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-red-300 transition-all cursor-pointer h-full">
+              <div className="w-12 h-12 bg-red-100 rounded-lg flex items-center justify-center mb-4">
+                <AlertCircle className="w-6 h-6 text-red-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Erros de Importação</h3>
+              <p className="text-sm text-gray-500">Relatório detalhado de erros ao importar leads</p>
+            </div>
+          </Link>
+          )}
 
           </div>
 
