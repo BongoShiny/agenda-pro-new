@@ -156,7 +156,7 @@ Se encontrar, retorne o ID do vendedor. Se não encontrar, retorne null.`,
             } catch (error) {
               console.warn('Erro ao usar IA para vendedor:', error);
               // Delay adicional em caso de erro de rate limit
-              await new Promise(resolve => setTimeout(resolve, 2000));
+              await new Promise(resolve => setTimeout(resolve, 500));
             }
           }
           
@@ -170,7 +170,7 @@ Se encontrar, retorne o ID do vendedor. Se não encontrar, retorne null.`,
           }
 
           // Delay entre chamadas de IA para evitar rate limit
-          await new Promise(resolve => setTimeout(resolve, 1500));
+          await new Promise(resolve => setTimeout(resolve, 300));
 
           // UNIDADE: Usar IA para fazer matching inteligente
           let unidade_id = "";
@@ -211,7 +211,7 @@ Se encontrar, retorne o ID da unidade. Se não encontrar, retorne null.`,
             } catch (error) {
               console.warn('Erro ao usar IA para unidade:', error);
               // Delay adicional em caso de erro de rate limit
-              await new Promise(resolve => setTimeout(resolve, 2000));
+              await new Promise(resolve => setTimeout(resolve, 500));
             }
           }
           
@@ -274,8 +274,8 @@ Se encontrar, retorne o ID da unidade. Se não encontrar, retorne null.`,
 
           sucesso++;
 
-          // Delay de 3 segundos entre cada criação para evitar rate limit (429)
-          await new Promise(resolve => setTimeout(resolve, 3000));
+          // Delay entre cada criação para evitar rate limit
+          await new Promise(resolve => setTimeout(resolve, 500));
         } catch (error) {
           console.error(`Erro na linha ${numeroLinha}:`, error);
           const mensagem = error.message || "Erro desconhecido";
