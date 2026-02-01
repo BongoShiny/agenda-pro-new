@@ -31,6 +31,7 @@ export default function LancarVendasPage() {
     valor_combinado: "",
     falta_quanto: "",
     forma_pagamento: "pix",
+    parcelas: "",
     recepcionista_id: "",
     vendedor_id: "",
     profissional_id: "",
@@ -146,7 +147,8 @@ export default function LancarVendasPage() {
       falta_quanto: faltaQuanto,
       forma_pagamento: formData.forma_pagamento,
       data_pagamento: formData.data_pagamento,
-      observacoes_vendedores: `Motivo: ${formData.motivo}\nQueixa: ${formData.queixa}\nPago por: ${formData.pago_por}`,
+      observacoes_vendedores: `Motivo: ${formData.motivo}\nQueixa: ${formData.queixa}\nPago por: ${formData.pago_por}${formData.parcelas ? `\nParcelas: ${formData.parcelas}x` : ""}`,
+      anotacao_venda: formData.parcelas ? `${formData.forma_pagamento} - ${formData.parcelas}x` : formData.forma_pagamento,
       comprovante_1: formData.comprovante_url,
       criador_email: user?.email,
       status_paciente: "paciente_novo",
@@ -239,7 +241,7 @@ export default function LancarVendasPage() {
                 💼 Dados da Sessão
               </h3>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 <div>
                   <Label>Terapia *</Label>
                   <Select value={formData.terapia} onValueChange={(value) => setFormData({ ...formData, terapia: value })}>
@@ -254,33 +256,8 @@ export default function LancarVendasPage() {
                   </Select>
                 </div>
 
-                <div>
-                  <Label>Dia da Sessão *</Label>
-                  <Input
-                    type="date"
-                    value={formData.data_sessao}
-                    onChange={(e) => setFormData({ ...formData, data_sessao: e.target.value })}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label>Horário Início</Label>
-                  <Input
-                    type="time"
-                    value={formData.horario_inicio}
-                    onChange={(e) => setFormData({ ...formData, horario_inicio: e.target.value })}
-                  />
-                </div>
-
-                <div>
-                  <Label>Horário Fim</Label>
-                  <Input
-                    type="time"
-                    value={formData.horario_fim}
-                    onChange={(e) => setFormData({ ...formData, horario_fim: e.target.value })}
-                  />
+                <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3">
+                  <p className="text-sm font-semibold text-yellow-800">📅 COMBINAR O DIA DA SESSÃO</p>
                 </div>
               </div>
 
@@ -363,7 +340,7 @@ export default function LancarVendasPage() {
 
                 <div>
                   <Label>Forma de Pagamento *</Label>
-                  <Select value={formData.forma_pagamento} onValueChange={(value) => setFormData({ ...formData, forma_pagamento: value })}>
+                  <Select value={formData.forma_pagamento} onValueChange={(value) => setFormData({ ...formData, forma_pagamento: value, parcelas: "" })}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -374,10 +351,24 @@ export default function LancarVendasPage() {
                       <SelectItem value="dinheiro">Dinheiro</SelectItem>
                       <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
                       <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
+                      <SelectItem value="boleto">Boleto</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               </div>
+
+              {(formData.forma_pagamento === "cartao_credito" || formData.forma_pagamento === "link_pagamento" || formData.forma_pagamento === "boleto") && (
+                <div>
+                  <Label>Em quantas vezes?</Label>
+                  <Input
+                    type="number"
+                    value={formData.parcelas}
+                    onChange={(e) => setFormData({ ...formData, parcelas: e.target.value })}
+                    placeholder="Número de parcelas"
+                    min="1"
+                  />
+                </div>
+              )}
 
               <div className="grid grid-cols-3 gap-4">
                 <div>
