@@ -2,9 +2,10 @@ import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, TrendingUp, Calendar, Clock, Image as ImageIcon, FileText, ExternalLink, Edit3, Save, Search } from "lucide-react";
-import { format } from "date-fns";
+import { Eye, TrendingUp, Calendar, Clock, Image as ImageIcon, FileText, ExternalLink, Edit3, Save, Search, Download, BarChart3, Filter } from "lucide-react";
+import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, eachDayOfInterval, eachWeekOfInterval, eachMonthOfInterval } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -60,6 +61,11 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
   const [notificacaoDialog, setNotificacaoDialog] = useState(null);
   const [mensagemNotificacao, setMensagemNotificacao] = useState("");
   const [emailSelecionado, setEmailSelecionado] = useState("");
+  const [filtroAvancado, setFiltroAvancado] = useState(false);
+  const [dataInicioCustom, setDataInicioCustom] = useState("");
+  const [dataFimCustom, setDataFimCustom] = useState("");
+  const [visualizacaoGrafico, setVisualizacaoGrafico] = useState("dia"); // dia, semana, mes
+  const [mostrarGraficos, setMostrarGraficos] = useState(true);
   const queryClient = useQueryClient();
 
   const atualizarAgendamentoMutation = useMutation({
@@ -111,7 +117,7 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
     if (!ag.vendedor_id && !ag.vendedor_nome) return false; // Apenas com vendedor
     if (!ag.data_pagamento) return false; // Obrigatório ter data de pagamento
     
-    return ag.data_pagamento >= dataInicio && ag.data_pagamento <= dataFim;
+    return ag.data_pagamento >= dataInicioFiltro && ag.data_pagamento <= dataFimFiltro;
   });
 
   // Obter lista única de unidades
@@ -128,14 +134,171 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
   });
 
   const formatarPeriodo = () => {
-    if (dataInicio === dataFim) {
-      return format(new Date(dataInicio + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR });
+    const inicio = dataInicioCustom || dataInicio;
+    const fim = dataFimCustom || dataFim;
+    if (inicio === fim) {
+      return format(new Date(inicio + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR });
     }
-    return `${format(new Date(dataInicio + 'T12:00:00'), "dd/MM", { locale: ptBR })} - ${format(new Date(dataFim + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR })}`;
+    return `${format(new Date(inicio + 'T12:00:00'), "dd/MM", { locale: ptBR })} - ${format(new Date(fim + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR })}`;
   };
+
+  const dataInicioFiltro = dataInicioCustom || dataInicio;
+  const dataFimFiltro = dataFimCustom || dataFim;
 
   const totalVendas = vendasFiltradas.length;
   const totalValor = vendasFiltradas.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
+
+  // Preparar dados para gráficos
+  const prepararDadosGrafico = () => {
+    if (vendasFiltradas.length === 0) return [];
+
+    const inicio = new Date(dataInicioFiltro + 'T12:00:00');
+    const fim = new Date(dataFimFiltro + 'T12:00:00');
+
+    if (visualizacaoGrafico === "dia") {
+      const dias = eachDayOfInterval({ start: inicio, end: fim });
+      return dias.map(dia => {
+        const dataStr = format(dia, 'yyyy-MM-dd');
+        const vendasDia = vendasFiltradas.filter(v => v.data_pagamento === dataStr);
+        return {
+          data: format(dia, 'dd/MM', { locale: ptBR }),
+          vendas: vendasDia.length,
+          valor: vendasDia.reduce((sum, v) => sum + (v.valor_combinado || 0), 0)
+        };
+      });
+    } else if (visualizacaoGrafico === "semana") {
+      const semanas = eachWeekOfInterval({ start: inicio, end: fim }, { locale: ptBR });
+      return semanas.map(semana => {
+        const inicioSemana = startOfWeek(semana, { locale: ptBR });
+        const fimSemana = endOfWeek(semana, { locale: ptBR });
+        const vendasSemana = vendasFiltradas.filter(v => {
+          const dataPagamento = new Date(v.data_pagamento + 'T12:00:00');
+          return dataPagamento >= inicioSemana && dataPagamento <= fimSemana;
+        });
+        return {
+          data: `Sem ${format(inicioSemana, 'dd/MM')}`,
+          vendas: vendasSemana.length,
+          valor: vendasSemana.reduce((sum, v) => sum + (v.valor_combinado || 0), 0)
+        };
+      });
+    } else {
+      const meses = eachMonthOfInterval({ start: inicio, end: fim });
+      return meses.map(mes => {
+        const inicioMes = startOfMonth(mes);
+        const fimMes = endOfMonth(mes);
+        const vendasMes = vendasFiltradas.filter(v => {
+          const dataPagamento = new Date(v.data_pagamento + 'T12:00:00');
+          return dataPagamento >= inicioMes && dataPagamento <= fimMes;
+        });
+        return {
+          data: format(mes, 'MMM/yyyy', { locale: ptBR }),
+          vendas: vendasMes.length,
+          valor: vendasMes.reduce((sum, v) => sum + (v.valor_combinado || 0), 0)
+        };
+      });
+    }
+  };
+
+  const dadosGrafico = prepararDadosGrafico();
+
+  const exportarCSV = () => {
+    const headers = [
+      "Data/Hora Criação",
+      "Cliente",
+      "Telefone",
+      "Unidade",
+      "Vendedor",
+      "Profissional",
+      "Data Agendamento",
+      "Data Pagamento",
+      "Pacote",
+      "Forma Pagamento",
+      "Valor",
+      "Pago",
+      "A Receber",
+      "Observações",
+      "Observações Vendedor",
+      "Anotações"
+    ];
+
+    const rows = vendasFiltradas.map(v => {
+      const totalPago = (v.sinal || 0) + (v.recebimento_2 || 0) + (v.final_pagamento || 0);
+      const dataHora = formatarDataHoraBrasilia(v.created_date);
+      return [
+        `${dataHora.data} ${dataHora.hora}`,
+        v.cliente_nome || "",
+        v.cliente_telefone || "",
+        v.unidade_nome || "",
+        v.vendedor_nome || "",
+        v.profissional_nome || "",
+        v.data ? format(new Date(v.data + 'T12:00:00'), "dd/MM/yyyy") : "",
+        formatarDataPagamento(v.data_pagamento),
+        v.cliente_pacote === "Sim" ? `${v.sessoes_feitas || 0}/${v.quantas_sessoes || 0}` : "",
+        v.forma_pagamento === "pago_na_clinica" ? "Pago na Clínica" :
+        v.forma_pagamento === "pix" ? "PIX" :
+        v.forma_pagamento === "link_pagamento" ? "Link de Pagamento" : "",
+        (v.valor_combinado || 0).toFixed(2),
+        totalPago.toFixed(2),
+        (v.falta_quanto || 0).toFixed(2),
+        v.observacoes || "",
+        v.observacoes_vendedores || "",
+        v.anotacao_venda || ""
+      ];
+    });
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+    ].join("\n");
+
+    const blob = new Blob(["\uFEFF" + csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `metricas-vendas-${format(new Date(), 'yyyy-MM-dd-HHmmss')}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const exportarPDF = async () => {
+    const { jsPDF } = await import('jspdf');
+    await import('jspdf-autotable');
+    
+    const doc = new jsPDF({ orientation: 'landscape' });
+    
+    doc.setFontSize(18);
+    doc.text("Relatório de Métricas de Vendas", 14, 20);
+    
+    doc.setFontSize(12);
+    doc.text(`Período: ${formatarPeriodo()}`, 14, 30);
+    doc.text(`Total de Vendas: ${totalVendas}`, 14, 38);
+    doc.text(`Valor Total: ${formatarMoeda(totalValor)}`, 14, 46);
+
+    const tableData = vendasFiltradas.map(v => {
+      const totalPago = (v.sinal || 0) + (v.recebimento_2 || 0) + (v.final_pagamento || 0);
+      const dataHora = formatarDataHoraBrasilia(v.created_date);
+      return [
+        `${dataHora.data} ${dataHora.hora}`,
+        v.cliente_nome || "",
+        v.vendedor_nome || "",
+        formatarDataPagamento(v.data_pagamento),
+        formatarMoeda(v.valor_combinado || 0),
+        formatarMoeda(totalPago),
+        formatarMoeda(v.falta_quanto || 0)
+      ];
+    });
+
+    doc.autoTable({
+      startY: 55,
+      head: [["Data/Hora", "Cliente", "Vendedor", "Data Pagto", "Valor", "Pago", "A Receber"]],
+      body: tableData,
+      theme: 'grid',
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [59, 130, 246] }
+    });
+
+    doc.save(`metricas-vendas-${format(new Date(), 'yyyy-MM-dd-HHmmss')}.pdf`);
+  };
 
   const handleSalvarAnotacoes = async () => {
     const idsEditados = Object.keys(anotacoes);
@@ -176,6 +339,35 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
             <p className="text-2xl font-bold text-emerald-600">{formatarMoeda(totalValor)}</p>
           </div>
           <div className="flex gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="bg-emerald-50">
+                  <Download className="w-4 h-4 mr-2" />
+                  Exportar
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent>
+                <DropdownMenuItem onClick={exportarCSV}>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Exportar CSV
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={exportarPDF}>
+                  <FileText className="w-4 h-4 mr-2" />
+                  Exportar PDF
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            <Button
+              onClick={() => setMostrarGraficos(!mostrarGraficos)}
+              variant="outline"
+              size="sm"
+              className="bg-blue-50"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              {mostrarGraficos ? "Ocultar" : "Mostrar"} Gráficos
+            </Button>
+          </div>
+          <div className="flex gap-2">
             {modoEdicao ? (
               <>
                 <Button onClick={() => { setModoEdicao(false); setAnotacoes({}); }} variant="outline" size="sm">
@@ -203,6 +395,125 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
           </div>
         ) : (
           <div className="space-y-4">
+            {/* Filtros Avançados */}
+            <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                  <Filter className="w-4 h-4" />
+                  Filtros de Data
+                </h4>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setFiltroAvancado(!filtroAvancado)}
+                >
+                  {filtroAvancado ? "Ocultar" : "Mostrar"} Filtros
+                </Button>
+              </div>
+              
+              {filtroAvancado && (
+                <div className="grid grid-cols-3 gap-4">
+                  <div>
+                    <label className="text-sm font-medium block mb-2">Data Início</label>
+                    <input
+                      type="date"
+                      value={dataInicioCustom}
+                      onChange={(e) => setDataInicioCustom(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-md"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium block mb-2">Data Fim</label>
+                    <input
+                      type="date"
+                      value={dataFimCustom}
+                      onChange={(e) => setDataFimCustom(e.target.value)}
+                      className="w-full px-3 py-2 border rounded-md"
+                    />
+                  </div>
+                  <div className="flex items-end">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setDataInicioCustom("");
+                        setDataFimCustom("");
+                      }}
+                      className="w-full"
+                    >
+                      Limpar Filtros
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Gráficos Interativos */}
+            {mostrarGraficos && dadosGrafico.length > 0 && (
+              <div className="bg-white rounded-lg p-4 border">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="font-semibold text-gray-900 flex items-center gap-2">
+                    <TrendingUp className="w-5 h-5 text-blue-600" />
+                    Tendências de Vendas
+                  </h4>
+                  <div className="flex gap-2">
+                    <Button
+                      variant={visualizacaoGrafico === "dia" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setVisualizacaoGrafico("dia")}
+                    >
+                      Por Dia
+                    </Button>
+                    <Button
+                      variant={visualizacaoGrafico === "semana" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setVisualizacaoGrafico("semana")}
+                    >
+                      Por Semana
+                    </Button>
+                    <Button
+                      variant={visualizacaoGrafico === "mes" ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setVisualizacaoGrafico("mes")}
+                    >
+                      Por Mês
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-6">
+                  {/* Gráfico de Quantidade de Vendas */}
+                  <div>
+                    <h5 className="text-sm font-medium text-gray-700 mb-3">Quantidade de Vendas</h5>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <LineChart data={dadosGrafico}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="data" style={{ fontSize: '12px' }} />
+                        <YAxis />
+                        <Tooltip />
+                        <Legend />
+                        <Line type="monotone" dataKey="vendas" stroke="#3B82F6" strokeWidth={2} name="Vendas" />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  {/* Gráfico de Valor Total */}
+                  <div>
+                    <h5 className="text-sm font-medium text-gray-700 mb-3">Valor Total (R$)</h5>
+                    <ResponsiveContainer width="100%" height={250}>
+                      <BarChart data={dadosGrafico}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="data" style={{ fontSize: '12px' }} />
+                        <YAxis />
+                        <Tooltip formatter={(value) => formatarMoeda(value)} />
+                        <Legend />
+                        <Bar dataKey="valor" fill="#10B981" name="Valor" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+            )}
+
             <Tabs value={unidadeSelecionada} onValueChange={setUnidadeSelecionada}>
               <TabsList className="mb-2">
                 <TabsTrigger value="todas">Todas as Unidades</TabsTrigger>
