@@ -93,7 +93,7 @@ export default function LeadCard({ lead, onClick, modoRemover, onRemover, isDupl
           )}
           <div className="flex items-center gap-2 text-sm text-gray-700">
             <MapPin className="w-4 h-4 text-gray-400" />
-            <span>{lead.unidade_nome}</span>
+            <span>{lead.unidade_nome || "SEM UNIDADE"}</span>
           </div>
         </div>
 
@@ -130,7 +130,7 @@ export default function LeadCard({ lead, onClick, modoRemover, onRemover, isDupl
         <div className="flex flex-col gap-2 text-xs text-gray-500 border-t pt-3">
           <div className="flex items-center justify-between">
             <span>
-              📅 Entrada: {lead.data_entrada ? format(new Date(lead.data_entrada), "dd/MM/yyyy", { locale: ptBR }) : format(new Date(lead.created_date), "dd/MM/yyyy", { locale: ptBR })}
+              📅 {lead.data_entrada ? format(new Date(lead.data_entrada), "dd/MM/yyyy HH:mm", { locale: ptBR }) : format(new Date(lead.created_date), "dd/MM/yyyy HH:mm", { locale: ptBR })}
             </span>
             {lead.tentativas_contato > 0 && (
               <span className="bg-gray-100 px-2 py-1 rounded">
