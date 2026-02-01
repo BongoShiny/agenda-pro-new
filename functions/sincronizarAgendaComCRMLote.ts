@@ -7,12 +7,23 @@ Deno.serve(async (req) => {
   try {
     const base44 = createClientFromRequest(req);
     
-    // Buscar todos os agendamentos válidos (sem telefone válido são ignorados)
-    let agendamentos = await base44.asServiceRole.entities.Agendamento.list();
-    
-    if (!Array.isArray(agendamentos)) {
-      agendamentos = [];
+    // Buscar todos os agendamentos com paginação (1000 por página)
+    let agendamentos = [];
+    let skip = 0;
+    let temMais = true;
+
+    while (temMais) {
+      const batch = await base44.asServiceRole.entities.Agendamento.list(null, 1000, skip);
+      if (!batch || !Array.isArray(batch) || batch.length === 0) {
+        temMais = false;
+      } else {
+        agendamentos = agendamentos.concat(batch);
+        skip += 1000;
+        console.log(`📥 Carregados ${agendamentos.length} agendamentos até agora...`);
+      }
     }
+    
+    console.log(`✅ Total de agendamentos carregados: ${agendamentos.length}`);
 
     const agendamentosValidos = agendamentos.filter(ag => {
       if (ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO" || !ag.cliente_nome) {
