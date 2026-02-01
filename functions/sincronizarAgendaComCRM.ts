@@ -89,8 +89,13 @@ Deno.serve(async (req) => {
     let leadsCriados = 0;
     let erros = 0;
 
-    // Processar cada agendamento válido
-    for (const ag of agendamentosValidos) {
+    // Helper para delay
+    const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    // Processar cada agendamento válido com throttle
+    for (let i = 0; i < agendamentosValidos.length; i++) {
+      const ag = agendamentosValidos[i];
+      
       try {
         const telefoneNormalizado = ag.cliente_telefone.replace(/\D/g, '');
         const leadExistente = mapLeadsPorTelefone[telefoneNormalizado];
@@ -140,6 +145,13 @@ Deno.serve(async (req) => {
           // Adicionar ao mapa
           mapLeadsPorTelefone[telefoneNormalizado] = novoLead;
         }
+
+        // Adicionar delay a cada 10 operações para evitar rate limit
+        if ((i + 1) % 10 === 0) {
+          console.log(`⏳ Processados ${i + 1}/${agendamentosValidos.length}... aguardando 500ms`);
+          await delay(500);
+        }
+
       } catch (error) {
         console.error(`❌ Erro ao processar ${ag.cliente_nome}:`, error.message);
         erros++;
