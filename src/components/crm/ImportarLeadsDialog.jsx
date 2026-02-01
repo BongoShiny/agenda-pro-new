@@ -218,6 +218,9 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
             data_primeiro_contato: dataEntrada,
           });
 
+          // Delay de 200ms para evitar rate limit (429)
+          await new Promise(resolve => setTimeout(resolve, 200));
+
           sucesso++;
         } catch (error) {
           console.error(`Erro na linha ${numeroLinha}:`, error);
