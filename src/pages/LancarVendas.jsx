@@ -26,6 +26,7 @@ export default function LancarVendasPage() {
     horario_inicio: "",
     horario_fim: "",
     restante_pagamento: "nao",
+    tipo_venda: "avulso",
     pago_por: "",
     valor_pago: "",
     data_pagamento: format(new Date(), "yyyy-MM-dd"),
@@ -81,7 +82,34 @@ export default function LancarVendasPage() {
 
   const criarAgendamentoMutation = useMutation({
     mutationFn: async (dadosAgendamento) => {
-      return await base44.entities.Agendamento.create(dadosAgendamento);
+      const resultado = await base44.entities.Agendamento.create(dadosAgendamento);
+      
+      // Sincronizar com CRM: buscar lead e atualizar status
+      if (dadosAgendamento._tipo_venda_crm && dadosAgendamento.cliente_nome && dadosAgendamento.vendedor_id) {
+        try {
+          const leads = await base44.entities.Lead.filter({
+            nome: dadosAgendamento.cliente_nome
+          });
+          
+          if (leads.length > 0) {
+            const lead = leads[0];
+            const novoStatus = dadosAgendamento._tipo_venda_crm;
+            
+            if (lead.status !== novoStatus) {
+              await base44.entities.Lead.update(lead.id, {
+                status: novoStatus,
+                convertido: true,
+                data_conversao: new Date().toISOString().split('T')[0]
+              });
+              console.log(`✅ Lead atualizado: ${lead.status} → ${novoStatus}`);
+            }
+          }
+        } catch (error) {
+          console.warn("⚠️ Erro ao sincronizar com CRM:", error);
+        }
+      }
+      
+      return resultado;
     },
     onSuccess: () => {
       alert("✅ Venda lançada com sucesso nos relatórios financeiros!");
@@ -126,6 +154,8 @@ export default function LancarVendasPage() {
     const valorPago = parseFloat(formData.valor_pago) || 0;
     const faltaQuanto = valorCombinado - valorPago;
 
+    const tipoAgendamento = formData.tipo_venda === "plano_terapeutico" ? "plano_terapeutico" : "avulsa";
+    
     criarAgendamentoMutation.mutate({
       cliente_nome: formData.cliente_nome,
       cliente_telefone: formData.cliente_telefone,
@@ -141,7 +171,7 @@ export default function LancarVendasPage() {
       hora_inicio: formData.horario_inicio || "09:00",
       hora_fim: formData.horario_fim || "10:00",
       status: "concluido",
-      tipo: formData.restante_pagamento === "sim" ? "pacote" : "avulsa",
+      tipo: tipoAgendamento,
       valor_combinado: valorCombinado,
       sinal: formData.restante_pagamento === "nao" ? valorPago : 0,
       final_pagamento: formData.restante_pagamento === "sim" ? valorPago : 0,
@@ -153,6 +183,7 @@ export default function LancarVendasPage() {
       comprovante_1: formData.comprovante_url,
       criador_email: user?.email,
       status_paciente: "paciente_novo",
+      _tipo_venda_crm: formData.tipo_venda,
     });
   };
 
@@ -327,6 +358,22 @@ export default function LancarVendasPage() {
               <h3 className="font-semibold text-gray-900 flex items-center gap-2">
                 💰 Dados do Pagamento
               </h3>
+
+              <div>
+                <Label>Tipo de Venda</Label>
+                <RadioGroup value={formData.tipo_venda} onValueChange={(value) => setFormData({ ...formData, tipo_venda: value })}>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="avulso" id="avulso" />
+                      <Label htmlFor="avulso">Avulso</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="plano_terapeutico" id="plano_terapeutico" />
+                      <Label htmlFor="plano_terapeutico">Plano Terapêutico</Label>
+                    </div>
+                  </div>
+                </RadioGroup>
+              </div>
 
               <div>
                 <Label>É restante de pagamento?</Label>
