@@ -110,13 +110,20 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
           let vendedor_nome = "";
           
           const vendedorNaPlanilha = String(linha.vendedor || "").trim();
+          console.log(`Linha ${numeroLinha}: Vendedor na planilha: "${vendedorNaPlanilha}"`);
+          
           if (vendedorNaPlanilha) {
             const vendedorEncontrado = vendedores.find(v => 
               v.nome.toLowerCase().trim() === vendedorNaPlanilha.toLowerCase().trim()
             );
+            console.log(`Linha ${numeroLinha}: Vendedor encontrado:`, vendedorEncontrado);
+            
             if (vendedorEncontrado) {
               vendedor_id = vendedorEncontrado.id;
               vendedor_nome = vendedorEncontrado.nome;
+            } else {
+              console.warn(`Linha ${numeroLinha}: Vendedor "${vendedorNaPlanilha}" não encontrado no sistema`);
+              console.log('Vendedores disponíveis:', vendedores.map(v => v.nome));
             }
           } else if (vendedorPadrao) {
             const vendedorPadraoObj = vendedores.find(v => v.id === vendedorPadrao);
@@ -131,14 +138,21 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
           let unidade_nome = "SEM UNIDADE";
           
           const unidadeNaPlanilha = String(linha.unidade || "").trim();
+          console.log(`Linha ${numeroLinha}: Unidade na planilha: "${unidadeNaPlanilha}"`);
+          
           if (unidadeNaPlanilha) {
             const unidadeEncontrada = unidades.find(u => 
               u.nome.toLowerCase().trim() === unidadeNaPlanilha.toLowerCase().trim()
             );
+            console.log(`Linha ${numeroLinha}: Unidade encontrada:`, unidadeEncontrada);
+            
             if (unidadeEncontrada) {
               unidade_id = unidadeEncontrada.id;
               unidade_nome = unidadeEncontrada.nome;
             } else {
+              console.warn(`Linha ${numeroLinha}: Unidade "${unidadeNaPlanilha}" não encontrada no sistema`);
+              console.log('Unidades disponíveis:', unidades.map(u => u.nome));
+              
               // Se não achou E tem padrão, usa padrão
               if (unidadePadrao) {
                 const unidadePadraoObj = unidades.find(u => u.id === unidadePadrao);
