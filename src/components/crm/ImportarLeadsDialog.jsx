@@ -36,6 +36,15 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
     initialData: [],
   });
 
+  const { data: usuarios = [] } = useQuery({
+    queryKey: ['usuarios_vendedores'],
+    queryFn: async () => {
+      const users = await base44.entities.User.list();
+      return users.filter(u => u.role === 'vendedor');
+    },
+    initialData: [],
+  });
+
   const registrarErro = async (tipo, mensagem, nomeLead, telefoneLead, numeroLinha, dadosLinha) => {
     try {
       await base44.entities.ErroImportacaoLead.create({
@@ -105,27 +114,52 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
         const numeroLinha = i + 2;
 
         try {
-          // VENDEDOR: Prioridade 1) planilha, 2) padrão
+          // VENDEDOR: Usar IA para fazer matching inteligente
           let vendedor_id = "";
           let vendedor_nome = "";
           
           const vendedorNaPlanilha = String(linha.vendedor || "").trim();
-          console.log(`Linha ${numeroLinha}: Vendedor na planilha: "${vendedorNaPlanilha}"`);
           
           if (vendedorNaPlanilha) {
-            const vendedorEncontrado = vendedores.find(v => 
-              v.nome.toLowerCase().trim() === vendedorNaPlanilha.toLowerCase().trim()
-            );
-            console.log(`Linha ${numeroLinha}: Vendedor encontrado:`, vendedorEncontrado);
-            
-            if (vendedorEncontrado) {
-              vendedor_id = vendedorEncontrado.id;
-              vendedor_nome = vendedorEncontrado.nome;
-            } else {
-              console.warn(`Linha ${numeroLinha}: Vendedor "${vendedorNaPlanilha}" não encontrado no sistema`);
-              console.log('Vendedores disponíveis:', vendedores.map(v => v.nome));
+            try {
+              const aiResponse = await base44.integrations.Core.InvokeLLM({
+                prompt: `Você é um assistente que faz matching de vendedores. 
+                
+Dado o vendedor na planilha: "${vendedorNaPlanilha}"
+
+Vendedores cadastrados no sistema:
+${vendedores.map(v => `- ID: ${v.id}, Nome: ${v.nome}, Email: ${v.email || 'sem email'}`).join('\n')}
+
+Usuários com cargo de vendedor:
+${usuarios.map(u => `- Email: ${u.email}, Nome: ${u.full_name || 'sem nome'}`).join('\n')}
+
+Encontre o vendedor correto fazendo matching por nome OU email. Seja flexível com variações de nome (ex: "João Silva" = "João").
+Se encontrar, retorne o ID do vendedor. Se não encontrar, retorne null.`,
+                response_json_schema: {
+                  type: "object",
+                  properties: {
+                    vendedor_id: { type: ["string", "null"] },
+                    confianca: { type: "string", enum: ["alta", "media", "baixa", "nenhuma"] },
+                    motivo: { type: "string" }
+                  }
+                }
+              });
+
+              if (aiResponse.vendedor_id) {
+                const vendedorEncontrado = vendedores.find(v => v.id === aiResponse.vendedor_id);
+                if (vendedorEncontrado) {
+                  vendedor_id = vendedorEncontrado.id;
+                  vendedor_nome = vendedorEncontrado.nome;
+                  console.log(`✅ IA encontrou vendedor: ${vendedor_nome} (${aiResponse.confianca})`);
+                }
+              }
+            } catch (error) {
+              console.warn('Erro ao usar IA para vendedor:', error);
             }
-          } else if (vendedorPadrao) {
+          }
+          
+          // Fallback para padrão se não encontrou
+          if (!vendedor_id && vendedorPadrao) {
             const vendedorPadraoObj = vendedores.find(v => v.id === vendedorPadrao);
             if (vendedorPadraoObj) {
               vendedor_id = vendedorPadraoObj.id;
@@ -133,36 +167,49 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
             }
           }
 
-          // UNIDADE: Prioridade 1) planilha, 2) padrão
+          // UNIDADE: Usar IA para fazer matching inteligente
           let unidade_id = "";
           let unidade_nome = "SEM UNIDADE";
           
           const unidadeNaPlanilha = String(linha.unidade || "").trim();
-          console.log(`Linha ${numeroLinha}: Unidade na planilha: "${unidadeNaPlanilha}"`);
           
           if (unidadeNaPlanilha) {
-            const unidadeEncontrada = unidades.find(u => 
-              u.nome.toLowerCase().trim() === unidadeNaPlanilha.toLowerCase().trim()
-            );
-            console.log(`Linha ${numeroLinha}: Unidade encontrada:`, unidadeEncontrada);
-            
-            if (unidadeEncontrada) {
-              unidade_id = unidadeEncontrada.id;
-              unidade_nome = unidadeEncontrada.nome;
-            } else {
-              console.warn(`Linha ${numeroLinha}: Unidade "${unidadeNaPlanilha}" não encontrada no sistema`);
-              console.log('Unidades disponíveis:', unidades.map(u => u.nome));
-              
-              // Se não achou E tem padrão, usa padrão
-              if (unidadePadrao) {
-                const unidadePadraoObj = unidades.find(u => u.id === unidadePadrao);
-                if (unidadePadraoObj) {
-                  unidade_id = unidadePadraoObj.id;
-                  unidade_nome = unidadePadraoObj.nome;
+            try {
+              const aiResponse = await base44.integrations.Core.InvokeLLM({
+                prompt: `Você é um assistente que faz matching de unidades. 
+                
+Dado a unidade na planilha: "${unidadeNaPlanilha}"
+
+Unidades cadastradas no sistema:
+${unidades.map(u => `- ID: ${u.id}, Nome: ${u.nome}`).join('\n')}
+
+Encontre a unidade correta fazendo matching por nome. Seja flexível com variações (ex: "Centro" = "Unidade Centro").
+Se encontrar, retorne o ID da unidade. Se não encontrar, retorne null.`,
+                response_json_schema: {
+                  type: "object",
+                  properties: {
+                    unidade_id: { type: ["string", "null"] },
+                    confianca: { type: "string", enum: ["alta", "media", "baixa", "nenhuma"] },
+                    motivo: { type: "string" }
+                  }
+                }
+              });
+
+              if (aiResponse.unidade_id) {
+                const unidadeEncontrada = unidades.find(u => u.id === aiResponse.unidade_id);
+                if (unidadeEncontrada) {
+                  unidade_id = unidadeEncontrada.id;
+                  unidade_nome = unidadeEncontrada.nome;
+                  console.log(`✅ IA encontrou unidade: ${unidade_nome} (${aiResponse.confianca})`);
                 }
               }
+            } catch (error) {
+              console.warn('Erro ao usar IA para unidade:', error);
             }
-          } else if (unidadePadrao) {
+          }
+          
+          // Fallback para padrão se não encontrou
+          if (!unidade_id && unidadePadrao) {
             const unidadePadraoObj = unidades.find(u => u.id === unidadePadrao);
             if (unidadePadraoObj) {
               unidade_id = unidadePadraoObj.id;
