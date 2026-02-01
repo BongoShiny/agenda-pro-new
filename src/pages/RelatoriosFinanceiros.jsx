@@ -633,14 +633,14 @@ export default function RelatoriosFinanceirosPage() {
   };
 
   const exportarPDFVendedor = async (ano, mes) => {
-    // Filtrar agendamentos do mês selecionado baseado na data de CRIAÇÃO
+    // Filtrar agendamentos do mês selecionado baseado na DATA DE PAGAMENTO
     const agendamentosMesVendedor = agendamentos
       .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
       .filter(ag => ag.vendedor_id && ag.vendedor_nome) // Apenas com vendedor
       .filter(ag => {
-        if (!ag.created_date) return false;
-        const dataCriacao = ag.created_date.substring(0, 7); // YYYY-MM
-        return dataCriacao === mesSelecionadoPDF;
+        if (!ag.data_pagamento) return false;
+        const dataPagamento = ag.data_pagamento.substring(0, 7); // YYYY-MM
+        return dataPagamento === mesSelecionadoPDF;
       });
 
     // Agrupar por vendedor
@@ -715,7 +715,7 @@ export default function RelatoriosFinanceirosPage() {
                 <table>
                   <thead>
                     <tr>
-                      <th>Data Agend.</th>
+                      <th>Data Pgto.</th>
                       <th>Número</th>
                       <th>Cliente</th>
                       <th>Profissional</th>
@@ -726,15 +726,15 @@ export default function RelatoriosFinanceirosPage() {
                       <th class="text-right">Total Pago</th>
                       <th class="text-right">Falta</th>
                       <th>Status</th>
-                      <th>Criado Em</th>
+                      <th>Data Agend.</th>
                     </tr>
                   </thead>
                   <tbody>
                     ${vendedor.agendamentos
-                      .sort((a, b) => new Date(b.created_date) - new Date(a.created_date))
+                      .sort((a, b) => new Date(b.data_pagamento || 0) - new Date(a.data_pagamento || 0))
                       .map(ag => `
                         <tr>
-                          <td>${ag.data ? format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR }) : "-"}</td>
+                          <td>${ag.data_pagamento ? format(criarDataPura(ag.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : "-"}</td>
                           <td>${ag.cliente_telefone || "-"}</td>
                           <td>${ag.cliente_nome || "-"}</td>
                           <td>${ag.profissional_nome || "-"}</td>
@@ -745,7 +745,7 @@ export default function RelatoriosFinanceirosPage() {
                           <td class="text-right" style="color: #10b981; font-weight: 600;">${formatarMoeda((ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0))}</td>
                           <td class="text-right" style="color: #f97316;">${formatarMoeda(ag.falta_quanto)}</td>
                           <td>${ag.status || "-"}</td>
-                          <td>${ag.created_date ? format(new Date(ag.created_date), "dd/MM/yyyy HH:mm", { locale: ptBR }) : "-"}</td>
+                          <td>${ag.data ? format(criarDataPura(ag.data), "dd/MM/yyyy", { locale: ptBR }) : "-"}</td>
                         </tr>
                     `).join('')}
                     <tr class="total">
@@ -2053,7 +2053,10 @@ export default function RelatoriosFinanceirosPage() {
           <TabsContent value="por-vendedor">
             <Card>
               <CardHeader>
-                <CardTitle>Faturamento por Vendedor</CardTitle>
+                <CardTitle>Faturamento por Vendedor (Data do Pagamento)</CardTitle>
+                <p className="text-sm text-gray-500 mt-1">
+                  Este relatório considera apenas agendamentos com data de pagamento dentro do período selecionado
+                </p>
               </CardHeader>
               <CardContent>
                 <Table>
@@ -2069,9 +2072,22 @@ export default function RelatoriosFinanceirosPage() {
                   </TableHeader>
                   <TableBody>
                     {vendedores.filter(v => v.ativo).map(vendedor => {
-                      const agendamentosVendedor = agendamentosFiltrados.filter(ag => 
-                        ag.vendedor_id === vendedor.id
-                      );
+                      // Filtrar por data de pagamento (não por data do agendamento)
+                      const agendamentosVendedor = agendamentos
+                        .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
+                        .filter(ag => ag.vendedor_id === vendedor.id)
+                        .filter(ag => {
+                          // Filtrar por data de pagamento
+                          if (!ag.data_pagamento) return false;
+                          const dataPagamento = ag.data_pagamento;
+                          if (dataPagamento < dataInicio || dataPagamento > dataFim) return false;
+
+                          // Aplicar outros filtros
+                          if (unidadeFiltro !== "todas" && ag.unidade_id !== unidadeFiltro) return false;
+                          if (profissionalFiltro !== "todos" && ag.profissional_id !== profissionalFiltro) return false;
+
+                          return true;
+                        });
 
                       const totalCombinado = agendamentosVendedor.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
                       const totalSinal = agendamentosVendedor.reduce((sum, ag) => sum + (ag.sinal || 0), 0);
@@ -2079,6 +2095,9 @@ export default function RelatoriosFinanceirosPage() {
                       const totalFinalPagamento = agendamentosVendedor.reduce((sum, ag) => sum + (ag.final_pagamento || 0), 0);
                       const totalRecebido = totalSinal + totalRecebimento2 + totalFinalPagamento;
                       const totalAReceber = totalCombinado - totalRecebido;
+
+                      // Não mostrar vendedores sem vendas no período
+                      if (agendamentosVendedor.length === 0) return null;
 
                       return (
                         <TableRow key={vendedor.id}>
@@ -2107,10 +2126,23 @@ export default function RelatoriosFinanceirosPage() {
                   </TableBody>
                 </Table>
 
-                {vendedores.filter(v => v.ativo).length === 0 && (
+                {vendedores.filter(v => {
+                  const agendamentosVendedor = agendamentos
+                    .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
+                    .filter(ag => ag.vendedor_id === v.id)
+                    .filter(ag => {
+                      if (!ag.data_pagamento) return false;
+                      const dataPagamento = ag.data_pagamento;
+                      if (dataPagamento < dataInicio || dataPagamento > dataFim) return false;
+                      if (unidadeFiltro !== "todas" && ag.unidade_id !== unidadeFiltro) return false;
+                      if (profissionalFiltro !== "todos" && ag.profissional_id !== profissionalFiltro) return false;
+                      return true;
+                    });
+                  return agendamentosVendedor.length > 0;
+                }).length === 0 && (
                   <div className="text-center py-12 text-gray-500">
-                    <p className="font-medium">Nenhum vendedor cadastrado</p>
-                    <p className="text-sm mt-2">Crie vendedores para visualizar o relatório</p>
+                    <p className="font-medium">Nenhuma venda com data de pagamento neste período</p>
+                    <p className="text-sm mt-2">As vendas só aparecem quando possuem data de pagamento cadastrada</p>
                   </div>
                 )}
               </CardContent>
@@ -2225,9 +2257,9 @@ export default function RelatoriosFinanceirosPage() {
                   O relatório incluirá todos os agendamentos, detalhamento completo e estatísticas por terapeuta do mês selecionado.
                 </p>
               ) : (
-                <p className="text-xs text-gray-500 mt-2">
-                  O relatório mostrará todos os agendamentos com vendedor cadastrado, separados por vendedor, baseado na data de criação do agendamento.
-                </p>
+               <p className="text-xs text-gray-500 mt-2">
+                 O relatório mostrará todos os agendamentos com vendedor cadastrado, separados por vendedor, baseado na DATA DE PAGAMENTO do agendamento.
+               </p>
               )}
             </div>
           </div>
