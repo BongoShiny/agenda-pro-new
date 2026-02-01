@@ -74,7 +74,7 @@ export default function AbaDetalhes({ lead, onUpdate }) {
                 <p className="font-medium text-blue-600">{lead.unidade_nome}</p>
               </div>
               <div>
-                <Label className="text-gray-500 text-xs">Data da Primeira Sessão</Label>
+                <Label className="text-gray-500 text-xs">Data do primeiro contato no octadesk</Label>
                 <p className="font-medium text-gray-900">
                   {lead.data_primeiro_contato ? format(new Date(lead.data_primeiro_contato), "dd/MM/yyyy - HH:mm", { locale: ptBR }) : "-"}
                 </p>
