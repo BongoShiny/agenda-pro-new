@@ -96,12 +96,6 @@ Deno.serve(async (req) => {
           await base44.asServiceRole.entities.Lead.update(leadExistente.id, atualizacao);
           leadsAtualizados++;
         } else {
-          // Criar novo lead (apenas se tiver telefone)
-          if (!ag.cliente_telefone) {
-            console.log(`⚠️ Agendamento sem telefone - pulando: ${ag.cliente_nome}`);
-            continue;
-          }
-
           const novoLead = {
             nome: ag.cliente_nome,
             telefone: ag.cliente_telefone,
