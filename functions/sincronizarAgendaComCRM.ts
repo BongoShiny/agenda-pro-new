@@ -16,6 +16,8 @@ Deno.serve(async (req) => {
     const dataCorte = '2026-01-01';
     let agendamentos = await base44.asServiceRole.entities.Agendamento.filter({});
     
+    console.log(`📊 Total de agendamentos retornados: ${agendamentos?.length || 0}`);
+    
     // Garantir que agendamentos é um array
     if (!Array.isArray(agendamentos)) {
       agendamentos = [];
