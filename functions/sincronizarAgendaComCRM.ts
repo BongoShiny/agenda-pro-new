@@ -78,6 +78,7 @@ Deno.serve(async (req) => {
             origem: "agenda",
             temperatura: "quente",
             convertido: true,
+            data_entrada: ag.data || new Date().toISOString().split('T')[0],
             data_primeiro_contato: ag.data || new Date().toISOString().split('T')[0],
             data_conversao: ag.data || new Date().toISOString().split('T')[0],
             valor_negociado: ag.valor_combinado || 0

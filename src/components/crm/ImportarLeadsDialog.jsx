@@ -125,6 +125,7 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
             status: "lead",
             origem: "importacao_planilha",
             temperatura: "morno",
+            data_entrada: new Date().toISOString().split('T')[0],
             data_primeiro_contato: new Date().toISOString().split('T')[0],
           });
 

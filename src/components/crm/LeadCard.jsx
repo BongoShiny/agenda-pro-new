@@ -127,15 +127,17 @@ export default function LeadCard({ lead, onClick, modoRemover, onRemover, isDupl
         )}
 
         {/* Footer */}
-        <div className="flex items-center justify-between text-xs text-gray-500 border-t pt-3">
-          <span>
-            Criado {format(new Date(lead.created_date), "dd/MM/yyyy", { locale: ptBR })}
-          </span>
-          {lead.tentativas_contato > 0 && (
-            <span className="bg-gray-100 px-2 py-1 rounded">
-              {lead.tentativas_contato} tentativa{lead.tentativas_contato > 1 ? 's' : ''}
+        <div className="flex flex-col gap-2 text-xs text-gray-500 border-t pt-3">
+          <div className="flex items-center justify-between">
+            <span>
+              📅 Entrada: {lead.data_entrada ? format(new Date(lead.data_entrada), "dd/MM/yyyy", { locale: ptBR }) : format(new Date(lead.created_date), "dd/MM/yyyy", { locale: ptBR })}
             </span>
-          )}
+            {lead.tentativas_contato > 0 && (
+              <span className="bg-gray-100 px-2 py-1 rounded">
+                {lead.tentativas_contato} tentativa{lead.tentativas_contato > 1 ? 's' : ''}
+              </span>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
