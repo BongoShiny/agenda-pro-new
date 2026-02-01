@@ -25,10 +25,6 @@ Deno.serve(async (req) => {
 
     // Filtrar agendamentos válidos
     const agendamentosValidos = agendamentosCompletos.filter(ag => {
-      // Filtrar por data >= 2026-01-01
-      if (ag.data && ag.data < dataCorte) {
-        return false;
-      }
       
       // Excluir bloqueios e FECHADOS
       if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO" || !ag.cliente_nome) {
