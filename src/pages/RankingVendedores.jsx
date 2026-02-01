@@ -126,7 +126,7 @@ export default function RankingVendedoresPage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-pink-600 flex items-center gap-2">
                 <Target className="w-4 h-4" />
-                Venda
+                Ticket Médio
               </CardTitle>
             </CardHeader>
             <CardContent>
