@@ -58,16 +58,20 @@ Deno.serve(async (req) => {
           // Atualizar lead existente
           const atualizacao = {
             status: novoStatus,
-            unidade_id: ag.unidade_id || leadExistente.unidade_id,
-            unidade_nome: ag.unidade_nome || leadExistente.unidade_nome,
-            vendedor_id: ag.vendedor_id || leadExistente.vendedor_id,
-            vendedor_nome: ag.vendedor_nome || leadExistente.vendedor_nome,
-            terapeuta_id: ag.profissional_id || leadExistente.terapeuta_id,
-            terapeuta_nome: ag.profissional_nome || leadExistente.terapeuta_nome,
+            unidade_id: ag.unidade_id || leadExistente.unidade_id || "",
+            unidade_nome: ag.unidade_nome || leadExistente.unidade_nome || "",
+            vendedor_id: ag.vendedor_id || leadExistente.vendedor_id || "",
+            vendedor_nome: ag.vendedor_nome || leadExistente.vendedor_nome || "",
             convertido: true,
             data_conversao: ag.data || leadExistente.data_conversao || new Date().toISOString().split('T')[0],
-            valor_negociado: ag.valor_combinado || leadExistente.valor_negociado
+            valor_negociado: ag.valor_combinado || leadExistente.valor_negociado || 0
           };
+          
+          // Adicionar terapeuta apenas se existir
+          if (ag.profissional_id) {
+            atualizacao.terapeuta_id = ag.profissional_id;
+            atualizacao.terapeuta_nome = ag.profissional_nome;
+          }
 
           await base44.asServiceRole.entities.Lead.update(leadExistente.id, atualizacao);
           leadsAtualizados++;
@@ -81,11 +85,8 @@ Deno.serve(async (req) => {
           const novoLead = {
             nome: ag.cliente_nome,
             telefone: ag.cliente_telefone,
-            email: "",
             vendedor_id: ag.vendedor_id || "",
             vendedor_nome: ag.vendedor_nome || "",
-            terapeuta_id: ag.profissional_id || "",
-            terapeuta_nome: ag.profissional_nome || "",
             unidade_id: ag.unidade_id || "",
             unidade_nome: ag.unidade_nome || "",
             status: novoStatus,
@@ -93,10 +94,15 @@ Deno.serve(async (req) => {
             temperatura: "quente",
             convertido: true,
             data_entrada: new Date().toISOString(),
-            data_primeiro_contato: null, // Não preencher para leads da agenda
             data_conversao: ag.data || new Date().toISOString().split('T')[0],
             valor_negociado: ag.valor_combinado || 0
           };
+          
+          // Adicionar terapeuta apenas se existir
+          if (ag.profissional_id) {
+            novoLead.terapeuta_id = ag.profissional_id;
+            novoLead.terapeuta_nome = ag.profissional_nome;
+          }
 
           await base44.asServiceRole.entities.Lead.create(novoLead);
           leadsCriados++;
