@@ -52,12 +52,15 @@ const statusPacienteColors = {
   "voucher": "#000000"
 };
 
-export default function AgendamentoCard({ agendamento, onClick, onStatusChange, onStatusPacienteChange, prontuarios = [], registrosWhatsApp = [] }) {
+export default function AgendamentoCard({ agendamento, onClick, onStatusChange, onStatusPacienteChange, prontuarios = [], registrosWhatsApp = [], usuarioAtual }) {
   const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio" || agendamento.cliente_nome === "FECHADO";
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownPacienteOpen, setDropdownPacienteOpen] = useState(false);
   const [enviandoWhatsApp, setEnviandoWhatsApp] = useState(false);
   const queryClient = useQueryClient();
+  
+  // Verificar se usuário pode enviar lembretes (pós venda ou superior)
+  const podeEnviarLembrete = usuarioAtual?.cargo === "pos_venda" || usuarioAtual?.cargo === "superior";
   
   console.log(`🎴 CARD | ${agendamento.cliente_nome} | Data: ${agendamento.data} | ${agendamento.hora_inicio}`);
   
@@ -187,18 +190,20 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
             )}
           </div>
           <div className="flex items-center gap-0.5">
-            <button
-              onClick={handleEnviarWhatsApp}
-              disabled={enviandoWhatsApp}
-              className="p-0.5 hover:bg-white/20 rounded transition-colors"
-              title={statusWhatsApp.label}
-            >
-              {enviandoWhatsApp ? (
-                <Loader2 className="w-3 md:w-4 h-3 md:h-4 animate-spin text-white" />
-              ) : (
-                <statusWhatsApp.icon className={`w-3 md:w-4 h-3 md:h-4 flex-shrink-0 ${statusWhatsApp.cor}`} />
-              )}
-            </button>
+            {podeEnviarLembrete && (
+              <button
+                onClick={handleEnviarWhatsApp}
+                disabled={enviandoWhatsApp}
+                className="p-0.5 hover:bg-white/20 rounded transition-colors"
+                title={statusWhatsApp.label}
+              >
+                {enviandoWhatsApp ? (
+                  <Loader2 className="w-3 md:w-4 h-3 md:h-4 animate-spin text-white" />
+                ) : (
+                  <statusWhatsApp.icon className={`w-3 md:w-4 h-3 md:h-4 flex-shrink-0 ${statusWhatsApp.cor}`} />
+                )}
+              </button>
+            )}
             <statusProntuario.icon className={`w-4 md:w-5 h-4 md:h-5 flex-shrink-0 ${statusProntuario.cor}`} title={`Prontuário ${statusProntuario.label}`} />
             <span className="text-[8px] md:text-[10px] font-medium whitespace-nowrap">{agendamento.hora_inicio}</span>
           </div>
