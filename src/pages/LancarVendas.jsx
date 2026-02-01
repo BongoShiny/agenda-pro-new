@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 
 export default function LancarVendasPage() {
   const navigate = useNavigate();
@@ -20,7 +21,7 @@ export default function LancarVendasPage() {
   const [formData, setFormData] = useState({
     cliente_nome: "",
     cliente_telefone: "",
-    terapia: "",
+    terapias: [],
     data_sessao: format(new Date(), "yyyy-MM-dd"),
     horario_inicio: "",
     horario_fim: "",
@@ -111,7 +112,7 @@ export default function LancarVendasPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.cliente_nome || !formData.cliente_telefone || !formData.data_sessao || !formData.profissional_id || !formData.valor_combinado) {
+    if (!formData.cliente_nome || !formData.cliente_telefone || !formData.data_sessao || !formData.profissional_id || !formData.valor_combinado || formData.terapias.length === 0) {
       alert("⚠️ Preencha todos os campos obrigatórios!");
       return;
     }
@@ -119,7 +120,7 @@ export default function LancarVendasPage() {
     const profissional = profissionais.find(p => p.id === formData.profissional_id);
     const vendedor = vendedores.find(v => v.id === formData.vendedor_id);
     const recepcionista = recepcionistas.find(r => r.id === formData.recepcionista_id);
-    const servico = servicos.find(s => s.nome === formData.terapia);
+    const terapiasNomes = formData.terapias.join(" + ");
 
     const valorCombinado = parseFloat(formData.valor_combinado) || 0;
     const valorPago = parseFloat(formData.valor_pago) || 0;
@@ -130,8 +131,8 @@ export default function LancarVendasPage() {
       cliente_telefone: formData.cliente_telefone,
       profissional_id: formData.profissional_id,
       profissional_nome: profissional?.nome || "",
-      servico_nome: formData.terapia,
-      servico_id: servico?.id || "",
+      servico_nome: terapiasNomes,
+      servico_id: "",
       unidade_id: recepcionista?.unidade_id || "",
       unidade_nome: recepcionista?.unidade_nome || "",
       vendedor_id: formData.vendedor_id,
@@ -243,17 +244,32 @@ export default function LancarVendasPage() {
 
               <div className="grid grid-cols-1 gap-4">
                 <div>
-                  <Label>Terapia *</Label>
-                  <Select value={formData.terapia} onValueChange={(value) => setFormData({ ...formData, terapia: value })}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {servicos.map(s => (
-                        <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <Label>Terapia * (selecione uma ou mais)</Label>
+                  <div className="border rounded-lg p-4 max-h-48 overflow-y-auto space-y-2">
+                    {servicos.map(s => (
+                      <div key={s.id} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`terapia-${s.id}`}
+                          checked={formData.terapias.includes(s.nome)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setFormData({ ...formData, terapias: [...formData.terapias, s.nome] });
+                            } else {
+                              setFormData({ ...formData, terapias: formData.terapias.filter(t => t !== s.nome) });
+                            }
+                          }}
+                        />
+                        <label htmlFor={`terapia-${s.id}`} className="text-sm cursor-pointer">
+                          {s.nome}
+                        </label>
+                      </div>
+                    ))}
+                  </div>
+                  {formData.terapias.length > 0 && (
+                    <p className="text-sm text-green-600 mt-2">
+                      ✅ Selecionado: {formData.terapias.join(" + ")}
+                    </p>
+                  )}
                 </div>
 
                 <div className="bg-yellow-50 border border-yellow-300 rounded-lg p-3">
