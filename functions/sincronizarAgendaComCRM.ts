@@ -27,7 +27,7 @@ Deno.serve(async (req) => {
     const agendamentosValidos = agendamentosCompletos.filter(ag => {
       
       // Excluir bloqueios e FECHADOS
-      if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO" || !ag.cliente_nome) {
+      if (ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO" || !ag.cliente_nome) {
         return false;
       }
       
