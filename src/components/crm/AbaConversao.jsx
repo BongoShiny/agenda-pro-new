@@ -15,6 +15,8 @@ export default function AbaConversao({ lead, onUpdate }) {
   const [fechouPacote, setFechouPacote] = useState(null); // null, true, false
   const [formData, setFormData] = useState({
     data_conversao: format(new Date(), "yyyy-MM-dd"),
+    terapeuta_id: "",
+    terapeuta_nome: "",
     recepcao_vendeu: "",
     pacote_fechado: "",
     valor_original: "",
@@ -32,6 +34,8 @@ export default function AbaConversao({ lead, onUpdate }) {
       setFechouPacote(true);
       setFormData({
         data_conversao: lead.data_conversao ? format(new Date(lead.data_conversao), "yyyy-MM-dd") : format(new Date(), "yyyy-MM-dd"),
+        terapeuta_id: lead.terapeuta_id || "",
+        terapeuta_nome: lead.terapeuta_nome || "",
         recepcao_vendeu: lead.recepcao_vendeu || "",
         pacote_fechado: lead.motivo_fechamento?.split(' - ')[0] || "",
         valor_original: "",
@@ -55,6 +59,23 @@ export default function AbaConversao({ lead, onUpdate }) {
   });
 
   const recepcionistasDaUnidade = recepcionistas.filter(r => r.unidade_id === lead.unidade_id);
+
+  // Buscar terapeutas da unidade do lead
+  const { data: profissionais = [] } = useQuery({
+    queryKey: ['profissionais'],
+    queryFn: () => base44.entities.Profissional.list("nome"),
+    initialData: [],
+  });
+
+  const { data: configsTerapeutas = [] } = useQuery({
+    queryKey: ['configs-terapeutas', lead.unidade_id],
+    queryFn: () => base44.entities.ConfiguracaoTerapeuta.filter({ unidade_id: lead.unidade_id, ativo: true }),
+    initialData: [],
+  });
+
+  const terapeutasDaUnidade = profissionais.filter(p => 
+    configsTerapeutas.some(c => c.profissional_id === p.id)
+  );
 
   // Buscar interações do lead
   const { data: interacoes = [] } = useQuery({
@@ -114,6 +135,8 @@ export default function AbaConversao({ lead, onUpdate }) {
         status: "plano_terapeutico",
         convertido: true,
         data_conversao: formData.data_conversao,
+        terapeuta_id: formData.terapeuta_id,
+        terapeuta_nome: formData.terapeuta_nome,
         motivo_fechamento: `${formData.pacote_fechado} - ${formData.motivos_fechamento.join(", ")}`,
         valor_negociado: formData.valor_final ? parseFloat(formData.valor_final) : null,
         anotacoes_internas: `${lead.anotacoes_internas || ""}\n\n⏱️ Tempo de conversão: ${tempoConversaoDias} dias`.trim(),
@@ -151,6 +174,8 @@ export default function AbaConversao({ lead, onUpdate }) {
     setFechouPacote(null);
     setFormData({
       data_conversao: format(new Date(), "yyyy-MM-dd"),
+      terapeuta_id: "",
+      terapeuta_nome: "",
       recepcao_vendeu: "",
       pacote_fechado: "",
       valor_original: "",
@@ -351,6 +376,34 @@ export default function AbaConversao({ lead, onUpdate }) {
                   value={formData.data_conversao}
                   onChange={(e) => setFormData(prev => ({ ...prev, data_conversao: e.target.value }))}
                 />
+              </div>
+
+              <div>
+                <Label>Terapeuta que Atendeu</Label>
+                <Select 
+                  value={formData.terapeuta_id} 
+                  onValueChange={(value) => {
+                    const terapeuta = terapeutasDaUnidade.find(t => t.id === value);
+                    setFormData(prev => ({ 
+                      ...prev, 
+                      terapeuta_id: value,
+                      terapeuta_nome: terapeuta?.nome || ""
+                    }));
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={terapeutasDaUnidade.length === 0 ? "Nenhum terapeuta nesta unidade" : "Selecione o terapeuta..."} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {terapeutasDaUnidade.length === 0 ? (
+                      <SelectItem value="none" disabled>Configure terapeutas primeiro</SelectItem>
+                    ) : (
+                      terapeutasDaUnidade.map(t => (
+                        <SelectItem key={t.id} value={t.id}>{t.nome}</SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
