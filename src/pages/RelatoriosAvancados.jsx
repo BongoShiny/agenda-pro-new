@@ -69,7 +69,7 @@ export default function RelatoriosAvancadosPage() {
     initialData: [],
   });
 
-  // Filtrar agendamentos
+  // Filtrar agendamentos (sem restrição de paciente_novo para incluir todas as vendas)
   const agendamentosFiltrados = agendamentos
     .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
     .filter(ag => {
