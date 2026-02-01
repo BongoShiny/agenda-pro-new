@@ -67,13 +67,13 @@ export default function RankingVendedoresPage() {
     }).format(valor);
   };
 
-  const metaFaturamento = 1279433; // Meta fixa
-  const percentualMeta = (faturamentoTotal / metaFaturamento) * 100;
+  const metaVendas = 150 * ranking.length; // 150 vendas por vendedor
+  const percentualMeta = (vendasTotais / metaVendas) * 100;
 
   // Dados para gráfico de pizza
   const dadosGrafico = [
-    { name: 'Atingido', value: faturamentoTotal },
-    { name: 'Restante', value: Math.max(0, metaFaturamento - faturamentoTotal) }
+    { name: 'Atingido', value: vendasTotais },
+    { name: 'Restante', value: Math.max(0, metaVendas - vendasTotais) }
   ];
 
   const getPosicaoStyle = (index) => {
@@ -109,24 +109,12 @@ export default function RankingVendedoresPage() {
 
       <div className="max-w-7xl mx-auto p-6 space-y-6">
         {/* Cards de Métricas */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Card className="border-2 border-purple-200 bg-gradient-to-br from-purple-50 to-white">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-purple-600 flex items-center gap-2">
-                <DollarSign className="w-4 h-4" />
-                Faturamento Total
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold text-purple-700">{formatarValor(faturamentoTotal)}</p>
-            </CardContent>
-          </Card>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <Card className="border-2 border-green-200 bg-gradient-to-br from-green-50 to-white">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-green-600 flex items-center gap-2">
                 <TrendingUp className="w-4 h-4" />
-                Qtd de Vendas Realizadas
+                Total de Vendas
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -138,7 +126,7 @@ export default function RankingVendedoresPage() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-pink-600 flex items-center gap-2">
                 <Target className="w-4 h-4" />
-                Ticket Médio
+                Venda
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -190,18 +178,18 @@ export default function RankingVendedoresPage() {
             </CardContent>
           </Card>
 
-          {/* Gráfico Faturamento x Meta */}
+          {/* Gráfico Vendas x Meta */}
           <Card className="border-2 border-red-200 bg-gradient-to-br from-red-50 to-white">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Target className="w-5 h-5 text-red-600" />
-                Faturamento x Meta
+                Vendas x Meta
               </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="text-center mb-4">
-                <p className="text-4xl font-bold text-gray-900">{formatarValor(faturamentoTotal)}</p>
-                <p className="text-sm text-gray-600 mt-1">Meta: {formatarValor(metaFaturamento)}</p>
+                <p className="text-4xl font-bold text-gray-900">{vendasTotais}</p>
+                <p className="text-sm text-gray-600 mt-1">Meta: {metaVendas} vendas</p>
                 <div className="mt-3">
                   <div className="w-full bg-gray-200 rounded-full h-4">
                     <div 
@@ -226,7 +214,7 @@ export default function RankingVendedoresPage() {
                     <Cell fill="#10B981" />
                     <Cell fill="#E5E7EB" />
                   </Pie>
-                  <Tooltip formatter={(value) => formatarValor(value)} />
+                  <Tooltip formatter={(value) => `${value} vendas`} />
                   <Legend />
                 </PieChart>
               </ResponsiveContainer>
@@ -254,7 +242,7 @@ export default function RankingVendedoresPage() {
                 <tbody>
                   {ranking.map((vendedor, index) => {
                     const posicao = getPosicaoStyle(index);
-                    const metaPorVendedor = metaFaturamento / ranking.length;
+                    const metaPorVendedor = 150; // 150 vendas por vendedor
                     
                     return (
                       <tr 
@@ -269,7 +257,7 @@ export default function RankingVendedoresPage() {
                         </td>
                         <td className="p-3 font-semibold text-gray-900">{vendedor.nome}</td>
                         <td className="p-3 text-right font-bold text-green-600">{formatarValor(vendedor.valorTotal)}</td>
-                        <td className="p-3 text-right text-gray-600">{formatarValor(metaPorVendedor)}</td>
+                        <td className="p-3 text-right text-gray-600">{metaPorVendedor} vendas</td>
                         <td className="p-3 text-right font-medium text-blue-600">{vendedor.vendas}</td>
                       </tr>
                     );
