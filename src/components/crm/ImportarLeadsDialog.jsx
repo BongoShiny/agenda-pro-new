@@ -15,6 +15,7 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
   const [progresso, setProgresso] = useState({ total: 0, processados: 0, sucesso: 0, erros: 0 });
   const [processando, setProcessando] = useState(false);
   const [resultado, setResultado] = useState(null);
+  const [errosDetalhados, setErrosDetalhados] = useState([]);
 
   const queryClient = useQueryClient();
 
@@ -74,6 +75,7 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
       const total = dados.length;
       let sucesso = 0;
       let erros = 0;
+      const listaErros = [];
 
       setProgresso({ total, processados: 0, sucesso: 0, erros: 0 });
 
@@ -152,6 +154,12 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
         } catch (error) {
           console.error(`Erro na linha ${i + 1}:`, error);
           erros++;
+          listaErros.push({
+            linha: i + 2, // +2 porque linha 1 é header e array começa em 0
+            nome: linha.nome || "(sem nome)",
+            telefone: linha.telefone || "(sem telefone)",
+            erro: error.message || "Erro desconhecido"
+          });
         }
 
         setProgresso({ total, processados: i + 1, sucesso, erros });
@@ -162,6 +170,7 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
         sucesso: sucesso,
         erros: erros,
       });
+      setErrosDetalhados(listaErros);
 
       queryClient.invalidateQueries({ queryKey: ['leads'] });
       
@@ -296,7 +305,7 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
                 ) : (
                   <AlertCircle className="w-6 h-6 text-yellow-600 flex-shrink-0" />
                 )}
-                <div>
+                <div className="flex-1">
                   <h4 className={`font-semibold mb-1 ${resultado.erros === 0 ? 'text-green-900' : 'text-yellow-900'}`}>
                     {resultado.erros === 0 ? 'Importação Concluída!' : 'Importação Concluída com Avisos'}
                   </h4>
@@ -304,6 +313,26 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
                     {resultado.sucesso} lead(s) importado(s) com sucesso
                     {resultado.erros > 0 && ` | ${resultado.erros} erro(s) encontrado(s)`}
                   </p>
+
+                  {/* Lista de Erros Detalhados */}
+                  {errosDetalhados.length > 0 && (
+                    <div className="mt-4 max-h-48 overflow-y-auto">
+                      <p className="text-sm font-semibold text-yellow-900 mb-2">❌ Erros encontrados:</p>
+                      <div className="space-y-2">
+                        {errosDetalhados.map((erro, idx) => (
+                          <div key={idx} className="bg-white border border-yellow-200 rounded p-2 text-xs">
+                            <div className="flex justify-between mb-1">
+                              <span className="font-semibold text-yellow-900">Linha {erro.linha}</span>
+                              <span className="text-gray-600">{erro.nome}</span>
+                            </div>
+                            <p className="text-red-700">
+                              <span className="font-semibold">Erro:</span> {erro.erro}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
