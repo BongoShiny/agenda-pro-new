@@ -10,6 +10,10 @@ Deno.serve(async (req) => {
     // Buscar todos os agendamentos válidos (sem telefone válido são ignorados)
     let agendamentos = await base44.asServiceRole.entities.Agendamento.list();
     
+    if (!Array.isArray(agendamentos)) {
+      agendamentos = [];
+    }
+
     const agendamentosValidos = agendamentos.filter(ag => {
       if (ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO" || !ag.cliente_nome) {
         return false;
