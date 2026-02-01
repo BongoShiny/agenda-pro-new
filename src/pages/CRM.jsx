@@ -24,6 +24,10 @@ export default function CRMPage() {
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroUnidade, setFiltroUnidade] = useState("todas");
   const [filtroVendedor, setFiltroVendedor] = useState("todos");
+  const [filtroRecepcao, setFiltroRecepcao] = useState("todas");
+  const [filtroTerapeuta, setFiltroTerapeuta] = useState("todos");
+  const [filtroDataInicio, setFiltroDataInicio] = useState("");
+  const [filtroDataFim, setFiltroDataFim] = useState("");
   const [modoRemover, setModoRemover] = useState(false);
   const [visualizacao, setVisualizacao] = useState("kanban");
   const [sincronizandoAgendamentos, setSincronizandoAgendamentos] = useState(false);
@@ -85,6 +89,12 @@ export default function CRMPage() {
   const { data: recepcionistas = [] } = useQuery({
     queryKey: ['recepcionistas'],
     queryFn: () => base44.entities.Recepcionista.list("nome"),
+    initialData: [],
+  });
+
+  const { data: profissionais = [] } = useQuery({
+    queryKey: ['profissionais'],
+    queryFn: () => base44.entities.Profissional.list("nome"),
     initialData: [],
   });
 
@@ -312,8 +322,20 @@ export default function CRMPage() {
     const matchStatus = filtroStatus === "todos" || lead.status === filtroStatus;
     const matchUnidade = filtroUnidade === "todas" || lead.unidade_id === filtroUnidade;
     const matchVendedor = filtroVendedor === "todos" || lead.vendedor_id === filtroVendedor;
+    
+    // Filtro de Data de Entrada
+    let matchData = true;
+    if (filtroDataInicio || filtroDataFim) {
+      const dataLead = lead.data_entrada || lead.data_primeiro_contato;
+      if (dataLead) {
+        if (filtroDataInicio && dataLead < filtroDataInicio) matchData = false;
+        if (filtroDataFim && dataLead > filtroDataFim) matchData = false;
+      } else {
+        matchData = false;
+      }
+    }
 
-    return matchBusca && matchStatus && matchUnidade && matchVendedor;
+    return matchBusca && matchStatus && matchUnidade && matchVendedor && matchData;
   });
 
   // Estatísticas (filtradas por usuário)
@@ -509,7 +531,7 @@ export default function CRMPage() {
               </Button>
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
@@ -542,19 +564,55 @@ export default function CRMPage() {
                 ))}
               </SelectContent>
             </Select>
-            {isAdmin && (
-              <Select value={filtroVendedor} onValueChange={setFiltroVendedor}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Vendedor" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos os Vendedores</SelectItem>
-                  {vendedores.map(v => (
-                    <SelectItem key={v.id} value={v.id}>{v.nome}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            )}
+            <Select value={filtroVendedor} onValueChange={setFiltroVendedor}>
+              <SelectTrigger>
+                <SelectValue placeholder="Vendedor" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos os Vendedores</SelectItem>
+                {vendedores.map(v => (
+                  <SelectItem key={v.id} value={v.id}>{v.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
+            <div>
+              <label className="text-xs text-gray-600 mb-1 block">Dia que o lead entrou (Início)</label>
+              <Input
+                type="date"
+                value={filtroDataInicio}
+                onChange={(e) => setFiltroDataInicio(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-600 mb-1 block">Dia que o lead entrou (Fim)</label>
+              <Input
+                type="date"
+                value={filtroDataFim}
+                onChange={(e) => setFiltroDataFim(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div className="flex items-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setBusca("");
+                  setFiltroStatus("todos");
+                  setFiltroUnidade("todas");
+                  setFiltroVendedor("todos");
+                  setFiltroDataInicio("");
+                  setFiltroDataFim("");
+                }}
+                className="w-full"
+              >
+                Limpar Filtros
+              </Button>
+            </div>
           </div>
         </div>
 
