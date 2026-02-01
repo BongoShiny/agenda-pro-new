@@ -12,12 +12,19 @@ export default function RankingVendedores() {
     initialData: [],
   });
 
-  // Calcular vendas por vendedor (apenas "Paciente Novo")
+  // Calcular vendas por vendedor (por data de pagamento do mês de fevereiro)
   const calcularRanking = () => {
     const vendedoresMap = {};
     
+    // Filtrar apenas vendas com data_pagamento em fevereiro/2026
     agendamentos
-      .filter(ag => ag.status_paciente === "paciente_novo" && ag.vendedor_id && ag.vendedor_nome)
+      .filter(ag => {
+        if (!ag.data_pagamento || !ag.vendedor_id || !ag.vendedor_nome) return false;
+        
+        // Extrair ano-mês da data_pagamento
+        const dataPagamento = ag.data_pagamento.substring(0, 7); // "2026-02"
+        return dataPagamento === "2026-02";
+      })
       .forEach(ag => {
         if (!vendedoresMap[ag.vendedor_id]) {
           vendedoresMap[ag.vendedor_id] = {
@@ -70,7 +77,7 @@ export default function RankingVendedores() {
               <Trophy className="w-5 h-5 text-yellow-600" />
               <h3 className="font-bold text-yellow-900">🎮 Ranking de Vendedores</h3>
             </div>
-            <p className="text-xs text-yellow-700 mt-1">Top performers do mês</p>
+            <p className="text-xs text-yellow-700 mt-1">Fevereiro/2026 - Por data de pagamento</p>
           </div>
 
           <div className="p-4 space-y-3 max-h-96 overflow-y-auto">
