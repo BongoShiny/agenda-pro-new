@@ -14,9 +14,14 @@ Deno.serve(async (req) => {
 
     // Buscar TODOS os agendamentos desde 01/01/2026
     const dataCorte = '2026-01-01';
-    const agendamentosCompletos = await base44.asServiceRole.entities.Agendamento.list();
+    let agendamentosCompletos = await base44.asServiceRole.entities.Agendamento.list();
     
     console.log(`📊 Total de agendamentos no banco: ${agendamentosCompletos?.length || 0}`);
+    
+    // Garantir que é um array
+    if (!Array.isArray(agendamentosCompletos)) {
+      agendamentosCompletos = [];
+    }
 
     // Filtrar agendamentos válidos
     const agendamentosValidos = agendamentosCompletos.filter(ag => {
