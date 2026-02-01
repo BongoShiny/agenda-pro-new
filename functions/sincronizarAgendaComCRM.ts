@@ -12,14 +12,26 @@ Deno.serve(async (req) => {
 
     console.log('🔄 INICIANDO SINCRONIZAÇÃO COMPLETA AGENDA → CRM');
 
-    // Buscar TODOS os agendamentos
-    let agendamentosCompletos = await base44.asServiceRole.entities.Agendamento.list();
-    
-    console.log(`📊 Total de agendamentos no banco: ${agendamentosCompletos?.length || 0}`);
-    if (agendamentosCompletos && agendamentosCompletos.length > 0) {
-      const primeiro = agendamentosCompletos[0];
-      console.log(`📋 Primeiro agendamento: nome=${primeiro.cliente_nome}, tipo=${primeiro.tipo}, tel=${primeiro.cliente_telefone}`);
+    // Buscar TODOS os agendamentos com paginação
+    let agendamentosCompletos = [];
+    let skip = 0;
+    const batchSize = 1000;
+    let temMais = true;
+
+    while (temMais) {
+      console.log(`📥 Buscando agendamentos: skip=${skip}, limit=${batchSize}`);
+      const batch = await base44.asServiceRole.entities.Agendamento.list(null, batchSize, skip);
+      
+      if (!batch || batch.length === 0) {
+        temMais = false;
+      } else {
+        agendamentosCompletos = agendamentosCompletos.concat(batch);
+        skip += batchSize;
+        console.log(`  ✅ Carregados ${agendamentosCompletos.length} agendamentos até agora`);
+      }
     }
+    
+    console.log(`📊 Total de agendamentos no banco: ${agendamentosCompletos.length}`);
     
     // Garantir que é um array
     if (!Array.isArray(agendamentosCompletos)) {
@@ -28,8 +40,6 @@ Deno.serve(async (req) => {
 
     // Filtrar agendamentos válidos
     const agendamentosValidos = agendamentosCompletos.filter(ag => {
-      console.log(`🔍 Verificando: ${ag.cliente_nome}, tipo: ${ag.tipo}, tel: ${ag.cliente_telefone}`);
-      
       // Excluir bloqueios e FECHADOS
       if (ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO" || !ag.cliente_nome) {
         return false;
@@ -44,13 +54,25 @@ Deno.serve(async (req) => {
     });
 
     console.log(`✅ Total de agendamentos válidos: ${agendamentosValidos.length}`);
-    
-    if (agendamentosValidos.length > 0) {
-      console.log('📌 Exemplo de agendamento válido:', JSON.stringify(agendamentosValidos[0], null, 2));
-    }
 
-    // Buscar todos os leads existentes
-    const leadsExistentes = await base44.asServiceRole.entities.Lead.list();
+    // Buscar todos os leads existentes com paginação
+    let leadsExistentes = [];
+    skip = 0;
+    temMais = true;
+
+    while (temMais) {
+      console.log(`📥 Buscando leads: skip=${skip}, limit=${batchSize}`);
+      const batch = await base44.asServiceRole.entities.Lead.list(null, batchSize, skip);
+      
+      if (!batch || batch.length === 0) {
+        temMais = false;
+      } else {
+        leadsExistentes = leadsExistentes.concat(batch);
+        skip += batchSize;
+        console.log(`  ✅ Carregados ${leadsExistentes.length} leads até agora`);
+      }
+    }
+    
     console.log(`📋 Total de leads existentes: ${leadsExistentes.length}`);
     
     const mapLeadsPorTelefone = {};
@@ -73,9 +95,9 @@ Deno.serve(async (req) => {
         const telefoneNormalizado = ag.cliente_telefone.replace(/\D/g, '');
         const leadExistente = mapLeadsPorTelefone[telefoneNormalizado];
 
-        // Determinar status: se tem vendedor ou é avulsa = "avulso", senão = "plano_terapeutico"
+        // Determinar status: se tipo=avulsa OU tem vendedor = "avulso", senão = "plano_terapeutico"
         let novoStatus = 'plano_terapeutico';
-        if (ag.vendedor_id || ag.vendedor_nome || ag.tipo === 'avulsa') {
+        if (ag.tipo === 'avulsa' || ag.vendedor_id || ag.vendedor_nome) {
           novoStatus = 'avulso';
         }
 
