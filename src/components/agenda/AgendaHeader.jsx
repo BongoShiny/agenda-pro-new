@@ -265,7 +265,7 @@ export default function AgendaHeader({
                </Link>
              )}
 
-             {isVendedor && navigate && (
+             {(isVendedor || isAdmin) && navigate && (
                <Button 
                  className="bg-green-600 hover:bg-green-700" 
                  onClick={() => navigate(createPageUrl("LancarVendas"))}

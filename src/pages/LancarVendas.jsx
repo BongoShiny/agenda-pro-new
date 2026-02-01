@@ -154,6 +154,7 @@ export default function LancarVendasPage() {
   };
 
   const isVendedor = user?.cargo === "vendedor";
+  const isAdmin = user?.role === "admin" || user?.cargo === "administrador" || user?.cargo === "superior";
 
   if (!user) {
     return (
@@ -166,7 +167,7 @@ export default function LancarVendasPage() {
     );
   }
 
-  if (!isVendedor) {
+  if (!isVendedor && !isAdmin) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
         <div className="bg-white rounded-xl shadow-lg p-8 max-w-md text-center">
