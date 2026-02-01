@@ -26,12 +26,9 @@ export default function CRMPage() {
   const [filtroVendedor, setFiltroVendedor] = useState("todos");
   const [filtroRecepcao, setFiltroRecepcao] = useState("todas");
   const [filtroTerapeuta, setFiltroTerapeuta] = useState("todos");
+  const [tipoFiltroData, setTipoFiltroData] = useState("entrada"); // entrada, conversao, pagamento
   const [filtroDataInicio, setFiltroDataInicio] = useState("");
   const [filtroDataFim, setFiltroDataFim] = useState("");
-  const [filtroDataConversaoInicio, setFiltroDataConversaoInicio] = useState("");
-  const [filtroDataConversaoFim, setFiltroDataConversaoFim] = useState("");
-  const [filtroDataPagamentoInicio, setFiltroDataPagamentoInicio] = useState("");
-  const [filtroDataPagamentoFim, setFiltroDataPagamentoFim] = useState("");
   const [modoRemover, setModoRemover] = useState(false);
   const [visualizacao, setVisualizacao] = useState("kanban");
   const [sincronizandoAgendamentos, setSincronizandoAgendamentos] = useState(false);
@@ -341,13 +338,32 @@ export default function CRMPage() {
     const matchUnidade = filtroUnidade === "todas" || lead.unidade_id === filtroUnidade;
     const matchVendedor = filtroVendedor === "todos" || lead.vendedor_id === filtroVendedor;
     
-    // Filtro de Data de Entrada
+    // Filtro de Data (baseado no tipo selecionado)
     let matchData = true;
     if (filtroDataInicio || filtroDataFim) {
-      const dataLead = lead.data_entrada || lead.data_primeiro_contato;
-      if (dataLead) {
-        if (filtroDataInicio && dataLead < filtroDataInicio) matchData = false;
-        if (filtroDataFim && dataLead > filtroDataFim) matchData = false;
+      let dataParaFiltrar = null;
+      
+      if (tipoFiltroData === "entrada") {
+        dataParaFiltrar = lead.data_entrada || lead.data_primeiro_contato;
+      } else if (tipoFiltroData === "conversao") {
+        dataParaFiltrar = lead.data_conversao;
+      } else if (tipoFiltroData === "pagamento") {
+        // Buscar data de pagamento nos agendamentos
+        const agendamentosDoLead = todosAgendamentos.filter(ag => 
+          ag.cliente_telefone === lead.telefone && ag.data_pagamento
+        );
+        if (agendamentosDoLead.length > 0) {
+          // Usar a data de pagamento mais recente
+          dataParaFiltrar = agendamentosDoLead
+            .map(ag => ag.data_pagamento)
+            .sort()
+            .reverse()[0];
+        }
+      }
+      
+      if (dataParaFiltrar) {
+        if (filtroDataInicio && dataParaFiltrar < filtroDataInicio) matchData = false;
+        if (filtroDataFim && dataParaFiltrar > filtroDataFim) matchData = false;
       } else {
         matchData = false;
       }
@@ -380,37 +396,7 @@ export default function CRMPage() {
       matchTerapeuta = temTerapeutaSelecionado;
     }
 
-    // Filtro de Data de Conversão
-    let matchDataConversao = true;
-    if (filtroDataConversaoInicio || filtroDataConversaoFim) {
-      const dataConversao = lead.data_conversao;
-      if (dataConversao) {
-        if (filtroDataConversaoInicio && dataConversao < filtroDataConversaoInicio) matchDataConversao = false;
-        if (filtroDataConversaoFim && dataConversao > filtroDataConversaoFim) matchDataConversao = false;
-      } else {
-        matchDataConversao = false;
-      }
-    }
-
-    // Filtro de Data de Pagamento (buscar nos agendamentos)
-    let matchDataPagamento = true;
-    if (filtroDataPagamentoInicio || filtroDataPagamentoFim) {
-      const agendamentosDoLead = todosAgendamentos.filter(ag => 
-        ag.cliente_telefone === lead.telefone && ag.data_pagamento
-      );
-      
-      const temPagamentoNoPeriodo = agendamentosDoLead.some(ag => {
-        const dataPagamento = ag.data_pagamento;
-        let match = true;
-        if (filtroDataPagamentoInicio && dataPagamento < filtroDataPagamentoInicio) match = false;
-        if (filtroDataPagamentoFim && dataPagamento > filtroDataPagamentoFim) match = false;
-        return match;
-      });
-      
-      matchDataPagamento = temPagamentoNoPeriodo;
-    }
-
-    return matchBusca && matchStatus && matchUnidade && matchVendedor && matchData && matchRecepcao && matchTerapeuta && matchDataConversao && matchDataPagamento;
+    return matchBusca && matchStatus && matchUnidade && matchVendedor && matchData && matchRecepcao && matchTerapeuta;
   });
 
   // Estatísticas (filtradas por usuário)
@@ -653,8 +639,22 @@ export default function CRMPage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
+            <Select value={tipoFiltroData} onValueChange={setTipoFiltroData}>
+              <SelectTrigger>
+                <SelectValue placeholder="Tipo de data" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="entrada">Data de Entrada</SelectItem>
+                <SelectItem value="conversao">Data de Conversão</SelectItem>
+                <SelectItem value="pagamento">Data de Pagamento</SelectItem>
+              </SelectContent>
+            </Select>
             <div>
-              <label className="text-xs text-gray-600 mb-1 block">Data entrada (Início)</label>
+              <label className="text-xs text-gray-600 mb-1 block">
+                {tipoFiltroData === "entrada" ? "Data entrada (Início)" :
+                 tipoFiltroData === "conversao" ? "Data conversão (Início)" :
+                 "Data pagamento (Início)"}
+              </label>
               <Input
                 type="date"
                 value={filtroDataInicio}
@@ -663,50 +663,15 @@ export default function CRMPage() {
               />
             </div>
             <div>
-              <label className="text-xs text-gray-600 mb-1 block">Data entrada (Fim)</label>
+              <label className="text-xs text-gray-600 mb-1 block">
+                {tipoFiltroData === "entrada" ? "Data entrada (Fim)" :
+                 tipoFiltroData === "conversao" ? "Data conversão (Fim)" :
+                 "Data pagamento (Fim)"}
+              </label>
               <Input
                 type="date"
                 value={filtroDataFim}
                 onChange={(e) => setFiltroDataFim(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-gray-600 mb-1 block">Data conversão (Início)</label>
-              <Input
-                type="date"
-                value={filtroDataConversaoInicio}
-                onChange={(e) => setFiltroDataConversaoInicio(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-gray-600 mb-1 block">Data conversão (Fim)</label>
-              <Input
-                type="date"
-                value={filtroDataConversaoFim}
-                onChange={(e) => setFiltroDataConversaoFim(e.target.value)}
-                className="w-full"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
-            <div>
-              <label className="text-xs text-gray-600 mb-1 block">Data pagamento (Início)</label>
-              <Input
-                type="date"
-                value={filtroDataPagamentoInicio}
-                onChange={(e) => setFiltroDataPagamentoInicio(e.target.value)}
-                className="w-full"
-              />
-            </div>
-            <div>
-              <label className="text-xs text-gray-600 mb-1 block">Data pagamento (Fim)</label>
-              <Input
-                type="date"
-                value={filtroDataPagamentoFim}
-                onChange={(e) => setFiltroDataPagamentoFim(e.target.value)}
                 className="w-full"
               />
             </div>
@@ -746,12 +711,9 @@ export default function CRMPage() {
                   setFiltroVendedor("todos");
                   setFiltroRecepcao("todas");
                   setFiltroTerapeuta("todos");
+                  setTipoFiltroData("entrada");
                   setFiltroDataInicio("");
                   setFiltroDataFim("");
-                  setFiltroDataConversaoInicio("");
-                  setFiltroDataConversaoFim("");
-                  setFiltroDataPagamentoInicio("");
-                  setFiltroDataPagamentoFim("");
                 }}
                 className="w-full"
               >
