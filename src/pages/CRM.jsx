@@ -62,6 +62,13 @@ export default function CRMPage() {
       
       if (event.type === 'create' || event.type === 'update' || event.type === 'delete') {
         console.log('✅ Lead atualizado em tempo real:', event.data);
+        
+        // Se o lead selecionado foi deletado, fechar o dialog
+        if (event.type === 'delete' && leadSelecionado?.id === event.id) {
+          setDetalhesOpen(false);
+          setLeadSelecionado(null);
+        }
+        
         // Forçar atualização imediata
         refetchLeads();
         queryClient.invalidateQueries({ queryKey: ['leads'] });
@@ -72,7 +79,7 @@ export default function CRMPage() {
       console.log('🔕 Desativando subscrição de leads');
       unsubscribe();
     };
-  }, [refetchLeads, queryClient]);
+  }, [refetchLeads, queryClient, leadSelecionado]);
 
   const { data: unidades = [] } = useQuery({
     queryKey: ['unidades'],
@@ -689,11 +696,11 @@ export default function CRMPage() {
         leadsExistentes={leads}
       />
 
-      {leadSelecionado && (
+      {leadSelecionado && leads.find(l => l.id === leadSelecionado.id) && (
         <DetalhesLeadDialog
           open={detalhesOpen}
           onOpenChange={setDetalhesOpen}
-          lead={leadSelecionado}
+          lead={leads.find(l => l.id === leadSelecionado.id)}
           onUpdate={() => {
             queryClient.invalidateQueries({ queryKey: ['leads'] });
             setDetalhesOpen(false);
