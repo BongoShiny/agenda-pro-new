@@ -92,7 +92,7 @@ export default function AbaConversao({ lead, onUpdate }) {
       const tempoConversaoDias = Math.ceil((dataFim - dataInicio) / (1000 * 60 * 60 * 24));
 
       await updateLeadMutation.mutateAsync({
-        status: "fechado",
+        status: "plano_terapeutico",
         convertido: true,
         data_conversao: formData.data_conversao,
         motivo_fechamento: `${formData.pacote_fechado} - ${formData.motivos_fechamento.join(", ")}`,
