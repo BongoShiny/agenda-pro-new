@@ -253,8 +253,10 @@ export default function AbaDetalhes({ lead, onUpdate }) {
           <Label>Anotações Internas</Label>
           <Textarea
             value={formData.anotacoes_internas || ""}
-            onChange={(e) => setFormData(prev => ({ ...prev, anotacoes_internas: e.target.value }))}
+            readOnly
+            disabled
             rows={4}
+            className="bg-gray-100 cursor-not-allowed"
           />
         </div>
       </div>
