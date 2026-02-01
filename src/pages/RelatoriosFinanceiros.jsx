@@ -1072,6 +1072,7 @@ export default function RelatoriosFinanceirosPage() {
              <TabsTrigger value="analise-mensal">Análise Mensal</TabsTrigger>
              <TabsTrigger value="detalhado">Detalhado</TabsTrigger>
              <TabsTrigger value="por-vendedor">Por Vendedor</TabsTrigger>
+             <TabsTrigger value="terapeuta-recepcao">🤝 Terapeuta x Recepção</TabsTrigger>
            </TabsList>
 
           <TabsContent value="dashboard">
@@ -2174,6 +2175,242 @@ export default function RelatoriosFinanceirosPage() {
                     <p className="text-sm mt-2">Tente ajustar os filtros ou a pesquisa para ver os dados</p>
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Aba Terapeuta x Recepção */}
+          <TabsContent value="terapeuta-recepcao">
+            <Card>
+              <CardHeader>
+                <CardTitle>🤝 Análise Cruzada: Terapeuta x Recepção</CardTitle>
+                <p className="text-sm text-gray-500 mt-1">
+                  Planos terapêuticos fechados - Análise de vendas por terapeuta e recepcionista
+                </p>
+              </CardHeader>
+              <CardContent>
+                {(() => {
+                  const { data: leads = [] } = useQuery({
+                    queryKey: ['leads-terapeutas'],
+                    queryFn: () => base44.entities.Lead.list(),
+                    initialData: [],
+                  });
+
+                  // Filtrar apenas leads convertidos com plano terapêutico
+                  const leadsConvertidos = leads.filter(lead => {
+                    if (!lead.convertido) return false;
+                    if (!lead.data_conversao) return false;
+                    
+                    // Aplicar filtro de período baseado no tipo de data selecionado
+                    let dataParaFiltro;
+                    if (tipoDataFiltro === "data_conversao") {
+                      dataParaFiltro = lead.data_conversao;
+                    } else {
+                      // Se não tiver data de pagamento no lead, não incluir
+                      return false;
+                    }
+                    
+                    if (!dataParaFiltro) return false;
+                    if (dataParaFiltro < dataInicio || dataParaFiltro > dataFim) return false;
+
+                    // Filtro de unidade
+                    if (unidadeFiltro !== "todas" && lead.unidade_id !== unidadeFiltro) return false;
+
+                    return true;
+                  });
+
+                  // Calcular métricas
+                  const totalConversoes = leadsConvertidos.length;
+                  const valorTotalOriginal = leadsConvertidos.reduce((sum, l) => sum + (l.valor_original || 0), 0);
+                  const valorTotalFinal = leadsConvertidos.reduce((sum, l) => sum + (l.valor_final || 0), 0);
+                  const descontoTotal = valorTotalOriginal - valorTotalFinal;
+
+                  // Agrupar por terapeuta
+                  const porTerapeuta = {};
+                  leadsConvertidos.forEach(lead => {
+                    const terapeuta = lead.terapeuta_nome || "Sem Terapeuta";
+                    if (!porTerapeuta[terapeuta]) {
+                      porTerapeuta[terapeuta] = {
+                        conversoes: 0,
+                        valorTotal: 0
+                      };
+                    }
+                    porTerapeuta[terapeuta].conversoes++;
+                    porTerapeuta[terapeuta].valorTotal += (lead.valor_final || 0);
+                  });
+
+                  // Agrupar por recepcionista
+                  const porRecepcao = {};
+                  leadsConvertidos.forEach(lead => {
+                    const recepcao = lead.recepcao_vendeu || "Sem Recepção";
+                    if (!porRecepcao[recepcao]) {
+                      porRecepcao[recepcao] = {
+                        conversoes: 0,
+                        valorTotal: 0
+                      };
+                    }
+                    porRecepcao[recepcao].conversoes++;
+                    porRecepcao[recepcao].valorTotal += (lead.valor_final || 0);
+                  });
+
+                  return (
+                    <div className="space-y-6">
+                      {/* Métricas Resumidas */}
+                      <div className="grid grid-cols-4 gap-4">
+                        <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                          <p className="text-sm text-blue-600 mb-1">Total de Conversões</p>
+                          <p className="text-3xl font-bold text-blue-700">{totalConversoes}</p>
+                        </div>
+                        <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                          <p className="text-sm text-purple-600 mb-1">Valor Original Total</p>
+                          <p className="text-2xl font-bold text-purple-700">{formatarMoeda(valorTotalOriginal)}</p>
+                        </div>
+                        <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                          <p className="text-sm text-orange-600 mb-1">Desconto Total</p>
+                          <p className="text-2xl font-bold text-orange-700">{formatarMoeda(descontoTotal)}</p>
+                        </div>
+                        <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
+                          <p className="text-sm text-emerald-600 mb-1">Valor Final Total</p>
+                          <p className="text-2xl font-bold text-emerald-700">{formatarMoeda(valorTotalFinal)}</p>
+                        </div>
+                      </div>
+
+                      {/* Gráficos de Performance */}
+                      <div className="grid grid-cols-2 gap-4">
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-sm">Top Terapeutas</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              {Object.entries(porTerapeuta)
+                                .sort((a, b) => b[1].conversoes - a[1].conversoes)
+                                .slice(0, 5)
+                                .map(([nome, dados]) => (
+                                  <div key={nome} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                    <span className="text-sm font-medium">{nome}</span>
+                                    <div className="text-right">
+                                      <span className="text-sm text-blue-600 font-semibold">{dados.conversoes} vendas</span>
+                                      <span className="text-xs text-gray-600 ml-2">{formatarMoeda(dados.valorTotal)}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+
+                        <Card>
+                          <CardHeader>
+                            <CardTitle className="text-sm">Top Recepcionistas</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            <div className="space-y-2">
+                              {Object.entries(porRecepcao)
+                                .sort((a, b) => b[1].conversoes - a[1].conversoes)
+                                .slice(0, 5)
+                                .map(([nome, dados]) => (
+                                  <div key={nome} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                    <span className="text-sm font-medium">{nome}</span>
+                                    <div className="text-right">
+                                      <span className="text-sm text-green-600 font-semibold">{dados.conversoes} vendas</span>
+                                      <span className="text-xs text-gray-600 ml-2">{formatarMoeda(dados.valorTotal)}</span>
+                                    </div>
+                                  </div>
+                                ))}
+                            </div>
+                          </CardContent>
+                        </Card>
+                      </div>
+
+                      {/* Tabela Detalhada */}
+                      <div>
+                        <h3 className="font-semibold text-lg mb-4">Planos Terapêuticos Fechados - Detalhado</h3>
+                        <div className="overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Terapeuta</TableHead>
+                                <TableHead>Recepção</TableHead>
+                                <TableHead>Cliente</TableHead>
+                                <TableHead>Telefone</TableHead>
+                                <TableHead className="text-right">Valor Original</TableHead>
+                                <TableHead className="text-right">Desconto (%)</TableHead>
+                                <TableHead className="text-right">Valor Final</TableHead>
+                                <TableHead>Plano Fechado</TableHead>
+                                <TableHead>Forma de Pagamento</TableHead>
+                                <TableHead className="text-center">Quantas Vezes</TableHead>
+                                <TableHead>Data de Conversão</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {leadsConvertidos
+                                .sort((a, b) => new Date(b.data_conversao || 0) - new Date(a.data_conversao || 0))
+                                .map((lead) => {
+                                  const valorOriginal = lead.valor_original || 0;
+                                  const valorFinal = lead.valor_final || 0;
+                                  const desconto = valorOriginal > 0 ? ((valorOriginal - valorFinal) / valorOriginal * 100) : 0;
+                                  
+                                  return (
+                                    <TableRow key={lead.id}>
+                                      <TableCell className="font-medium">
+                                        {lead.terapeuta_nome || "-"}
+                                      </TableCell>
+                                      <TableCell>
+                                        <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                          {lead.recepcao_vendeu || "Sem Recepção"}
+                                        </span>
+                                      </TableCell>
+                                      <TableCell className="font-semibold">{lead.nome}</TableCell>
+                                      <TableCell className="text-sm">{lead.telefone || "-"}</TableCell>
+                                      <TableCell className="text-right text-gray-600">
+                                        {formatarMoeda(valorOriginal)}
+                                      </TableCell>
+                                      <TableCell className="text-right">
+                                        <span className="text-orange-600 font-medium">
+                                          {desconto.toFixed(1)}%
+                                        </span>
+                                      </TableCell>
+                                      <TableCell className="text-right text-emerald-600 font-bold">
+                                        {formatarMoeda(valorFinal)}
+                                      </TableCell>
+                                      <TableCell>
+                                        <span className="text-sm bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                                          {lead.plano_terapeutico_fechado || "-"}
+                                        </span>
+                                      </TableCell>
+                                      <TableCell>
+                                        <span className="text-sm">
+                                          {lead.forma_pagamento === "pix" ? "📱 PIX" :
+                                           lead.forma_pagamento === "link_pagamento" ? "🔗 Link" :
+                                           lead.forma_pagamento === "pago_na_clinica" ? "💳 Clínica" :
+                                           lead.forma_pagamento || "-"}
+                                        </span>
+                                      </TableCell>
+                                      <TableCell className="text-center">
+                                        <span className="text-sm font-semibold bg-gray-100 px-2 py-1 rounded">
+                                          {lead.quantas_vezes || "1"}x
+                                        </span>
+                                      </TableCell>
+                                      <TableCell>
+                                        {lead.data_conversao ? format(criarDataPura(lead.data_conversao), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
+                            </TableBody>
+                          </Table>
+                        </div>
+
+                        {leadsConvertidos.length === 0 && (
+                          <div className="text-center py-12 text-gray-500">
+                            <p className="font-medium">Nenhum plano terapêutico fechado neste período</p>
+                            <p className="text-sm mt-2">Ajuste os filtros para ver os dados</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()}
               </CardContent>
             </Card>
           </TabsContent>
