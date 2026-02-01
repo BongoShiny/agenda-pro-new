@@ -995,44 +995,44 @@ export default function RelatoriosFinanceirosPage() {
         </div>
 
         {/* Cards de Resumo */}
-        <div className="grid grid-cols-3 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Valor Combinado Total</CardTitle>
-              <DollarSign className="h-4 w-4 text-blue-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-blue-600">{formatarMoeda(totalCombinado)}</div>
-              <p className="text-xs text-gray-500 mt-1">{agendamentosFiltrados.length} agendamentos</p>
-            </CardContent>
-          </Card>
+         <div className="grid grid-cols-3 gap-6">
+           <Card>
+             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+               <CardTitle className="text-sm font-medium">Valor Combinado Total</CardTitle>
+               <DollarSign className="h-4 w-4 text-blue-600" />
+             </CardHeader>
+             <CardContent>
+               <div className="text-2xl font-bold text-blue-600">{formatarMoeda(totalCombinadoDisplay)}</div>
+               <p className="text-xs text-gray-500 mt-1">{agendamentosMesSelecionado ? agendamentosMesSelecionado.length : agendamentosFiltrados.length} agendamentos</p>
+             </CardContent>
+           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Recebido</CardTitle>
-              <TrendingUp className="h-4 w-4 text-emerald-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-emerald-600">{formatarMoeda(totalPago)}</div>
-              <p className="text-xs text-gray-500 mt-1">
-                {totalCombinado > 0 ? `${((totalPago / totalCombinado) * 100).toFixed(1)}%` : "0%"} do total
-              </p>
-            </CardContent>
-          </Card>
+           <Card>
+             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+               <CardTitle className="text-sm font-medium">Total Recebido</CardTitle>
+               <TrendingUp className="h-4 w-4 text-emerald-600" />
+             </CardHeader>
+             <CardContent>
+               <div className="text-2xl font-bold text-emerald-600">{formatarMoeda(totalPagoDisplay)}</div>
+               <p className="text-xs text-gray-500 mt-1">
+                 {totalCombinadoDisplay > 0 ? `${((totalPagoDisplay / totalCombinadoDisplay) * 100).toFixed(1)}%` : "0%"} do total
+               </p>
+             </CardContent>
+           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total a Receber</CardTitle>
-              <TrendingDown className="h-4 w-4 text-orange-600" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-orange-600">{formatarMoeda(totalAReceber)}</div>
-              <p className="text-xs text-gray-500 mt-1">
-                {totalCombinado > 0 ? `${((totalAReceber / totalCombinado) * 100).toFixed(1)}%` : "0%"} pendente
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+           <Card>
+             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+               <CardTitle className="text-sm font-medium">Total a Receber</CardTitle>
+               <TrendingDown className="h-4 w-4 text-orange-600" />
+             </CardHeader>
+             <CardContent>
+               <div className="text-2xl font-bold text-orange-600">{formatarMoeda(totalAReceberDisplay)}</div>
+               <p className="text-xs text-gray-500 mt-1">
+                 {totalCombinadoDisplay > 0 ? `${((totalAReceberDisplay / totalCombinadoDisplay) * 100).toFixed(1)}%` : "0%"} pendente
+               </p>
+             </CardContent>
+           </Card>
+         </div>
 
         {/* Tabelas por Profissional e Unidade */}
          <Tabs defaultValue="dashboard" className="w-full">
