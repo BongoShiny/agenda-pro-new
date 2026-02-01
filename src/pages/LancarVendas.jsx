@@ -183,7 +183,7 @@ export default function LancarVendasPage() {
       final_pagamento: formData.restante_pagamento === "sim" ? valorPago : 0,
       falta_quanto: faltaQuanto,
       forma_pagamento: formData.forma_pagamento,
-      data_pagamento: formData.vendedor_id ? formData.data_pagamento : null,
+      ...(formData.vendedor_id && formData.data_pagamento ? { data_pagamento: formData.data_pagamento } : {}),
       observacoes_vendedores: `Motivo: ${formData.motivo}\nQueixa: ${formData.queixa}\nPago por: ${formData.pago_por}${formData.parcelas ? `\nParcelas: ${formData.parcelas}x` : ""}`,
       anotacao_venda: formData.parcelas ? `${formData.forma_pagamento} - ${formData.parcelas}x` : formData.forma_pagamento,
       comprovante_1: formData.comprovante_url,
