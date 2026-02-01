@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload, FileSpreadsheet, AlertCircle, CheckCircle } from "lucide-react";
+import * as XLSX from 'xlsx';
 
 export default function ImportarLeadsDialog({ open, onOpenChange }) {
   const [arquivo, setArquivo] = useState(null);
@@ -39,44 +40,32 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
     setResultado(null);
 
     try {
-      // 1. Upload do arquivo
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: arquivo });
-
-      // 2. Extrair dados da planilha
-      const jsonSchema = {
-        type: "object",
-        properties: {
-          dados: {
-            type: "array",
-            items: {
-              type: "object",
-              properties: {
-                nome: { type: "string", description: "Nome do lead (coluna A)" },
-                telefone: { type: "string", description: "Telefone (coluna B)" },
-                data_entrada: { type: "string", description: "Data entrada (coluna C)" },
-                vendedor: { type: "string", description: "Vendedor (coluna D)" },
-                unidade: { type: "string", description: "Unidade (coluna E)" },
-              },
-            },
-          },
-        },
-      };
-
-      const extrairResult = await base44.integrations.Core.ExtractDataFromUploadedFile({
-        file_url: file_url,
-        json_schema: jsonSchema,
-      });
-
-      if (extrairResult.status === "error") {
-        alert(`❌ Erro ao processar arquivo: ${extrairResult.details}`);
+      // 1. Ler arquivo Excel/CSV no navegador
+      const fileData = await arquivo.arrayBuffer();
+      const workbook = XLSX.read(fileData, { type: 'array' });
+      const sheetName = workbook.SheetNames[0];
+      const worksheet = workbook.Sheets[sheetName];
+      
+      // Converter para JSON (primeira linha = headers)
+      const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+      
+      if (!rawData || rawData.length < 2) {
+        alert("⚠️ Arquivo vazio ou sem dados");
         setProcessando(false);
         return;
       }
 
-      const dados = extrairResult.output?.dados || [];
+      // Remover header e mapear colunas (A=nome, B=telefone, C=data, D=vendedor, E=unidade)
+      const dados = rawData.slice(1).map(row => ({
+        nome: row[0] || "",
+        telefone: row[1] || "",
+        data_entrada: row[2] || "",
+        vendedor: row[3] || "",
+        unidade: row[4] || "",
+      })).filter(d => d.nome || d.telefone); // Filtrar linhas vazias
 
-      if (!Array.isArray(dados) || dados.length === 0) {
-        alert("⚠️ Nenhum dado encontrado no arquivo");
+      if (dados.length === 0) {
+        alert("⚠️ Nenhum dado válido encontrado no arquivo");
         setProcessando(false);
         return;
       }
