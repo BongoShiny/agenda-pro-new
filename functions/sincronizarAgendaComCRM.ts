@@ -65,15 +65,18 @@ Deno.serve(async (req) => {
     // Processar cada agendamento
     for (const ag of agendamentosValidos) {
       try {
+        // Extrair dados do agendamento
+        const agData = ag.data || ag;
+        
         // Buscar lead existente pelo telefone
-        const telefoneNormalizado = ag.cliente_telefone ? ag.cliente_telefone.replace(/\D/g, '') : '';
+        const telefoneNormalizado = agData.cliente_telefone ? agData.cliente_telefone.replace(/\D/g, '') : '';
         const leadExistente = telefoneNormalizado ? mapLeadsPorTelefone[telefoneNormalizado] : null;
 
-        // Determinar status baseado no tipo de agendamento
-        // Tipo "avulsa" → Status "avulso"
-        // Outros tipos → Status "plano_terapeutico"
+        // Determinar status baseado no vendedor e tipo
+        // Se tem vendedor OU é avulsa → Status "avulso"
+        // Sem vendedor → Status "plano_terapeutico"
         let novoStatus = 'plano_terapeutico';
-        if (ag.tipo === 'avulsa') {
+        if (agData.vendedor_id || agData.vendedor_nome || agData.tipo === 'avulsa') {
           novoStatus = 'avulso';
         }
 
@@ -81,45 +84,37 @@ Deno.serve(async (req) => {
           // Atualizar lead existente
           const atualizacao = {
             status: novoStatus,
-            unidade_id: ag.unidade_id || leadExistente.unidade_id || "",
-            unidade_nome: ag.unidade_nome || leadExistente.unidade_nome || "",
-            vendedor_id: ag.vendedor_id || leadExistente.vendedor_id || "",
-            vendedor_nome: ag.vendedor_nome || leadExistente.vendedor_nome || "",
+            unidade_id: agData.unidade_id || leadExistente.unidade_id || "",
+            unidade_nome: agData.unidade_nome || leadExistente.unidade_nome || "",
+            vendedor_id: agData.vendedor_id || leadExistente.vendedor_id || "",
+            vendedor_nome: agData.vendedor_nome || leadExistente.vendedor_nome || "",
+            terapeuta_id: agData.profissional_id || leadExistente.terapeuta_id || "",
+            terapeuta_nome: agData.profissional_nome || leadExistente.terapeuta_nome || "",
             convertido: true,
-            data_conversao: ag.data || leadExistente.data_conversao || new Date().toISOString().split('T')[0],
-            valor_negociado: ag.valor_combinado || leadExistente.valor_negociado || 0
+            data_conversao: agData.data || leadExistente.data_conversao || new Date().toISOString().split('T')[0],
+            valor_negociado: agData.valor_combinado || leadExistente.valor_negociado || 0
           };
-          
-          // Adicionar terapeuta apenas se existir
-          if (ag.profissional_id) {
-            atualizacao.terapeuta_id = ag.profissional_id;
-            atualizacao.terapeuta_nome = ag.profissional_nome;
-          }
 
           await base44.asServiceRole.entities.Lead.update(leadExistente.id, atualizacao);
           leadsAtualizados++;
         } else {
           const novoLead = {
-            nome: ag.cliente_nome,
-            telefone: ag.cliente_telefone,
-            vendedor_id: ag.vendedor_id || "",
-            vendedor_nome: ag.vendedor_nome || "",
-            unidade_id: ag.unidade_id || "",
-            unidade_nome: ag.unidade_nome || "",
+            nome: agData.cliente_nome,
+            telefone: agData.cliente_telefone,
+            vendedor_id: agData.vendedor_id || "",
+            vendedor_nome: agData.vendedor_nome || "",
+            unidade_id: agData.unidade_id || "",
+            unidade_nome: agData.unidade_nome || "",
+            terapeuta_id: agData.profissional_id || "",
+            terapeuta_nome: agData.profissional_nome || "",
             status: novoStatus,
-            origem: "sistema_agendamento",
+            origem: "agenda",
             temperatura: "quente",
             convertido: true,
             data_entrada: new Date().toISOString(),
-            data_conversao: ag.data || new Date().toISOString().split('T')[0],
-            valor_negociado: ag.valor_combinado || 0
+            data_conversao: agData.data || new Date().toISOString().split('T')[0],
+            valor_negociado: agData.valor_combinado || 0
           };
-          
-          // Adicionar terapeuta apenas se existir
-          if (ag.profissional_id) {
-            novoLead.terapeuta_id = ag.profissional_id;
-            novoLead.terapeuta_nome = ag.profissional_nome;
-          }
 
           await base44.asServiceRole.entities.Lead.create(novoLead);
           leadsCriados++;
@@ -128,7 +123,7 @@ Deno.serve(async (req) => {
           mapLeadsPorTelefone[telefoneNormalizado] = novoLead;
         }
       } catch (error) {
-        console.error(`❌ Erro ao processar agendamento ${ag.id}:`, error);
+        console.error(`❌ Erro ao processar agendamento ${ag.id || 'desconhecido'}:`, error);
         erros++;
       }
     }
