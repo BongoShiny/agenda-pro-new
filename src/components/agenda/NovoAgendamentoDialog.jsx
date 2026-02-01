@@ -866,6 +866,10 @@ export default function NovoAgendamentoDialog({
                 <SelectItem value="pago_na_clinica">💳 Pago na Clínica</SelectItem>
                 <SelectItem value="pix">📱 PIX</SelectItem>
                 <SelectItem value="link_pagamento">🔗 Link de Pagamento</SelectItem>
+                <SelectItem value="dinheiro">💵 Dinheiro</SelectItem>
+                <SelectItem value="cartao_credito">💳 Cartão de Crédito</SelectItem>
+                <SelectItem value="cartao_debito">💳 Cartão de Débito</SelectItem>
+                <SelectItem value="boleto">📄 Boleto</SelectItem>
               </SelectContent>
             </Select>
           </div>
