@@ -12,6 +12,8 @@ import MenuConta from "../components/agenda/MenuConta";
 import AlertasModal from "../components/agenda/AlertasModal";
 import { Button } from "@/components/ui/button";
 import { Filter, X, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 
 // ============================================
 // FUNÇÕES UNIVERSAIS DE DATA - USAR EM TODOS OS ARQUIVOS
