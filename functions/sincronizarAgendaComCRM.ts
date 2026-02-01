@@ -40,6 +40,10 @@ Deno.serve(async (req) => {
     });
 
     console.log(`✅ Total de agendamentos válidos: ${agendamentosValidos.length}`);
+    
+    if (agendamentosValidos.length > 0) {
+      console.log('📌 Exemplo de agendamento válido:', JSON.stringify(agendamentosValidos[0], null, 2));
+    }
 
     // Buscar todos os leads existentes
     const leadsExistentes = await base44.asServiceRole.entities.Lead.list();
