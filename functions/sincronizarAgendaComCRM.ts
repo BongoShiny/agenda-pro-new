@@ -13,7 +13,13 @@ Deno.serve(async (req) => {
     console.log('🔄 INICIANDO SINCRONIZAÇÃO COMPLETA AGENDA → CRM');
 
     // Buscar todos os agendamentos (exceto bloqueios)
-    const agendamentos = await base44.asServiceRole.entities.Agendamento.list();
+    let agendamentos = await base44.asServiceRole.entities.Agendamento.list();
+    
+    // Garantir que agendamentos é um array
+    if (!Array.isArray(agendamentos)) {
+      agendamentos = [];
+    }
+    
     const agendamentosValidos = agendamentos.filter(ag => 
       ag.status !== "bloqueio" && 
       ag.tipo !== "bloqueio" && 
