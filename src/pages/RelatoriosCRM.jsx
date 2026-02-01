@@ -99,42 +99,43 @@ export default function RelatoriosCRMPage() {
 
   // Métricas gerais
   const totalLeads = leadsFiltrados.length;
-  const leadsFechados = leadsFiltrados.filter(l => l.status === "fechado").length;
-  const leadsPerdidos = leadsFiltrados.filter(l => l.status === "perdido").length;
+  const leadsConvertidos = leadsFiltrados.filter(l => l.convertido === true);
+  const leadsFechados = leadsConvertidos.length;
+  const leadsPerdidos = leadsFiltrados.filter(l => l.motivo_perda).length;
   const taxaConversao = totalLeads > 0 ? ((leadsFechados / totalLeads) * 100).toFixed(1) : 0;
 
-  // Tempo médio de conversão
-  const leadsConvertidos = leadsFiltrados.filter(l => l.data_conversao);
-  const tempoMedioConversao = leadsConvertidos.length > 0
+  // Tempo médio de conversão (apenas para leads que têm data_conversao E data_primeiro_contato)
+  const leadsComDatas = leadsConvertidos.filter(l => l.data_conversao && l.data_primeiro_contato);
+  const tempoMedioConversao = leadsComDatas.length > 0
     ? Math.round(
-        leadsConvertidos.reduce((acc, lead) => {
-          const inicio = new Date(lead.created_date);
+        leadsComDatas.reduce((acc, lead) => {
+          const inicio = new Date(lead.data_primeiro_contato);
           const fim = new Date(lead.data_conversao);
-          return acc + differenceInDays(fim, inicio);
-        }, 0) / leadsConvertidos.length
+          const dias = differenceInDays(fim, inicio);
+          return acc + dias;
+        }, 0) / leadsComDatas.length
       )
     : 0;
 
   // Dados para gráfico de status
   const dadosStatus = [
-    { name: "Novos", value: leadsFiltrados.filter(l => l.status === "novo").length, color: "#EAB308" },
-    { name: "Em Contato", value: leadsFiltrados.filter(l => l.status === "em_contato").length, color: "#3B82F6" },
-    { name: "Negociação", value: leadsFiltrados.filter(l => l.status === "negociacao").length, color: "#A855F7" },
-    { name: "Fechados", value: leadsFiltrados.filter(l => l.status === "fechado").length, color: "#22C55E" },
-    { name: "Perdidos", value: leadsFiltrados.filter(l => l.status === "perdido").length, color: "#EF4444" },
-  ];
+    { name: "Lead", value: leadsFiltrados.filter(l => l.status === "lead").length, color: "#10B981" },
+    { name: "Avulso", value: leadsFiltrados.filter(l => l.status === "avulso").length, color: "#EAB308" },
+    { name: "Plano Terapêutico", value: leadsFiltrados.filter(l => l.status === "plano_terapeutico").length, color: "#F59E0B" },
+    { name: "Renovação", value: leadsFiltrados.filter(l => l.status === "renovacao").length, color: "#3B82F6" },
+  ].filter(d => d.value > 0);
 
   // Dados para gráfico de vendedores
   const dadosVendedores = vendedores.map(v => {
     const leadsVendedor = leadsFiltrados.filter(l => l.vendedor_id === v.id);
-    const fechados = leadsVendedor.filter(l => l.status === "fechado").length;
+    const convertidos = leadsVendedor.filter(l => l.convertido === true).length;
     const total = leadsVendedor.length;
-    const taxa = total > 0 ? ((fechados / total) * 100).toFixed(1) : 0;
+    const taxa = total > 0 ? ((convertidos / total) * 100).toFixed(1) : 0;
 
     return {
       nome: v.nome,
       total: total,
-      fechados: fechados,
+      convertidos: convertidos,
       taxa: parseFloat(taxa),
     };
   }).filter(d => d.total > 0).sort((a, b) => b.taxa - a.taxa);
@@ -152,14 +153,14 @@ export default function RelatoriosCRMPage() {
     const existing = acc.find(item => item.mes === mes);
     if (existing) {
       existing.total++;
-      if (lead.status === "fechado") existing.fechados++;
-      if (lead.status === "perdido") existing.perdidos++;
+      if (lead.convertido === true) existing.convertidos++;
+      if (lead.motivo_perda) existing.perdidos++;
     } else {
       acc.push({
         mes,
         total: 1,
-        fechados: lead.status === "fechado" ? 1 : 0,
-        perdidos: lead.status === "perdido" ? 1 : 0,
+        convertidos: lead.convertido === true ? 1 : 0,
+        perdidos: lead.motivo_perda ? 1 : 0,
       });
     }
     return acc;
@@ -331,11 +332,10 @@ export default function RelatoriosCRMPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="todos">Todos os Status</SelectItem>
-                <SelectItem value="novo">Novo</SelectItem>
-                <SelectItem value="em_contato">Em Contato</SelectItem>
-                <SelectItem value="negociacao">Negociação</SelectItem>
-                <SelectItem value="fechado">Fechado</SelectItem>
-                <SelectItem value="perdido">Perdido</SelectItem>
+                <SelectItem value="lead">Lead</SelectItem>
+                <SelectItem value="avulso">Avulso</SelectItem>
+                <SelectItem value="plano_terapeutico">Plano Terapêutico</SelectItem>
+                <SelectItem value="renovacao">Renovação</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -364,7 +364,7 @@ export default function RelatoriosCRMPage() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold text-green-600">{taxaConversao}%</p>
-              <p className="text-sm text-gray-500 mt-1">{leadsFechados} fechados</p>
+              <p className="text-sm text-gray-500 mt-1">{leadsFechados} convertidos</p>
             </CardContent>
           </Card>
 
@@ -377,7 +377,11 @@ export default function RelatoriosCRMPage() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold text-blue-600">{tempoMedioConversao}</p>
-              <p className="text-sm text-gray-500 mt-1">dias até conversão</p>
+              <p className="text-sm text-gray-500 mt-1">
+                {leadsComDatas.length > 0 
+                  ? `dias até conversão (${leadsComDatas.length} lead${leadsComDatas.length > 1 ? 's' : ''})`
+                  : 'dias até conversão'}
+              </p>
             </CardContent>
           </Card>
 
@@ -461,7 +465,7 @@ export default function RelatoriosCRMPage() {
                   <Tooltip />
                   <Legend />
                   <Bar dataKey="total" name="Total de Leads" fill="#3B82F6" />
-                  <Bar dataKey="fechados" name="Leads Fechados" fill="#22C55E" />
+                  <Bar dataKey="convertidos" name="Leads Convertidos" fill="#22C55E" />
                 </BarChart>
               </ResponsiveContainer>
             </CardContent>
@@ -483,7 +487,7 @@ export default function RelatoriosCRMPage() {
                   <Tooltip />
                   <Legend />
                   <Line type="monotone" dataKey="total" name="Total" stroke="#3B82F6" strokeWidth={2} />
-                  <Line type="monotone" dataKey="fechados" name="Fechados" stroke="#22C55E" strokeWidth={2} />
+                  <Line type="monotone" dataKey="convertidos" name="Convertidos" stroke="#22C55E" strokeWidth={2} />
                   <Line type="monotone" dataKey="perdidos" name="Perdidos" stroke="#EF4444" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
