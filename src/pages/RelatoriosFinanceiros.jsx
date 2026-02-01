@@ -2329,17 +2329,17 @@ export default function RelatoriosFinanceirosPage() {
                           <Table>
                             <TableHeader>
                               <TableRow>
-                                <TableHead>Terapeuta</TableHead>
-                                <TableHead>Recepção</TableHead>
                                 <TableHead>Cliente</TableHead>
                                 <TableHead>Telefone</TableHead>
+                                <TableHead>Plano Fechado</TableHead>
+                                <TableHead>Data de Conversão</TableHead>
+                                <TableHead>Terapeuta</TableHead>
+                                <TableHead>Recepção</TableHead>
                                 <TableHead className="text-right">Valor Original</TableHead>
                                 <TableHead className="text-right">Desconto (%)</TableHead>
                                 <TableHead className="text-right">Valor Final</TableHead>
-                                <TableHead>Plano Fechado</TableHead>
                                 <TableHead>Forma de Pagamento</TableHead>
                                 <TableHead className="text-center">Quantas Vezes</TableHead>
-                                <TableHead>Data de Conversão</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -2352,6 +2352,16 @@ export default function RelatoriosFinanceirosPage() {
                                   
                                   return (
                                     <TableRow key={lead.id}>
+                                      <TableCell className="font-semibold">{lead.nome}</TableCell>
+                                      <TableCell className="text-sm">{lead.telefone || "-"}</TableCell>
+                                      <TableCell>
+                                        <span className="text-sm bg-purple-100 text-purple-800 px-2 py-1 rounded">
+                                          {lead.plano_terapeutico_fechado || "-"}
+                                        </span>
+                                      </TableCell>
+                                      <TableCell>
+                                        {lead.data_conversao ? format(criarDataPura(lead.data_conversao), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                                      </TableCell>
                                       <TableCell className="font-medium">
                                         {lead.terapeuta_nome || "-"}
                                       </TableCell>
@@ -2360,8 +2370,6 @@ export default function RelatoriosFinanceirosPage() {
                                           {lead.recepcao_vendeu || "Sem Recepção"}
                                         </span>
                                       </TableCell>
-                                      <TableCell className="font-semibold">{lead.nome}</TableCell>
-                                      <TableCell className="text-sm">{lead.telefone || "-"}</TableCell>
                                       <TableCell className="text-right text-gray-600">
                                         {formatarMoeda(valorOriginal)}
                                       </TableCell>
@@ -2372,11 +2380,6 @@ export default function RelatoriosFinanceirosPage() {
                                       </TableCell>
                                       <TableCell className="text-right text-emerald-600 font-bold">
                                         {formatarMoeda(valorFinal)}
-                                      </TableCell>
-                                      <TableCell>
-                                        <span className="text-sm bg-purple-100 text-purple-800 px-2 py-1 rounded">
-                                          {lead.plano_terapeutico_fechado || "-"}
-                                        </span>
                                       </TableCell>
                                       <TableCell>
                                         <span className="text-sm">
@@ -2390,9 +2393,6 @@ export default function RelatoriosFinanceirosPage() {
                                         <span className="text-sm font-semibold bg-gray-100 px-2 py-1 rounded">
                                           {lead.quantas_vezes || "1"}x
                                         </span>
-                                      </TableCell>
-                                      <TableCell>
-                                        {lead.data_conversao ? format(criarDataPura(lead.data_conversao), "dd/MM/yyyy", { locale: ptBR }) : "-"}
                                       </TableCell>
                                     </TableRow>
                                   );
