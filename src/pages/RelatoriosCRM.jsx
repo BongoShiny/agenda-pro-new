@@ -98,11 +98,12 @@ export default function RelatoriosCRMPage() {
   });
 
   // Métricas gerais
-  const totalLeads = leadsFiltrados.length;
+  const totalLeads = leadsFiltrados.filter(l => l.status === "lead").length;
+  const totalGeralRegistros = leadsFiltrados.length;
   const leadsConvertidos = leadsFiltrados.filter(l => l.convertido === true);
   const leadsFechados = leadsConvertidos.length;
   const leadsPerdidos = leadsFiltrados.filter(l => l.motivo_perda).length;
-  const taxaConversao = totalLeads > 0 ? ((leadsFechados / totalLeads) * 100).toFixed(1) : 0;
+  const taxaConversao = totalGeralRegistros > 0 ? ((leadsFechados / totalGeralRegistros) * 100).toFixed(1) : 0;
 
   // Tempo médio de conversão para avulso ou plano terapêutico
   const leadsAvulsoOuPlano = leadsFiltrados.filter(l => 
@@ -123,7 +124,7 @@ export default function RelatoriosCRMPage() {
 
   // Percentual de renovações
   const totalRenovacoes = leadsFiltrados.filter(l => l.status === "renovacao").length;
-  const percentualRenovacao = totalLeads > 0 ? ((totalRenovacoes / totalLeads) * 100).toFixed(1) : 0;
+  const percentualRenovacao = totalGeralRegistros > 0 ? ((totalRenovacoes / totalGeralRegistros) * 100).toFixed(1) : 0;
 
   // Taxa de conversão do dia (leads criados hoje vs conversões hoje)
   const hoje = format(new Date(), "yyyy-MM-dd");
@@ -388,6 +389,7 @@ export default function RelatoriosCRMPage() {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold text-gray-900">{totalLeads}</p>
+              <p className="text-sm text-gray-500 mt-1">status: lead</p>
             </CardContent>
           </Card>
 
