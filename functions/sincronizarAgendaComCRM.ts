@@ -12,12 +12,14 @@ Deno.serve(async (req) => {
 
     console.log('🔄 INICIANDO SINCRONIZAÇÃO COMPLETA AGENDA → CRM');
 
-    // Buscar TODOS os agendamentos desde 01/01/2026
-    const dataCorte = '2026-01-01';
+    // Buscar TODOS os agendamentos
     let agendamentosCompletos = await base44.asServiceRole.entities.Agendamento.list();
     
     console.log(`📊 Total de agendamentos no banco: ${agendamentosCompletos?.length || 0}`);
-    console.log(`📋 Primeiro agendamento:`, agendamentosCompletos[0]);
+    if (agendamentosCompletos && agendamentosCompletos.length > 0) {
+      const primeiro = agendamentosCompletos[0];
+      console.log(`📋 Primeiro agendamento: nome=${primeiro.cliente_nome}, tipo=${primeiro.tipo}, tel=${primeiro.cliente_telefone}`);
+    }
     
     // Garantir que é um array
     if (!Array.isArray(agendamentosCompletos)) {
