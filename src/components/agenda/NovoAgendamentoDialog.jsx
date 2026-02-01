@@ -897,7 +897,7 @@ export default function NovoAgendamentoDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Data do Pagamento</Label>
+            <Label>Data do Pagamento {formData.vendedor_id && <span className="text-red-600">*</span>}</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start">
@@ -921,6 +921,9 @@ export default function NovoAgendamentoDialog({
                 />
               </PopoverContent>
             </Popover>
+            {formData.vendedor_id && !formData.data_pagamento && (
+              <p className="text-xs text-red-600">⚠️ Data de pagamento obrigatória quando vendedor selecionado</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -1180,7 +1183,7 @@ export default function NovoAgendamentoDialog({
           </Button>
           <Button 
             onClick={handleSubmit}
-            disabled={!formData.cliente_nome || !formData.profissional_id || !formData.unidade_id || formData.servicos_selecionados.length === 0}
+            disabled={!formData.cliente_nome || !formData.profissional_id || !formData.unidade_id || formData.servicos_selecionados.length === 0 || (formData.vendedor_id && !formData.data_pagamento)}
             className="bg-blue-600 hover:bg-blue-700"
           >
             {modoEdicao ? "Salvar Alterações" : "Salvar Agendamento"}
