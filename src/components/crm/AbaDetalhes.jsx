@@ -80,6 +80,12 @@ export default function AbaDetalhes({ lead, onUpdate }) {
                 </p>
               </div>
               <div>
+                <Label className="text-gray-500 text-xs">Data da Primeira Sessão</Label>
+                <p className="font-medium text-gray-900">
+                  {lead.data_proxima_acao ? format(new Date(lead.data_proxima_acao), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                </p>
+              </div>
+              <div>
                 <Label className="text-gray-500 text-xs">Vendedor</Label>
                 <p className="font-medium text-gray-900">{lead.vendedor_nome}</p>
               </div>
