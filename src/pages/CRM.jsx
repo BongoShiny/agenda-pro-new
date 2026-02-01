@@ -212,11 +212,11 @@ export default function CRMPage() {
   };
 
   const handleSincronizarAgendamentos = async () => {
-    if (window.confirm("Sincronizar TODOS os agendamentos com o CRM?\n\nIsso criará/atualizará leads baseado nos agendamentos.")) {
+    if (window.confirm("🔄 SINCRONIZAR AGENDA COM CRM?\n\nTodos os agendamentos serão organizados no CRM:\n• Avulsos → Status Avulso\n• Planos Terapêuticos → Status Plano\n• Leads serão criados automaticamente\n\nDeseja continuar?")) {
       setSincronizandoAgendamentos(true);
       try {
-        const response = await base44.functions.invoke('sincronizarAgendamentosNosCRM', {});
-        alert(`✅ Sincronização concluída!\n\n${response.data.sincronizados} leads atualizados/criados\n${response.data.erros} erros`);
+        const response = await base44.functions.invoke('sincronizarAgendaComCRM', {});
+        alert(`✅ SINCRONIZAÇÃO CONCLUÍDA!\n\n📊 Resultados:\n✨ ${response.data.leadsCriados} leads criados\n🔄 ${response.data.leadsAtualizados} leads atualizados\n📦 ${response.data.totalProcessados} agendamentos processados${response.data.erros > 0 ? `\n⚠️ ${response.data.erros} erros` : ''}`);
         queryClient.invalidateQueries({ queryKey: ['leads'] });
       } catch (error) {
         alert(`❌ Erro na sincronização: ${error.message}`);
@@ -401,14 +401,14 @@ export default function CRMPage() {
                   {limparDuplicadosMutation.isPending ? "Limpando..." : "Limpar Duplicados"}
                 </Button>
               )}
-              {user?.cargo === "superior" && (
+              {(user?.cargo === "superior" || user?.cargo === "administrador" || user?.role === "admin") && (
                 <Button 
                   onClick={handleSincronizarAgendamentos}
                   disabled={sincronizandoAgendamentos}
                   className="bg-green-600 hover:bg-green-700"
                 >
                   <RotateCw className={`w-5 h-5 mr-2 ${sincronizandoAgendamentos ? 'animate-spin' : ''}`} />
-                  {sincronizandoAgendamentos ? "Sincronizando..." : "Sincronizar Todos"}
+                  {sincronizandoAgendamentos ? "Sincronizar Agenda" : "Sincronizar Agenda"}
                 </Button>
               )}
               {isSuperior && (
