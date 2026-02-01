@@ -138,15 +138,24 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
           let dataEntrada = new Date().toISOString().split('T')[0];
           if (linha.data_entrada) {
             try {
-              // Tentar parsear data no formato DD/MM/YYYY HH:MM ou DD/MM/YYYY
               const dataStr = String(linha.data_entrada).trim();
               let dataParsed;
               
               if (dataStr.includes('/')) {
+                // Formato: DD/MM/YYYY ou DD/MM/YYYY HH:MM
                 const partes = dataStr.split(' ');
                 const [dia, mes, ano] = partes[0].split('/');
-                dataParsed = new Date(ano, mes - 1, dia);
+                
+                if (partes.length > 1 && partes[1].includes(':')) {
+                  // Tem hora (DD/MM/YYYY HH:MM)
+                  const [hora, minuto] = partes[1].split(':');
+                  dataParsed = new Date(ano, mes - 1, dia, hora, minuto);
+                } else {
+                  // Só data (DD/MM/YYYY)
+                  dataParsed = new Date(ano, mes - 1, dia);
+                }
               } else {
+                // Formato ISO ou outro
                 dataParsed = new Date(dataStr);
               }
               
