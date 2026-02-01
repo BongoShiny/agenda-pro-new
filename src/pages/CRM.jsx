@@ -290,6 +290,13 @@ export default function CRMPage() {
     v.nome === user?.full_name || v.email === user?.email
   );
 
+  // Buscar todos os agendamentos para usar nos filtros
+  const { data: todosAgendamentos = [] } = useQuery({
+    queryKey: ['agendamentos-filtro-crm'],
+    queryFn: () => base44.entities.Agendamento.list(),
+    initialData: [],
+  });
+
   // Filtrar leads baseado no cargo
   const leadsFiltrados = leads.filter(lead => {
     // VENDEDOR: vê seus próprios leads + avulso + plano terapêutico (que ele criou)
@@ -342,7 +349,34 @@ export default function CRMPage() {
       }
     }
 
-    return matchBusca && matchStatus && matchUnidade && matchVendedor && matchData;
+    // Filtro por Recepção (buscar nos agendamentos)
+    let matchRecepcao = true;
+    if (filtroRecepcao !== "todas") {
+      const agendamentosDoLead = todosAgendamentos.filter(ag => 
+        ag.cliente_telefone === lead.telefone
+      );
+      const temRecepcaoSelecionada = agendamentosDoLead.some(ag => {
+        const recepcionistaMatch = recepcionistas.find(r => 
+          r.id === filtroRecepcao || r.nome === filtroRecepcao
+        );
+        return ag.vendedor_nome === recepcionistaMatch?.nome;
+      });
+      matchRecepcao = temRecepcaoSelecionada;
+    }
+
+    // Filtro por Terapeuta (buscar nos agendamentos)
+    let matchTerapeuta = true;
+    if (filtroTerapeuta !== "todos") {
+      const agendamentosDoLead = todosAgendamentos.filter(ag => 
+        ag.cliente_telefone === lead.telefone
+      );
+      const temTerapeutaSelecionado = agendamentosDoLead.some(ag => 
+        ag.profissional_id === filtroTerapeuta
+      );
+      matchTerapeuta = temTerapeutaSelecionado;
+    }
+
+    return matchBusca && matchStatus && matchUnidade && matchVendedor && matchData && matchRecepcao && matchTerapeuta;
   });
 
   // Estatísticas (filtradas por usuário)
@@ -603,7 +637,32 @@ export default function CRMPage() {
                 className="w-full"
               />
             </div>
-            <div className="flex items-end">
+            <Select value={filtroRecepcao} onValueChange={setFiltroRecepcao}>
+              <SelectTrigger>
+                <SelectValue placeholder="Recepção (vendedor)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todas">Todas Recepções</SelectItem>
+                {recepcionistas.map(r => (
+                  <SelectItem key={r.id} value={r.id}>{r.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={filtroTerapeuta} onValueChange={setFiltroTerapeuta}>
+              <SelectTrigger>
+                <SelectValue placeholder="Terapeuta" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="todos">Todos Terapeutas</SelectItem>
+                {profissionais.map(p => (
+                  <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
+            <div className="flex items-end lg:col-start-4">
               <Button
                 variant="outline"
                 size="sm"
@@ -612,6 +671,8 @@ export default function CRMPage() {
                   setFiltroStatus("todos");
                   setFiltroUnidade("todas");
                   setFiltroVendedor("todos");
+                  setFiltroRecepcao("todas");
+                  setFiltroTerapeuta("todos");
                   setFiltroDataInicio("");
                   setFiltroDataFim("");
                 }}
