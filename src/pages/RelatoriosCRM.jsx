@@ -104,7 +104,43 @@ export default function RelatoriosCRMPage() {
   const leadsPerdidos = leadsFiltrados.filter(l => l.motivo_perda).length;
   const taxaConversao = totalLeads > 0 ? ((leadsFechados / totalLeads) * 100).toFixed(1) : 0;
 
-  // Tempo médio de conversão (apenas para leads que têm data_conversao E data_primeiro_contato)
+  // Tempo médio de conversão para avulso ou plano terapêutico
+  const leadsAvulsoOuPlano = leadsFiltrados.filter(l => 
+    (l.status === "avulso" || l.status === "plano_terapeutico") && 
+    l.data_entrada && 
+    l.data_conversao
+  );
+  const tempoMedioAvulsoPlano = leadsAvulsoOuPlano.length > 0
+    ? Math.round(
+        leadsAvulsoOuPlano.reduce((acc, lead) => {
+          const inicio = new Date(lead.data_entrada);
+          const fim = new Date(lead.data_conversao);
+          const dias = differenceInDays(fim, inicio);
+          return acc + dias;
+        }, 0) / leadsAvulsoOuPlano.length
+      )
+    : 0;
+
+  // Percentual de renovações
+  const totalRenovacoes = leadsFiltrados.filter(l => l.status === "renovacao").length;
+  const percentualRenovacao = totalLeads > 0 ? ((totalRenovacoes / totalLeads) * 100).toFixed(1) : 0;
+
+  // Taxa de conversão do dia (leads criados hoje vs conversões hoje)
+  const hoje = format(new Date(), "yyyy-MM-dd");
+  const leadsDoDia = leads.filter(l => {
+    const dataLead = format(new Date(l.created_date), "yyyy-MM-dd");
+    return dataLead === hoje;
+  });
+  const conversoesDoDia = leads.filter(l => {
+    if (!l.data_conversao) return false;
+    const dataConv = format(new Date(l.data_conversao), "yyyy-MM-dd");
+    return dataConv === hoje;
+  });
+  const taxaConversaoDia = leadsDoDia.length > 0 
+    ? ((conversoesDoDia.length / leadsDoDia.length) * 100).toFixed(1) 
+    : 0;
+
+  // Tempo médio de conversão (legado - mantido para compatibilidade)
   const leadsComDatas = leadsConvertidos.filter(l => l.data_conversao && l.data_primeiro_contato);
   const tempoMedioConversao = leadsComDatas.length > 0
     ? Math.round(
@@ -397,6 +433,54 @@ export default function RelatoriosCRMPage() {
                 {totalLeads > 0 ? ((leadsPerdidos / totalLeads) * 100).toFixed(1) : 0}%
               </p>
               <p className="text-sm text-gray-500 mt-1">{leadsPerdidos} perdidos</p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Novas Métricas */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-purple-700 flex items-center gap-2">
+                <Clock className="w-4 h-4" />
+                Tempo Médio Avulso/Plano
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-purple-900">{tempoMedioAvulsoPlano}</p>
+              <p className="text-sm text-purple-700 mt-1">
+                dias até virar avulso/plano ({leadsAvulsoOuPlano.length} leads)
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-indigo-50 to-indigo-100 border-indigo-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-indigo-700 flex items-center gap-2">
+                <TrendingUp className="w-4 h-4" />
+                Taxa de Renovação
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-indigo-900">{percentualRenovacao}%</p>
+              <p className="text-sm text-indigo-700 mt-1">
+                {totalRenovacoes} renovações do total
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gradient-to-br from-cyan-50 to-cyan-100 border-cyan-200">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-medium text-cyan-700 flex items-center gap-2">
+                <Calendar className="w-4 h-4" />
+                Conversão Leads do Dia
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold text-cyan-900">{taxaConversaoDia}%</p>
+              <p className="text-sm text-cyan-700 mt-1">
+                {conversoesDoDia.length} conversões de {leadsDoDia.length} leads hoje
+              </p>
             </CardContent>
           </Card>
         </div>
