@@ -12,24 +12,14 @@ Deno.serve(async (req) => {
 
     console.log('🔄 INICIANDO SINCRONIZAÇÃO COMPLETA AGENDA → CRM');
 
-    // Buscar TODOS os agendamentos (sem filtro de data) desde 01/01/2026
+    // Buscar TODOS os agendamentos desde 01/01/2026
     const dataCorte = '2026-01-01';
-    let agendamentos = await base44.asServiceRole.entities.Agendamento.list();
+    const agendamentosCompletos = await base44.asServiceRole.entities.Agendamento.list();
     
-    console.log(`📊 Total de agendamentos retornados: ${agendamentos?.length || 0}`);
-    
-    // Garantir que agendamentos é um array
-    if (!Array.isArray(agendamentos)) {
-      console.log('⚠️ agendamentos não é array, tentando converter');
-      agendamentos = [];
-    }
-    
-    // Log de alguns agendamentos para debug
-    if (agendamentos.length > 0) {
-      console.log('📋 Exemplo de agendamento:', JSON.stringify(agendamentos[0], null, 2));
-    }
-    
-    const agendamentosValidos = agendamentos.filter(ag => {
+    console.log(`📊 Total de agendamentos no banco: ${agendamentosCompletos?.length || 0}`);
+
+    // Filtrar agendamentos válidos
+    const agendamentosValidos = agendamentosCompletos.filter(ag => {
       // Filtrar por data >= 2026-01-01
       if (ag.data && ag.data < dataCorte) {
         return false;
@@ -40,7 +30,7 @@ Deno.serve(async (req) => {
         return false;
       }
       
-      // Excluir agendamentos sem telefone válido (mínimo 10 dígitos)
+      // Excluir agendamentos sem telefone válido
       if (!ag.cliente_telefone || ag.cliente_telefone.replace(/\D/g, '').length < 10) {
         return false;
       }
@@ -48,10 +38,12 @@ Deno.serve(async (req) => {
       return true;
     });
 
-    console.log(`📊 Total de agendamentos válidos: ${agendamentosValidos.length}`);
+    console.log(`✅ Total de agendamentos válidos: ${agendamentosValidos.length}`);
 
-    // Buscar todos os leads existentes (indexar por telefone)
+    // Buscar todos os leads existentes
     const leadsExistentes = await base44.asServiceRole.entities.Lead.list();
+    console.log(`📋 Total de leads existentes: ${leadsExistentes.length}`);
+    
     const mapLeadsPorTelefone = {};
     leadsExistentes.forEach(lead => {
       if (lead.telefone) {
@@ -66,85 +58,75 @@ Deno.serve(async (req) => {
     let leadsCriados = 0;
     let erros = 0;
 
-    // Processar cada agendamento
+    // Processar cada agendamento válido
     for (const ag of agendamentosValidos) {
       try {
-        // Usar diretamente o agendamento (já é o objeto correto)
-        const agData = ag;
-        
-        // Buscar lead existente pelo telefone
-        const telefoneNormalizado = agData.cliente_telefone ? agData.cliente_telefone.replace(/\D/g, '') : '';
-        const leadExistente = telefoneNormalizado ? mapLeadsPorTelefone[telefoneNormalizado] : null;
+        const telefoneNormalizado = ag.cliente_telefone.replace(/\D/g, '');
+        const leadExistente = mapLeadsPorTelefone[telefoneNormalizado];
 
-        // Determinar status baseado no vendedor e tipo
-        // Se tem vendedor OU é avulsa → Status "avulso"
-        // Sem vendedor → Status "plano_terapeutico"
+        // Determinar status: se tem vendedor ou é avulsa = "avulso", senão = "plano_terapeutico"
         let novoStatus = 'plano_terapeutico';
-        if (agData.vendedor_id || agData.vendedor_nome || agData.tipo === 'avulsa') {
+        if (ag.vendedor_id || ag.vendedor_nome || ag.tipo === 'avulsa') {
           novoStatus = 'avulso';
         }
 
         if (leadExistente) {
           // Atualizar lead existente
-          const atualizacao = {
+          await base44.asServiceRole.entities.Lead.update(leadExistente.id, {
             status: novoStatus,
-            unidade_id: agData.unidade_id || leadExistente.unidade_id || "",
-            unidade_nome: agData.unidade_nome || leadExistente.unidade_nome || "",
-            vendedor_id: agData.vendedor_id || leadExistente.vendedor_id || "",
-            vendedor_nome: agData.vendedor_nome || leadExistente.vendedor_nome || "",
-            terapeuta_id: agData.profissional_id || leadExistente.terapeuta_id || "",
-            terapeuta_nome: agData.profissional_nome || leadExistente.terapeuta_nome || "",
+            unidade_id: ag.unidade_id || leadExistente.unidade_id || "",
+            unidade_nome: ag.unidade_nome || leadExistente.unidade_nome || "",
+            vendedor_id: ag.vendedor_id || leadExistente.vendedor_id || "",
+            vendedor_nome: ag.vendedor_nome || leadExistente.vendedor_nome || "",
+            terapeuta_id: ag.profissional_id || leadExistente.terapeuta_id || "",
+            terapeuta_nome: ag.profissional_nome || leadExistente.terapeuta_nome || "",
             convertido: true,
-            data_conversao: agData.data || leadExistente.data_conversao || new Date().toISOString().split('T')[0],
-            valor_negociado: agData.valor_combinado || leadExistente.valor_negociado || 0
-          };
-
-          await base44.asServiceRole.entities.Lead.update(leadExistente.id, atualizacao);
+            data_conversao: ag.data || leadExistente.data_conversao,
+            valor_negociado: ag.valor_combinado || leadExistente.valor_negociado || 0
+          });
           leadsAtualizados++;
         } else {
-          const novoLead = {
-            nome: agData.cliente_nome,
-            telefone: agData.cliente_telefone,
-            vendedor_id: agData.vendedor_id || "",
-            vendedor_nome: agData.vendedor_nome || "",
-            unidade_id: agData.unidade_id || "",
-            unidade_nome: agData.unidade_nome || "",
-            terapeuta_id: agData.profissional_id || "",
-            terapeuta_nome: agData.profissional_nome || "",
+          // Criar novo lead
+          const novoLead = await base44.asServiceRole.entities.Lead.create({
+            nome: ag.cliente_nome,
+            telefone: ag.cliente_telefone,
+            vendedor_id: ag.vendedor_id || "",
+            vendedor_nome: ag.vendedor_nome || "",
+            unidade_id: ag.unidade_id || "",
+            unidade_nome: ag.unidade_nome || "",
+            terapeuta_id: ag.profissional_id || "",
+            terapeuta_nome: ag.profissional_nome || "",
             status: novoStatus,
             origem: "agenda",
             temperatura: "quente",
             convertido: true,
             data_entrada: new Date().toISOString(),
-            data_conversao: agData.data || new Date().toISOString().split('T')[0],
-            valor_negociado: agData.valor_combinado || 0
-          };
-
-          await base44.asServiceRole.entities.Lead.create(novoLead);
+            data_conversao: ag.data || new Date().toISOString().split('T')[0],
+            valor_negociado: ag.valor_combinado || 0
+          });
           leadsCriados++;
           
-          // Adicionar ao mapa para evitar duplicatas no mesmo lote
+          // Adicionar ao mapa
           mapLeadsPorTelefone[telefoneNormalizado] = novoLead;
         }
       } catch (error) {
-        console.error(`❌ Erro ao processar agendamento ${ag.id || 'desconhecido'}:`, error);
+        console.error(`❌ Erro ao processar ${ag.cliente_nome}:`, error.message);
         erros++;
       }
     }
 
-    // Registrar log da sincronização
+    // Registrar log
     await base44.asServiceRole.entities.LogAcao.create({
       tipo: "sincronizou_crm",
       usuario_email: user.email,
-      descricao: `Sincronização completa Agenda → CRM: ${leadsCriados} leads criados, ${leadsAtualizados} atualizados, ${erros} erros`,
+      descricao: `Sincronização Agenda → CRM: ${leadsCriados} leads criados, ${leadsAtualizados} atualizados, ${erros} erros`,
       entidade_tipo: "Lead"
     });
 
     console.log('✅ SINCRONIZAÇÃO CONCLUÍDA');
-    console.log(`📊 Resultados:`);
-    console.log(`  - Leads criados: ${leadsCriados}`);
-    console.log(`  - Leads atualizados: ${leadsAtualizados}`);
-    console.log(`  - Erros: ${erros}`);
+    console.log(`📊 Leads criados: ${leadsCriados}`);
+    console.log(`📊 Leads atualizados: ${leadsAtualizados}`);
+    console.log(`📊 Erros: ${erros}`);
 
     return Response.json({
       success: true,
