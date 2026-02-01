@@ -109,6 +109,8 @@ export const normalizarData = (valor) => {
 // ============================================
 
 export default function AgendaPage() {
+  const navigate = useNavigate();
+  
   // ⚠️ CRÍTICO: Inicializar dataAtual sempre com meio-dia LOCAL
   const inicializarData = () => {
     const agora = new Date();
@@ -1172,6 +1174,7 @@ export default function AgendaPage() {
 
   // Verificar se é admin, gerência ou pós-venda - todos têm permissões administrativas
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades" || usuarioAtual?.cargo === "pos_venda";
+  const isVendedor = usuarioAtual?.cargo === "vendedor";
 
   // Loading enquanto carrega dados
   if (!usuarioAtual || unidades.length === 0 || agendamentos.length === 0) {
@@ -1224,6 +1227,8 @@ export default function AgendaPage() {
         onNovoAgendamento={isProfissional ? null : handleNovoAgendamento}
         usuarioAtual={usuarioAtual}
         isProfissional={isProfissional}
+        isVendedor={isVendedor}
+        navigate={navigate}
       />
 
       <div className="flex-1 flex overflow-hidden relative">

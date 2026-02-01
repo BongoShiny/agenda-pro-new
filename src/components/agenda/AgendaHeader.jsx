@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, ShieldCheck, ExternalLink } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, ShieldCheck, ExternalLink, DollarSign } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -28,7 +28,9 @@ export default function AgendaHeader({
   onUnidadeChange,
   onDataChange,
   onNovoAgendamento,
-  usuarioAtual
+  usuarioAtual,
+  isVendedor,
+  navigate
 }) {
   const formatarDataExibicao = () => {
     // NUNCA usar new Date() com parâmetros - pode causar timezone issues
@@ -262,6 +264,16 @@ export default function AgendaHeader({
                    CRM
                  </Button>
                </Link>
+             )}
+
+             {isVendedor && navigate && (
+               <Button 
+                 className="bg-green-600 hover:bg-green-700" 
+                 onClick={() => navigate(createPageUrl("LancarVendas"))}
+               >
+                 <DollarSign className="w-4 h-4 mr-2" />
+                 Lançar Vendas
+               </Button>
              )}
 
              <Button 
