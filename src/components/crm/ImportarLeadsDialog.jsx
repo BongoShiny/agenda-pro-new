@@ -319,7 +319,10 @@ Se encontrar, retorne o ID da unidade. Se não encontrar, retorne null.`,
             telefone: linha.telefone || "(sem telefone)",
             erro: mensagem
           });
-          await registrarErro('erro_criacao', mensagem, linha.nome, linha.telefone, numeroLinha, linha);
+          
+          // Determinar tipo de erro específico para duplicata
+          const tipoErro = mensagem.includes('Lead duplicado') ? 'lead_duplicado' : 'erro_criacao';
+          await registrarErro(tipoErro, mensagem, linha.nome, linha.telefone, numeroLinha, linha);
         }
 
         setProgresso({ total, processados: i + 1, sucesso, erros });
