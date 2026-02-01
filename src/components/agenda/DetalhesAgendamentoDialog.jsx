@@ -267,7 +267,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               </div>
             )}
 
-            {(agendamento.valor_combinado || agendamento.sinal || agendamento.recebimento_2 || agendamento.final_pagamento || agendamento.falta_quanto) && (
+            {(agendamento.valor_combinado || agendamento.sinal || agendamento.recebimento_2 || agendamento.final_pagamento || agendamento.falta_quanto || agendamento.data_pagamento) && (
               <div className="bg-green-50 border border-green-200 rounded-lg p-4 mt-4">
                 <div className="flex items-center gap-2 mb-3">
                   <DollarSign className="w-5 h-5 text-green-600" />
@@ -297,6 +297,11 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
                   {agendamento.falta_quanto !== undefined && (
                     <div className="text-sm font-semibold">
                       <span className="text-green-600">Falta pagar:</span> R$ {agendamento.falta_quanto?.toFixed(2) || '0,00'}
+                    </div>
+                  )}
+                  {agendamento.data_pagamento && (
+                    <div className="text-sm">
+                      <span className="text-green-600">Data do pagamento:</span> {format(criarDataPura(agendamento.data_pagamento), "dd/MM/yyyy", { locale: ptBR })}
                     </div>
                   )}
                 </div>
