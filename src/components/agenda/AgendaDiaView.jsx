@@ -671,6 +671,7 @@ export default function AgendaDiaView({
                                 onStatusPacienteChange={onStatusPacienteChange}
                                 prontuarios={prontuarios}
                                 registrosWhatsApp={registrosWhatsApp}
+                                usuarioAtual={usuarioAtual}
                               />
                             </div>
                           );
