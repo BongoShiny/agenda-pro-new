@@ -6,28 +6,37 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, DollarSign, Save, X } from "lucide-react";
+import { ArrowLeft, DollarSign, Save, X, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 export default function LancarVendasPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [user, setUser] = useState(null);
+  const [uploadingComprovante, setUploadingComprovante] = useState(false);
   const [formData, setFormData] = useState({
     cliente_nome: "",
     cliente_telefone: "",
-    vendedor_id: "",
-    vendedor_nome: "",
-    unidade_id: "",
-    unidade_nome: "",
-    plano_fechado: "",
+    terapia: "",
+    data_sessao: format(new Date(), "yyyy-MM-dd"),
+    horario_inicio: "",
+    horario_fim: "",
+    restante_pagamento: "nao",
+    pago_por: "",
+    valor_pago: "",
+    data_pagamento: format(new Date(), "yyyy-MM-dd"),
     valor_combinado: "",
-    sinal: "",
+    falta_quanto: "",
     forma_pagamento: "pix",
-    data_venda: format(new Date(), "yyyy-MM-dd"),
-    observacoes: "",
+    recepcionista_id: "",
+    vendedor_id: "",
+    profissional_id: "",
+    motivo: "",
+    queixa: "",
+    comprovante_url: "",
   });
 
   useEffect(() => {
@@ -50,76 +59,97 @@ export default function LancarVendasPage() {
     initialData: [],
   });
 
-  const criarLeadMutation = useMutation({
-    mutationFn: async (leadData) => {
-      // Criar lead com status já em plano_terapeutico
-      const novoLead = await base44.entities.Lead.create({
-        ...leadData,
-        status: "plano_terapeutico",
-        convertido: true,
-        data_conversao: leadData.data_venda,
-        temperatura: "quente",
-        origem: "vendedor_direto",
-      });
+  const { data: profissionais = [] } = useQuery({
+    queryKey: ['profissionais'],
+    queryFn: () => base44.entities.Profissional.list("nome"),
+    initialData: [],
+  });
 
-      // Criar interação de conversão
-      await base44.entities.InteracaoLead.create({
-        lead_id: novoLead.id,
-        lead_nome: leadData.nome,
-        tipo: "conversao_fechamento",
-        descricao: `Plano Fechado: ${leadData.motivo_fechamento} | Valor: R$ ${leadData.valor_negociado}`,
-        resultado: "positivo",
-        vendedor_nome: leadData.vendedor_nome,
-        data_interacao: new Date().toISOString(),
-      });
+  const { data: recepcionistas = [] } = useQuery({
+    queryKey: ['recepcionistas'],
+    queryFn: () => base44.entities.Recepcionista.list("nome"),
+    initialData: [],
+  });
 
-      return novoLead;
+  const { data: servicos = [] } = useQuery({
+    queryKey: ['servicos'],
+    queryFn: () => base44.entities.Servico.list("nome"),
+    initialData: [],
+  });
+
+  const criarAgendamentoMutation = useMutation({
+    mutationFn: async (dadosAgendamento) => {
+      return await base44.entities.Agendamento.create(dadosAgendamento);
     },
     onSuccess: () => {
-      alert("✅ Venda lançada com sucesso!");
-      queryClient.invalidateQueries({ queryKey: ['leads'] });
-      setFormData({
-        cliente_nome: "",
-        cliente_telefone: "",
-        vendedor_id: "",
-        vendedor_nome: "",
-        unidade_id: "",
-        unidade_nome: "",
-        plano_fechado: "",
-        valor_combinado: "",
-        sinal: "",
-        forma_pagamento: "pix",
-        data_venda: format(new Date(), "yyyy-MM-dd"),
-        observacoes: "",
-      });
+      alert("✅ Venda lançada com sucesso nos relatórios financeiros!");
+      queryClient.invalidateQueries({ queryKey: ['agendamentos-financeiro'] });
+      navigate(createPageUrl("Agenda"));
     },
     onError: (error) => {
       alert(`❌ Erro ao lançar venda: ${error.message}`);
     },
   });
 
+  const handleUploadComprovante = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setUploadingComprovante(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setFormData({ ...formData, comprovante_url: file_url });
+      alert("✅ Comprovante anexado com sucesso!");
+    } catch (error) {
+      alert(`❌ Erro ao anexar comprovante: ${error.message}`);
+    } finally {
+      setUploadingComprovante(false);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.cliente_nome || !formData.cliente_telefone || !formData.vendedor_id || !formData.unidade_id || !formData.plano_fechado || !formData.valor_combinado) {
+    if (!formData.cliente_nome || !formData.cliente_telefone || !formData.data_sessao || !formData.profissional_id || !formData.valor_combinado) {
       alert("⚠️ Preencha todos os campos obrigatórios!");
       return;
     }
 
-    criarLeadMutation.mutate({
-      nome: formData.cliente_nome,
-      telefone: formData.cliente_telefone,
+    const profissional = profissionais.find(p => p.id === formData.profissional_id);
+    const vendedor = vendedores.find(v => v.id === formData.vendedor_id);
+    const recepcionista = recepcionistas.find(r => r.id === formData.recepcionista_id);
+    const servico = servicos.find(s => s.nome === formData.terapia);
+
+    const valorCombinado = parseFloat(formData.valor_combinado) || 0;
+    const valorPago = parseFloat(formData.valor_pago) || 0;
+    const faltaQuanto = valorCombinado - valorPago;
+
+    criarAgendamentoMutation.mutate({
+      cliente_nome: formData.cliente_nome,
+      cliente_telefone: formData.cliente_telefone,
+      profissional_id: formData.profissional_id,
+      profissional_nome: profissional?.nome || "",
+      servico_nome: formData.terapia,
+      servico_id: servico?.id || "",
+      unidade_id: recepcionista?.unidade_id || "",
+      unidade_nome: recepcionista?.unidade_nome || "",
       vendedor_id: formData.vendedor_id,
-      vendedor_nome: formData.vendedor_nome,
-      unidade_id: formData.unidade_id,
-      unidade_nome: formData.unidade_nome,
-      motivo_fechamento: formData.plano_fechado,
-      valor_negociado: parseFloat(formData.valor_combinado),
-      sinal_pago: parseFloat(formData.sinal || 0),
+      vendedor_nome: vendedor?.nome || "",
+      data: formData.data_sessao,
+      hora_inicio: formData.horario_inicio || "09:00",
+      hora_fim: formData.horario_fim || "10:00",
+      status: "concluido",
+      tipo: formData.restante_pagamento === "sim" ? "pacote" : "avulsa",
+      valor_combinado: valorCombinado,
+      sinal: formData.restante_pagamento === "nao" ? valorPago : 0,
+      final_pagamento: formData.restante_pagamento === "sim" ? valorPago : 0,
+      falta_quanto: faltaQuanto,
       forma_pagamento: formData.forma_pagamento,
-      data_venda: formData.data_venda,
-      interesse: formData.plano_fechado,
-      observacoes: formData.observacoes,
+      data_pagamento: formData.data_pagamento,
+      observacoes_vendedores: `Motivo: ${formData.motivo}\nQueixa: ${formData.queixa}\nPago por: ${formData.pago_por}`,
+      comprovante_1: formData.comprovante_url,
+      criador_email: user?.email,
+      status_paciente: "paciente_novo",
     });
   };
 
@@ -155,8 +185,8 @@ export default function LancarVendasPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
-      <div className="max-w-3xl mx-auto">
+    <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-4">
+      <div className="max-w-4xl mx-auto">
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-4">
@@ -169,7 +199,7 @@ export default function LancarVendasPage() {
                   <DollarSign className="w-8 h-8 text-green-600" />
                   Lançar Vendas
                 </h1>
-                <p className="text-gray-600 mt-1">Registre vendas diretas no CRM</p>
+                <p className="text-gray-600 mt-1">Registre vendas nos relatórios financeiros</p>
               </div>
             </div>
           </div>
@@ -181,121 +211,155 @@ export default function LancarVendasPage() {
                 👤 Dados do Cliente
               </h3>
               
-              <div>
-                <Label>Nome do Cliente *</Label>
-                <Input
-                  value={formData.cliente_nome}
-                  onChange={(e) => setFormData({ ...formData, cliente_nome: e.target.value })}
-                  placeholder="Nome completo"
-                />
-              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Nome *</Label>
+                  <Input
+                    value={formData.cliente_nome}
+                    onChange={(e) => setFormData({ ...formData, cliente_nome: e.target.value })}
+                    placeholder="Nome completo"
+                  />
+                </div>
 
-              <div>
-                <Label>Telefone *</Label>
-                <Input
-                  value={formData.cliente_telefone}
-                  onChange={(e) => setFormData({ ...formData, cliente_telefone: e.target.value })}
-                  placeholder="(00) 00000-0000"
-                />
+                <div>
+                  <Label>Telefone *</Label>
+                  <Input
+                    value={formData.cliente_telefone}
+                    onChange={(e) => setFormData({ ...formData, cliente_telefone: e.target.value })}
+                    placeholder="(00) 00000-0000"
+                  />
+                </div>
               </div>
             </div>
 
-            {/* Dados da Venda */}
+            {/* Dados da Sessão */}
             <div className="border-2 border-gray-200 rounded-lg p-4 space-y-4">
               <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                💼 Dados da Venda
+                💼 Dados da Sessão
               </h3>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Vendedor *</Label>
-                  <Select 
-                    value={formData.vendedor_id} 
-                    onValueChange={(value) => {
-                      const vendedor = vendedores.find(v => v.id === value);
-                      setFormData({ 
-                        ...formData, 
-                        vendedor_id: value,
-                        vendedor_nome: vendedor?.nome || "" 
-                      });
-                    }}
-                  >
+                  <Label>Terapia *</Label>
+                  <Select value={formData.terapia} onValueChange={(value) => setFormData({ ...formData, terapia: value })}>
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {vendedores.map(v => (
+                      {servicos.map(s => (
+                        <SelectItem key={s.id} value={s.nome}>{s.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Dia da Sessão *</Label>
+                  <Input
+                    type="date"
+                    value={formData.data_sessao}
+                    onChange={(e) => setFormData({ ...formData, data_sessao: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Horário Início</Label>
+                  <Input
+                    type="time"
+                    value={formData.horario_inicio}
+                    onChange={(e) => setFormData({ ...formData, horario_inicio: e.target.value })}
+                  />
+                </div>
+
+                <div>
+                  <Label>Horário Fim</Label>
+                  <Input
+                    type="time"
+                    value={formData.horario_fim}
+                    onChange={(e) => setFormData({ ...formData, horario_fim: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label>Terapeuta que Atendeu *</Label>
+                  <Select value={formData.profissional_id} onValueChange={(value) => setFormData({ ...formData, profissional_id: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {profissionais.filter(p => p.ativo).map(p => (
+                        <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Recepcionista</Label>
+                  <Select value={formData.recepcionista_id} onValueChange={(value) => setFormData({ ...formData, recepcionista_id: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {recepcionistas.filter(r => r.ativo).map(r => (
+                        <SelectItem key={r.id} value={r.id}>{r.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div>
+                  <Label>Vendedor</Label>
+                  <Select value={formData.vendedor_id} onValueChange={(value) => setFormData({ ...formData, vendedor_id: value })}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {vendedores.filter(v => v.ativo).map(v => (
                         <SelectItem key={v.id} value={v.id}>{v.nome}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
-
-                <div>
-                  <Label>Unidade *</Label>
-                  <Select 
-                    value={formData.unidade_id} 
-                    onValueChange={(value) => {
-                      const unidade = unidades.find(u => u.id === value);
-                      setFormData({ 
-                        ...formData, 
-                        unidade_id: value,
-                        unidade_nome: unidade?.nome || "" 
-                      });
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Selecione..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {unidades.map(u => (
-                        <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
               </div>
+            </div>
+
+            {/* Pagamento */}
+            <div className="border-2 border-gray-200 rounded-lg p-4 space-y-4">
+              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                💰 Dados do Pagamento
+              </h3>
 
               <div>
-                <Label>Plano Fechado *</Label>
-                <Select value={formData.plano_fechado} onValueChange={(value) => setFormData({ ...formData, plano_fechado: value })}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o plano..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="plano_24_sessoes">Plano 24 Sessões (Caribe)</SelectItem>
-                    <SelectItem value="plano_12_sessoes">Plano 12 Sessões</SelectItem>
-                    <SelectItem value="plano_6_sessoes">Plano 6 Sessões</SelectItem>
-                    <SelectItem value="sessao_avulsa">Sessão Avulsa</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label>É restante de pagamento?</Label>
+                <RadioGroup value={formData.restante_pagamento} onValueChange={(value) => setFormData({ ...formData, restante_pagamento: value })}>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="sim" id="sim" />
+                      <Label htmlFor="sim">Sim</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="nao" id="nao" />
+                      <Label htmlFor="nao">Não</Label>
+                    </div>
+                  </div>
+                </RadioGroup>
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Valor Combinado (R$) *</Label>
+                  <Label>Pago Por</Label>
                   <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.valor_combinado}
-                    onChange={(e) => setFormData({ ...formData, valor_combinado: e.target.value })}
-                    placeholder="0.00"
+                    value={formData.pago_por}
+                    onChange={(e) => setFormData({ ...formData, pago_por: e.target.value })}
+                    placeholder="Nome de quem pagou"
                   />
                 </div>
 
-                <div>
-                  <Label>Sinal Pago (R$)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.sinal}
-                    onChange={(e) => setFormData({ ...formData, sinal: e.target.value })}
-                    placeholder="0.00"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label>Forma de Pagamento *</Label>
                   <Select value={formData.forma_pagamento} onValueChange={(value) => setFormData({ ...formData, forma_pagamento: value })}>
@@ -304,34 +368,135 @@ export default function LancarVendasPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="pix">PIX</SelectItem>
+                      <SelectItem value="link_pagamento">Link de Pagamento</SelectItem>
+                      <SelectItem value="pago_na_clinica">Pago na Clínica</SelectItem>
                       <SelectItem value="dinheiro">Dinheiro</SelectItem>
                       <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
                       <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
-                      <SelectItem value="transferencia">Transferência</SelectItem>
-                      <SelectItem value="boleto">Boleto</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label>Valor Combinado (R$) *</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.valor_combinado}
+                    onChange={(e) => {
+                      const valorCombinado = parseFloat(e.target.value) || 0;
+                      const valorPago = parseFloat(formData.valor_pago) || 0;
+                      setFormData({ 
+                        ...formData, 
+                        valor_combinado: e.target.value,
+                        falta_quanto: (valorCombinado - valorPago).toFixed(2)
+                      });
+                    }}
+                    placeholder="0.00"
+                  />
+                </div>
 
                 <div>
-                  <Label>Data da Venda *</Label>
+                  <Label>Valor Pago (R$)</Label>
                   <Input
-                    type="date"
-                    value={formData.data_venda}
-                    onChange={(e) => setFormData({ ...formData, data_venda: e.target.value })}
+                    type="number"
+                    step="0.01"
+                    value={formData.valor_pago}
+                    onChange={(e) => {
+                      const valorPago = parseFloat(e.target.value) || 0;
+                      const valorCombinado = parseFloat(formData.valor_combinado) || 0;
+                      setFormData({ 
+                        ...formData, 
+                        valor_pago: e.target.value,
+                        falta_quanto: (valorCombinado - valorPago).toFixed(2)
+                      });
+                    }}
+                    placeholder="0.00"
+                  />
+                </div>
+
+                <div>
+                  <Label>Falta Quanto (R$)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.falta_quanto}
+                    disabled
+                    className="bg-gray-100"
+                    placeholder="0.00"
                   />
                 </div>
               </div>
 
               <div>
-                <Label>Observações</Label>
-                <Textarea
-                  value={formData.observacoes}
-                  onChange={(e) => setFormData({ ...formData, observacoes: e.target.value })}
-                  placeholder="Observações sobre a venda..."
-                  rows={3}
+                <Label>Data do Pagamento *</Label>
+                <Input
+                  type="date"
+                  value={formData.data_pagamento}
+                  onChange={(e) => setFormData({ ...formData, data_pagamento: e.target.value })}
                 />
               </div>
+            </div>
+
+            {/* Motivo e Queixa */}
+            <div className="border-2 border-gray-200 rounded-lg p-4 space-y-4">
+              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                📝 Informações Adicionais
+              </h3>
+
+              <div>
+                <Label>Motivo</Label>
+                <Textarea
+                  value={formData.motivo}
+                  onChange={(e) => setFormData({ ...formData, motivo: e.target.value })}
+                  placeholder="Motivo da sessão..."
+                  rows={2}
+                />
+              </div>
+
+              <div>
+                <Label>Queixa</Label>
+                <Textarea
+                  value={formData.queixa}
+                  onChange={(e) => setFormData({ ...formData, queixa: e.target.value })}
+                  placeholder="Queixa do cliente..."
+                  rows={2}
+                />
+              </div>
+            </div>
+
+            {/* Anexar Comprovante */}
+            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+              <Label className="mb-2 block">Anexar Comprovante</Label>
+              <div className="flex items-center gap-4">
+                <label className="flex-1 cursor-pointer">
+                  <div className="flex items-center justify-center gap-3 border-2 border-gray-300 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <Upload className="w-5 h-5 text-gray-500" />
+                    <span className="text-sm text-gray-600">
+                      {formData.comprovante_url ? "✅ Comprovante anexado" : "Clique para anexar comprovante"}
+                    </span>
+                  </div>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleUploadComprovante}
+                    className="hidden"
+                    disabled={uploadingComprovante}
+                  />
+                </label>
+                {formData.comprovante_url && (
+                  <a href={formData.comprovante_url} target="_blank" rel="noopener noreferrer">
+                    <Button type="button" variant="outline" size="sm">
+                      Ver Comprovante
+                    </Button>
+                  </a>
+                )}
+              </div>
+              {uploadingComprovante && (
+                <p className="text-sm text-blue-600 mt-2">Enviando comprovante...</p>
+              )}
             </div>
 
             {/* Botões */}
@@ -347,10 +512,10 @@ export default function LancarVendasPage() {
               <Button 
                 type="submit" 
                 className="bg-green-600 hover:bg-green-700"
-                disabled={criarLeadMutation.isPending}
+                disabled={criarAgendamentoMutation.isPending}
               >
                 <Save className="w-4 h-4 mr-2" />
-                {criarLeadMutation.isPending ? "Salvando..." : "Lançar Venda"}
+                {criarAgendamentoMutation.isPending ? "Salvando..." : "Lançar Venda"}
               </Button>
             </div>
           </form>
