@@ -41,11 +41,6 @@ export default function HomePage() {
   const [widgetsVisiveis, setWidgetsVisiveis] = useState(() => {
     const saved = localStorage.getItem('dashboard_widgets');
     return saved ? JSON.parse(saved) : {
-      faturamento: true,
-      proximosAgendamentos: true,
-      tarefasPendentes: true,
-      performanceVendedores: true,
-      contasReceber: true,
       metricasVendas: true
     };
   });
@@ -99,11 +94,6 @@ export default function HomePage() {
   const isGerencia = usuarioAtual?.cargo === "gerencia_unidades";
 
   const widgets = [
-    { id: 'faturamento', label: 'Faturamento', component: WidgetFaturamento },
-    { id: 'proximosAgendamentos', label: 'Próximos Agendamentos', component: WidgetProximosAgendamentos },
-    { id: 'tarefasPendentes', label: 'Tarefas Pendentes', component: WidgetTarefasPendentes },
-    { id: 'performanceVendedores', label: 'Performance de Vendedores', component: WidgetPerformanceVendedores },
-    { id: 'contasReceber', label: 'Contas a Receber', component: WidgetContasReceber },
     { id: 'metricasVendas', label: 'Métricas de Vendas', component: WidgetMetricasVendas }
   ];
 
@@ -169,30 +159,6 @@ export default function HomePage() {
                 ))}
               </div>
 
-              {widgetsVisiveis.faturamento && (
-                <div className="flex items-center gap-4">
-                  <span className="text-sm font-medium text-gray-700">Período Faturamento:</span>
-                  <div className="flex items-center gap-2">
-                    <Label className="text-sm text-gray-600">De:</Label>
-                    <Input
-                      type="date"
-                      value={dataInicio}
-                      onChange={(e) => setDataInicio(e.target.value)}
-                      className="w-40"
-                    />
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Label className="text-sm text-gray-600">Até:</Label>
-                    <Input
-                      type="date"
-                      value={dataFim}
-                      onChange={(e) => setDataFim(e.target.value)}
-                      className="w-40"
-                    />
-                  </div>
-                </div>
-              )}
-              
               {widgetsVisiveis.metricasVendas && (
                 <div className="flex items-center gap-4">
                   <span className="text-sm font-medium text-gray-700">Período Métricas de Vendas:</span>
@@ -224,29 +190,6 @@ export default function HomePage() {
         {widgetsVisiveis.metricasVendas && (
           <WidgetMetricasVendas agendamentos={agendamentos} dataInicio={dataInicioVendas} dataFim={dataFimVendas} />
         )}
-
-        {/* Grid de Widgets */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {widgetsVisiveis.faturamento && (
-            <WidgetFaturamento agendamentos={agendamentos} dataInicio={dataInicio} dataFim={dataFim} />
-          )}
-          
-          {widgetsVisiveis.proximosAgendamentos && (
-            <WidgetProximosAgendamentos agendamentos={agendamentos} />
-          )}
-          
-          {widgetsVisiveis.tarefasPendentes && (
-            <WidgetTarefasPendentes agendamentos={agendamentos} />
-          )}
-          
-          {widgetsVisiveis.performanceVendedores && (
-            <WidgetPerformanceVendedores agendamentos={agendamentos} />
-          )}
-          
-          {widgetsVisiveis.contasReceber && (
-            <WidgetContasReceber agendamentos={agendamentos} />
-          )}
-        </div>
 
         {/* Atalhos Rápidos */}
         <Card>
