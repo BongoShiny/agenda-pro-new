@@ -28,6 +28,10 @@ export default function CRMPage() {
   const [filtroTerapeuta, setFiltroTerapeuta] = useState("todos");
   const [filtroDataInicio, setFiltroDataInicio] = useState("");
   const [filtroDataFim, setFiltroDataFim] = useState("");
+  const [filtroDataConversaoInicio, setFiltroDataConversaoInicio] = useState("");
+  const [filtroDataConversaoFim, setFiltroDataConversaoFim] = useState("");
+  const [filtroDataPagamentoInicio, setFiltroDataPagamentoInicio] = useState("");
+  const [filtroDataPagamentoFim, setFiltroDataPagamentoFim] = useState("");
   const [modoRemover, setModoRemover] = useState(false);
   const [visualizacao, setVisualizacao] = useState("kanban");
   const [sincronizandoAgendamentos, setSincronizandoAgendamentos] = useState(false);
@@ -376,7 +380,37 @@ export default function CRMPage() {
       matchTerapeuta = temTerapeutaSelecionado;
     }
 
-    return matchBusca && matchStatus && matchUnidade && matchVendedor && matchData && matchRecepcao && matchTerapeuta;
+    // Filtro de Data de Conversão
+    let matchDataConversao = true;
+    if (filtroDataConversaoInicio || filtroDataConversaoFim) {
+      const dataConversao = lead.data_conversao;
+      if (dataConversao) {
+        if (filtroDataConversaoInicio && dataConversao < filtroDataConversaoInicio) matchDataConversao = false;
+        if (filtroDataConversaoFim && dataConversao > filtroDataConversaoFim) matchDataConversao = false;
+      } else {
+        matchDataConversao = false;
+      }
+    }
+
+    // Filtro de Data de Pagamento (buscar nos agendamentos)
+    let matchDataPagamento = true;
+    if (filtroDataPagamentoInicio || filtroDataPagamentoFim) {
+      const agendamentosDoLead = todosAgendamentos.filter(ag => 
+        ag.cliente_telefone === lead.telefone && ag.data_pagamento
+      );
+      
+      const temPagamentoNoPeriodo = agendamentosDoLead.some(ag => {
+        const dataPagamento = ag.data_pagamento;
+        let match = true;
+        if (filtroDataPagamentoInicio && dataPagamento < filtroDataPagamentoInicio) match = false;
+        if (filtroDataPagamentoFim && dataPagamento > filtroDataPagamentoFim) match = false;
+        return match;
+      });
+      
+      matchDataPagamento = temPagamentoNoPeriodo;
+    }
+
+    return matchBusca && matchStatus && matchUnidade && matchVendedor && matchData && matchRecepcao && matchTerapeuta && matchDataConversao && matchDataPagamento;
   });
 
   // Estatísticas (filtradas por usuário)
@@ -620,7 +654,7 @@ export default function CRMPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
             <div>
-              <label className="text-xs text-gray-600 mb-1 block">Dia que o lead entrou (Início)</label>
+              <label className="text-xs text-gray-600 mb-1 block">Data entrada (Início)</label>
               <Input
                 type="date"
                 value={filtroDataInicio}
@@ -629,11 +663,50 @@ export default function CRMPage() {
               />
             </div>
             <div>
-              <label className="text-xs text-gray-600 mb-1 block">Dia que o lead entrou (Fim)</label>
+              <label className="text-xs text-gray-600 mb-1 block">Data entrada (Fim)</label>
               <Input
                 type="date"
                 value={filtroDataFim}
                 onChange={(e) => setFiltroDataFim(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-600 mb-1 block">Data conversão (Início)</label>
+              <Input
+                type="date"
+                value={filtroDataConversaoInicio}
+                onChange={(e) => setFiltroDataConversaoInicio(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-600 mb-1 block">Data conversão (Fim)</label>
+              <Input
+                type="date"
+                value={filtroDataConversaoFim}
+                onChange={(e) => setFiltroDataConversaoFim(e.target.value)}
+                className="w-full"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
+            <div>
+              <label className="text-xs text-gray-600 mb-1 block">Data pagamento (Início)</label>
+              <Input
+                type="date"
+                value={filtroDataPagamentoInicio}
+                onChange={(e) => setFiltroDataPagamentoInicio(e.target.value)}
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label className="text-xs text-gray-600 mb-1 block">Data pagamento (Fim)</label>
+              <Input
+                type="date"
+                value={filtroDataPagamentoFim}
+                onChange={(e) => setFiltroDataPagamentoFim(e.target.value)}
                 className="w-full"
               />
             </div>
@@ -675,6 +748,10 @@ export default function CRMPage() {
                   setFiltroTerapeuta("todos");
                   setFiltroDataInicio("");
                   setFiltroDataFim("");
+                  setFiltroDataConversaoInicio("");
+                  setFiltroDataConversaoFim("");
+                  setFiltroDataPagamentoInicio("");
+                  setFiltroDataPagamentoFim("");
                 }}
                 className="w-full"
               >
