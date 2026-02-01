@@ -401,6 +401,27 @@ export default function CRMPage() {
                   {limparDuplicadosMutation.isPending ? "Limpando..." : "Limpar Duplicados"}
                 </Button>
               )}
+              {isSuperior && (
+                <Button 
+                  onClick={async () => {
+                    if (window.confirm(`⚠️ ATENÇÃO! Isso irá deletar TODOS os ${leads.length} leads do sistema.\n\nEsta ação é IRREVERSÍVEL!\n\nDeseja continuar?`)) {
+                      try {
+                        for (const lead of leads) {
+                          await base44.entities.Lead.delete(lead.id);
+                        }
+                        alert(`✅ Todos os leads foram removidos com sucesso!`);
+                        queryClient.invalidateQueries({ queryKey: ['leads'] });
+                      } catch (error) {
+                        alert(`❌ Erro ao remover leads: ${error.message}`);
+                      }
+                    }
+                  }}
+                  className="bg-red-600 hover:bg-red-700"
+                >
+                  <XCircle className="w-5 h-5 mr-2" />
+                  Limpar Todos
+                </Button>
+              )}
               {(user?.cargo === "superior" || user?.cargo === "administrador" || user?.role === "admin") && (
                 <Button 
                   onClick={handleSincronizarAgendamentos}
