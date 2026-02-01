@@ -25,6 +25,7 @@ Deno.serve(async (req) => {
 
     // Filtrar agendamentos válidos
     const agendamentosValidos = agendamentosCompletos.filter(ag => {
+      console.log(`🔍 Verificando: ${ag.cliente_nome}, tipo: ${ag.tipo}, tel: ${ag.cliente_telefone}`);
       
       // Excluir bloqueios e FECHADOS
       if (ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO" || !ag.cliente_nome) {
