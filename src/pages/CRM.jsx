@@ -4,13 +4,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Search, Filter, UserPlus, TrendingUp, Clock, CheckCircle, XCircle, ArrowLeft, LayoutGrid, Columns3, RotateCw } from "lucide-react";
+import { Plus, Search, Filter, UserPlus, TrendingUp, Clock, CheckCircle, XCircle, ArrowLeft, LayoutGrid, Columns3, RotateCw, Upload } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import LeadCard from "../components/crm/LeadCard";
 import NovoLeadDialog from "../components/crm/NovoLeadDialog";
 import DetalhesLeadDialog from "../components/crm/DetalhesLeadDialog";
 import KanbanView from "../components/crm/KanbanView";
+import ImportarLeadsDialog from "../components/crm/ImportarLeadsDialog";
 
 export default function CRMPage() {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ export default function CRMPage() {
   const [novoLeadOpen, setNovoLeadOpen] = useState(false);
   const [leadSelecionado, setLeadSelecionado] = useState(null);
   const [detalhesOpen, setDetalhesOpen] = useState(false);
+  const [importarDialogOpen, setImportarDialogOpen] = useState(false);
   const [busca, setBusca] = useState("");
   const [filtroStatus, setFiltroStatus] = useState("todos");
   const [filtroUnidade, setFiltroUnidade] = useState("todas");
@@ -349,10 +351,42 @@ export default function CRMPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Button onClick={() => setNovoLeadOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-                <Plus className="w-5 h-5 mr-2" />
-                Novo Lead
-              </Button>
+              {isSuperior && (
+                <Button
+                  onClick={() => setNovoLeadOpen(true)}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  <Plus className="w-5 h-5 mr-2" />
+                  Novo Lead
+                </Button>
+              )}
+              {isSuperior && (
+                <ImportarLeadsDialog 
+                  open={false} 
+                  onOpenChange={(open) => {
+                    if (open) {
+                      const btn = document.getElementById("btn-importar-leads");
+                      if (btn) btn.click();
+                    }
+                  }}
+                />
+              )}
+              {isSuperior && (
+                <Button
+                  id="btn-importar-leads"
+                  onClick={() => {
+                    const dialog = document.querySelector('[role="dialog"]');
+                    if (!dialog) {
+                      setImportarDialogOpen(true);
+                    }
+                  }}
+                  variant="outline"
+                  className="border-green-500 text-green-700 hover:bg-green-50"
+                >
+                  <Upload className="w-5 h-5 mr-2" />
+                  Importar Planilha
+                </Button>
+              )}
               {isSuperior && leadsDuplicados.size > 0 && (
                 <Button 
                   onClick={() => {
@@ -584,8 +618,13 @@ export default function CRMPage() {
             queryClient.invalidateQueries({ queryKey: ['leads'] });
             setDetalhesOpen(false);
           }}
-        />
-      )}
-    </div>
-  );
+          />
+          )}
+
+          <ImportarLeadsDialog
+          open={importarDialogOpen}
+          onOpenChange={setImportarDialogOpen}
+          />
+          </div>
+          );
 }
