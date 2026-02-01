@@ -43,19 +43,19 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
       const { file_url } = await base44.integrations.Core.UploadFile({ file: arquivo });
 
       // 2. Extrair dados da planilha
-      const rootSchema = {
+      const jsonSchema = {
         type: "object",
         properties: {
-          leads: {
+          dados: {
             type: "array",
             items: {
               type: "object",
               properties: {
-                nome: { type: "string" },
-                telefone: { type: "string" },
-                data_entrada: { type: "string" },
-                vendedor: { type: "string" },
-                unidade: { type: "string" },
+                nome: { type: "string", description: "Nome do lead (coluna A)" },
+                telefone: { type: "string", description: "Telefone (coluna B)" },
+                data_entrada: { type: "string", description: "Data entrada (coluna C)" },
+                vendedor: { type: "string", description: "Vendedor (coluna D)" },
+                unidade: { type: "string", description: "Unidade (coluna E)" },
               },
             },
           },
@@ -64,7 +64,7 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
 
       const extrairResult = await base44.integrations.Core.ExtractDataFromUploadedFile({
         file_url: file_url,
-        json_schema: rootSchema,
+        json_schema: jsonSchema,
       });
 
       if (extrairResult.status === "error") {
@@ -73,7 +73,7 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
         return;
       }
 
-      const dados = extrairResult.output?.leads || extrairResult.output;
+      const dados = extrairResult.output?.dados || [];
 
       if (!Array.isArray(dados) || dados.length === 0) {
         alert("⚠️ Nenhum dado encontrado no arquivo");
