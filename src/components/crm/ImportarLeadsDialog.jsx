@@ -83,31 +83,55 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
         const linha = dados[i];
 
         try {
-          // Encontrar vendedor pelo nome (ou usar padrão)
-          let vendedor_id = vendedorPadrao;
-          let vendedor_nome = vendedores.find(v => v.id === vendedorPadrao)?.nome || "";
+          // VENDEDOR: Prioridade 1) planilha, 2) padrão
+          let vendedor_id = "";
+          let vendedor_nome = "";
           
-          if (linha.vendedor) {
+          const vendedorNaPlanilha = linha.vendedor?.trim();
+          if (vendedorNaPlanilha) {
+            // Tem vendedor na planilha - buscar por nome EXATO
             const vendedorEncontrado = vendedores.find(v => 
-              v.nome.toLowerCase().includes(linha.vendedor.toLowerCase())
+              v.nome.toLowerCase().trim() === vendedorNaPlanilha.toLowerCase()
             );
             if (vendedorEncontrado) {
               vendedor_id = vendedorEncontrado.id;
               vendedor_nome = vendedorEncontrado.nome;
+            } else {
+              // Não achou - deixar vazio (não usar padrão)
+              console.warn(`Vendedor "${vendedorNaPlanilha}" não encontrado na linha ${i + 2}`);
+            }
+          } else if (vendedorPadrao) {
+            // Não tem vendedor na planilha - usar padrão
+            const vendedorPadraoObj = vendedores.find(v => v.id === vendedorPadrao);
+            if (vendedorPadraoObj) {
+              vendedor_id = vendedorPadraoObj.id;
+              vendedor_nome = vendedorPadraoObj.nome;
             }
           }
 
-          // Encontrar unidade pelo nome (ou usar padrão)
-          let unidade_id = unidadePadrao;
-          let unidade_nome = unidades.find(u => u.id === unidadePadrao)?.nome || "";
+          // UNIDADE: Prioridade 1) planilha, 2) padrão
+          let unidade_id = "";
+          let unidade_nome = "SEM UNIDADE";
           
-          if (linha.unidade) {
+          const unidadeNaPlanilha = linha.unidade?.trim();
+          if (unidadeNaPlanilha) {
+            // Tem unidade na planilha - buscar por nome EXATO
             const unidadeEncontrada = unidades.find(u => 
-              u.nome.toLowerCase().includes(linha.unidade.toLowerCase())
+              u.nome.toLowerCase().trim() === unidadeNaPlanilha.toLowerCase()
             );
             if (unidadeEncontrada) {
               unidade_id = unidadeEncontrada.id;
               unidade_nome = unidadeEncontrada.nome;
+            } else {
+              // Não achou - deixar SEM UNIDADE (não usar padrão)
+              console.warn(`Unidade "${unidadeNaPlanilha}" não encontrada na linha ${i + 2}`);
+            }
+          } else if (unidadePadrao) {
+            // Não tem unidade na planilha - usar padrão
+            const unidadePadraoObj = unidades.find(u => u.id === unidadePadrao);
+            if (unidadePadraoObj) {
+              unidade_id = unidadePadraoObj.id;
+              unidade_nome = unidadePadraoObj.nome;
             }
           }
 
