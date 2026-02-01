@@ -109,11 +109,36 @@ export default function ImportarLeadsDialog({ open, onOpenChange }) {
 
       setProgresso({ total, processados: 0, sucesso: 0, erros: 0 });
 
+      // Buscar todos os leads existentes antes do loop
+      const leadsExistentes = await base44.entities.Lead.list();
+
       for (let i = 0; i < dados.length; i++) {
         const linha = dados[i];
         const numeroLinha = i + 2;
 
         try {
+          // VERIFICAR DUPLICATA: Lead com mesmo nome OU mesmo telefone
+          const nomeTrim = (linha.nome || "").trim().toLowerCase();
+          const telefoneTrim = (linha.telefone || "").trim().replace(/\D/g, ''); // Remove caracteres não numéricos
+          
+          const leadDuplicado = leadsExistentes.find(lead => {
+            const leadNome = (lead.nome || "").trim().toLowerCase();
+            const leadTelefone = (lead.telefone || "").trim().replace(/\D/g, '');
+            
+            // Considera duplicata se nome OU telefone são iguais (e não vazios)
+            const nomeIgual = nomeTrim && leadNome === nomeTrim;
+            const telefoneIgual = telefoneTrim && leadTelefone === telefoneTrim;
+            
+            return nomeIgual || telefoneIgual;
+          });
+
+          if (leadDuplicado) {
+            throw new Error(`Lead duplicado: já existe um lead cadastrado com ${
+              (linha.nome || "").trim().toLowerCase() === (leadDuplicado.nome || "").trim().toLowerCase() 
+                ? `o nome "${leadDuplicado.nome}"` 
+                : `o telefone "${leadDuplicado.telefone}"`
+            }`);
+          }
           // VENDEDOR: Usar IA para fazer matching inteligente
           let vendedor_id = "";
           let vendedor_nome = "";
