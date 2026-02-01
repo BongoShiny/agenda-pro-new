@@ -14,30 +14,34 @@ Deno.serve(async (req) => {
 
     // Buscar TODOS os agendamentos (sem filtro de data) desde 01/01/2026
     const dataCorte = '2026-01-01';
-    let agendamentos = await base44.asServiceRole.entities.Agendamento.filter({});
+    let agendamentos = await base44.asServiceRole.entities.Agendamento.list();
     
     console.log(`📊 Total de agendamentos retornados: ${agendamentos?.length || 0}`);
     
     // Garantir que agendamentos é um array
     if (!Array.isArray(agendamentos)) {
+      console.log('⚠️ agendamentos não é array, tentando converter');
       agendamentos = [];
     }
     
+    // Log de alguns agendamentos para debug
+    if (agendamentos.length > 0) {
+      console.log('📋 Exemplo de agendamento:', JSON.stringify(agendamentos[0], null, 2));
+    }
+    
     const agendamentosValidos = agendamentos.filter(ag => {
-      const agData = ag.data || ag;
-      
       // Filtrar por data >= 2026-01-01
-      if (agData.data && agData.data < dataCorte) {
+      if (ag.data && ag.data < dataCorte) {
         return false;
       }
       
       // Excluir bloqueios e FECHADOS
-      if (agData.status === "bloqueio" || agData.tipo === "bloqueio" || agData.cliente_nome === "FECHADO" || !agData.cliente_nome) {
+      if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO" || !ag.cliente_nome) {
         return false;
       }
       
       // Excluir agendamentos sem telefone válido (mínimo 10 dígitos)
-      if (!agData.cliente_telefone || agData.cliente_telefone.replace(/\D/g, '').length < 10) {
+      if (!ag.cliente_telefone || ag.cliente_telefone.replace(/\D/g, '').length < 10) {
         return false;
       }
       
