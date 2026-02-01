@@ -286,11 +286,17 @@ export default function CRMPage() {
     }
     
     // RECEPÇÃO: vê avulso, plano_terapeutico e renovacao (apenas da sua unidade)
-    if (isRecepcao && recepcionistaDoUsuario) {
+    if (isRecepcao) {
+      // Se não encontrou recepcionista vinculada, não mostrar nada
+      if (!recepcionistaDoUsuario) {
+        return false;
+      }
+      
       // Deve ser da unidade da recepcionista
       if (lead.unidade_id !== recepcionistaDoUsuario.unidade_id) {
         return false;
       }
+      
       // Pode ver: avulso, plano_terapeutico, renovacao
       if (!["avulso", "plano_terapeutico", "renovacao"].includes(lead.status)) {
         return false;
