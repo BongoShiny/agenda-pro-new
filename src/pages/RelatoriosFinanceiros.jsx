@@ -1486,7 +1486,7 @@ export default function RelatoriosFinanceirosPage() {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle>📊 Análise Mês a Mês</CardTitle>
+                  <CardTitle>📊 Análise Mês a Mês (por Data de Pagamento)</CardTitle>
                   <Input
                     type="month"
                     value={mesAnoAnalise}
@@ -1500,8 +1500,8 @@ export default function RelatoriosFinanceirosPage() {
                   const todosAgendamentosMes = agendamentos
                     .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
                     .filter(ag => {
-                      if (!ag.data) return false;
-                      return ag.data.substring(0, 7) === mesAnoAnalise;
+                      if (!ag.data_pagamento) return false;
+                      return ag.data_pagamento.substring(0, 7) === mesAnoAnalise;
                     })
                     .filter(ag => ag.vendedor_id && ag.vendedor_nome);
 
