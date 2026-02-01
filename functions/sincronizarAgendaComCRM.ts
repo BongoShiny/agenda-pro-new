@@ -24,18 +24,20 @@ Deno.serve(async (req) => {
     }
     
     const agendamentosValidos = agendamentos.filter(ag => {
+      const agData = ag.data || ag;
+      
       // Filtrar por data >= 2026-01-01
-      if (ag.data && ag.data < dataCorte) {
+      if (agData.data && agData.data < dataCorte) {
         return false;
       }
       
       // Excluir bloqueios e FECHADOS
-      if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO" || !ag.cliente_nome) {
+      if (agData.status === "bloqueio" || agData.tipo === "bloqueio" || agData.cliente_nome === "FECHADO" || !agData.cliente_nome) {
         return false;
       }
       
       // Excluir agendamentos sem telefone válido (mínimo 10 dígitos)
-      if (!ag.cliente_telefone || ag.cliente_telefone.replace(/\D/g, '').length < 10) {
+      if (!agData.cliente_telefone || agData.cliente_telefone.replace(/\D/g, '').length < 10) {
         return false;
       }
       
