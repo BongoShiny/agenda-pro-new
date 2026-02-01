@@ -404,12 +404,13 @@ export default function CRMPage() {
               {isSuperior && (
                 <Button 
                   onClick={async () => {
-                    if (window.confirm(`⚠️ ATENÇÃO! Isso irá deletar TODOS os ${leads.length} leads do sistema.\n\nEsta ação é IRREVERSÍVEL!\n\nDeseja continuar?`)) {
+                    const leadsParaDeletar = leads.filter(l => l.status === "lead");
+                    if (window.confirm(`⚠️ ATENÇÃO! Isso irá deletar ${leadsParaDeletar.length} leads com status "Lead".\n\nEsta ação é IRREVERSÍVEL!\n\nDeseja continuar?`)) {
                       try {
-                        for (const lead of leads) {
+                        for (const lead of leadsParaDeletar) {
                           await base44.entities.Lead.delete(lead.id);
                         }
-                        alert(`✅ Todos os leads foram removidos com sucesso!`);
+                        alert(`✅ ${leadsParaDeletar.length} leads foram removidos com sucesso!`);
                         queryClient.invalidateQueries({ queryKey: ['leads'] });
                       } catch (error) {
                         alert(`❌ Erro ao remover leads: ${error.message}`);
@@ -419,7 +420,7 @@ export default function CRMPage() {
                   className="bg-red-600 hover:bg-red-700"
                 >
                   <XCircle className="w-5 h-5 mr-2" />
-                  Limpar Todos
+                  Limpar Todos Leads
                 </Button>
               )}
               {(user?.cargo === "superior" || user?.cargo === "administrador" || user?.role === "admin") && (
