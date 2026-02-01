@@ -2196,9 +2196,9 @@ export default function RelatoriosFinanceirosPage() {
               </CardHeader>
               <CardContent>
                 {(() => {
-                  // Filtrar apenas leads convertidos com plano terapêutico
+                  // Filtrar apenas leads com status "avulso" (convertidos)
                   const leadsConvertidos = leads.filter(lead => {
-                    if (!lead.convertido) return false;
+                    if (lead.status !== "avulso") return false;
                     if (!lead.data_conversao) return false;
                     
                     // Aplicar filtro de período baseado no tipo de data selecionado
@@ -2218,6 +2218,23 @@ export default function RelatoriosFinanceirosPage() {
 
                     return true;
                   });
+
+                  // Calcular tempo médio de conversão
+                  const temposConversao = [];
+                  leadsConvertidos.forEach(lead => {
+                    if (lead.data_entrada && lead.data_conversao) {
+                      const entrada = new Date(lead.data_entrada);
+                      const conversao = new Date(lead.data_conversao);
+                      const diffDias = Math.floor((conversao - entrada) / (1000 * 60 * 60 * 24));
+                      if (diffDias >= 0) {
+                        temposConversao.push(diffDias);
+                      }
+                    }
+                  });
+                  
+                  const tempoMedioConversao = temposConversao.length > 0
+                    ? temposConversao.reduce((a, b) => a + b, 0) / temposConversao.length
+                    : 0;
 
                   // Calcular métricas
                   const totalConversoes = leadsConvertidos.length;
@@ -2256,7 +2273,7 @@ export default function RelatoriosFinanceirosPage() {
                   return (
                     <div className="space-y-6">
                       {/* Métricas Resumidas */}
-                      <div className="grid grid-cols-4 gap-4">
+                      <div className="grid grid-cols-5 gap-4">
                         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                           <p className="text-sm text-blue-600 mb-1">Total de Conversões</p>
                           <p className="text-3xl font-bold text-blue-700">{totalConversoes}</p>
@@ -2272,6 +2289,12 @@ export default function RelatoriosFinanceirosPage() {
                         <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
                           <p className="text-sm text-emerald-600 mb-1">Valor Final Total</p>
                           <p className="text-2xl font-bold text-emerald-700">{formatarMoeda(valorTotalFinal)}</p>
+                        </div>
+                        <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
+                          <p className="text-sm text-cyan-600 mb-1">⏱️ Tempo Médio Conversão</p>
+                          <p className="text-3xl font-bold text-cyan-700">
+                            {tempoMedioConversao.toFixed(1)} dias
+                          </p>
                         </div>
                       </div>
 
@@ -2333,6 +2356,7 @@ export default function RelatoriosFinanceirosPage() {
                                 <TableHead>Telefone</TableHead>
                                 <TableHead>Plano Fechado</TableHead>
                                 <TableHead>Data de Conversão</TableHead>
+                                <TableHead className="text-center">Tempo p/ Fechar</TableHead>
                                 <TableHead>Terapeuta</TableHead>
                                 <TableHead>Recepção</TableHead>
                                 <TableHead className="text-right">Valor Original</TableHead>
@@ -2350,6 +2374,14 @@ export default function RelatoriosFinanceirosPage() {
                                   const valorFinal = lead.valor_final || 0;
                                   const desconto = valorOriginal > 0 ? ((valorOriginal - valorFinal) / valorOriginal * 100) : 0;
                                   
+                                  // Calcular tempo para fechar
+                                  let diasParaFechar = null;
+                                  if (lead.data_entrada && lead.data_conversao) {
+                                    const entrada = new Date(lead.data_entrada);
+                                    const conversao = new Date(lead.data_conversao);
+                                    diasParaFechar = Math.floor((conversao - entrada) / (1000 * 60 * 60 * 24));
+                                  }
+                                  
                                   return (
                                     <TableRow key={lead.id}>
                                       <TableCell className="font-semibold">{lead.nome}</TableCell>
@@ -2361,6 +2393,19 @@ export default function RelatoriosFinanceirosPage() {
                                       </TableCell>
                                       <TableCell>
                                         {lead.data_conversao ? format(criarDataPura(lead.data_conversao), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                                      </TableCell>
+                                      <TableCell className="text-center">
+                                        {diasParaFechar !== null ? (
+                                          <span className={`text-sm font-semibold px-2 py-1 rounded ${
+                                            diasParaFechar <= 7 ? 'bg-green-100 text-green-800' :
+                                            diasParaFechar <= 14 ? 'bg-yellow-100 text-yellow-800' :
+                                            'bg-red-100 text-red-800'
+                                          }`}>
+                                            {diasParaFechar} dias
+                                          </span>
+                                        ) : (
+                                          <span className="text-gray-400 text-xs">-</span>
+                                        )}
                                       </TableCell>
                                       <TableCell className="font-medium">
                                         {lead.terapeuta_nome || "-"}
