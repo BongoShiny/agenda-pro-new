@@ -228,32 +228,40 @@ Se encontrar, retorne o ID da unidade. Se não encontrar, retorne null.`,
           let dataEntrada = new Date().toISOString().split('T')[0];
           if (linha.data_entrada) {
             try {
-              const dataStr = String(linha.data_entrada).trim();
               let dataParsed;
               
-              if (dataStr.includes('/')) {
-                // Formato: DD/MM/YYYY ou DD/MM/YYYY HH:MM
-                const partes = dataStr.split(' ');
-                const [dia, mes, ano] = partes[0].split('/');
-                
-                if (partes.length > 1 && partes[1].includes(':')) {
-                  // Tem hora (DD/MM/YYYY HH:MM)
-                  const [hora, minuto] = partes[1].split(':');
-                  dataParsed = new Date(ano, mes - 1, dia, hora, minuto);
-                } else {
-                  // Só data (DD/MM/YYYY)
-                  dataParsed = new Date(ano, mes - 1, dia);
-                }
+              // Verificar se é um número serial do Excel
+              if (typeof linha.data_entrada === 'number') {
+                // Excel: data serial (dias desde 1/1/1900)
+                const excelEpoch = new Date(1900, 0, 1);
+                dataParsed = new Date(excelEpoch.getTime() + (linha.data_entrada - 2) * 24 * 60 * 60 * 1000);
               } else {
-                // Formato ISO ou outro
-                dataParsed = new Date(dataStr);
+                const dataStr = String(linha.data_entrada).trim();
+                
+                if (dataStr.includes('/')) {
+                  // Formato: DD/MM/YYYY ou DD/MM/YYYY HH:MM
+                  const partes = dataStr.split(' ');
+                  const [dia, mes, ano] = partes[0].split('/');
+                  
+                  if (partes.length > 1 && partes[1].includes(':')) {
+                    // Tem hora (DD/MM/YYYY HH:MM)
+                    const [hora, minuto] = partes[1].split(':');
+                    dataParsed = new Date(ano, mes - 1, dia, hora, minuto);
+                  } else {
+                    // Só data (DD/MM/YYYY)
+                    dataParsed = new Date(ano, mes - 1, dia, 0, 0, 0);
+                  }
+                } else {
+                  // Formato ISO ou outro
+                  dataParsed = new Date(dataStr);
+                }
               }
               
               if (!isNaN(dataParsed.getTime())) {
                 dataEntrada = dataParsed.toISOString().split('T')[0];
               }
             } catch (error) {
-              console.warn("Erro ao parsear data:", linha.data_entrada);
+              console.warn("Erro ao parsear data:", linha.data_entrada, error);
             }
           }
 
