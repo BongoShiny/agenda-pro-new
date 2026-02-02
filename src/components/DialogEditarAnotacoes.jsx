@@ -39,12 +39,7 @@ export default function DialogEditarAnotacoes({
   React.useEffect(() => {
     if (agendamento) {
       setValores({
-        vendedor_id: agendamento.vendedor_id,
-        vendedor_nome: agendamento.vendedor_nome,
-        valor_combinado: agendamento.valor_combinado,
-        sinal: agendamento.sinal,
-        recebimento_2: agendamento.recebimento_2,
-        final_pagamento: agendamento.final_pagamento,
+        data_pagamento: agendamento.data_pagamento,
         anotacao_venda: agendamento.anotacao_venda
       });
     }
