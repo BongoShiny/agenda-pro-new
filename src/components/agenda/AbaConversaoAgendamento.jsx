@@ -127,6 +127,45 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
     }));
   };
 
+  // Recarregar dados quando entra em modo edição
+  useEffect(() => {
+    if (modoEdicao && agendamento.observacoes_pos_venda) {
+      // Extrair dados salvos de observacoes_pos_venda
+      const obs = agendamento.observacoes_pos_venda;
+      let pacoteFechado = "";
+      let recepcaoFechou = "";
+      let motivosFechamento = [];
+
+      // Parse Plano
+      const planMatch = obs.match(/Plano:\s*([^|]+)/);
+      if (planMatch) pacoteFechado = planMatch[1].trim();
+
+      // Parse Recepção
+      const recMatch = obs.match(/Recepção:\s*([^|]+)/);
+      if (recMatch) recepcaoFechou = recMatch[1].trim();
+
+      // Parse Motivos
+      const motivMatch = obs.match(/Motivos:\s*([^|]+)/);
+      if (motivMatch) {
+        motivosFechamento = motivMatch[1].trim().split(",").map(m => m.trim()).filter(m => m);
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        data_conversao: agendamento.data_conversao || prev.data_conversao,
+        valor_original: agendamento.valor_combinado?.toString() || prev.valor_original,
+        valor_final: agendamento.valor_combinado?.toString() || prev.valor_final,
+        sinal: agendamento.sinal?.toString() || prev.sinal,
+        recebimento_2: agendamento.recebimento_2?.toString() || prev.recebimento_2,
+        final_pagamento: agendamento.final_pagamento?.toString() || prev.final_pagamento,
+        pacote_fechado: pacoteFechado,
+        recepcao_fechou: recepcaoFechou,
+        motivos_fechamento: motivosFechamento,
+        forma_pagamento: agendamento.forma_pagamento || prev.forma_pagamento,
+      }));
+    }
+  }, [modoEdicao, agendamento]);
+
   useEffect(() => {
     if (formData.valor_original && formData.desconto) {
       const original = parseFloat(formData.valor_original);
