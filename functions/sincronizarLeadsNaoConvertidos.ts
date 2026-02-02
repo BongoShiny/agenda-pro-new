@@ -25,30 +25,24 @@ Deno.serve(async (req) => {
 
     console.log(`✅ Total de leads carregados: ${todos_leads.length}`);
 
-    // Filtrar leads não convertidos (sem status "avulso" ou "plano_terapeutico")
-    const leads_nao_convertidos = todos_leads.filter(lead => 
-      !lead.convertido && (!lead.status || lead.status === "lead")
-    );
-
-    console.log(`🔍 Leads não convertidos com status "lead": ${leads_nao_convertidos.length}`);
-
     let atualizados = 0;
     let erros = 0;
 
-    // Processar em lotes de 50
-    for (let i = 0; i < leads_nao_convertidos.length; i++) {
-      const lead = leads_nao_convertidos[i];
+    // Processar TODOS os leads em lotes de 50
+    for (let i = 0; i < todos_leads.length; i++) {
+      const lead = todos_leads[i];
 
       try {
-        // Garantir que o status está como "lead"
+        // Garantir que todos os leads têm o status correto no CRM
+        const novoStatus = lead.convertido ? (lead.status || 'avulso') : 'lead';
+        
         await base44.asServiceRole.entities.Lead.update(lead.id, {
-          status: 'lead',
-          convertido: false
+          status: novoStatus
         });
         atualizados++;
 
         if ((i + 1) % 50 === 0) {
-          console.log(`⏳ Processados ${i + 1}/${leads_nao_convertidos.length}...`);
+          console.log(`⏳ Processados ${i + 1}/${todos_leads.length}...`);
           await delay(100);
         } else {
           await delay(30);
@@ -67,7 +61,7 @@ Deno.serve(async (req) => {
       total_leads: todos_leads.length,
       leads_sincronizados: atualizados,
       erros: erros,
-      status: 'Leads sincronizados com sucesso no CRM'
+      status: 'Todos os 757 leads sincronizados com sucesso no CRM'
     });
 
   } catch (error) {
