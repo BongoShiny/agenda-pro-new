@@ -17,6 +17,9 @@ const temperaturaConfig = {
 };
 
 export default function KanbanView({ leads, onStatusChange, onLeadClick, colunasVisiveis }) {
+  const [paginasPorColuna, setPaginasPorColuna] = React.useState({});
+  const LEADS_POR_PAGINA = 50;
+
   const todasColunas = [
     { id: "lead", title: "Lead" },
     { id: "avulso", title: "Avulso" },
@@ -28,6 +31,19 @@ export default function KanbanView({ leads, onStatusChange, onLeadClick, colunas
   const columns = colunasVisiveis 
     ? todasColunas.filter(col => colunasVisiveis.includes(col.id))
     : todasColunas;
+
+  // Inicializar páginas em 1 para cada coluna
+  React.useEffect(() => {
+    const init = {};
+    columns.forEach(col => {
+      if (!paginasPorColuna[col.id]) {
+        init[col.id] = 1;
+      }
+    });
+    if (Object.keys(init).length > 0) {
+      setPaginasPorColuna(prev => ({ ...prev, ...init }));
+    }
+  }, [columns]);
 
   const handleDragEnd = (result) => {
     if (!result.destination) return;
@@ -57,12 +73,32 @@ export default function KanbanView({ leads, onStatusChange, onLeadClick, colunas
     return leads.filter(l => l.status === status);
   };
 
+  const getLeadsPaginados = (status) => {
+    const todosLeads = getLeadsByStatus(status);
+    const paginaAtual = paginasPorColuna[status] || 1;
+    const inicio = (paginaAtual - 1) * LEADS_POR_PAGINA;
+    const fim = inicio + LEADS_POR_PAGINA;
+    return todosLeads.slice(inicio, fim);
+  };
+
+  const getTotalPaginas = (status) => {
+    const todosLeads = getLeadsByStatus(status);
+    return Math.ceil(todosLeads.length / LEADS_POR_PAGINA);
+  };
+
+  const mudarPagina = (status, novaPagina) => {
+    setPaginasPorColuna(prev => ({ ...prev, [status]: novaPagina }));
+  };
+
   return (
     <DragDropContext onDragEnd={handleDragEnd}>
       <div className={`grid gap-4 h-full ${columns.length === 3 ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-4'}`}>
         {columns.map((column) => {
           const config = statusConfig[column.id];
-          const columnLeads = getLeadsByStatus(column.id);
+          const todosLeadsColuna = getLeadsByStatus(column.id);
+          const columnLeads = getLeadsPaginados(column.id);
+          const totalPaginas = getTotalPaginas(column.id);
+          const paginaAtual = paginasPorColuna[column.id] || 1;
 
           return (
             <div key={column.id} className="flex flex-col bg-gray-50 rounded-lg p-3">
@@ -70,7 +106,7 @@ export default function KanbanView({ leads, onStatusChange, onLeadClick, colunas
               <div className={`flex items-center justify-between mb-3 pb-2 border-b-2 ${config.borderColor}`}>
                 <h3 className="font-semibold text-gray-700">{column.title}</h3>
                 <Badge className={`${config.color} text-white`}>
-                  {columnLeads.length}
+                  {todosLeadsColuna.length}
                 </Badge>
               </div>
 
@@ -173,6 +209,35 @@ export default function KanbanView({ leads, onStatusChange, onLeadClick, colunas
                   </div>
                 )}
               </Droppable>
+
+              {/* Paginação da Coluna */}
+              {totalPaginas > 1 && (
+                <div className="mt-3 bg-gray-800 rounded-lg py-2 px-2">
+                  <div className="flex justify-center items-center gap-1 flex-wrap">
+                    {Array.from({ length: Math.min(totalPaginas, 10) }, (_, i) => i + 1).map(numero => (
+                      <button
+                        key={numero}
+                        onClick={() => mudarPagina(column.id, numero)}
+                        className={`w-7 h-7 rounded flex items-center justify-center text-xs font-medium transition-colors ${
+                          paginaAtual === numero 
+                            ? 'bg-blue-600 text-white' 
+                            : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                        }`}
+                      >
+                        {numero}
+                      </button>
+                    ))}
+                    {totalPaginas > 10 && (
+                      <button
+                        onClick={() => mudarPagina(column.id, Math.min(paginaAtual + 1, totalPaginas))}
+                        className="text-blue-400 hover:text-blue-300 text-xs font-medium ml-1"
+                      >
+                        Mais
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
