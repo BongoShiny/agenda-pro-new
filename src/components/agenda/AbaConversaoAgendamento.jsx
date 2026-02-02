@@ -532,7 +532,16 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
           {fechouPacote === false && (
             <div className="space-y-4 pt-4 border-t">
               <h4 className="font-semibold text-gray-900">Motivo de Não Conversão</h4>
-              
+
+              <div>
+                <Label>Data que Não Converteu *</Label>
+                <Input
+                  type="date"
+                  value={formData.data_conversao}
+                  onChange={(e) => setFormData(prev => ({ ...prev, data_conversao: e.target.value }))}
+                />
+              </div>
+
               <div>
                 <Label>Recepção que Não Fechou *</Label>
                 <Select value={formData.recepcao_nao_fechou} onValueChange={(value) => setFormData(prev => ({ ...prev, recepcao_nao_fechou: value }))}>
