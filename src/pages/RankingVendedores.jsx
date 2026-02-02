@@ -379,12 +379,10 @@ export default function RankingVendedoresPage() {
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <Link to={createPageUrl("Home")}>
-                <Button variant="outline">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  Voltar
-                </Button>
-              </Link>
+              <Button variant="outline" onClick={() => navigate(createPageUrl("Home"))}>
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Voltar
+              </Button>
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                   <Trophy className="w-8 h-8 text-yellow-500" />
