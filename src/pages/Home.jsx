@@ -15,10 +15,13 @@ import {
   Eye,
   EyeOff,
   FileText,
-  ArrowLeft
+  ArrowLeft,
+  Edit3
 } from "lucide-react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 
 import WidgetFaturamento from "../components/dashboard/WidgetFaturamento";
+import DialogEditarAnotacoes from "../components/DialogEditarAnotacoes";
 import WidgetProximosAgendamentos from "../components/dashboard/WidgetProximosAgendamentos";
 import WidgetTarefasPendentes from "../components/dashboard/WidgetTarefasPendentes";
 import WidgetPerformanceVendedores from "../components/dashboard/WidgetPerformanceVendedores";
