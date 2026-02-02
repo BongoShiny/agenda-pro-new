@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, ShieldCheck, ExternalLink, DollarSign } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, ShieldCheck, DollarSign } from "lucide-react";
 import { format, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -110,9 +110,6 @@ export default function AgendaHeader({
   };
 
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades" || usuarioAtual?.cargo === "financeiro" || usuarioAtual?.cargo === "pos_venda";
-  
-  // Todos podem ver o CRM
-  const mostrarCRM = true;
 
   return (
     <div className="bg-white border-b border-gray-200">
@@ -185,14 +182,6 @@ export default function AgendaHeader({
                 </Button>
               </Link>
             )}
-            {mostrarCRM && (
-              <Link to={createPageUrl("CRM")}>
-                <Button variant="outline" size="sm" className="bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100">
-                  <ExternalLink className="w-4 h-4 mr-1" />
-                  CRM
-                </Button>
-              </Link>
-            )}
           </div>
         </div>
 
@@ -248,25 +237,16 @@ export default function AgendaHeader({
           </div>
 
           <div className="flex items-center gap-3">
-             {isAdmin && (
-               <Link to={createPageUrl("Administrador")}>
-                 <Button variant="outline" className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100">
-                   <ShieldCheck className="w-4 h-4 mr-2" />
-                   Superior
-                 </Button>
-               </Link>
-             )}
-             
-             {mostrarCRM && (
-               <Link to={createPageUrl("CRM")}>
-                 <Button variant="outline" className="bg-pink-50 border-pink-200 text-pink-700 hover:bg-pink-100">
-                   <ExternalLink className="w-4 h-4 mr-2" />
-                   CRM
-                 </Button>
-               </Link>
-             )}
+            {isAdmin && (
+              <Link to={createPageUrl("Administrador")}>
+                <Button variant="outline" className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100">
+                  <ShieldCheck className="w-4 h-4 mr-2" />
+                  Superior
+                </Button>
+              </Link>
+            )}
 
-             <RankingVendedores />
+            <RankingVendedores />
 
              {(isVendedor || isAdmin) && navigate && (
                <Button 
