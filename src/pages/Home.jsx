@@ -232,9 +232,14 @@ export default function HomePage() {
         </Card>
 
         {/* Métricas de Vendas - Topo */}
-        {widgetsVisiveis.metricasVendas && (
-          <WidgetMetricasVendas agendamentos={agendamentos} dataInicio={dataInicioVendas} dataFim={dataFimVendas} />
-        )}
+         {widgetsVisiveis.metricasVendas && (
+           <WidgetMetricasVendas 
+             agendamentos={agendamentos} 
+             dataInicio={dataInicioVendas} 
+             dataFim={dataFimVendas}
+             onEditarAnotacoes={(agId) => setModoEditarAnotacoes(agId)}
+           />
+         )}
 
         {/* Atalhos Rápidos */}
         <Card>
