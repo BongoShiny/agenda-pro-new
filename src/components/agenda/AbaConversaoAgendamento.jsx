@@ -29,6 +29,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
     recebimento_2: agendamento.recebimento_2?.toString() || "",
     final_pagamento: agendamento.final_pagamento?.toString() || "",
     forma_pagamento: "pix",
+    parcelas: "1",
     motivos_fechamento: [],
     observacoes: "",
     motivo_nao_conversao: "",
@@ -93,6 +94,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         conversao_motivos: formData.motivos_fechamento.join(", "),
         conversao_forma_pagamento: formData.forma_pagamento,
         conversao_desconto: parseFloat(formData.desconto) || 0,
+        conversao_parcelas: parseInt(formData.parcelas) || 1,
         conversao_converteu: true,
       });
 
@@ -133,6 +135,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
       recebimento_2: agendamento.recebimento_2?.toString() || "",
       final_pagamento: agendamento.final_pagamento?.toString() || "",
       forma_pagamento: "pix",
+      parcelas: "1",
       motivos_fechamento: [],
       observacoes: "",
       motivo_nao_conversao: "",
@@ -174,6 +177,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         terapeuta_nome: agendamento.conversao_profissional_nome || agendamento.profissional_nome || prev.terapeuta_nome,
         motivos_fechamento: agendamento.conversao_motivos?.split(",").map(m => m.trim()).filter(m => m) || prev.motivos_fechamento,
         forma_pagamento: agendamento.conversao_forma_pagamento || prev.forma_pagamento,
+        parcelas: agendamento.conversao_parcelas?.toString() || "1",
         desconto: agendamento.conversao_desconto?.toString() || prev.desconto,
         observacoes: agendamento.observacoes || prev.observacoes,
       }));
@@ -446,20 +450,36 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                 </div>
 
                 <div>
-                  <Label>Forma de Pagamento</Label>
-                  <Select value={formData.forma_pagamento} onValueChange={(value) => setFormData(prev => ({ ...prev, forma_pagamento: value }))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="pix">PIX</SelectItem>
-                      <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
-                      <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
-                      <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                      <SelectItem value="parcelado">Parcelado</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                   <Label>Forma de Pagamento</Label>
+                   <Select value={formData.forma_pagamento} onValueChange={(value) => setFormData(prev => ({ ...prev, forma_pagamento: value }))}>
+                     <SelectTrigger>
+                       <SelectValue />
+                     </SelectTrigger>
+                     <SelectContent>
+                       <SelectItem value="pix">PIX</SelectItem>
+                       <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
+                       <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
+                       <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                       <SelectItem value="boleto">Boleto</SelectItem>
+                     </SelectContent>
+                   </Select>
+                 </div>
+
+                 {(formData.forma_pagamento === "cartao_credito" || formData.forma_pagamento === "boleto") && (
+                   <div>
+                     <Label>Quantas Vezes?</Label>
+                     <Select value={formData.parcelas} onValueChange={(value) => setFormData(prev => ({ ...prev, parcelas: value }))}>
+                       <SelectTrigger>
+                         <SelectValue />
+                       </SelectTrigger>
+                       <SelectContent>
+                         {Array.from({ length: 12 }, (_, i) => (i + 1)).map(num => (
+                           <SelectItem key={num} value={num.toString()}>{num}x</SelectItem>
+                         ))}
+                       </SelectContent>
+                     </Select>
+                   </div>
+                 )}
               </div>
 
               {/* SEÇÃO 3: MOTIVOS DE DECISÃO */}
