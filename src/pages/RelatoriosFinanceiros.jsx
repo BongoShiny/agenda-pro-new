@@ -2368,7 +2368,7 @@ export default function RelatoriosFinanceirosPage() {
                                   const valorOriginal = lead.valor_original || 0;
                                   const valorFinal = lead.valor_final || 0;
                                   const desconto = valorOriginal > 0 ? ((valorOriginal - valorFinal) / valorOriginal * 100) : 0;
-                                  const convertido = lead.convertido ? "✅ Sim" : "❌ Não";
+                                  const convertido = lead.convertido ? "SIM, FECHOU PLANO" : "NÃO FECHOU";
 
                                   return (
                                     <TableRow key={lead.id}>
