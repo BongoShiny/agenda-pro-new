@@ -12,6 +12,7 @@ import { format } from "date-fns";
 
 export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
   const [modoRegistro, setModoRegistro] = useState(false);
+  const [modoEdicao, setModoEdicao] = useState(false);
   const [fechouPacote, setFechouPacote] = useState(null);
   const [formData, setFormData] = useState({
     data_conversao: agendamento.data_conversao || format(new Date(), "yyyy-MM-dd"),
@@ -174,11 +175,15 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
               </div>
             </div>
             <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setModoRegistro(true)}
+             variant="outline" 
+             size="sm"
+             onClick={() => {
+               setModoEdicao(true);
+               setModoRegistro(true);
+               setFechouPacote(true);
+             }}
             >
-              <Edit className="w-4 h-4" />
+             <Edit className="w-4 h-4" />
             </Button>
           </div>
         </div>
@@ -186,7 +191,13 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
 
       {!modoRegistro && (
         <Button 
-          onClick={() => setModoRegistro(true)}
+          onClick={() => {
+            if (jaFechou) {
+              setModoEdicao(true);
+              setFechouPacote(true);
+            }
+            setModoRegistro(true);
+          }}
           className="w-full bg-green-600 hover:bg-green-700 text-white"
         >
           <Plus className="w-4 h-4 mr-2" />
@@ -196,8 +207,9 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
 
       {modoRegistro && (
         <div className="border-2 border-gray-200 rounded-lg p-6 bg-gray-50 space-y-6">
-          <h3 className="font-bold text-lg text-gray-900">Registrar Conversão</h3>
+          <h3 className="font-bold text-lg text-gray-900">{modoEdicao ? "Editar Plano Fechado" : "Registrar Conversão"}</h3>
 
+          {!modoEdicao && (
           <div className="space-y-3">
             <Label className="text-base font-semibold">O cliente fechou um plano?</Label>
             <div className="flex gap-3">
@@ -453,16 +465,17 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
 
           {fechouPacote !== null && (
             <div className="flex gap-3 pt-4 border-t">
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setModoRegistro(false);
-                  setFechouPacote(null);
-                }}
-                className="flex-1"
-              >
-                Cancelar
-              </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => {
+                    setModoRegistro(false);
+                    setModoEdicao(false);
+                    setFechouPacote(null);
+                  }}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
               <Button 
                 onClick={handleSalvarRegistro}
                 className="flex-1 bg-green-600 hover:bg-green-700"
