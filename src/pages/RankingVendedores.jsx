@@ -167,13 +167,16 @@ export default function RankingVendedoresPage() {
   const dataLimiteFevereiro = "2026-03-01";
   
   const agendamentosFiltrados = agendamentos.filter(ag => {
+    // Usar data_pagamento ao invés de data
+    const dataFiltro = ag.data_pagamento || ag.data;
+    
     // Excluir fevereiro 2026
-    if (ag.data < dataLimiteFevereiro) return false;
+    if (dataFiltro < dataLimiteFevereiro) return false;
     
     if (viewMode === "dia") {
-      return ag.data === inicioDia && ag.status !== "cancelado" && ag.status !== "bloqueio";
+      return dataFiltro === inicioDia && ag.status !== "cancelado" && ag.status !== "bloqueio";
     } else {
-      return ag.data >= inicioMes && ag.data <= fimMes && ag.status !== "cancelado" && ag.status !== "bloqueio";
+      return dataFiltro >= inicioMes && dataFiltro <= fimMes && ag.status !== "cancelado" && ag.status !== "bloqueio";
     }
   });
 
