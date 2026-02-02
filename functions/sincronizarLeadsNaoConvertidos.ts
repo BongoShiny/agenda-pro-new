@@ -28,7 +28,9 @@ Deno.serve(async (req) => {
     let atualizados = 0;
     let erros = 0;
 
-    // Processar TODOS os leads em lotes de 50
+    // Processar em lotes maiores com delays maiores
+    const tamanhoLote = 200;
+    
     for (let i = 0; i < todos_leads.length; i++) {
       const lead = todos_leads[i];
 
@@ -41,16 +43,18 @@ Deno.serve(async (req) => {
         });
         atualizados++;
 
-        if ((i + 1) % 50 === 0) {
+        // Delay adaptativo para evitar rate limit
+        await delay(50);
+        
+        if ((i + 1) % tamanhoLote === 0) {
           console.log(`⏳ Processados ${i + 1}/${todos_leads.length}...`);
-          await delay(100);
-        } else {
-          await delay(30);
+          await delay(500);
         }
 
       } catch (error) {
         console.error(`❌ Erro ao atualizar lead ${lead.id}: ${error.message}`);
         erros++;
+        await delay(100);
       }
     }
 
