@@ -24,6 +24,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Link, useNavigate } from "react-router-dom";
+import DialogEditarAnotacoes from "@/components/DialogEditarAnotacoes";
 import { createPageUrl } from "@/utils";
 import { format, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns";
 import { ptBR } from "date-fns/locale";
