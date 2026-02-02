@@ -568,18 +568,18 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                 <div className="flex items-center gap-4">
                   <span className="text-sm text-gray-600">
                     {totalVendas} venda{totalVendas !== 1 ? 's' : ''}
-                  </span>
-                  <span className="text-lg font-bold text-emerald-600">
-                    {formatarMoeda(totalValor)}
-                  </span>
-                </div>
-              </div>
+                               </span>
+                               <span className="text-lg font-bold text-emerald-600">
+                                 {formatarMoeda(totalValor)}
+                               </span>
+                             </div>
+                           </div>
 
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-10">Editar</TableHead>
+                           <div className="overflow-x-auto">
+                             <Table>
+                               <TableHeader>
+                                 <TableRow>
+                                   <TableHead className="w-12"></TableHead>
                       <TableHead>Data/Hora Criação</TableHead>
                       <TableHead>Cliente</TableHead>
                       <TableHead>Telefone</TableHead>
