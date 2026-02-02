@@ -278,8 +278,20 @@ export default function HomePage() {
               </div>
             </div>
           </CardContent>
-        </Card>
-      </div>
-    </div>
-  );
-}
+          </Card>
+
+          {/* Dialog Editar Anotações */}
+          <DialogEditarAnotacoes
+          aberto={!!modoEditarAnotacoes}
+          agendamento={agendamentos.find(a => a.id === modoEditarAnotacoes)}
+          vendedores={vendedores}
+          onClose={() => setModoEditarAnotacoes(null)}
+          onSalvar={(dados) => {
+            handleSalvarAnotacoes(modoEditarAnotacoes, dados);
+          }}
+          tipoEdicao="completo"
+          />
+          </div>
+          </div>
+          );
+          }
