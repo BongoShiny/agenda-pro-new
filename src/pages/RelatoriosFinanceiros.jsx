@@ -2370,7 +2370,6 @@ export default function RelatoriosFinanceirosPage() {
                                 <TableHead>Data Não Converteu</TableHead>
                                 <TableHead>Terapeuta</TableHead>
                                 <TableHead>Recepção</TableHead>
-                                <TableHead>Motivo</TableHead>
                                 <TableHead>Observações</TableHead>
                               </TableRow>
                             </TableHeader>
@@ -2387,7 +2386,6 @@ export default function RelatoriosFinanceirosPage() {
                                     </TableCell>
                                     <TableCell>{ag.conversao_profissional_nome || ag.profissional_nome || "-"}</TableCell>
                                     <TableCell>{ag.conversao_recepcionista_nao_converteu || "-"}</TableCell>
-                                    <TableCell className="text-xs bg-red-50 px-2 py-1 rounded">{ag.conversao_motivo_nao_converteu || "-"}</TableCell>
                                     <TableCell className="max-w-xs">
                                       {ag.observacoes ? (
                                         <span className="text-xs text-gray-600 line-clamp-2">
