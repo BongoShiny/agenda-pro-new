@@ -2196,9 +2196,9 @@ export default function RelatoriosFinanceirosPage() {
               </CardHeader>
               <CardContent>
                 {(() => {
-                  // Filtrar apenas leads com status "avulso" (convertidos)
+                  // Filtrar leads convertidos (com data_conversao e status convertido)
                   const leadsConvertidos = leads.filter(lead => {
-                    if (lead.status !== "avulso") return false;
+                    if (!lead.convertido) return false;
                     if (!lead.data_conversao) return false;
                     
                     // Aplicar filtro de período baseado no tipo de data selecionado
