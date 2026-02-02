@@ -741,37 +741,17 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                             </TableCell>
                             <TableCell>
                                 {modoEdicao ? (
-                                  <div className="flex items-start gap-2">
-                                    <Textarea
-                                      value={anotacoes[venda.id] !== undefined ? anotacoes[venda.id] : (venda.anotacao_venda || "")}
-                                      onChange={(e) => setAnotacoes(prev => ({ ...prev, [venda.id]: e.target.value }))}
-                                      placeholder="Adicionar anotação..."
-                                      className="text-xs min-h-[60px]"
-                                      rows={2}
-                                    />
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => setModoEditarAnotacoes(venda.id)}
-                                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 mt-1"
-                                    >
-                                      <Edit3 className="w-3 h-3" />
-                                    </Button>
-                                  </div>
+                                  <Textarea
+                                    value={anotacoes[venda.id] !== undefined ? anotacoes[venda.id] : (venda.anotacao_venda || "")}
+                                    onChange={(e) => setAnotacoes(prev => ({ ...prev, [venda.id]: e.target.value }))}
+                                    placeholder="Adicionar anotação..."
+                                    className="text-xs min-h-[60px]"
+                                    rows={2}
+                                  />
                                 ) : (
-                                  <div className="flex items-center justify-between gap-2">
-                                    <span className="text-xs text-gray-600">
-                                      {venda.anotacao_venda || "-"}
-                                    </span>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => setModoEditarAnotacoes(venda.id)}
-                                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50"
-                                    >
-                                      <Edit3 className="w-3 h-3" />
-                                    </Button>
-                                  </div>
+                                  <span className="text-xs text-gray-600">
+                                    {venda.anotacao_venda || "-"}
+                                  </span>
                                 )}
                              </TableCell>
                             <TableCell>
