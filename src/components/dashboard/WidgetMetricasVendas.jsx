@@ -886,6 +886,18 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
            </div>
          </DialogContent>
        </Dialog>
-      </Card>
-      );
-      }
+
+       {/* Dialog Editar Anotações Completo */}
+       <DialogEditarAnotacoes
+         aberto={!!modoEditarAnotacoes}
+         agendamento={agendamentos.find(a => a.id === modoEditarAnotacoes)}
+         vendedores={vendedores}
+         onClose={() => setModoEditarAnotacoes(null)}
+         onSalvar={(dados) => {
+           handleSalvarEdicaoCompleta(modoEditarAnotacoes, dados);
+         }}
+         tipoEdicao="completo"
+       />
+       </Card>
+       );
+       }
