@@ -32,6 +32,8 @@ export default function CRMPage() {
   const [modoRemover, setModoRemover] = useState(false);
   const [visualizacao, setVisualizacao] = useState("kanban");
   const [sincronizandoAgendamentos, setSincronizandoAgendamentos] = useState(false);
+  const [paginaAtual, setPaginaAtual] = useState(1);
+  const LEADS_POR_PAGINA = 50;
 
   const queryClient = useQueryClient();
 
@@ -406,9 +408,22 @@ export default function CRMPage() {
     }
 
     return matchBusca && matchStatus && matchUnidade && matchVendedor && matchData && matchRecepcao && matchTerapeuta;
-  }), [leads, busca, filtroStatus, filtroUnidade, filtroVendedor, filtroDataInicio, filtroDataFim, 
+    }), [leads, busca, filtroStatus, filtroUnidade, filtroVendedor, filtroDataInicio, filtroDataFim, 
       tipoFiltroData, filtroRecepcao, filtroTerapeuta, todosAgendamentos, isVendedor, isRecepcao, 
       vendedorDoUsuario, recepcionistaDoUsuario, recepcionistas]);
+
+    // Paginação
+    const totalPaginas = Math.ceil(leadsFiltrados.length / LEADS_POR_PAGINA);
+    const leadsPaginados = useMemo(() => {
+    const inicio = (paginaAtual - 1) * LEADS_POR_PAGINA;
+    const fim = inicio + LEADS_POR_PAGINA;
+    return leadsFiltrados.slice(inicio, fim);
+    }, [leadsFiltrados, paginaAtual]);
+
+    // Reset página quando filtros mudarem
+    useEffect(() => {
+    setPaginaAtual(1);
+    }, [busca, filtroStatus, filtroUnidade, filtroVendedor, filtroDataInicio, filtroDataFim, tipoFiltroData, filtroRecepcao, filtroTerapeuta]);
 
   // Estatísticas (filtradas por usuário) - memoizadas
   const stats = useMemo(() => {
@@ -762,18 +777,47 @@ export default function CRMPage() {
 
         {/* Visualização Kanban ou Cards */}
         {visualizacao === "kanban" ? (
-          <div className="h-[calc(100vh-450px)] min-h-[600px]">
-            <KanbanView
-              leads={leadsFiltrados}
-              onStatusChange={handleStatusChange}
-              onLeadClick={handleAbrirDetalhes}
-              colunasVisiveis={colunasVisiveis}
-            />
-          </div>
+          <>
+            <div className="h-[calc(100vh-500px)] min-h-[600px]">
+              <KanbanView
+                leads={leadsPaginados}
+                onStatusChange={handleStatusChange}
+                onLeadClick={handleAbrirDetalhes}
+                colunasVisiveis={colunasVisiveis}
+              />
+            </div>
+
+            {/* Paginação */}
+            {totalPaginas > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-6 bg-gray-800 rounded-lg py-3 px-4">
+                {Array.from({ length: Math.min(totalPaginas, 10) }, (_, i) => i + 1).map(numero => (
+                  <button
+                    key={numero}
+                    onClick={() => setPaginaAtual(numero)}
+                    className={`w-8 h-8 rounded flex items-center justify-center text-sm font-medium transition-colors ${
+                      paginaAtual === numero 
+                        ? 'bg-blue-600 text-white' 
+                        : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                    }`}
+                  >
+                    {numero}
+                  </button>
+                ))}
+                {totalPaginas > 10 && (
+                  <button
+                    onClick={() => setPaginaAtual(Math.min(paginaAtual + 1, totalPaginas))}
+                    className="text-blue-400 hover:text-blue-300 text-sm font-medium ml-2"
+                  >
+                    Mais
+                  </button>
+                )}
+              </div>
+            )}
+          </>
         ) : (
           <>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {leadsFiltrados.map(lead => (
+              {leadsPaginados.map(lead => (
                 <LeadCard 
                   key={lead.id} 
                   lead={lead}
@@ -801,8 +845,35 @@ export default function CRMPage() {
                 <p className="text-gray-400 text-sm mt-2">Clique em "Novo Lead" para começar</p>
               </div>
             )}
-          </>
-        )}
+
+            {/* Paginação */}
+            {totalPaginas > 1 && (
+              <div className="flex justify-center items-center gap-2 mt-6 bg-gray-800 rounded-lg py-3 px-4 col-span-full">
+                {Array.from({ length: Math.min(totalPaginas, 10) }, (_, i) => i + 1).map(numero => (
+                  <button
+                    key={numero}
+                    onClick={() => setPaginaAtual(numero)}
+                    className={`w-8 h-8 rounded flex items-center justify-center text-sm font-medium transition-colors ${
+                      paginaAtual === numero 
+                        ? 'bg-blue-600 text-white' 
+                        : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                    }`}
+                  >
+                    {numero}
+                  </button>
+                ))}
+                {totalPaginas > 10 && (
+                  <button
+                    onClick={() => setPaginaAtual(Math.min(paginaAtual + 1, totalPaginas))}
+                    className="text-blue-400 hover:text-blue-300 text-sm font-medium ml-2"
+                  >
+                    Mais
+                  </button>
+                )}
+              </div>
+            )}
+            </>
+            )}
       </div>
 
       <NovoLeadDialog
