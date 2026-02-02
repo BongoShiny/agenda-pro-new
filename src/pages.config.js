@@ -49,7 +49,6 @@
  */
 import Administrador from './pages/Administrador';
 import Agenda from './pages/Agenda';
-import CRM from './pages/CRM';
 import ConfiguracaoSabado from './pages/ConfiguracaoSabado';
 import ConfiguracaoTerapeutas from './pages/ConfiguracaoTerapeutas';
 import ConfigurarRecepcionistas from './pages/ConfigurarRecepcionistas';
@@ -68,13 +67,13 @@ import RelatoriosCRM from './pages/RelatoriosCRM';
 import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
 import WhatsAppCompleto from './pages/WhatsAppCompleto';
+import CRM from './pages/CRM';
 import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
     "Administrador": Administrador,
     "Agenda": Agenda,
-    "CRM": CRM,
     "ConfiguracaoSabado": ConfiguracaoSabado,
     "ConfiguracaoTerapeutas": ConfiguracaoTerapeutas,
     "ConfigurarRecepcionistas": ConfigurarRecepcionistas,
@@ -93,6 +92,7 @@ export const PAGES = {
     "RelatoriosClientes": RelatoriosClientes,
     "RelatoriosFinanceiros": RelatoriosFinanceiros,
     "WhatsAppCompleto": WhatsAppCompleto,
+    "CRM": CRM,
 }
 
 export const pagesConfig = {

@@ -35,7 +35,7 @@ export default function CRMPage() {
   const [sincronizandoAgendamentos, setSincronizandoAgendamentos] = useState(false);
   const [paginaAtual, setPaginaAtual] = useState(1);
   const [buscaDebounced, setBuscaDebounced] = useState("");
-  const LEADS_POR_PAGINA = 50;
+  const LEADS_POR_PAGINA = 1000; // Limite maior para suportar 100k+ leads
 
   const queryClient = useQueryClient();
 
