@@ -32,6 +32,7 @@ export default function CRMPage() {
   const [modoRemover, setModoRemover] = useState(false);
   const [visualizacao, setVisualizacao] = useState("kanban");
   const [sincronizandoAgendamentos, setSincronizandoAgendamentos] = useState(false);
+  const [paginaAtual, setPaginaAtual] = useState(1);
 
   const queryClient = useQueryClient();
 
@@ -410,6 +411,23 @@ export default function CRMPage() {
       tipoFiltroData, filtroRecepcao, filtroTerapeuta, todosAgendamentos, isVendedor, isRecepcao, 
       vendedorDoUsuario, recepcionistaDoUsuario, recepcionistas]);
 
+    // Calcular total de páginas baseado na coluna com mais leads
+    const totalPaginas = useMemo(() => {
+    const leadssPorStatus = {
+    lead: leadsFiltrados.filter(l => l.status === "lead").length,
+    avulso: leadsFiltrados.filter(l => l.status === "avulso").length,
+    plano_terapeutico: leadsFiltrados.filter(l => l.status === "plano_terapeutico").length,
+    renovacao: leadsFiltrados.filter(l => l.status === "renovacao").length,
+    };
+    const maxLeads = Math.max(...Object.values(leadssPorStatus));
+    return Math.ceil(maxLeads / 50);
+    }, [leadsFiltrados]);
+
+    // Reset página quando filtros mudarem
+    useEffect(() => {
+    setPaginaAtual(1);
+    }, [busca, filtroStatus, filtroUnidade, filtroVendedor, filtroDataInicio, filtroDataFim, tipoFiltroData, filtroRecepcao, filtroTerapeuta]);
+
   // Estatísticas (filtradas por usuário) - memoizadas
   const stats = useMemo(() => {
     const leadsDoUsuario = isVendedor 
@@ -733,6 +751,7 @@ export default function CRMPage() {
                   setTipoFiltroData("entrada");
                   setFiltroDataInicio("");
                   setFiltroDataFim("");
+                  setPaginaAtual(1);
                 }}
                 className="w-full"
               >
@@ -740,7 +759,39 @@ export default function CRMPage() {
               </Button>
             </div>
           </div>
-        </div>
+
+          {/* Paginação Global */}
+          {visualizacao === "kanban" && totalPaginas > 1 && (
+            <div className="mt-4 bg-gray-800 rounded-lg py-3 px-4">
+              <div className="flex items-center justify-between">
+                <span className="text-white text-sm font-medium">Páginas:</span>
+                <div className="flex items-center gap-2">
+                  {Array.from({ length: Math.min(totalPaginas, 10) }, (_, i) => i + 1).map(numero => (
+                    <button
+                      key={numero}
+                      onClick={() => setPaginaAtual(numero)}
+                      className={`w-8 h-8 rounded flex items-center justify-center text-sm font-medium transition-colors ${
+                        paginaAtual === numero 
+                          ? 'bg-blue-600 text-white' 
+                          : 'text-gray-300 hover:text-white hover:bg-gray-700'
+                      }`}
+                    >
+                      {numero}
+                    </button>
+                  ))}
+                  {totalPaginas > 10 && (
+                    <button
+                      onClick={() => setPaginaAtual(Math.min(paginaAtual + 1, totalPaginas))}
+                      className="text-blue-400 hover:text-blue-300 text-sm font-medium ml-2"
+                    >
+                      Mais
+                    </button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+          </div>
 
         {/* Alerta de Duplicados */}
         {leadsDuplicados.size > 0 && (
@@ -762,12 +813,13 @@ export default function CRMPage() {
 
         {/* Visualização Kanban ou Cards */}
         {visualizacao === "kanban" ? (
-          <div className="h-[calc(100vh-450px)] min-h-[600px]">
+          <div className="h-[calc(100vh-500px)] min-h-[600px]">
             <KanbanView
               leads={leadsFiltrados}
               onStatusChange={handleStatusChange}
               onLeadClick={handleAbrirDetalhes}
               colunasVisiveis={colunasVisiveis}
+              paginaAtual={paginaAtual}
             />
           </div>
         ) : (
