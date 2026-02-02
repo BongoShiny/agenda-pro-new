@@ -32,6 +32,7 @@ export default function HomePage() {
   const navigate = useNavigate();
   const [usuarioAtual, setUsuarioAtual] = useState(null);
   const [carregando, setCarregando] = useState(true);
+  const [modoEditarAnotacoes, setModoEditarAnotacoes] = useState(null);
   const hoje = format(new Date(), "yyyy-MM-dd");
   const [dataInicio, setDataInicio] = useState(hoje);
   const [dataFim, setDataFim] = useState(hoje);
