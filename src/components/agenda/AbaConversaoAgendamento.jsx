@@ -87,6 +87,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
 
       await updateAgendamentoMutation.mutateAsync({
         data_conversao: formData.data_conversao,
+        status: "concluido",
         observacoes_pos_venda: `Não Converteu: ${formData.motivo_nao_conversao} | Recepção: ${formData.recepcao_nao_fechou}${formData.observacoes ? ` | ${formData.observacoes}` : ""}`,
       });
 
