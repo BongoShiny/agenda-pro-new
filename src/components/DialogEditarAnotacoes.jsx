@@ -60,81 +60,14 @@ export default function DialogEditarAnotacoes({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {tipoEdicao === "completo" && (
-            <>
-              <div className="space-y-2">
-                <Label>Vendedor</Label>
-                <Select value={valores.vendedor_id || ""} onValueChange={(value) => {
-                  const vendedor = vendedores.find(v => v.id === value);
-                  setValores(prev => ({
-                    ...prev,
-                    vendedor_id: value,
-                    vendedor_nome: vendedor?.nome || ""
-                  }));
-                }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sem vendedor" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={null}>Sem vendedor</SelectItem>
-                    {vendedores.filter(v => v.ativo).map(v => (
-                      <SelectItem key={v.id} value={v.id}>{v.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Valor Combinado</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={valores.valor_combinado || ""}
-                    onChange={(e) => setValores(prev => ({ ...prev, valor_combinado: parseFloat(e.target.value) || 0 }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Sinal</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={valores.sinal || ""}
-                    onChange={(e) => setValores(prev => ({ ...prev, sinal: parseFloat(e.target.value) || 0 }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Recebimento 2</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={valores.recebimento_2 || ""}
-                    onChange={(e) => setValores(prev => ({ ...prev, recebimento_2: parseFloat(e.target.value) || 0 }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Final</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={valores.final_pagamento || ""}
-                    onChange={(e) => setValores(prev => ({ ...prev, final_pagamento: parseFloat(e.target.value) || 0 }))}
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 pt-2 pb-2 bg-gray-50 p-3 rounded">
-                <div>
-                  <p className="text-sm text-gray-600">Total Pago</p>
-                  <p className="text-lg font-bold text-emerald-600">{formatarMoeda(totalPago)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-gray-600">Falta Quanto</p>
-                  <p className="text-lg font-bold text-orange-600">{formatarMoeda(faltaQuanto)}</p>
-                </div>
-              </div>
-            </>
-          )}
+          <div className="space-y-2">
+            <Label>Data do Pagamento</Label>
+            <Input
+              type="date"
+              value={valores.data_pagamento || ""}
+              onChange={(e) => setValores(prev => ({ ...prev, data_pagamento: e.target.value }))}
+            />
+          </div>
 
           <div className="space-y-2">
             <Label>Anotação da Venda</Label>
