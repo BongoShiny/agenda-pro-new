@@ -13,6 +13,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Save } from "lucide-react";
 
+const formatarDataPagamento = (dataString) => {
+  if (!dataString || !/^\d{4}-\d{2}-\d{2}$/.test(dataString)) return "";
+  return dataString;
+};
+
 const formatarMoeda = (valor) => {
   if (!valor && valor !== 0) return "R$ 0,00";
   return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(valor);
