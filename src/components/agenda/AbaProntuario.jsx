@@ -769,13 +769,37 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
 
           <div>
             <Label className="text-sm font-medium text-gray-700">MÚSCULOS LIBERADOS DOS QUADRIS E COXAS:</Label>
-            <Textarea
-              value={prontuario.musculos_quadris_coxas}
-              onChange={(e) => setProntuario({ ...prontuario, musculos_quadris_coxas: e.target.value })}
-              placeholder="Liste os músculos..."
-              rows={2}
-              className="mt-1"
-            />
+            <div className="mt-1 flex flex-wrap gap-2 p-3 border rounded-md bg-white min-h-12">
+              {prontuario.musculos_quadris_coxas?.split(',').filter(Boolean).map((m, idx) => (
+                <span key={idx} className="bg-pink-100 text-pink-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                  {m.trim()}
+                  <button onClick={() => setProntuario({
+                    ...prontuario,
+                    musculos_quadris_coxas: prontuario.musculos_quadris_coxas.split(',').filter((_, i) => i !== idx).join(',')
+                  })} className="hover:text-pink-600">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+              <Select onValueChange={(value) => {
+                const atual = prontuario.musculos_quadris_coxas?.split(',').filter(Boolean) || [];
+                if (!atual.includes(value)) {
+                  setProntuario({
+                    ...prontuario,
+                    musculos_quadris_coxas: [...atual, value].join(',')
+                  });
+                }
+              }}>
+                <SelectTrigger className="w-32 h-8">
+                  <SelectValue placeholder="Adicionar músculo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {musculosOptions.quadris_coxas.map(m => (
+                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div>
