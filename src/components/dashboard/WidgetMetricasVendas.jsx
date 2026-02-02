@@ -579,6 +579,7 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                 <Table>
                   <TableHeader>
                     <TableRow>
+                      <TableHead className="w-10">Editar</TableHead>
                       <TableHead>Data/Hora Criação</TableHead>
                       <TableHead>Cliente</TableHead>
                       <TableHead>Telefone</TableHead>
