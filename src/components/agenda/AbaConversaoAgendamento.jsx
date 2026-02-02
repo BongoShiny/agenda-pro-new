@@ -76,7 +76,8 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         recebimento_2: parseFloat(formData.recebimento_2) || 0,
         final_pagamento: parseFloat(formData.final_pagamento) || 0,
         forma_pagamento: formData.forma_pagamento,
-        observacoes_pos_venda: `Plano: ${formData.pacote_fechado} | Recepção: ${formData.recepcao_fechou} | Motivos: ${formData.motivos_fechamento.join(", ")} ${formData.observacoes ? `| ${formData.observacoes}` : ""}`,
+        observacoes: formData.observacoes,
+        observacoes_pos_venda: `Plano: ${formData.pacote_fechado} | Recepção: ${formData.recepcao_fechou} | Motivos: ${formData.motivos_fechamento.join(", ")}`,
       });
 
       alert("🎉 Plano fechado com sucesso!");
@@ -89,7 +90,8 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
       await updateAgendamentoMutation.mutateAsync({
         data_conversao: formData.data_conversao,
         status: "concluido",
-        observacoes_pos_venda: `Não Converteu: ${formData.motivo_nao_conversao} | Recepção: ${formData.recepcao_nao_fechou}${formData.observacoes ? ` | ${formData.observacoes}` : ""}`,
+        observacoes: formData.observacoes,
+        observacoes_pos_venda: `Não Converteu: ${formData.motivo_nao_conversao} | Recepção: ${formData.recepcao_nao_fechou}`,
       });
 
       alert("✅ Tentativa registrada!");
