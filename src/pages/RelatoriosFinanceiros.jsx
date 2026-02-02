@@ -2300,7 +2300,7 @@ export default function RelatoriosFinanceirosPage() {
                           </div>
                         </div>
 
-                        {/* Tabela Fechados */}
+                        {/* Tabela Fechados com Observações */}
                         <div className="overflow-x-auto">
                           <Table>
                             <TableHeader>
@@ -2314,24 +2314,41 @@ export default function RelatoriosFinanceirosPage() {
                                 <TableHead className="text-right">Final</TableHead>
                                 <TableHead className="text-right">Total Recebido</TableHead>
                                 <TableHead className="text-right">A Receber</TableHead>
+                                <TableHead>Observações</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
                               {Object.values(porTerapeutaRecepcaoFechados)
                                 .sort((a, b) => b.totalRecebido - a.totalRecebido)
-                                .map((dados, idx) => (
-                                  <TableRow key={idx}>
-                                    <TableCell className="font-medium">{dados.terapeuta}</TableCell>
-                                    <TableCell className="font-medium">{dados.recepcao}</TableCell>
-                                    <TableCell className="text-right font-semibold">{dados.conversoes}</TableCell>
-                                    <TableCell className="text-right">{formatarMoeda(dados.valorCombinado)}</TableCell>
-                                    <TableCell className="text-right text-green-600">{formatarMoeda(dados.sinal)}</TableCell>
-                                    <TableCell className="text-right text-green-600">{formatarMoeda(dados.recebimento2)}</TableCell>
-                                    <TableCell className="text-right text-green-600">{formatarMoeda(dados.finalPagamento)}</TableCell>
-                                    <TableCell className="text-right text-emerald-600 font-semibold">{formatarMoeda(dados.totalRecebido)}</TableCell>
-                                    <TableCell className="text-right text-orange-600 font-semibold">{formatarMoeda(dados.aReceber)}</TableCell>
-                                  </TableRow>
-                                ))}
+                                .map((dados, idx) => {
+                                  // Buscar observações do primeiro agendamento com essa dupla terapeuta/recepção
+                                  const agendamentoComObs = agendamentosFechados.find(ag => 
+                                    (ag.conversao_profissional_nome || ag.profissional_nome) === dados.terapeuta &&
+                                    (ag.conversao_recepcionista) === dados.recepcao
+                                  );
+                                  return (
+                                    <TableRow key={idx}>
+                                      <TableCell className="font-medium">{dados.terapeuta}</TableCell>
+                                      <TableCell className="font-medium">{dados.recepcao}</TableCell>
+                                      <TableCell className="text-right font-semibold">{dados.conversoes}</TableCell>
+                                      <TableCell className="text-right">{formatarMoeda(dados.valorCombinado)}</TableCell>
+                                      <TableCell className="text-right text-green-600">{formatarMoeda(dados.sinal)}</TableCell>
+                                      <TableCell className="text-right text-green-600">{formatarMoeda(dados.recebimento2)}</TableCell>
+                                      <TableCell className="text-right text-green-600">{formatarMoeda(dados.finalPagamento)}</TableCell>
+                                      <TableCell className="text-right text-emerald-600 font-semibold">{formatarMoeda(dados.totalRecebido)}</TableCell>
+                                      <TableCell className="text-right text-orange-600 font-semibold">{formatarMoeda(dados.aReceber)}</TableCell>
+                                      <TableCell className="max-w-xs">
+                                        {agendamentoComObs?.observacoes ? (
+                                          <span className="text-xs text-gray-600 line-clamp-2">
+                                            {agendamentoComObs.observacoes}
+                                          </span>
+                                        ) : (
+                                          <span className="text-gray-400 text-xs">-</span>
+                                        )}
+                                      </TableCell>
+                                    </TableRow>
+                                  );
+                                })}
                             </TableBody>
                           </Table>
                           {totalFechados === 0 && (
