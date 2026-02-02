@@ -559,13 +559,37 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
 
           <div>
             <Label className="text-sm font-medium text-gray-700">TÉCNICAS UTILIZADAS:</Label>
-            <Textarea
-              value={prontuario.tecnicas_utilizadas}
-              onChange={(e) => setProntuario({ ...prontuario, tecnicas_utilizadas: e.target.value })}
-              placeholder="Descreva as técnicas utilizadas..."
-              rows={2}
-              className="mt-1"
-            />
+            <div className="mt-1 flex flex-wrap gap-2 p-3 border rounded-md bg-white min-h-12">
+              {prontuario.tecnicas_utilizadas?.split(',').filter(Boolean).map((tecnica, idx) => (
+                <span key={idx} className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                  {tecnica.trim()}
+                  <button onClick={() => setProntuario({
+                    ...prontuario,
+                    tecnicas_utilizadas: prontuario.tecnicas_utilizadas.split(',').filter((_, i) => i !== idx).join(',')
+                  })} className="hover:text-blue-600">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+              <Select onValueChange={(value) => {
+                const atual = prontuario.tecnicas_utilizadas?.split(',').filter(Boolean) || [];
+                if (!atual.includes(value)) {
+                  setProntuario({
+                    ...prontuario,
+                    tecnicas_utilizadas: [...atual, value].join(',')
+                  });
+                }
+              }}>
+                <SelectTrigger className="w-32 h-8">
+                  <SelectValue placeholder="Adicionar técnica" />
+                </SelectTrigger>
+                <SelectContent>
+                  {musculosOptions.tecnicas.map(t => (
+                    <SelectItem key={t} value={t}>{t}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div>
