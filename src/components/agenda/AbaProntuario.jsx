@@ -39,17 +39,24 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
 
   const queryClient = useQueryClient();
 
+  // Buscar serviços disponíveis
+   const { data: servicos = [] } = useQuery({
+     queryKey: ['servicos'],
+     queryFn: () => base44.entities.Servico.list(),
+     initialData: []
+   });
+
   // Buscar prontuário existente
-  const { data: prontuarioExistente, isLoading } = useQuery({
-    queryKey: ['prontuario', agendamento.id],
-    queryFn: async () => {
-      const prontuarios = await base44.entities.Prontuario.filter({
-        agendamento_id: agendamento.id
-      });
-      return prontuarios[0] || null;
-    },
-    enabled: !!agendamento?.id
-  });
+   const { data: prontuarioExistente, isLoading } = useQuery({
+     queryKey: ['prontuario', agendamento.id],
+     queryFn: async () => {
+       const prontuarios = await base44.entities.Prontuario.filter({
+         agendamento_id: agendamento.id
+       });
+       return prontuarios[0] || null;
+     },
+     enabled: !!agendamento?.id
+   });
 
   // Atualizar estado quando prontuario existente mudar
   React.useEffect(() => {
