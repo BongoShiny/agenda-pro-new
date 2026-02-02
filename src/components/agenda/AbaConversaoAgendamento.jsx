@@ -261,20 +261,6 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                </div>
 
                <div>
-                 <Label>Recepção que Não Fechou</Label>
-                 <Select value={formData.recepcao_nao_fechou} onValueChange={(value) => setFormData(prev => ({ ...prev, recepcao_nao_fechou: value }))}>
-                   <SelectTrigger>
-                     <SelectValue placeholder="Selecione a recepcionista" />
-                   </SelectTrigger>
-                   <SelectContent>
-                     {recepcionistas.map(r => (
-                       <SelectItem key={r.id} value={r.nome}>{r.nome}</SelectItem>
-                     ))}
-                   </SelectContent>
-                 </Select>
-               </div>
-
-               <div>
                  <Label>Plano Terapêutico Fechado *</Label>
                 <Select value={formData.pacote_fechado} onValueChange={(value) => setFormData(prev => ({ ...prev, pacote_fechado: value }))}>
                   <SelectTrigger>
