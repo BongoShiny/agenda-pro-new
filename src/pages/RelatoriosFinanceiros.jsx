@@ -1944,10 +1944,12 @@ export default function RelatoriosFinanceirosPage() {
                           </Button>
                         </>
                       ) : (
-                        <Button onClick={handleAtivarModoEditor} variant="outline">
-                          <Edit3 className="w-4 h-4 mr-2" />
-                          Modo Editor
-                        </Button>
+                        <>
+                          <Button onClick={handleAtivarModoEditor} variant="outline">
+                            <Edit3 className="w-4 h-4 mr-2" />
+                            Modo Editor
+                          </Button>
+                        </>
                       )}
                     </div>
                   )}
