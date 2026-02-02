@@ -164,13 +164,15 @@ export default function RankingVendedoresPage() {
   const fimMes = new Date(anoSelecionado, mesSelecionado, 0).toISOString().split('T')[0];
 
   const agendamentosFiltrados = agendamentos.filter(ag => {
-    // Usar data_pagamento ao invés de data
-    const dataFiltro = ag.data_pagamento || ag.data;
+    // Mesma lógica das Métricas de Vendas
+    if (ag.status === "bloqueio" || ag.tipo === "bloqueio") return false;
+    if (!ag.vendedor_id && !ag.vendedor_nome) return false; // Apenas com vendedor
+    if (!ag.data_pagamento) return false; // Obrigatório ter data de pagamento
     
     if (viewMode === "dia") {
-      return dataFiltro === inicioDia && ag.status !== "cancelado" && ag.status !== "bloqueio";
+      return ag.data_pagamento === inicioDia;
     } else {
-      return dataFiltro >= inicioMes && dataFiltro <= fimMes && ag.status !== "cancelado" && ag.status !== "bloqueio";
+      return ag.data_pagamento >= inicioMes && ag.data_pagamento <= fimMes;
     }
   });
 
