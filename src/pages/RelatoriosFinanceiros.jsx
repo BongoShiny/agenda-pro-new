@@ -1950,6 +1950,7 @@ export default function RelatoriosFinanceirosPage() {
                         <TableHead className="text-right px-4 py-3 min-w-[110px]">Final</TableHead>
                         <TableHead className="text-right px-4 py-3 min-w-[120px]">Total Pago</TableHead>
                         <TableHead className="text-right px-4 py-3 min-w-[110px]">Falta</TableHead>
+                        <TableHead className="px-4 py-3 min-w-[100px]">Conversão</TableHead>
                         <TableHead className="px-4 py-3 min-w-[100px]">Status</TableHead>
                         <TableHead className="px-4 py-3 min-w-[200px]">Anotação da Venda</TableHead>
                         <TableHead className="px-4 py-3 min-w-[110px]">Criado em</TableHead>
@@ -2094,6 +2095,17 @@ export default function RelatoriosFinanceirosPage() {
                             </TableCell>
                             <TableCell className="text-right text-orange-600 px-4 py-3">
                               {formatarMoeda(faltaQuanto)}
+                            </TableCell>
+                            <TableCell className="px-4 py-3">
+                              {(() => {
+                                const obsVenda = ag.observacoes_pos_venda || "";
+                                if (obsVenda.includes("Plano:")) {
+                                  return <span className="text-xs px-2 py-1 rounded-full bg-green-100 text-green-800 font-semibold">✅ SIM, FECHOU</span>;
+                                } else if (obsVenda.includes("Não Converteu:")) {
+                                  return <span className="text-xs px-2 py-1 rounded-full bg-red-100 text-red-800 font-semibold">❌ NÃO FECHOU</span>;
+                                }
+                                return <span className="text-xs text-gray-400">-</span>;
+                              })()}
                             </TableCell>
                             <TableCell className="px-4 py-3">
                               <span className="text-xs px-2 py-1 rounded-full bg-gray-100">
