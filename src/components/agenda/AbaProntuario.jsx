@@ -699,13 +699,37 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
 
           <div>
             <Label className="text-sm font-medium text-gray-700">MÚSCULOS LIBERADOS DOS OMBROS E BRAÇOS:</Label>
-            <Textarea
-              value={prontuario.musculos_ombros_bracos}
-              onChange={(e) => setProntuario({ ...prontuario, musculos_ombros_bracos: e.target.value })}
-              placeholder="Liste os músculos..."
-              rows={2}
-              className="mt-1"
-            />
+            <div className="mt-1 flex flex-wrap gap-2 p-3 border rounded-md bg-white min-h-12">
+              {prontuario.musculos_ombros_bracos?.split(',').filter(Boolean).map((m, idx) => (
+                <span key={idx} className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                  {m.trim()}
+                  <button onClick={() => setProntuario({
+                    ...prontuario,
+                    musculos_ombros_bracos: prontuario.musculos_ombros_bracos.split(',').filter((_, i) => i !== idx).join(',')
+                  })} className="hover:text-red-600">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+              <Select onValueChange={(value) => {
+                const atual = prontuario.musculos_ombros_bracos?.split(',').filter(Boolean) || [];
+                if (!atual.includes(value)) {
+                  setProntuario({
+                    ...prontuario,
+                    musculos_ombros_bracos: [...atual, value].join(',')
+                  });
+                }
+              }}>
+                <SelectTrigger className="w-32 h-8">
+                  <SelectValue placeholder="Adicionar músculo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {musculosOptions.ombros_bracos.map(m => (
+                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div>
