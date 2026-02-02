@@ -37,6 +37,13 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
     initialData: [],
   });
 
+  const { data: recepcionistas = [] } = useQuery({
+    queryKey: ['recepcionistas', agendamento.unidade_id],
+    queryFn: () => base44.entities.Recepcionista.filter({ unidade_id: agendamento.unidade_id }),
+    initialData: [],
+    enabled: !!agendamento.unidade_id,
+  });
+
   const updateAgendamentoMutation = useMutation({
     mutationFn: (data) => base44.entities.Agendamento.update(agendamento.id, data),
     onSuccess: () => {
@@ -241,20 +248,30 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
 
                <div>
                  <Label>Recepção que Fechou *</Label>
-                 <Input
-                   value={formData.recepcao_fechou}
-                   onChange={(e) => setFormData(prev => ({ ...prev, recepcao_fechou: e.target.value }))}
-                   placeholder="Nome da recepcionista"
-                 />
+                 <Select value={formData.recepcao_fechou} onValueChange={(value) => setFormData(prev => ({ ...prev, recepcao_fechou: value }))}>
+                   <SelectTrigger>
+                     <SelectValue placeholder="Selecione a recepcionista" />
+                   </SelectTrigger>
+                   <SelectContent>
+                     {recepcionistas.map(r => (
+                       <SelectItem key={r.id} value={r.nome}>{r.nome}</SelectItem>
+                     ))}
+                   </SelectContent>
+                 </Select>
                </div>
 
                <div>
                  <Label>Recepção que Não Fechou</Label>
-                 <Input
-                   value={formData.recepcao_nao_fechou}
-                   onChange={(e) => setFormData(prev => ({ ...prev, recepcao_nao_fechou: e.target.value }))}
-                   placeholder="Nome da recepcionista (se aplicável)"
-                 />
+                 <Select value={formData.recepcao_nao_fechou} onValueChange={(value) => setFormData(prev => ({ ...prev, recepcao_nao_fechou: value }))}>
+                   <SelectTrigger>
+                     <SelectValue placeholder="Selecione a recepcionista" />
+                   </SelectTrigger>
+                   <SelectContent>
+                     {recepcionistas.map(r => (
+                       <SelectItem key={r.id} value={r.nome}>{r.nome}</SelectItem>
+                     ))}
+                   </SelectContent>
+                 </Select>
                </div>
 
                <div>
@@ -358,11 +375,16 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
               
               <div>
                 <Label>Recepção que Não Fechou *</Label>
-                <Input
-                  value={formData.recepcao_nao_fechou}
-                  onChange={(e) => setFormData(prev => ({ ...prev, recepcao_nao_fechou: e.target.value }))}
-                  placeholder="Nome da recepcionista"
-                />
+                <Select value={formData.recepcao_nao_fechou} onValueChange={(value) => setFormData(prev => ({ ...prev, recepcao_nao_fechou: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a recepcionista" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {recepcionistas.map(r => (
+                      <SelectItem key={r.id} value={r.nome}>{r.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               <div>
