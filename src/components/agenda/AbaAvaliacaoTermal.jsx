@@ -7,12 +7,16 @@ import { Label } from "@/components/ui/label";
 
 export default function AbaAvaliacaoTermal({ agendamento, usuarioAtual }) {
   const [uploading, setUploading] = useState(false);
+  const [agendamentoAtualizado, setAgendamentoAtualizado] = useState(agendamento);
   const queryClient = useQueryClient();
+
+  // Usar agendamento atualizado ou fallback ao agendamento original
+  const ag = agendamentoAtualizado || agendamento;
 
   // Extrair URLs das fotos existentes
   const fotosExistentes = [];
   for (let i = 1; i <= 20; i++) {
-    const url = agendamento[`avaliacao_termal_${i}`];
+    const url = ag[`avaliacao_termal_${i}`];
     if (url) {
       fotosExistentes.push({ index: i, url });
     }
@@ -25,7 +29,7 @@ export default function AbaAvaliacaoTermal({ agendamento, usuarioAtual }) {
       // Encontrar próximo slot disponível (1 a 20)
       let proximoSlot = 1;
       for (let i = 1; i <= 20; i++) {
-        if (!agendamento[`avaliacao_termal_${i}`]) {
+        if (!ag[`avaliacao_termal_${i}`]) {
           proximoSlot = i;
           break;
         }
@@ -36,22 +40,27 @@ export default function AbaAvaliacaoTermal({ agendamento, usuarioAtual }) {
         [`avaliacao_termal_${proximoSlot}`]: file_url
       };
 
-      await base44.entities.Agendamento.update(agendamento.id, updateData);
+      const agendamentoAtualizado = await base44.entities.Agendamento.update(ag.id, updateData);
 
       // Log da ação
       await base44.entities.LogAcao.create({
         tipo: "editou_agendamento",
         usuario_email: usuarioAtual?.email || "sistema",
-        descricao: `Anexou foto ${proximoSlot} da avaliação termal: ${agendamento.cliente_nome} - ${agendamento.data}`,
+        descricao: `Anexou foto ${proximoSlot} da avaliação termal: ${ag.cliente_nome} - ${ag.data}`,
         entidade_tipo: "Agendamento",
-        entidade_id: agendamento.id
+        entidade_id: ag.id
       });
+
+      // Atualizar estado local imediatamente
+      setAgendamentoAtualizado(prev => ({
+        ...prev,
+        [`avaliacao_termal_${proximoSlot}`]: file_url
+      }));
 
       return file_url;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
-      setUploading(false);
     },
     onError: (error) => {
       alert("❌ Erro ao fazer upload: " + error.message);
@@ -65,16 +74,22 @@ export default function AbaAvaliacaoTermal({ agendamento, usuarioAtual }) {
         [`avaliacao_termal_${index}`]: null
       };
 
-      await base44.entities.Agendamento.update(agendamento.id, updateData);
+      await base44.entities.Agendamento.update(ag.id, updateData);
 
       // Log da ação
       await base44.entities.LogAcao.create({
         tipo: "editou_agendamento",
         usuario_email: usuarioAtual?.email || "sistema",
-        descricao: `Removeu foto ${index} da avaliação termal: ${agendamento.cliente_nome} - ${agendamento.data}`,
+        descricao: `Removeu foto ${index} da avaliação termal: ${ag.cliente_nome} - ${ag.data}`,
         entidade_tipo: "Agendamento",
-        entidade_id: agendamento.id
+        entidade_id: ag.id
       });
+
+      // Atualizar estado local
+      setAgendamentoAtualizado(prev => ({
+        ...prev,
+        [`avaliacao_termal_${index}`]: null
+      }));
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
@@ -158,6 +173,7 @@ export default function AbaAvaliacaoTermal({ agendamento, usuarioAtual }) {
             className="hidden"
             onChange={handleFileSelect}
             disabled={uploading || fotosExistentes.length >= 20}
+            key={fotosExistentes.length}
           />
         </Label>
       </div>
