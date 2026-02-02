@@ -501,16 +501,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                 </div>
               </div>
 
-              {/* SEÇÃO 4: OBSERVAÇÕES ADICIONAIS */}
-              <div className="bg-purple-50 rounded-lg p-4 space-y-4">
-                <h4 className="font-semibold text-gray-900 border-b pb-2">📝 Observações Adicionais</h4>
-                <Textarea
-                  value={formData.observacoes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
-                  placeholder="Registre detalhes adicionais importantes sobre a conversão, interações específicas ou informações relevantes para análise financeira..."
-                  rows={4}
-                />
-              </div>
+
             </div>
           )}
 
