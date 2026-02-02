@@ -117,12 +117,12 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
   const dataInicioFiltro = dataInicioCustom || dataInicio;
   const dataFimFiltro = dataFimCustom || dataFim;
 
-  // Filtrar APENAS vendas com data_pagamento preenchida
+  // Filtrar vendas por data de agendamento (não data_pagamento)
   const vendasPeriodo = agendamentos.filter(ag => {
     if (ag.status === "bloqueio" || ag.tipo === "bloqueio") return false;
-    if (!ag.data_pagamento) return false; // OBRIGATÓRIO: data de pagamento preenchida
+    if (!ag.data) return false;
     
-    return ag.data_pagamento >= dataInicioFiltro && ag.data_pagamento <= dataFimFiltro;
+    return ag.data >= dataInicioFiltro && ag.data <= dataFimFiltro;
   });
 
   // Obter lista única de unidades
