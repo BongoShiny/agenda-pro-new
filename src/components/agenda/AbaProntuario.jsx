@@ -553,16 +553,19 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
         </div>
       ) : (
         <div className="space-y-4">
-          <div>
-            <Label className="text-sm font-medium text-gray-700">TERAPIA REALIZADA:</Label>
-            <Textarea
-              value={prontuario.terapia_realizada}
-              onChange={(e) => setProntuario({ ...prontuario, terapia_realizada: e.target.value })}
-              placeholder="Descreva a terapia realizada..."
-              rows={2}
-              className="mt-1"
-            />
-          </div>
+           <div>
+             <Label className="text-sm font-medium text-gray-700">TERAPIA REALIZADA:</Label>
+             <Select value={prontuario.terapia_realizada} onValueChange={(value) => setProntuario({ ...prontuario, terapia_realizada: value })}>
+               <SelectTrigger className="mt-1">
+                 <SelectValue placeholder="Selecione uma terapia..." />
+               </SelectTrigger>
+               <SelectContent>
+                 {servicos.filter(s => s.ativo).map(servico => (
+                   <SelectItem key={servico.id} value={servico.nome}>{servico.nome}</SelectItem>
+                 ))}
+               </SelectContent>
+             </Select>
+           </div>
 
           <div>
             <Label className="text-sm font-medium text-gray-700">TÉCNICAS UTILIZADAS:</Label>
