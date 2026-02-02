@@ -608,6 +608,17 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                         return (
                           <TableRow key={venda.id}>
                             <TableCell>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => setModoEditarAnotacoes(venda.id)}
+                                className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 h-8 w-8 p-0"
+                                title="Editar agendamento completo"
+                              >
+                                <Edit3 className="w-4 h-4" />
+                              </Button>
+                            </TableCell>
+                            <TableCell>
                               <div className="flex items-center gap-2 text-sm">
                                 <Calendar className="w-3 h-3 text-gray-400" />
                                 {formatarDataHoraBrasilia(venda.created_date).data}
