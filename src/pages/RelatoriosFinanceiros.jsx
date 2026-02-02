@@ -59,6 +59,7 @@ export default function RelatoriosFinanceirosPage() {
   const [profissionalFiltro, setProfissionalFiltro] = useState("todos");
   const [tipoDataFiltro, setTipoDataFiltro] = useState("data_pagamento"); // "data_conversao" ou "data_pagamento"
   const [modoEditor, setModoEditor] = useState(false);
+  const [modoEditarAnotacoes, setModoEditarAnotacoes] = useState(null); // ID do agendamento em edição de anotações
   const [dialogExportarPDF, setDialogExportarPDF] = useState(false);
   const [mesSelecionadoPDF, setMesSelecionadoPDF] = useState("");
   const [tipoRelatorioPDF, setTipoRelatorioPDF] = useState("financeiro");
