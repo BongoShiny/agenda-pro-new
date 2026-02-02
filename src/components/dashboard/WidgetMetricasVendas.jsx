@@ -117,12 +117,12 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
   const dataInicioFiltro = dataInicioCustom || dataInicio;
   const dataFimFiltro = dataFimCustom || dataFim;
 
-  // Filtrar vendas por data de agendamento (não data_pagamento)
+  // Filtrar APENAS vendas com data_pagamento preenchida
   const vendasPeriodo = agendamentos.filter(ag => {
     if (ag.status === "bloqueio" || ag.tipo === "bloqueio") return false;
-    if (!ag.data) return false;
+    if (!ag.data_pagamento) return false; // OBRIGATÓRIO: data de pagamento preenchida
     
-    return ag.data >= dataInicioFiltro && ag.data <= dataFimFiltro;
+    return ag.data_pagamento >= dataInicioFiltro && ag.data_pagamento <= dataFimFiltro;
   });
 
   // Obter lista única de unidades
@@ -160,7 +160,7 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
       const dias = eachDayOfInterval({ start: inicio, end: fim });
       return dias.map(dia => {
         const dataStr = format(dia, 'yyyy-MM-dd');
-        const vendasDia = vendasFiltradas.filter(v => v.data === dataStr);
+        const vendasDia = vendasFiltradas.filter(v => v.data_pagamento === dataStr);
         return {
           data: format(dia, 'dd/MM', { locale: ptBR }),
           vendas: vendasDia.length,
@@ -173,8 +173,8 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
         const inicioSemana = startOfWeek(semana, { locale: ptBR });
         const fimSemana = endOfWeek(semana, { locale: ptBR });
         const vendasSemana = vendasFiltradas.filter(v => {
-          const dataAgendamento = new Date(v.data + 'T12:00:00');
-          return dataAgendamento >= inicioSemana && dataAgendamento <= fimSemana;
+          const dataPagamento = new Date(v.data_pagamento + 'T12:00:00');
+          return dataPagamento >= inicioSemana && dataPagamento <= fimSemana;
         });
         return {
           data: `Sem ${format(inicioSemana, 'dd/MM')}`,
@@ -188,8 +188,8 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
         const inicioMes = startOfMonth(mes);
         const fimMes = endOfMonth(mes);
         const vendasMes = vendasFiltradas.filter(v => {
-          const dataAgendamento = new Date(v.data + 'T12:00:00');
-          return dataAgendamento >= inicioMes && dataAgendamento <= fimMes;
+          const dataPagamento = new Date(v.data_pagamento + 'T12:00:00');
+          return dataPagamento >= inicioMes && dataPagamento <= fimMes;
         });
         return {
           data: format(mes, 'MMM/yyyy', { locale: ptBR }),
