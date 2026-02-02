@@ -40,8 +40,8 @@ export default function RelatoriosCRMPage() {
         fim = hoje;
         break;
       case "mes_atual":
-        // Apenas o mês atual (fevereiro)
-        inicio = startOfMonth(hoje);
+        // Começar a contar apenas a partir de hoje (02/02/2026)
+        inicio = hoje;
         fim = endOfMonth(hoje);
         break;
       case "ano_atual":
