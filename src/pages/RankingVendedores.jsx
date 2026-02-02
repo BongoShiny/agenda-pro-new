@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Trophy, Users, TrendingUp, Target, Edit2, Save, X, Plus } from "lucide-react";
+import { ArrowLeft, Trophy, Users, TrendingUp, Target, Edit2, Save, X, Plus, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -21,6 +21,9 @@ export default function RankingVendedoresPage() {
   const [rankingAnterior, setRankingAnterior] = useState([]);
   const [top1Anterior, setTop1Anterior] = useState(null);
   const [viewMode, setViewMode] = useState("dia"); // "dia" ou "mes"
+  const [diaEspecifico, setDiaEspecifico] = useState(new Date().toISOString().split('T')[0]);
+  const [mesSelecionado, setMesSelecionado] = useState(new Date().getMonth() + 1);
+  const [anoSelecionado, setAnoSelecionado] = useState(new Date().getFullYear());
   const [registroManualOpen, setRegistroManualOpen] = useState(false);
   const [registroManual, setRegistroManual] = useState({
     data: new Date().toISOString().split('T')[0],
@@ -153,13 +156,11 @@ export default function RankingVendedoresPage() {
   });
 
   // Filtrar dados por período
-  const hoje = new Date();
-  hoje.setHours(0, 0, 0, 0);
-  const inicioDia = hoje.toISOString().split('T')[0];
+  const inicioDia = viewMode === "dia" ? diaEspecifico : null;
   
-  const [ano, mes] = mesAno.split('-');
-  const inicioMes = `${ano}-${mes}-01`;
-  const fimMes = new Date(parseInt(ano), parseInt(mes), 0).toISOString().split('T')[0];
+  const mesFormatado = mesSelecionado.toString().padStart(2, '0');
+  const inicioMes = `${anoSelecionado}-${mesFormatado}-01`;
+  const fimMes = new Date(anoSelecionado, mesSelecionado, 0).toISOString().split('T')[0];
 
   // Excluir todo fevereiro de 2026 (considerar apenas a partir de 01/03/2026)
   const dataLimiteFevereiro = "2026-03-01";
@@ -326,6 +327,35 @@ export default function RankingVendedoresPage() {
     });
   };
 
+  const irParaDiaAnterior = () => {
+    const data = new Date(diaEspecifico);
+    data.setDate(data.getDate() - 1);
+    setDiaEspecifico(data.toISOString().split('T')[0]);
+  };
+
+  const irParaProximoDia = () => {
+    const data = new Date(diaEspecifico);
+    data.setDate(data.getDate() + 1);
+    setDiaEspecifico(data.toISOString().split('T')[0]);
+  };
+
+  const meses = [
+    { valor: 1, nome: "Janeiro" },
+    { valor: 2, nome: "Fevereiro" },
+    { valor: 3, nome: "Março" },
+    { valor: 4, nome: "Abril" },
+    { valor: 5, nome: "Maio" },
+    { valor: 6, nome: "Junho" },
+    { valor: 7, nome: "Julho" },
+    { valor: 8, nome: "Agosto" },
+    { valor: 9, nome: "Setembro" },
+    { valor: 10, nome: "Outubro" },
+    { valor: 11, nome: "Novembro" },
+    { valor: 12, nome: "Dezembro" },
+  ];
+
+  const anos = [2024, 2025, 2026, 2027, 2028, 2029, 2030];
+
   const top3 = metricsVendedores.slice(0, 3);
 
   const isSuperior = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin";
@@ -361,23 +391,78 @@ export default function RankingVendedoresPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Select value={viewMode} onValueChange={setViewMode}>
-                <SelectTrigger className="w-40">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="dia">Visão Diária</SelectItem>
-                  <SelectItem value="mes">Visão Mensal</SelectItem>
-                </SelectContent>
-              </Select>
-              {viewMode === "mes" && (
-                <Input
-                  type="month"
-                  value={mesAno}
-                  onChange={(e) => setMesAno(e.target.value)}
-                  className="w-40"
-                />
+              {/* Toggle Visão Mensal / Diária */}
+              <div className="flex rounded-lg border border-gray-300 overflow-hidden">
+                <Button
+                  onClick={() => setViewMode("mes")}
+                  className={`rounded-none ${viewMode === "mes" ? "bg-black text-white" : "bg-white text-gray-700 hover:bg-gray-100"}`}
+                  variant="ghost"
+                >
+                  Visão Mensal
+                </Button>
+                <Button
+                  onClick={() => setViewMode("dia")}
+                  className={`rounded-none ${viewMode === "dia" ? "bg-black text-white" : "bg-white text-gray-700 hover:bg-gray-100"}`}
+                  variant="ghost"
+                >
+                  Visão Diária
+                </Button>
+              </div>
+
+              {/* Filtros de Período */}
+              {viewMode === "mes" ? (
+                <>
+                  <Select value={mesSelecionado.toString()} onValueChange={(v) => setMesSelecionado(parseInt(v))}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {meses.map(m => (
+                        <SelectItem key={m.valor} value={m.valor.toString()}>{m.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select value={anoSelecionado.toString()} onValueChange={(v) => setAnoSelecionado(parseInt(v))}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {anos.map(a => (
+                        <SelectItem key={a} value={a.toString()}>{a}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </>
+              ) : (
+                <div className="flex items-center gap-2 border border-gray-300 rounded-lg px-3 py-2 bg-white">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={irParaDiaAnterior}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Calendar className="w-4 h-4 text-gray-500" />
+                    <Input
+                      type="date"
+                      value={diaEspecifico}
+                      onChange={(e) => setDiaEspecifico(e.target.value)}
+                      className="border-0 w-40 p-0 h-auto focus-visible:ring-0"
+                    />
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={irParaProximoDia}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </Button>
+                </div>
               )}
+
               {isSuperior && (
                 <>
                   <Button onClick={() => setRegistroManualOpen(true)} className="bg-green-600 hover:bg-green-700">
