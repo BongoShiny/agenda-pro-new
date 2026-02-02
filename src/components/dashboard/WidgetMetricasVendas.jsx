@@ -323,6 +323,19 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
     }
   };
 
+  const handleSalvarEdicaoCompleta = async (agendamentoId, dados) => {
+    try {
+      await atualizarAgendamentoMutation.mutateAsync({
+        id: agendamentoId,
+        dados
+      });
+      setModoEditarAnotacoes(null);
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      alert("Erro ao salvar: " + error.message);
+    }
+  };
+
   return (
     <Card className="col-span-full">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
