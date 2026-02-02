@@ -14,7 +14,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
   const [modoRegistro, setModoRegistro] = useState(false);
   const [fechouPacote, setFechouPacote] = useState(null);
   const [formData, setFormData] = useState({
-    data_conversao: format(new Date(), "yyyy-MM-dd"),
+    data_conversao: agendamento.data_conversao || format(new Date(), "yyyy-MM-dd"),
     terapeuta_id: agendamento.profissional_id || "",
     terapeuta_nome: agendamento.profissional_nome || "",
     recepcao_fechou: "",
@@ -23,6 +23,9 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
     valor_original: agendamento.valor_combinado?.toString() || "",
     desconto: "",
     valor_final: agendamento.valor_combinado?.toString() || "",
+    sinal: agendamento.sinal?.toString() || "",
+    recebimento_2: agendamento.recebimento_2?.toString() || "",
+    final_pagamento: agendamento.final_pagamento?.toString() || "",
     forma_pagamento: "pix",
     motivos_fechamento: [],
     observacoes: "",
@@ -65,8 +68,12 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
       }
 
       await updateAgendamentoMutation.mutateAsync({
+        data_conversao: formData.data_conversao,
         status: "concluido",
         valor_combinado: parseFloat(formData.valor_final) || agendamento.valor_combinado,
+        sinal: parseFloat(formData.sinal) || 0,
+        recebimento_2: parseFloat(formData.recebimento_2) || 0,
+        final_pagamento: parseFloat(formData.final_pagamento) || 0,
         observacoes_pos_venda: `Plano: ${formData.pacote_fechado} | Recepção: ${formData.recepcao_fechou} | Motivos: ${formData.motivos_fechamento.join(", ")} ${formData.observacoes ? `| ${formData.observacoes}` : ""}`,
       });
 
@@ -78,6 +85,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
       }
 
       await updateAgendamentoMutation.mutateAsync({
+        data_conversao: formData.data_conversao,
         observacoes_pos_venda: `Não Converteu: ${formData.motivo_nao_conversao} | Recepção: ${formData.recepcao_nao_fechou}${formData.observacoes ? ` | ${formData.observacoes}` : ""}`,
       });
 
@@ -96,6 +104,9 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
       valor_original: agendamento.valor_combinado?.toString() || "",
       desconto: "",
       valor_final: agendamento.valor_combinado?.toString() || "",
+      sinal: agendamento.sinal?.toString() || "",
+      recebimento_2: agendamento.recebimento_2?.toString() || "",
+      final_pagamento: agendamento.final_pagamento?.toString() || "",
       forma_pagamento: "pix",
       motivos_fechamento: [],
       observacoes: "",
@@ -304,6 +315,39 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                     step="0.01"
                     value={formData.valor_final}
                     onChange={(e) => setFormData(prev => ({ ...prev, valor_final: e.target.value }))}
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 pt-4 border-t">
+                <div>
+                  <Label>Sinal</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.sinal}
+                    onChange={(e) => setFormData(prev => ({ ...prev, sinal: e.target.value }))}
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <Label>Recebimento 2</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.recebimento_2}
+                    onChange={(e) => setFormData(prev => ({ ...prev, recebimento_2: e.target.value }))}
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <Label>Pagamento Final</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.final_pagamento}
+                    onChange={(e) => setFormData(prev => ({ ...prev, final_pagamento: e.target.value }))}
                     placeholder="0"
                   />
                 </div>
