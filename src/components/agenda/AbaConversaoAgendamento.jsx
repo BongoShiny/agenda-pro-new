@@ -75,9 +75,15 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         sinal: parseFloat(formData.sinal) || 0,
         recebimento_2: parseFloat(formData.recebimento_2) || 0,
         final_pagamento: parseFloat(formData.final_pagamento) || 0,
-        forma_pagamento: formData.forma_pagamento,
         observacoes: formData.observacoes,
-        observacoes_pos_venda: `Plano: ${formData.pacote_fechado} | Recepção: ${formData.recepcao_fechou} | Motivos: ${formData.motivos_fechamento.join(", ")}`,
+        conversao_plano: formData.pacote_fechado,
+        conversao_profissional_id: formData.terapeuta_id,
+        conversao_profissional_nome: formData.terapeuta_nome,
+        conversao_recepcionista: formData.recepcao_fechou,
+        conversao_motivos: formData.motivos_fechamento.join(", "),
+        conversao_forma_pagamento: formData.forma_pagamento,
+        conversao_desconto: parseFloat(formData.desconto) || 0,
+        conversao_converteu: true,
       });
 
       alert("🎉 Plano fechado com sucesso!");
@@ -91,7 +97,9 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         data_conversao: formData.data_conversao,
         status: "concluido",
         observacoes: formData.observacoes,
-        observacoes_pos_venda: `Não Converteu: ${formData.motivo_nao_conversao} | Recepção: ${formData.recepcao_nao_fechou}`,
+        conversao_converteu: false,
+        conversao_motivo_nao_converteu: formData.motivo_nao_conversao,
+        conversao_recepcionista_nao_converteu: formData.recepcao_nao_fechou,
       });
 
       alert("✅ Tentativa registrada!");
