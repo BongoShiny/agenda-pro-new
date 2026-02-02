@@ -83,6 +83,47 @@ export default function HomePage() {
     initialData: [],
   });
 
+  const { data: vendedores = [] } = useQuery({
+    queryKey: ['vendedores-home'],
+    queryFn: () => base44.entities.Vendedor.list("nome"),
+    initialData: [],
+  });
+
+  const queryClient = useQueryClient();
+
+  const atualizarAgendamentoMutation = useMutation({
+    mutationFn: async ({ id, dados }) => {
+      const resultado = await base44.entities.Agendamento.update(id, dados);
+      
+      await base44.entities.LogAcao.create({
+        tipo: "editou_dados_relatorio",
+        usuario_email: usuarioAtual?.email || "sistema",
+        descricao: `Editou dados do agendamento: ${dados.cliente_nome}`,
+        entidade_tipo: "Agendamento",
+        entidade_id: id,
+        dados_novos: JSON.stringify(resultado)
+      });
+      
+      return resultado;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['agendamentos-dashboard'] });
+    },
+  });
+
+  const handleSalvarAnotacoes = async (agendamentoId, dadosNovos) => {
+    try {
+      await atualizarAgendamentoMutation.mutateAsync({
+        id: agendamentoId,
+        dados: dadosNovos
+      });
+      setModoEditarAnotacoes(null);
+    } catch (error) {
+      console.error("Erro ao salvar:", error);
+      alert("Erro ao salvar: " + error.message);
+    }
+  };
+
   if (carregando) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
