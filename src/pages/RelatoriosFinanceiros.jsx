@@ -2213,16 +2213,20 @@ export default function RelatoriosFinanceirosPage() {
               </CardHeader>
               <CardContent>
                 {(() => {
-                   // Filtrar agendamentos com data de conversão preenchida
+                   // Filtrar agendamentos com observacoes_pos_venda (dados de conversão salvos)
                    const agendamentosConvertidos = agendamentos.filter(ag => {
-                     if (!ag.data_conversao) return false;
+                     // Deve ter observacoes_pos_venda preenchida (vem de "Conversão")
+                     if (!ag.observacoes_pos_venda) return false;
                      if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
 
-                     // Aplicar filtro de período baseado em data_conversao
-                     const dataConversaoNorm = ag.data_conversao.substring(0, 10);
+                     // Se tem data_conversao, usar ela; senão usar data_pagamento
+                     const dataFiltro = ag.data_conversao || ag.data_pagamento;
+                     if (!dataFiltro) return false;
+
+                     const dataFiltroNorm = dataFiltro.substring(0, 10);
                      const dataInicioNorm = dataInicio.substring(0, 10);
                      const dataFimNorm = dataFim.substring(0, 10);
-                     if (dataConversaoNorm < dataInicioNorm || dataConversaoNorm > dataFimNorm) return false;
+                     if (dataFiltroNorm < dataInicioNorm || dataFiltroNorm > dataFimNorm) return false;
 
                      // Filtro de unidade
                      if (unidadeFiltro !== "todas" && ag.unidade_id !== unidadeFiltro) return false;
