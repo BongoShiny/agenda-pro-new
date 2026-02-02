@@ -555,16 +555,37 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
         <div className="space-y-4">
            <div>
              <Label className="text-sm font-medium text-gray-700">TERAPIA REALIZADA:</Label>
-             <Select value={prontuario.terapia_realizada} onValueChange={(value) => setProntuario({ ...prontuario, terapia_realizada: value })}>
-               <SelectTrigger className="mt-1">
-                 <SelectValue placeholder="Selecione uma terapia..." />
-               </SelectTrigger>
-               <SelectContent>
-                 {servicos.filter(s => s.ativo).map(servico => (
-                   <SelectItem key={servico.id} value={servico.nome}>{servico.nome}</SelectItem>
-                 ))}
-               </SelectContent>
-             </Select>
+             <div className="mt-1 flex flex-wrap gap-2 p-3 border rounded-md bg-white min-h-12">
+               {prontuario.terapia_realizada?.split(',').filter(Boolean).map((terapia, idx) => (
+                 <span key={idx} className="bg-yellow-100 text-yellow-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                   {terapia.trim()}
+                   <button onClick={() => setProntuario({
+                     ...prontuario,
+                     terapia_realizada: prontuario.terapia_realizada.split(',').filter((_, i) => i !== idx).join(',')
+                   })} className="hover:text-yellow-600">
+                     <X className="w-3 h-3" />
+                   </button>
+                 </span>
+               ))}
+               <Select onValueChange={(value) => {
+                 const atual = prontuario.terapia_realizada?.split(',').filter(Boolean) || [];
+                 if (!atual.includes(value)) {
+                   setProntuario({
+                     ...prontuario,
+                     terapia_realizada: [...atual, value].join(',')
+                   });
+                 }
+               }}>
+                 <SelectTrigger className="w-40 h-8">
+                   <SelectValue placeholder="Adicionar terapia..." />
+                 </SelectTrigger>
+                 <SelectContent>
+                   {servicos.filter(s => s.ativo).map(servico => (
+                     <SelectItem key={servico.id} value={servico.nome}>{servico.nome}</SelectItem>
+                   ))}
+                 </SelectContent>
+               </Select>
+             </div>
            </div>
 
           <div>
