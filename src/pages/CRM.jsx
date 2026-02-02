@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -51,7 +51,7 @@ export default function CRMPage() {
     queryKey: ['leads'],
     queryFn: () => base44.entities.Lead.list("-created_date"),
     initialData: [],
-    refetchInterval: 2000, // Atualizar a cada 2 segundos
+    staleTime: 30000, // Cache por 30 segundos
   });
 
   // Subscrição em tempo real para sincronizar com outros usuários
@@ -291,15 +291,50 @@ export default function CRMPage() {
     v.nome === user?.full_name || v.email === user?.email
   );
 
-  // Buscar todos os agendamentos para usar nos filtros
+  // Buscar agendamentos apenas quando filtros de recepção/terapeuta/data de pagamento estiverem ativos
+  const precisaAgendamentos = filtroRecepcao !== "todas" || filtroTerapeuta !== "todos" || tipoFiltroData === "pagamento";
+  
   const { data: todosAgendamentos = [] } = useQuery({
     queryKey: ['agendamentos-filtro-crm'],
     queryFn: () => base44.entities.Agendamento.list(),
     initialData: [],
+    enabled: precisaAgendamentos,
+    staleTime: 60000, // Cache por 1 minuto
   });
 
+  // Memoizar telefones duplicados para melhor performance
+  const leadsDuplicados = useMemo(() => {
+    const duplicados = new Set();
+    const telefonesMap = new Map();
+    
+    leads.forEach(lead => {
+      const telefoneNormalizado = (lead.telefone || '').replace(/\D/g, '');
+      if (telefoneNormalizado.length >= 10) {
+        if (telefonesMap.has(telefoneNormalizado)) {
+          duplicados.add(lead.id);
+          duplicados.add(telefonesMap.get(telefoneNormalizado));
+        } else {
+          telefonesMap.set(telefoneNormalizado, lead.id);
+        }
+      }
+    });
+    
+    return duplicados;
+  }, [leads]);
+
+  // Memoizar vendedor e recepcionista do usuário
+  const vendedorDoUsuario = useMemo(() => 
+    vendedores.find(v => v.nome === user?.full_name || v.email === user?.email),
+    [vendedores, user]
+  );
+
+  const recepcionistaDoUsuario = useMemo(() => 
+    recepcionistas.find(r => r.email === user?.email),
+    [recepcionistas, user]
+  );
+
   // Filtrar leads baseado no cargo
-  const leadsFiltrados = leads.filter(lead => {
+  const leadsFiltrados = useMemo(() => leads.filter(lead => {
     // VENDEDOR: vê seus próprios leads + avulso + plano terapêutico (que ele criou)
     if (isVendedor) {
       // Deve ser do vendedor
@@ -397,19 +432,23 @@ export default function CRMPage() {
     }
 
     return matchBusca && matchStatus && matchUnidade && matchVendedor && matchData && matchRecepcao && matchTerapeuta;
-  });
+  }), [leads, busca, filtroStatus, filtroUnidade, filtroVendedor, filtroDataInicio, filtroDataFim, 
+      tipoFiltroData, filtroRecepcao, filtroTerapeuta, todosAgendamentos, isVendedor, isRecepcao, 
+      vendedorDoUsuario, recepcionistaDoUsuario, recepcionistas]);
 
-  // Estatísticas (filtradas por usuário)
-  const leadsDoUsuario = isVendedor 
-    ? leads.filter(l => l.vendedor_id === vendedorDoUsuario?.id)
-    : leads;
+  // Estatísticas (filtradas por usuário) - memoizadas
+  const stats = useMemo(() => {
+    const leadsDoUsuario = isVendedor 
+      ? leads.filter(l => l.vendedor_id === vendedorDoUsuario?.id)
+      : leads;
 
-  const stats = {
-    lead: leadsDoUsuario.filter(l => l.status === "lead").length,
-    avulso: leadsDoUsuario.filter(l => l.status === "avulso").length,
-    planoTerapeutico: leadsDoUsuario.filter(l => l.status === "plano_terapeutico").length,
-    renovacao: leadsDoUsuario.filter(l => l.status === "renovacao").length,
-  };
+    return {
+      lead: leadsDoUsuario.filter(l => l.status === "lead").length,
+      avulso: leadsDoUsuario.filter(l => l.status === "avulso").length,
+      planoTerapeutico: leadsDoUsuario.filter(l => l.status === "plano_terapeutico").length,
+      renovacao: leadsDoUsuario.filter(l => l.status === "renovacao").length,
+    };
+  }, [leads, isVendedor, vendedorDoUsuario]);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
