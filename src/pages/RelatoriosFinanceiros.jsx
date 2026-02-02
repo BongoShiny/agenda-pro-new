@@ -2371,10 +2371,12 @@ export default function RelatoriosFinanceirosPage() {
                               <TableRow className="bg-red-50">
                                 <TableHead>Cliente</TableHead>
                                 <TableHead>Telefone</TableHead>
+                                <TableHead>Unidade</TableHead>
                                 <TableHead>Data Conversão</TableHead>
                                 <TableHead>Terapeuta</TableHead>
                                 <TableHead>Recepção</TableHead>
                                 <TableHead>Motivo</TableHead>
+                                <TableHead>Observações</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -2384,12 +2386,22 @@ export default function RelatoriosFinanceirosPage() {
                                   <TableRow key={ag.id}>
                                     <TableCell className="font-semibold">{ag.cliente_nome}</TableCell>
                                     <TableCell className="text-sm">{ag.cliente_telefone || "-"}</TableCell>
+                                    <TableCell className="text-sm">{ag.unidade_nome || "-"}</TableCell>
                                     <TableCell>
                                       {ag.data_conversao ? format(criarDataPura(ag.data_conversao), "dd/MM/yyyy", { locale: ptBR }) : "-"}
                                     </TableCell>
                                     <TableCell>{ag.conversao_profissional_nome || ag.profissional_nome || "-"}</TableCell>
                                     <TableCell>{ag.conversao_recepcionista_nao_converteu || "-"}</TableCell>
                                     <TableCell className="text-xs bg-red-50 px-2 py-1 rounded">{ag.conversao_motivo_nao_converteu || "-"}</TableCell>
+                                    <TableCell className="max-w-xs">
+                                      {ag.observacoes ? (
+                                        <span className="text-xs text-gray-600 line-clamp-2">
+                                          {ag.observacoes}
+                                        </span>
+                                      ) : (
+                                        <span className="text-gray-400 text-xs">-</span>
+                                      )}
+                                    </TableCell>
                                   </TableRow>
                                 ))}
                             </TableBody>
