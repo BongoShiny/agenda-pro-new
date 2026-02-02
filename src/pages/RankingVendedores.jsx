@@ -144,6 +144,14 @@ export default function RankingVendedoresPage() {
     },
   });
 
+  // Mutation para deletar registro manual
+  const deleteRegistroMutation = useMutation({
+    mutationFn: (id) => base44.entities.RegistroManualVendas.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['registros-manuais'] });
+    },
+  });
+
   // Filtrar dados por período
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
@@ -153,7 +161,13 @@ export default function RankingVendedoresPage() {
   const inicioMes = `${ano}-${mes}-01`;
   const fimMes = new Date(parseInt(ano), parseInt(mes), 0).toISOString().split('T')[0];
 
+  // Excluir todo fevereiro de 2026 (considerar apenas a partir de 01/03/2026)
+  const dataLimiteFevereiro = "2026-03-01";
+  
   const agendamentosFiltrados = agendamentos.filter(ag => {
+    // Excluir fevereiro 2026
+    if (ag.data < dataLimiteFevereiro) return false;
+    
     if (viewMode === "dia") {
       return ag.data === inicioDia && ag.status !== "cancelado" && ag.status !== "bloqueio";
     } else {
@@ -165,6 +179,9 @@ export default function RankingVendedoresPage() {
     const dataLead = lead.created_date ? lead.created_date.split('T')[0] : null;
     if (!dataLead) return false;
     
+    // Excluir fevereiro 2026
+    if (dataLead < dataLimiteFevereiro) return false;
+    
     if (viewMode === "dia") {
       return dataLead === inicioDia;
     } else {
@@ -173,6 +190,9 @@ export default function RankingVendedoresPage() {
   });
 
   const registrosManuaisFiltrados = registrosManuais.filter(reg => {
+    // Excluir fevereiro 2026
+    if (reg.data < dataLimiteFevereiro) return false;
+    
     if (viewMode === "dia") {
       return reg.data === inicioDia;
     } else {
@@ -557,6 +577,69 @@ export default function RankingVendedoresPage() {
                     <p className="text-xs text-orange-600">vendas</p>
                   </div>
                 </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* Registros Manuais do Dia */}
+        {isSuperior && registrosManuaisFiltrados.length > 0 && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Registros Manuais - {viewMode === "dia" ? "Hoje" : "Mês"}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {registrosManuaisFiltrados.map(reg => {
+                  const vendedor = vendedores.find(v => v.id === reg.vendedor_id);
+                  return (
+                    <div key={reg.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div className="flex-1 grid grid-cols-6 gap-4 text-sm">
+                        <div>
+                          <p className="text-gray-500 text-xs">Data</p>
+                          <p className="font-medium">{reg.data}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs">Vendedor</p>
+                          <p className="font-medium">{vendedor?.nome || reg.vendedor_nome}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs">Leads</p>
+                          <p className="font-bold text-blue-600">{reg.leads || 0}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs">Avulso</p>
+                          <p className="font-bold text-green-600">{reg.vendas_avulso || 0}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs">Pacote</p>
+                          <p className="font-bold text-purple-600">{reg.vendas_pacote || 0}</p>
+                        </div>
+                        <div>
+                          <p className="text-gray-500 text-xs">Pacotes</p>
+                          <div className="flex gap-1">
+                            {reg.pacote_8 > 0 && <span className="text-xs bg-blue-100 text-blue-800 px-1 rounded">{reg.pacote_8}</span>}
+                            {reg.pacote_16 > 0 && <span className="text-xs bg-green-100 text-green-800 px-1 rounded">{reg.pacote_16}</span>}
+                            {reg.pacote_24 > 0 && <span className="text-xs bg-orange-100 text-orange-800 px-1 rounded">{reg.pacote_24}</span>}
+                            {reg.pacote_48 > 0 && <span className="text-xs bg-purple-100 text-purple-800 px-1 rounded">{reg.pacote_48}</span>}
+                          </div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          if (window.confirm("Deseja remover este registro?")) {
+                            deleteRegistroMutation.mutate(reg.id);
+                          }
+                        }}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
