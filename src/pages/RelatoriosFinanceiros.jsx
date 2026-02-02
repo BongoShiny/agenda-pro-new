@@ -2208,21 +2208,19 @@ export default function RelatoriosFinanceirosPage() {
               <CardHeader>
                 <CardTitle>🤝 Análise Cruzada: Terapeuta x Recepção</CardTitle>
                 <p className="text-sm text-gray-500 mt-1">
-                  Planos terapêuticos fechados - Análise de vendas por terapeuta e recepcionista
+                  Planos terapêuticos fechados - Análise de vendas por terapeuta e recepcionista com dados detalhados de conversão
                 </p>
               </CardHeader>
               <CardContent>
                 {(() => {
-                   // Filtrar agendamentos com observacoes_pos_venda (dados de conversão salvos)
+                   // Filtrar APENAS agendamentos que fecharam plano (data_conversao preenchida)
                    const agendamentosConvertidos = agendamentos.filter(ag => {
-                     // Deve ter observacoes_pos_venda preenchida (vem de "Conversão")
-                     if (!ag.observacoes_pos_venda) return false;
+                     // OBRIGATÓRIO: ter data_conversao preenchida
+                     if (!ag.data_conversao) return false;
                      if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
 
-                     // Se tem data_conversao, usar ela; senão usar data_pagamento
-                     const dataFiltro = ag.data_conversao || ag.data_pagamento;
-                     if (!dataFiltro) return false;
-
+                     // Filtrar por período usando data_conversao
+                     const dataFiltro = ag.data_conversao;
                      const dataFiltroNorm = dataFiltro.substring(0, 10);
                      const dataInicioNorm = dataInicio.substring(0, 10);
                      const dataFimNorm = dataFim.substring(0, 10);
@@ -2237,35 +2235,49 @@ export default function RelatoriosFinanceirosPage() {
                    // Calcular métricas
                    const totalConversoes = agendamentosConvertidos.length;
                    const valorTotalCombinado = agendamentosConvertidos.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
-                   const totalRecebido = agendamentosConvertidos.reduce((sum, ag) => sum + (ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0), 0);
-                   const descontoTotal = valorTotalCombinado - totalRecebido;
+                   const totalSinal = agendamentosConvertidos.reduce((sum, ag) => sum + (ag.sinal || 0), 0);
+                   const totalRecebimento2 = agendamentosConvertidos.reduce((sum, ag) => sum + (ag.recebimento_2 || 0), 0);
+                   const totalFinalPagamento = agendamentosConvertidos.reduce((sum, ag) => sum + (ag.final_pagamento || 0), 0);
+                   const totalRecebido = totalSinal + totalRecebimento2 + totalFinalPagamento;
+                   const totalAReceber = valorTotalCombinado - totalRecebido;
 
-                   // Agrupar por terapeuta
-                   const porTerapeuta = {};
+                   // Agrupar por terapeuta e recepção (extrair de observacoes_pos_venda)
+                   const porTerapeutaRecepcao = {};
                    agendamentosConvertidos.forEach(ag => {
                      const terapeuta = ag.profissional_nome || "Sem Terapeuta";
-                     if (!porTerapeuta[terapeuta]) {
-                       porTerapeuta[terapeuta] = {
-                         conversoes: 0,
-                         valorTotal: 0
-                       };
-                     }
-                     porTerapeuta[terapeuta].conversoes++;
-                     porTerapeuta[terapeuta].valorTotal += (ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0);
-                   });
 
-                   // Agrupar por recepcionista
-                   const porRecepcao = {};
-                   agendamentosConvertidos.forEach(ag => {
-                     const recepcao = "Recepção"; // Pode adicionar campo específico se necessário
-                     if (!porRecepcao[recepcao]) {
-                       porRecepcao[recepcao] = {
+                     // Extrair recepcionista das observacoes_pos_venda
+                     let recepcao = "Sem Recepção";
+                     if (ag.observacoes_pos_venda && ag.observacoes_pos_venda.includes("Recepção:")) {
+                       const match = ag.observacoes_pos_venda.match(/Recepção:\s*([^|]+)/);
+                       if (match) recepcao = match[1].trim();
+                     }
+
+                     const chave = `${terapeuta}|${recepcao}`;
+                     if (!porTerapeutaRecepcao[chave]) {
+                       porTerapeutaRecepcao[chave] = {
+                         terapeuta,
+                         recepcao,
                          conversoes: 0,
-                         valorTotal: 0
+                         valorCombinado: 0,
+                         sinal: 0,
+                         recebimento2: 0,
+                         finalPagamento: 0,
+                         totalRecebido: 0,
+                         aReceber: 0,
+                         agendamentos: []
                        };
                      }
-                     porRecepcao[recepcao].conversoes++;
-                     porRecepcao[recepcao].valorTotal += (ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0);
+
+                     const totalPagoAg = (ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0);
+                     porTerapeutaRecepcao[chave].conversoes++;
+                     porTerapeutaRecepcao[chave].valorCombinado += ag.valor_combinado || 0;
+                     porTerapeutaRecepcao[chave].sinal += ag.sinal || 0;
+                     porTerapeutaRecepcao[chave].recebimento2 += ag.recebimento_2 || 0;
+                     porTerapeutaRecepcao[chave].finalPagamento += ag.final_pagamento || 0;
+                     porTerapeutaRecepcao[chave].totalRecebido += totalPagoAg;
+                     porTerapeutaRecepcao[chave].aReceber += (ag.valor_combinado || 0) - totalPagoAg;
+                     porTerapeutaRecepcao[chave].agendamentos.push(ag);
                    });
 
                   return (
@@ -2280,89 +2292,91 @@ export default function RelatoriosFinanceirosPage() {
                           <p className="text-sm text-purple-600 mb-1">Valor Combinado Total</p>
                           <p className="text-2xl font-bold text-purple-700">{formatarMoeda(valorTotalCombinado)}</p>
                         </div>
-                        <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                          <p className="text-sm text-orange-600 mb-1">Valor Recebido</p>
-                          <p className="text-2xl font-bold text-orange-700">{formatarMoeda(totalRecebido)}</p>
-                        </div>
                         <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
-                          <p className="text-sm text-emerald-600 mb-1">A Receber</p>
-                          <p className="text-2xl font-bold text-emerald-700">{formatarMoeda(valorTotalCombinado - totalRecebido)}</p>
+                          <p className="text-sm text-emerald-600 mb-1">Valor Recebido</p>
+                          <p className="text-2xl font-bold text-emerald-700">{formatarMoeda(totalRecebido)}</p>
                         </div>
-
+                        <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
+                          <p className="text-sm text-orange-600 mb-1">A Receber</p>
+                          <p className="text-2xl font-bold text-orange-700">{formatarMoeda(totalAReceber)}</p>
+                        </div>
                       </div>
 
-                      {/* Gráficos de Performance */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-sm">Top Terapeutas</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-2">
-                              {Object.entries(porTerapeuta)
-                                .sort((a, b) => b[1].conversoes - a[1].conversoes)
-                                .slice(0, 5)
-                                .map(([nome, dados]) => (
-                                  <div key={nome} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                                    <span className="text-sm font-medium">{nome}</span>
-                                    <div className="text-right">
-                                      <span className="text-sm text-blue-600 font-semibold">{dados.conversoes} vendas</span>
-                                      <span className="text-xs text-gray-600 ml-2">{formatarMoeda(dados.valorTotal)}</span>
-                                    </div>
-                                  </div>
-                                ))}
-                            </div>
-                          </CardContent>
-                        </Card>
-
-                        <Card>
-                          <CardHeader>
-                            <CardTitle className="text-sm">Top Recepcionistas</CardTitle>
-                          </CardHeader>
-                          <CardContent>
-                            <div className="space-y-2">
-                              {Object.entries(porRecepcao)
-                                .sort((a, b) => b[1].conversoes - a[1].conversoes)
-                                .slice(0, 5)
-                                .map(([nome, dados]) => (
-                                  <div key={nome} className="flex justify-between items-center p-2 bg-gray-50 rounded">
-                                    <span className="text-sm font-medium">{nome}</span>
-                                    <div className="text-right">
-                                      <span className="text-sm text-green-600 font-semibold">{dados.conversoes} vendas</span>
-                                      <span className="text-xs text-gray-600 ml-2">{formatarMoeda(dados.valorTotal)}</span>
-                                    </div>
-                                  </div>
-                                ))}
-                            </div>
-                          </CardContent>
-                        </Card>
-                      </div>
-
-                      {/* Tabela Detalhada */}
+                      {/* Tabela Análise Cruzada Terapeuta x Recepção */}
                       <div>
-                        <h3 className="font-semibold text-lg mb-4">Conversões de Agendamentos - Detalhado</h3>
+                        <h3 className="font-semibold text-lg mb-4">📊 Análise Cruzada: Terapeuta x Recepção</h3>
                         <div className="overflow-x-auto">
                           <Table>
                             <TableHeader>
-                               <TableRow>
-                                 <TableHead>Cliente</TableHead>
-                                 <TableHead>Telefone</TableHead>
-                                 <TableHead>Data de Conversão</TableHead>
-                                 <TableHead>Terapeuta</TableHead>
-                                 <TableHead className="text-right">Valor Combinado</TableHead>
-                                 <TableHead className="text-right">Sinal</TableHead>
-                                 <TableHead className="text-right">Receb. 2</TableHead>
-                                 <TableHead className="text-right">Final</TableHead>
-                                 <TableHead className="text-right">Total Pago</TableHead>
-                                 <TableHead className="text-right">A Receber</TableHead>
-                                 <TableHead>Forma de Pagamento</TableHead>
-                               </TableRow>
-                             </TableHeader>
+                              <TableRow>
+                                <TableHead>Terapeuta</TableHead>
+                                <TableHead>Recepção</TableHead>
+                                <TableHead className="text-right">Conversões</TableHead>
+                                <TableHead className="text-right">Vlr. Combinado</TableHead>
+                                <TableHead className="text-right">Sinal</TableHead>
+                                <TableHead className="text-right">Receb. 2</TableHead>
+                                <TableHead className="text-right">Final</TableHead>
+                                <TableHead className="text-right">Total Recebido</TableHead>
+                                <TableHead className="text-right">A Receber</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {Object.values(porTerapeutaRecepcao)
+                                .sort((a, b) => b.totalRecebido - a.totalRecebido)
+                                .map((dados, idx) => (
+                                  <TableRow key={idx}>
+                                    <TableCell className="font-medium">{dados.terapeuta}</TableCell>
+                                    <TableCell className="font-medium">{dados.recepcao}</TableCell>
+                                    <TableCell className="text-right font-semibold">{dados.conversoes}</TableCell>
+                                    <TableCell className="text-right">{formatarMoeda(dados.valorCombinado)}</TableCell>
+                                    <TableCell className="text-right text-green-600">{formatarMoeda(dados.sinal)}</TableCell>
+                                    <TableCell className="text-right text-green-600">{formatarMoeda(dados.recebimento2)}</TableCell>
+                                    <TableCell className="text-right text-green-600">{formatarMoeda(dados.finalPagamento)}</TableCell>
+                                    <TableCell className="text-right text-emerald-600 font-semibold">{formatarMoeda(dados.totalRecebido)}</TableCell>
+                                    <TableCell className="text-right text-orange-600 font-semibold">{formatarMoeda(dados.aReceber)}</TableCell>
+                                  </TableRow>
+                                ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </div>
+
+                      {/* Tabela Detalhada de Conversões */}
+                      <div>
+                        <h3 className="font-semibold text-lg mb-4">📋 Conversões de Agendamentos - Detalhado</h3>
+                        <div className="overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Cliente</TableHead>
+                                <TableHead>Telefone</TableHead>
+                                <TableHead>Data Conversão</TableHead>
+                                <TableHead>Terapeuta</TableHead>
+                                <TableHead>Plano</TableHead>
+                                <TableHead className="text-right">Vlr. Combinado</TableHead>
+                                <TableHead className="text-right">Desconto</TableHead>
+                                <TableHead className="text-right">Vlr. Final</TableHead>
+                                <TableHead className="text-right">Sinal</TableHead>
+                                <TableHead className="text-right">Receb. 2</TableHead>
+                                <TableHead className="text-right">Final</TableHead>
+                                <TableHead className="text-right">Total Pago</TableHead>
+                                <TableHead className="text-right">A Receber</TableHead>
+                                <TableHead>Forma Pgto.</TableHead>
+                              </TableRow>
+                            </TableHeader>
                             <TableBody>
                               {agendamentosConvertidos
                                 .sort((a, b) => new Date(b.data_conversao || 0) - new Date(a.data_conversao || 0))
                                 .map((ag) => {
                                   const totalPago = (ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0);
+                                  const desconto = (ag.valor_combinado || 0) - (ag.valor_combinado || 0); // pode ser calculado depois
+
+                                  // Extrair plano das observacoes_pos_venda
+                                  let plano = "-";
+                                  if (ag.observacoes_pos_venda && ag.observacoes_pos_venda.includes("Plano:")) {
+                                    const match = ag.observacoes_pos_venda.match(/Plano:\s*([^|]+)/);
+                                    if (match) plano = match[1].trim();
+                                  }
 
                                   return (
                                     <TableRow key={ag.id}>
@@ -2371,34 +2385,25 @@ export default function RelatoriosFinanceirosPage() {
                                       <TableCell>
                                         {ag.data_conversao ? format(criarDataPura(ag.data_conversao), "dd/MM/yyyy", { locale: ptBR }) : "-"}
                                       </TableCell>
-                                      <TableCell className="font-medium">
-                                        {ag.profissional_nome || "-"}
-                                      </TableCell>
-                                      <TableCell className="text-right">
-                                        {formatarMoeda(ag.valor_combinado || 0)}
-                                      </TableCell>
-                                      <TableCell className="text-right text-green-600">
-                                        {formatarMoeda(ag.sinal || 0)}
-                                      </TableCell>
-                                      <TableCell className="text-right text-green-600">
-                                        {formatarMoeda(ag.recebimento_2 || 0)}
-                                      </TableCell>
-                                      <TableCell className="text-right text-green-600">
-                                        {formatarMoeda(ag.final_pagamento || 0)}
-                                      </TableCell>
-                                      <TableCell className="text-right text-emerald-600 font-semibold">
-                                        {formatarMoeda(totalPago)}
-                                      </TableCell>
-                                      <TableCell className="text-right text-orange-600">
-                                        {formatarMoeda((ag.valor_combinado || 0) - totalPago)}
-                                      </TableCell>
-                                      <TableCell>
-                                        <span className="text-sm">
-                                          {ag.forma_pagamento === "pix" ? "📱 PIX" :
-                                           ag.forma_pagamento === "link_pagamento" ? "🔗 Link" :
-                                           ag.forma_pagamento === "pago_na_clinica" ? "💳 Clínica" :
-                                           ag.forma_pagamento || "-"}
-                                        </span>
+                                      <TableCell className="font-medium">{ag.profissional_nome || "-"}</TableCell>
+                                      <TableCell className="text-xs bg-blue-50 px-2 py-1 rounded">{plano}</TableCell>
+                                      <TableCell className="text-right">{formatarMoeda(ag.valor_combinado || 0)}</TableCell>
+                                      <TableCell className="text-right text-orange-600">{formatarMoeda(desconto)}</TableCell>
+                                      <TableCell className="text-right font-semibold">{formatarMoeda(ag.valor_combinado || 0)}</TableCell>
+                                      <TableCell className="text-right text-green-600">{formatarMoeda(ag.sinal || 0)}</TableCell>
+                                      <TableCell className="text-right text-green-600">{formatarMoeda(ag.recebimento_2 || 0)}</TableCell>
+                                      <TableCell className="text-right text-green-600">{formatarMoeda(ag.final_pagamento || 0)}</TableCell>
+                                      <TableCell className="text-right text-emerald-600 font-semibold">{formatarMoeda(totalPago)}</TableCell>
+                                      <TableCell className="text-right text-orange-600">{formatarMoeda((ag.valor_combinado || 0) - totalPago)}</TableCell>
+                                      <TableCell className="text-xs">
+                                        {ag.forma_pagamento === "pix" ? "📱 PIX" :
+                                         ag.forma_pagamento === "link_pagamento" ? "🔗 Link" :
+                                         ag.forma_pagamento === "pago_na_clinica" ? "💳 Clínica" :
+                                         ag.forma_pagamento === "dinheiro" ? "💵 Dinheiro" :
+                                         ag.forma_pagamento === "cartao_credito" ? "💳 Crédito" :
+                                         ag.forma_pagamento === "cartao_debito" ? "💳 Débito" :
+                                         ag.forma_pagamento === "parcelado" ? "📅 Parcelado" :
+                                         ag.forma_pagamento || "-"}
                                       </TableCell>
                                     </TableRow>
                                   );
@@ -2409,8 +2414,10 @@ export default function RelatoriosFinanceirosPage() {
 
                         {agendamentosConvertidos.length === 0 && (
                           <div className="text-center py-12 text-gray-500">
+                            <Calendar className="w-12 h-12 mx-auto mb-4 text-gray-400" />
                             <p className="font-medium">Nenhuma conversão neste período</p>
-                            <p className="text-sm mt-2">Ajuste os filtros para ver os dados</p>
+                            <p className="text-sm mt-2">Conversões aparecem aqui quando têm "Data de Conversão" preenchida no agendamento</p>
+                            <p className="text-xs mt-1 text-blue-600">💡 Preencha a conversão na aba "Conversão" do agendamento</p>
                           </div>
                         )}
                       </div>
