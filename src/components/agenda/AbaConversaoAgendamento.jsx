@@ -139,27 +139,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
 
   // Recarregar dados quando entra em modo edição
   useEffect(() => {
-    if (modoEdicao && agendamento.observacoes_pos_venda) {
-      // Extrair dados salvos de observacoes_pos_venda
-      const obs = agendamento.observacoes_pos_venda;
-      let pacoteFechado = "";
-      let recepcaoFechou = "";
-      let motivosFechamento = [];
-
-      // Parse Plano
-      const planMatch = obs.match(/Plano:\s*([^|]+)/);
-      if (planMatch) pacoteFechado = planMatch[1].trim();
-
-      // Parse Recepção
-      const recMatch = obs.match(/Recepção:\s*([^|]+)/);
-      if (recMatch) recepcaoFechou = recMatch[1].trim();
-
-      // Parse Motivos
-      const motivMatch = obs.match(/Motivos:\s*([^|]+)/);
-      if (motivMatch) {
-        motivosFechamento = motivMatch[1].trim().split(",").map(m => m.trim()).filter(m => m);
-      }
-
+    if (modoEdicao) {
       setFormData(prev => ({
         ...prev,
         data_conversao: agendamento.data_conversao || prev.data_conversao,
@@ -168,10 +148,14 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         sinal: agendamento.sinal?.toString() || prev.sinal,
         recebimento_2: agendamento.recebimento_2?.toString() || prev.recebimento_2,
         final_pagamento: agendamento.final_pagamento?.toString() || prev.final_pagamento,
-        pacote_fechado: pacoteFechado,
-        recepcao_fechou: recepcaoFechou,
-        motivos_fechamento: motivosFechamento,
-        forma_pagamento: agendamento.forma_pagamento || prev.forma_pagamento,
+        pacote_fechado: agendamento.conversao_plano || prev.pacote_fechado,
+        recepcao_fechou: agendamento.conversao_recepcionista || prev.recepcao_fechou,
+        terapeuta_id: agendamento.conversao_profissional_id || agendamento.profissional_id || prev.terapeuta_id,
+        terapeuta_nome: agendamento.conversao_profissional_nome || agendamento.profissional_nome || prev.terapeuta_nome,
+        motivos_fechamento: agendamento.conversao_motivos?.split(",").map(m => m.trim()).filter(m => m) || prev.motivos_fechamento,
+        forma_pagamento: agendamento.conversao_forma_pagamento || prev.forma_pagamento,
+        desconto: agendamento.conversao_desconto?.toString() || prev.desconto,
+        observacoes: agendamento.observacoes || prev.observacoes,
       }));
     }
   }, [modoEdicao, agendamento]);
@@ -208,7 +192,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
     "Outro"
   ];
 
-  const jaFechou = agendamento.observacoes_pos_venda?.includes("Plano:");
+  const jaFechou = agendamento.conversao_converteu === true;
 
   return (
     <div className="space-y-4 py-4">
@@ -222,8 +206,8 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
               <div className="flex-1">
                 <h3 className="font-bold text-green-900">Plano Fechado com Sucesso!</h3>
                 <p className="text-sm text-green-700">
-                  {agendamento.observacoes_pos_venda}
-                </p>
+                    {`Plano: ${agendamento.conversao_plano} | Recepção: ${agendamento.conversao_recepcionista} | Motivos: ${agendamento.conversao_motivos}`}
+                  </p>
               </div>
             </div>
             <Button 
