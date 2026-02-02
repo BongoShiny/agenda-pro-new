@@ -236,157 +236,168 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
             )}
 
             {fechouPacote === true && (
-            <div className="space-y-4 pt-4 border-t">
-              <h4 className="font-semibold text-gray-900">Dados do Plano Fechado</h4>
-              
-              <div>
-                <Label>Data da Conversão *</Label>
-                <Input
-                  type="date"
-                  value={formData.data_conversao}
-                  onChange={(e) => setFormData(prev => ({ ...prev, data_conversao: e.target.value }))}
-                />
-              </div>
+            <div className="space-y-6 pt-4 border-t">
+              {/* SEÇÃO 1: INFORMAÇÕES DO PLANO FECHADO */}
+              <div className="bg-blue-50 rounded-lg p-4 space-y-4">
+                <h4 className="font-semibold text-gray-900 border-b pb-2">📋 Informações do Plano Fechado</h4>
 
-              <div>
-                 <Label>Profissional</Label>
-                 <Select 
-                   value={formData.terapeuta_id} 
-                   onValueChange={(value) => {
-                     const prof = profissionais.find(p => p.id === value);
-                     setFormData(prev => ({ 
-                       ...prev, 
-                       terapeuta_id: value,
-                       terapeuta_nome: prof?.nome || ""
-                     }));
-                   }}
-                 >
-                   <SelectTrigger>
-                     <SelectValue placeholder="Selecione o profissional..." />
-                   </SelectTrigger>
-                   <SelectContent>
-                     {profissionais.map(p => (
-                       <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
-                     ))}
-                   </SelectContent>
-                 </Select>
-               </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label>Data da Conversão *</Label>
+                    <Input
+                      type="date"
+                      value={formData.data_conversao}
+                      onChange={(e) => setFormData(prev => ({ ...prev, data_conversao: e.target.value }))}
+                    />
+                  </div>
 
-               <div>
-                 <Label>Recepção que Fechou *</Label>
-                 <Select value={formData.recepcao_fechou} onValueChange={(value) => setFormData(prev => ({ ...prev, recepcao_fechou: value }))}>
-                   <SelectTrigger>
-                     <SelectValue placeholder="Selecione a recepcionista" />
-                   </SelectTrigger>
-                   <SelectContent>
-                     {recepcionistas.map(r => (
-                       <SelectItem key={r.id} value={r.nome}>{r.nome}</SelectItem>
-                     ))}
-                   </SelectContent>
-                 </Select>
-               </div>
+                  <div>
+                    <Label>Plano Terapêutico Fechado *</Label>
+                    <Select value={formData.pacote_fechado} onValueChange={(value) => setFormData(prev => ({ ...prev, pacote_fechado: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o plano..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="plano_24_sessoes">Plano 24 Sessões</SelectItem>
+                        <SelectItem value="plano_16_sessoes">Plano 16 Sessões</SelectItem>
+                        <SelectItem value="plano_12_sessoes">Plano 12 Sessões</SelectItem>
+                        <SelectItem value="plano_8_sessoes">Plano 8 Sessões</SelectItem>
+                        <SelectItem value="sessao_avulsa">Sessão Avulsa</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-               <div>
-                 <Label>Plano Terapêutico Fechado *</Label>
-                <Select value={formData.pacote_fechado} onValueChange={(value) => setFormData(prev => ({ ...prev, pacote_fechado: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o plano..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="plano_24_sessoes">Plano 24 Sessões</SelectItem>
-                    <SelectItem value="plano_16_sessoes">Plano 16 Sessões</SelectItem>
-                    <SelectItem value="plano_12_sessoes">Plano 12 Sessões</SelectItem>
-                    <SelectItem value="plano_8_sessoes">Plano 8 Sessões</SelectItem>
-                    <SelectItem value="sessao_avulsa">Sessão Avulsa</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+                  <div>
+                    <Label>Profissional *</Label>
+                    <Select 
+                      value={formData.terapeuta_id} 
+                      onValueChange={(value) => {
+                        const prof = profissionais.find(p => p.id === value);
+                        setFormData(prev => ({ 
+                          ...prev, 
+                          terapeuta_id: value,
+                          terapeuta_nome: prof?.nome || ""
+                        }));
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione o profissional..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {profissionais.map(p => (
+                          <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              <div className="grid grid-cols-3 gap-3">
-                <div>
-                  <Label>Valor Original</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.valor_original}
-                    onChange={(e) => setFormData(prev => ({ ...prev, valor_original: e.target.value }))}
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <Label>Desconto (%)</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.desconto}
-                    onChange={(e) => setFormData(prev => ({ ...prev, desconto: e.target.value }))}
-                    placeholder="0"
-                  />
-                </div>
-                <div>
-                  <Label>Valor Final *</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.valor_final}
-                    onChange={(e) => setFormData(prev => ({ ...prev, valor_final: e.target.value }))}
-                    placeholder="0"
-                  />
+                  <div>
+                    <Label>Recepção que Fechou *</Label>
+                    <Select value={formData.recepcao_fechou} onValueChange={(value) => setFormData(prev => ({ ...prev, recepcao_fechou: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a recepcionista" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {recepcionistas.map(r => (
+                          <SelectItem key={r.id} value={r.nome}>{r.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-3 pt-4 border-t">
-                <div>
-                  <Label>Sinal</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.sinal}
-                    onChange={(e) => setFormData(prev => ({ ...prev, sinal: e.target.value }))}
-                    placeholder="0"
-                  />
+              {/* SEÇÃO 2: VALORES E PAGAMENTO */}
+              <div className="bg-green-50 rounded-lg p-4 space-y-4">
+                <h4 className="font-semibold text-gray-900 border-b pb-2">💰 Valores e Pagamento</h4>
+
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <Label>Valor Original</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={formData.valor_original}
+                      onChange={(e) => setFormData(prev => ({ ...prev, valor_original: e.target.value }))}
+                      placeholder="0,00"
+                    />
+                  </div>
+                  <div>
+                    <Label>Desconto (%)</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={formData.desconto}
+                      onChange={(e) => setFormData(prev => ({ ...prev, desconto: e.target.value }))}
+                      placeholder="0"
+                    />
+                  </div>
+                  <div>
+                    <Label>Valor Final *</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={formData.valor_final}
+                      onChange={(e) => setFormData(prev => ({ ...prev, valor_final: e.target.value }))}
+                      placeholder="0,00"
+                    />
+                  </div>
                 </div>
-                <div>
-                  <Label>Recebimento 2</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.recebimento_2}
-                    onChange={(e) => setFormData(prev => ({ ...prev, recebimento_2: e.target.value }))}
-                    placeholder="0"
-                  />
+
+                <div className="grid grid-cols-3 gap-3 pt-3 border-t">
+                  <div>
+                    <Label>Sinal</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={formData.sinal}
+                      onChange={(e) => setFormData(prev => ({ ...prev, sinal: e.target.value }))}
+                      placeholder="0,00"
+                    />
+                  </div>
+                  <div>
+                    <Label>Recebimento 2</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={formData.recebimento_2}
+                      onChange={(e) => setFormData(prev => ({ ...prev, recebimento_2: e.target.value }))}
+                      placeholder="0,00"
+                    />
+                  </div>
+                  <div>
+                    <Label>Pagamento Final</Label>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      value={formData.final_pagamento}
+                      onChange={(e) => setFormData(prev => ({ ...prev, final_pagamento: e.target.value }))}
+                      placeholder="0,00"
+                    />
+                  </div>
                 </div>
+
                 <div>
-                  <Label>Pagamento Final</Label>
-                  <Input
-                    type="number"
-                    step="0.01"
-                    value={formData.final_pagamento}
-                    onChange={(e) => setFormData(prev => ({ ...prev, final_pagamento: e.target.value }))}
-                    placeholder="0"
-                  />
+                  <Label>Forma de Pagamento</Label>
+                  <Select value={formData.forma_pagamento} onValueChange={(value) => setFormData(prev => ({ ...prev, forma_pagamento: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pix">PIX</SelectItem>
+                      <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
+                      <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
+                      <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                      <SelectItem value="parcelado">Parcelado</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
 
-              <div>
-                <Label>Forma de Pagamento</Label>
-                <Select value={formData.forma_pagamento} onValueChange={(value) => setFormData(prev => ({ ...prev, forma_pagamento: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pix">PIX</SelectItem>
-                    <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
-                    <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
-                    <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                    <SelectItem value="parcelado">Parcelado</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label className="mb-2 block">Por que o cliente decidiu fechar o plano? *</Label>
-                <div className="space-y-2 max-h-60 overflow-y-auto bg-white rounded-lg border p-3">
+              {/* SEÇÃO 3: MOTIVOS DE DECISÃO */}
+              <div className="bg-yellow-50 rounded-lg p-4 space-y-4">
+                <h4 className="font-semibold text-gray-900 border-b pb-2">🎯 Por que o cliente decidiu fechar o plano? *</h4>
+                <div className="space-y-2 max-h-64 overflow-y-auto bg-white rounded-lg border p-3">
                   {motivosFechamento.map((motivo) => (
                     <div key={motivo} className="flex items-start gap-2">
                       <Checkbox
@@ -402,13 +413,14 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                 </div>
               </div>
 
-              <div>
-                <Label>Observações Adicionais</Label>
+              {/* SEÇÃO 4: OBSERVAÇÕES ADICIONAIS */}
+              <div className="bg-purple-50 rounded-lg p-4 space-y-4">
+                <h4 className="font-semibold text-gray-900 border-b pb-2">📝 Observações Adicionais</h4>
                 <Textarea
                   value={formData.observacoes}
                   onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
-                  placeholder="Detalhes sobre a conversão..."
-                  rows={3}
+                  placeholder="Registre detalhes adicionais importantes sobre a conversão, interações específicas ou informações relevantes para análise financeira..."
+                  rows={4}
                 />
               </div>
             </div>
