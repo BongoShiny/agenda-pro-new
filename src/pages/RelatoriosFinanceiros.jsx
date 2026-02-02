@@ -2305,47 +2305,42 @@ export default function RelatoriosFinanceirosPage() {
                           <Table>
                             <TableHeader>
                               <TableRow className="bg-green-50">
+                                <TableHead>Cliente</TableHead>
+                                <TableHead>Telefone</TableHead>
+                                <TableHead>Unidade</TableHead>
                                 <TableHead>Terapeuta</TableHead>
                                 <TableHead>Recepção</TableHead>
-                                <TableHead className="text-right">Conversões</TableHead>
+                                <TableHead>Data Conversão</TableHead>
                                 <TableHead className="text-right">Vlr. Combinado</TableHead>
                                 <TableHead className="text-right">Sinal</TableHead>
                                 <TableHead className="text-right">Receb. 2</TableHead>
                                 <TableHead className="text-right">Final</TableHead>
                                 <TableHead className="text-right">Total Recebido</TableHead>
                                 <TableHead className="text-right">A Receber</TableHead>
-                                <TableHead>Observações</TableHead>
                               </TableRow>
                             </TableHeader>
                             <TableBody>
-                              {Object.values(porTerapeutaRecepcaoFechados)
-                                .sort((a, b) => b.totalRecebido - a.totalRecebido)
-                                .map((dados, idx) => {
-                                  // Buscar observações do primeiro agendamento com essa dupla terapeuta/recepção
-                                  const agendamentoComObs = agendamentosFechados.find(ag => 
-                                    (ag.conversao_profissional_nome || ag.profissional_nome) === dados.terapeuta &&
-                                    (ag.conversao_recepcionista) === dados.recepcao
-                                  );
+                              {agendamentosFechados
+                                .sort((a, b) => new Date(b.data_conversao || 0) - new Date(a.data_conversao || 0))
+                                .map((ag) => {
+                                  const totalPagoAg = (ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0);
+                                  const aReceberAg = (ag.valor_combinado || 0) - totalPagoAg;
                                   return (
-                                    <TableRow key={idx}>
-                                      <TableCell className="font-medium">{dados.terapeuta}</TableCell>
-                                      <TableCell className="font-medium">{dados.recepcao}</TableCell>
-                                      <TableCell className="text-right font-semibold">{dados.conversoes}</TableCell>
-                                      <TableCell className="text-right">{formatarMoeda(dados.valorCombinado)}</TableCell>
-                                      <TableCell className="text-right text-green-600">{formatarMoeda(dados.sinal)}</TableCell>
-                                      <TableCell className="text-right text-green-600">{formatarMoeda(dados.recebimento2)}</TableCell>
-                                      <TableCell className="text-right text-green-600">{formatarMoeda(dados.finalPagamento)}</TableCell>
-                                      <TableCell className="text-right text-emerald-600 font-semibold">{formatarMoeda(dados.totalRecebido)}</TableCell>
-                                      <TableCell className="text-right text-orange-600 font-semibold">{formatarMoeda(dados.aReceber)}</TableCell>
-                                      <TableCell className="max-w-xs">
-                                        {agendamentoComObs?.observacoes ? (
-                                          <span className="text-xs text-gray-600 line-clamp-2">
-                                            {agendamentoComObs.observacoes}
-                                          </span>
-                                        ) : (
-                                          <span className="text-gray-400 text-xs">-</span>
-                                        )}
+                                    <TableRow key={ag.id}>
+                                      <TableCell className="font-semibold">{ag.cliente_nome}</TableCell>
+                                      <TableCell className="text-sm">{ag.cliente_telefone || "-"}</TableCell>
+                                      <TableCell className="text-sm">{ag.unidade_nome || "-"}</TableCell>
+                                      <TableCell>{ag.conversao_profissional_nome || ag.profissional_nome || "-"}</TableCell>
+                                      <TableCell>{ag.conversao_recepcionista || "-"}</TableCell>
+                                      <TableCell>
+                                        {ag.data_conversao ? format(criarDataPura(ag.data_conversao), "dd/MM/yyyy", { locale: ptBR }) : "-"}
                                       </TableCell>
+                                      <TableCell className="text-right">{formatarMoeda(ag.valor_combinado)}</TableCell>
+                                      <TableCell className="text-right text-green-600">{formatarMoeda(ag.sinal)}</TableCell>
+                                      <TableCell className="text-right text-green-600">{formatarMoeda(ag.recebimento_2)}</TableCell>
+                                      <TableCell className="text-right text-green-600">{formatarMoeda(ag.final_pagamento)}</TableCell>
+                                      <TableCell className="text-right text-emerald-600 font-semibold">{formatarMoeda(totalPagoAg)}</TableCell>
+                                      <TableCell className="text-right text-orange-600 font-semibold">{formatarMoeda(aReceberAg)}</TableCell>
                                     </TableRow>
                                   );
                                 })}
@@ -2372,7 +2367,6 @@ export default function RelatoriosFinanceirosPage() {
                                 <TableHead>Cliente</TableHead>
                                 <TableHead>Telefone</TableHead>
                                 <TableHead>Unidade</TableHead>
-                                <TableHead>Data Conversão</TableHead>
                                 <TableHead>Terapeuta</TableHead>
                                 <TableHead>Recepção</TableHead>
                                 <TableHead>Motivo</TableHead>
@@ -2381,15 +2375,12 @@ export default function RelatoriosFinanceirosPage() {
                             </TableHeader>
                             <TableBody>
                               {agendamentosNaoFechados
-                                .sort((a, b) => new Date(b.data_conversao || 0) - new Date(a.data_conversao || 0))
+                                .sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0))
                                 .map((ag) => (
                                   <TableRow key={ag.id}>
                                     <TableCell className="font-semibold">{ag.cliente_nome}</TableCell>
                                     <TableCell className="text-sm">{ag.cliente_telefone || "-"}</TableCell>
                                     <TableCell className="text-sm">{ag.unidade_nome || "-"}</TableCell>
-                                    <TableCell>
-                                      {ag.data_conversao ? format(criarDataPura(ag.data_conversao), "dd/MM/yyyy", { locale: ptBR }) : "-"}
-                                    </TableCell>
                                     <TableCell>{ag.conversao_profissional_nome || ag.profissional_nome || "-"}</TableCell>
                                     <TableCell>{ag.conversao_recepcionista_nao_converteu || "-"}</TableCell>
                                     <TableCell className="text-xs bg-red-50 px-2 py-1 rounded">{ag.conversao_motivo_nao_converteu || "-"}</TableCell>
