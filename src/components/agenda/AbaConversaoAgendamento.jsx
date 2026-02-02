@@ -17,6 +17,8 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
     data_conversao: format(new Date(), "yyyy-MM-dd"),
     terapeuta_id: agendamento.profissional_id || "",
     terapeuta_nome: agendamento.profissional_nome || "",
+    recepcao_fechou: "",
+    recepcao_nao_fechou: "",
     pacote_fechado: "",
     valor_original: agendamento.valor_combinado?.toString() || "",
     desconto: "",
