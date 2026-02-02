@@ -232,9 +232,9 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                 </Button>
               </div>
             </div>
-          )}
+            )}
 
-          {fechouPacote === true && (
+            {fechouPacote === true && (
             <div className="space-y-4 pt-4 border-t">
               <h4 className="font-semibold text-gray-900">Dados do Plano Fechado</h4>
               
