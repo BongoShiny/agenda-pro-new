@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Trophy, Users, TrendingUp, Target, Edit2, Save, X } from "lucide-react";
+import { ArrowLeft, Trophy, Users, TrendingUp, Target, Edit2, Save, X, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 
 export default function RankingVendedoresPage() {
   const navigate = useNavigate();
@@ -20,6 +21,22 @@ export default function RankingVendedoresPage() {
   const [rankingAnterior, setRankingAnterior] = useState([]);
   const [top1Anterior, setTop1Anterior] = useState(null);
   const [viewMode, setViewMode] = useState("dia"); // "dia" ou "mes"
+  const [registroManualOpen, setRegistroManualOpen] = useState(false);
+  const [registroManual, setRegistroManual] = useState({
+    data: new Date().toISOString().split('T')[0],
+    vendedor_id: "",
+    unidade_id: "",
+    leads: 0,
+    vendas_avulso: 0,
+    vendas_pacote: 0,
+    pacote_8: 0,
+    pacote_16: 0,
+    pacote_24: 0,
+    pacote_48: 0,
+    observacoes: ""
+  });
+  
+  const queryClient = useQueryClient();
 
   // Refs para áudio
   const audioMoneyRef = useRef(null);
@@ -63,6 +80,19 @@ export default function RankingVendedoresPage() {
     initialData: [],
   });
 
+  const { data: unidades = [] } = useQuery({
+    queryKey: ['unidades'],
+    queryFn: () => base44.entities.Unidade.list("nome"),
+    initialData: [],
+  });
+
+  const { data: registrosManuais = [] } = useQuery({
+    queryKey: ['registros-manuais'],
+    queryFn: () => base44.entities.RegistroManualVendas.list(),
+    initialData: [],
+    refetchInterval: 30000,
+  });
+
   // Subscrição em tempo real para agendamentos
   useEffect(() => {
     const unsubscribe = base44.entities.Agendamento.subscribe((event) => {
@@ -92,6 +122,28 @@ export default function RankingVendedoresPage() {
     return () => unsubscribe();
   }, [refetchLeads]);
 
+  // Mutation para criar registro manual
+  const createRegistroMutation = useMutation({
+    mutationFn: (data) => base44.entities.RegistroManualVendas.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['registros-manuais'] });
+      setRegistroManualOpen(false);
+      setRegistroManual({
+        data: new Date().toISOString().split('T')[0],
+        vendedor_id: "",
+        unidade_id: "",
+        leads: 0,
+        vendas_avulso: 0,
+        vendas_pacote: 0,
+        pacote_8: 0,
+        pacote_16: 0,
+        pacote_24: 0,
+        pacote_48: 0,
+        observacoes: ""
+      });
+    },
+  });
+
   // Filtrar dados por período
   const hoje = new Date();
   hoje.setHours(0, 0, 0, 0);
@@ -120,30 +172,51 @@ export default function RankingVendedoresPage() {
     }
   });
 
-  // Calcular métricas por vendedor
+  const registrosManuaisFiltrados = registrosManuais.filter(reg => {
+    if (viewMode === "dia") {
+      return reg.data === inicioDia;
+    } else {
+      return reg.data >= inicioMes && reg.data <= fimMes;
+    }
+  });
+
+  // Calcular métricas por vendedor (automático + manual)
   const metricsVendedores = vendedores.map(vendedor => {
     const leadsVendedor = leadsFiltrados.filter(l => l.vendedor_id === vendedor.id);
     const agendamentosVendedor = agendamentosFiltrados.filter(ag => ag.vendedor_id === vendedor.id);
+    const registrosVendedor = registrosManuaisFiltrados.filter(r => r.vendedor_id === vendedor.id);
     
-    const vendasAvulso = agendamentosVendedor.filter(ag => 
+    // Dados automáticos da agenda
+    const vendasAvulsoAuto = agendamentosVendedor.filter(ag => 
       ag.tipo === "avulsa" || ag.tipo === "consulta"
     ).length;
     
-    const vendasPacote = agendamentosVendedor.filter(ag => 
+    const vendasPacoteAuto = agendamentosVendedor.filter(ag => 
       ag.tipo === "pacote" || ag.cliente_pacote === "Sim"
     ).length;
     
+    const pacote8Auto = agendamentosVendedor.filter(ag => ag.quantas_sessoes === 8).length;
+    const pacote16Auto = agendamentosVendedor.filter(ag => ag.quantas_sessoes === 16).length;
+    const pacote24Auto = agendamentosVendedor.filter(ag => ag.quantas_sessoes === 24).length;
+    const pacote48Auto = agendamentosVendedor.filter(ag => ag.quantas_sessoes === 48).length;
+    
+    // Dados manuais
+    const leadsManual = registrosVendedor.reduce((sum, r) => sum + (r.leads || 0), 0);
+    const vendasAvulsoManual = registrosVendedor.reduce((sum, r) => sum + (r.vendas_avulso || 0), 0);
+    const vendasPacoteManual = registrosVendedor.reduce((sum, r) => sum + (r.vendas_pacote || 0), 0);
+    const pacote8Manual = registrosVendedor.reduce((sum, r) => sum + (r.pacote_8 || 0), 0);
+    const pacote16Manual = registrosVendedor.reduce((sum, r) => sum + (r.pacote_16 || 0), 0);
+    const pacote24Manual = registrosVendedor.reduce((sum, r) => sum + (r.pacote_24 || 0), 0);
+    const pacote48Manual = registrosVendedor.reduce((sum, r) => sum + (r.pacote_48 || 0), 0);
+    
+    // Totais combinados
+    const totalLeads = leadsVendedor.length + leadsManual;
+    const vendasAvulso = vendasAvulsoAuto + vendasAvulsoManual;
+    const vendasPacote = vendasPacoteAuto + vendasPacoteManual;
     const totalVendas = vendasAvulso + vendasPacote;
-    const totalLeads = leadsVendedor.length;
     
     const convAvulso = totalLeads > 0 ? ((vendasAvulso / totalLeads) * 100).toFixed(1) : "0.0";
     const convPacote = totalLeads > 0 ? ((vendasPacote / totalLeads) * 100).toFixed(1) : "0.0";
-    
-    // Tipos de pacotes
-    const pacote8 = agendamentosVendedor.filter(ag => ag.quantas_sessoes === 8).length;
-    const pacote16 = agendamentosVendedor.filter(ag => ag.quantas_sessoes === 16).length;
-    const pacote24 = agendamentosVendedor.filter(ag => ag.quantas_sessoes === 24).length;
-    const pacote48 = agendamentosVendedor.filter(ag => ag.quantas_sessoes === 48).length;
 
     return {
       id: vendedor.id,
@@ -154,10 +227,10 @@ export default function RankingVendedoresPage() {
       totalVendas,
       convAvulso: parseFloat(convAvulso),
       convPacote: parseFloat(convPacote),
-      pacote8,
-      pacote16,
-      pacote24,
-      pacote48,
+      pacote8: pacote8Auto + pacote8Manual,
+      pacote16: pacote16Auto + pacote16Manual,
+      pacote24: pacote24Auto + pacote24Manual,
+      pacote48: pacote48Auto + pacote48Manual,
       metaMensal: vendedor.meta_mensal || 100,
     };
   }).sort((a, b) => b.totalVendas - a.totalVendas);
@@ -217,6 +290,22 @@ export default function RankingVendedoresPage() {
     setEditandoMeta(false);
   };
 
+  const salvarRegistroManual = () => {
+    const vendedor = vendedores.find(v => v.id === registroManual.vendedor_id);
+    const unidade = unidades.find(u => u.id === registroManual.unidade_id);
+    
+    if (!vendedor) {
+      alert("Selecione um vendedor");
+      return;
+    }
+
+    createRegistroMutation.mutate({
+      ...registroManual,
+      vendedor_nome: vendedor.nome,
+      unidade_nome: unidade?.nome || "",
+    });
+  };
+
   const top3 = metricsVendedores.slice(0, 3);
 
   const isSuperior = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin";
@@ -270,10 +359,16 @@ export default function RankingVendedoresPage() {
                 />
               )}
               {isSuperior && (
-                <Button onClick={() => setEditandoMeta(true)} variant="outline">
-                  <Edit2 className="w-4 h-4 mr-2" />
-                  Editar Metas
-                </Button>
+                <>
+                  <Button onClick={() => setRegistroManualOpen(true)} className="bg-green-600 hover:bg-green-700">
+                    <Plus className="w-4 h-4 mr-2" />
+                    Novo Registro
+                  </Button>
+                  <Button onClick={() => setEditandoMeta(true)} variant="outline">
+                    <Edit2 className="w-4 h-4 mr-2" />
+                    Editar Metas
+                  </Button>
+                </>
               )}
             </div>
           </div>
@@ -654,6 +749,144 @@ export default function RankingVendedoresPage() {
               <Button onClick={salvarMetas}>
                 <Save className="w-4 h-4 mr-2" />
                 Salvar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Novo Registro Manual */}
+      <Dialog open={registroManualOpen} onOpenChange={setRegistroManualOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Novo Registro Manual</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Data</Label>
+                <Input
+                  type="date"
+                  value={registroManual.data}
+                  onChange={(e) => setRegistroManual({ ...registroManual, data: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Clínica/Unidade</Label>
+                <Select 
+                  value={registroManual.unidade_id} 
+                  onValueChange={(value) => setRegistroManual({ ...registroManual, unidade_id: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a clínica" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {unidades.map(u => (
+                      <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div>
+              <Label>Vendedor</Label>
+              <Select 
+                value={registroManual.vendedor_id} 
+                onValueChange={(value) => setRegistroManual({ ...registroManual, vendedor_id: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o vendedor" />
+                </SelectTrigger>
+                <SelectContent>
+                  {vendedores.map(v => (
+                    <SelectItem key={v.id} value={v.id}>{v.nome}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Leads</Label>
+                <Input
+                  type="number"
+                  value={registroManual.leads}
+                  onChange={(e) => setRegistroManual({ ...registroManual, leads: parseInt(e.target.value) || 0 })}
+                  placeholder="0"
+                />
+              </div>
+              <div>
+                <Label>Vendas Avulso</Label>
+                <Input
+                  type="number"
+                  value={registroManual.vendas_avulso}
+                  onChange={(e) => setRegistroManual({ ...registroManual, vendas_avulso: parseInt(e.target.value) || 0 })}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+
+            <div>
+              <Label>Vendas c/ Pacote</Label>
+              <Input
+                type="number"
+                value={registroManual.vendas_pacote}
+                onChange={(e) => setRegistroManual({ ...registroManual, vendas_pacote: parseInt(e.target.value) || 0 })}
+                placeholder="0"
+              />
+            </div>
+
+            <div>
+              <Label className="block mb-2">Tipos de Pacotes</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label className="text-xs">Pacote 8</Label>
+                  <Input
+                    type="number"
+                    value={registroManual.pacote_8}
+                    onChange={(e) => setRegistroManual({ ...registroManual, pacote_8: parseInt(e.target.value) || 0 })}
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Pacote 16</Label>
+                  <Input
+                    type="number"
+                    value={registroManual.pacote_16}
+                    onChange={(e) => setRegistroManual({ ...registroManual, pacote_16: parseInt(e.target.value) || 0 })}
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Pacote 24</Label>
+                  <Input
+                    type="number"
+                    value={registroManual.pacote_24}
+                    onChange={(e) => setRegistroManual({ ...registroManual, pacote_24: parseInt(e.target.value) || 0 })}
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Pacote 48</Label>
+                  <Input
+                    type="number"
+                    value={registroManual.pacote_48}
+                    onChange={(e) => setRegistroManual({ ...registroManual, pacote_48: parseInt(e.target.value) || 0 })}
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setRegistroManualOpen(false)}>
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+              <Button onClick={salvarRegistroManual} className="bg-purple-600 hover:bg-purple-700">
+                <Save className="w-4 h-4 mr-2" />
+                Salvar Registro
               </Button>
             </div>
           </div>
