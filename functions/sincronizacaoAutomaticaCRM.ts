@@ -92,8 +92,8 @@ Deno.serve(async (req) => {
       }
     });
 
-    // Processar lote pequeno (3 por vez)
-    const tamanhoLote = 3;
+    // Processar lote maior (100 por vez)
+    const tamanhoLote = 100;
     const indiceFim = Math.min(controle.indice_atual + tamanhoLote, agendamentosValidos.length);
     
     let criados = 0;
@@ -144,8 +144,8 @@ Deno.serve(async (req) => {
           mapLeads[tel] = novoLead;
         }
 
-        // Delay entre operações
-        await delay(1000);
+        // Delay entre operações (50ms apenas)
+        await delay(50);
 
       } catch (error) {
         console.error(`❌ ${ag.cliente_nome}: ${error.message}`);
