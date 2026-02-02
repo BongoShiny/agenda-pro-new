@@ -249,11 +249,6 @@ export default function CRMPage() {
   const isVendedor = user?.cargo === "vendedor";
   const isRecepcao = user?.cargo === "recepcao";
 
-  // Buscar recepcionista do usuário logado (se for recepção)
-  const recepcionistaDoUsuario = recepcionistas.find(r => 
-    r.email === user?.email
-  );
-
   // Definir quais colunas o usuário pode ver baseado no cargo
   const colunasVisiveis = (() => {
     if (isAdmin || isSuperior) {
@@ -269,27 +264,6 @@ export default function CRMPage() {
     // Default: nada
     return [];
   })();
-
-  // Detectar leads duplicados (mesmo telefone)
-  const leadsDuplicados = new Set();
-  const telefonesMap = new Map();
-  
-  leads.forEach(lead => {
-    const telefoneNormalizado = (lead.telefone || '').replace(/\D/g, '');
-    if (telefoneNormalizado.length >= 10) {
-      if (telefonesMap.has(telefoneNormalizado)) {
-        leadsDuplicados.add(lead.id);
-        leadsDuplicados.add(telefonesMap.get(telefoneNormalizado));
-      } else {
-        telefonesMap.set(telefoneNormalizado, lead.id);
-      }
-    }
-  });
-
-  // Buscar o vendedor do usuário logado
-  const vendedorDoUsuario = vendedores.find(v => 
-    v.nome === user?.full_name || v.email === user?.email
-  );
 
   // Buscar agendamentos apenas quando filtros de recepção/terapeuta/data de pagamento estiverem ativos
   const precisaAgendamentos = filtroRecepcao !== "todas" || filtroTerapeuta !== "todos" || tipoFiltroData === "pagamento";
