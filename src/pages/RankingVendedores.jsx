@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Trophy, Users, TrendingUp, Target, Edit2, Save, X, Plus, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { ArrowLeft, Trophy, Users, TrendingUp, Target, Edit2, Save, X, Plus, ChevronLeft, ChevronRight, Calendar, Home } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -379,8 +379,8 @@ export default function RankingVendedoresPage() {
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <Button variant="outline" onClick={() => navigate(createPageUrl("Home"))}>
-                <ArrowLeft className="w-4 h-4 mr-2" />
+              <Button variant="outline" onClick={() => window.location.href = createPageUrl("Home")}>
+                <Home className="w-4 h-4 mr-2" />
                 Voltar
               </Button>
               <div>
