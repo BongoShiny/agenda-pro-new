@@ -60,7 +60,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
       await updateAgendamentoMutation.mutateAsync({
         status: "concluido",
         valor_combinado: parseFloat(formData.valor_final) || agendamento.valor_combinado,
-        observacoes_pos_venda: `Plano: ${formData.pacote_fechado} | Motivos: ${formData.motivos_fechamento.join(", ")} ${formData.observacoes ? `| ${formData.observacoes}` : ""}`,
+        observacoes_pos_venda: `Plano: ${formData.pacote_fechado} | Recepção: ${formData.recepcao_fechou} | Motivos: ${formData.motivos_fechamento.join(", ")} ${formData.observacoes ? `| ${formData.observacoes}` : ""}`,
       });
 
       alert("🎉 Plano fechado com sucesso!");
@@ -71,7 +71,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
       }
 
       await updateAgendamentoMutation.mutateAsync({
-        observacoes_pos_venda: `Não Converteu: ${formData.motivo_nao_conversao}${formData.observacoes ? ` | ${formData.observacoes}` : ""}`,
+        observacoes_pos_venda: `Não Converteu: ${formData.motivo_nao_conversao} | Recepção: ${formData.recepcao_nao_fechou}${formData.observacoes ? ` | ${formData.observacoes}` : ""}`,
       });
 
       alert("✅ Tentativa registrada!");
@@ -83,6 +83,8 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
       data_conversao: format(new Date(), "yyyy-MM-dd"),
       terapeuta_id: agendamento.profissional_id || "",
       terapeuta_nome: agendamento.profissional_nome || "",
+      recepcao_fechou: "",
+      recepcao_nao_fechou: "",
       pacote_fechado: "",
       valor_original: agendamento.valor_combinado?.toString() || "",
       desconto: "",
@@ -214,31 +216,49 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
               </div>
 
               <div>
-                <Label>Profissional</Label>
-                <Select 
-                  value={formData.terapeuta_id} 
-                  onValueChange={(value) => {
-                    const prof = profissionais.find(p => p.id === value);
-                    setFormData(prev => ({ 
-                      ...prev, 
-                      terapeuta_id: value,
-                      terapeuta_nome: prof?.nome || ""
-                    }));
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione o profissional..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {profissionais.map(p => (
-                      <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+                 <Label>Profissional</Label>
+                 <Select 
+                   value={formData.terapeuta_id} 
+                   onValueChange={(value) => {
+                     const prof = profissionais.find(p => p.id === value);
+                     setFormData(prev => ({ 
+                       ...prev, 
+                       terapeuta_id: value,
+                       terapeuta_nome: prof?.nome || ""
+                     }));
+                   }}
+                 >
+                   <SelectTrigger>
+                     <SelectValue placeholder="Selecione o profissional..." />
+                   </SelectTrigger>
+                   <SelectContent>
+                     {profissionais.map(p => (
+                       <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                     ))}
+                   </SelectContent>
+                 </Select>
+               </div>
 
-              <div>
-                <Label>Plano Terapêutico Fechado *</Label>
+               <div>
+                 <Label>Recepção que Fechou *</Label>
+                 <Input
+                   value={formData.recepcao_fechou}
+                   onChange={(e) => setFormData(prev => ({ ...prev, recepcao_fechou: e.target.value }))}
+                   placeholder="Nome da recepcionista"
+                 />
+               </div>
+
+               <div>
+                 <Label>Recepção que Não Fechou</Label>
+                 <Input
+                   value={formData.recepcao_nao_fechou}
+                   onChange={(e) => setFormData(prev => ({ ...prev, recepcao_nao_fechou: e.target.value }))}
+                   placeholder="Nome da recepcionista (se aplicável)"
+                 />
+               </div>
+
+               <div>
+                 <Label>Plano Terapêutico Fechado *</Label>
                 <Select value={formData.pacote_fechado} onValueChange={(value) => setFormData(prev => ({ ...prev, pacote_fechado: value }))}>
                   <SelectTrigger>
                     <SelectValue placeholder="Selecione o plano..." />
@@ -336,6 +356,15 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
             <div className="space-y-4 pt-4 border-t">
               <h4 className="font-semibold text-gray-900">Motivo de Não Conversão</h4>
               
+              <div>
+                <Label>Recepção que Não Fechou *</Label>
+                <Input
+                  value={formData.recepcao_nao_fechou}
+                  onChange={(e) => setFormData(prev => ({ ...prev, recepcao_nao_fechou: e.target.value }))}
+                  placeholder="Nome da recepcionista"
+                />
+              </div>
+
               <div>
                 <Label className="mb-2 block">Por que o cliente decidiu não fechar o plano? *</Label>
                 <div className="space-y-2 bg-white rounded-lg border p-3">
