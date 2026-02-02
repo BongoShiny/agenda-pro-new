@@ -94,6 +94,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
     }
 
     setModoRegistro(false);
+    setModoEdicao(false);
     setFechouPacote(null);
     setFormData({
       data_conversao: format(new Date(), "yyyy-MM-dd"),
@@ -210,27 +211,28 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
           <h3 className="font-bold text-lg text-gray-900">{modoEdicao ? "Editar Plano Fechado" : "Registrar Conversão"}</h3>
 
           {!modoEdicao && (
-          <div className="space-y-3">
-            <Label className="text-base font-semibold">O cliente fechou um plano?</Label>
-            <div className="flex gap-3">
-              <Button
-                type="button"
-                variant={fechouPacote === true ? "default" : "outline"}
-                onClick={() => setFechouPacote(true)}
-                className={fechouPacote === true ? "bg-green-600 hover:bg-green-700" : ""}
-              >
-                Sim, fechou plano
-              </Button>
-              <Button
-                type="button"
-                variant={fechouPacote === false ? "default" : "outline"}
-                onClick={() => setFechouPacote(false)}
-                className={fechouPacote === false ? "bg-red-600 hover:bg-red-700" : ""}
-              >
-                Não fechou
-              </Button>
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">O cliente fechou um plano?</Label>
+              <div className="flex gap-3">
+                <Button
+                  type="button"
+                  variant={fechouPacote === true ? "default" : "outline"}
+                  onClick={() => setFechouPacote(true)}
+                  className={fechouPacote === true ? "bg-green-600 hover:bg-green-700" : ""}
+                >
+                  Sim, fechou plano
+                </Button>
+                <Button
+                  type="button"
+                  variant={fechouPacote === false ? "default" : "outline"}
+                  onClick={() => setFechouPacote(false)}
+                  className={fechouPacote === false ? "bg-red-600 hover:bg-red-700" : ""}
+                >
+                  Não fechou
+                </Button>
+              </div>
             </div>
-          </div>
+          )}
 
           {fechouPacote === true && (
             <div className="space-y-4 pt-4 border-t">
