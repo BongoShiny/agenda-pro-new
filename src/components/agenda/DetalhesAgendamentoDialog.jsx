@@ -15,6 +15,7 @@ import { Calendar, Clock, User, Briefcase, MapPin, Tag, FileText, Ban, Unlock, C
 import AbaProntuario from "./AbaProntuario";
 import AbaContrato from "./AbaContrato";
 import AbaAvaliacaoTermal from "./AbaAvaliacaoTermal";
+import AbaConversaoAgendamento from "./AbaConversaoAgendamento";
 
 const statusLabels = {
   confirmado: { label: "Confirmado", color: "bg-emerald-500" },
@@ -142,8 +143,9 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
           </div>
         ) : (
            <Tabs value={abaAtiva} onValueChange={setAbaAtiva} className="flex-1 flex flex-col overflow-hidden">
-             <TabsList className="grid w-full grid-cols-4">
+             <TabsList className="grid w-full grid-cols-5">
                <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
+               <TabsTrigger value="conversao">Conversão</TabsTrigger>
                <TabsTrigger value="prontuario">Prontuário</TabsTrigger>
                <TabsTrigger value="contrato">Contrato 30%</TabsTrigger>
                <TabsTrigger value="avaliacao-termal">Aval. Termal</TabsTrigger>
@@ -457,6 +459,10 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               </div>
             </div>
           </div>
+        </TabsContent>
+
+        <TabsContent value="conversao" className="flex-1 overflow-y-auto">
+          <AbaConversaoAgendamento agendamento={agendamento} onUpdate={() => {}} />
         </TabsContent>
 
         <TabsContent value="prontuario" className="flex-1 overflow-y-auto">
