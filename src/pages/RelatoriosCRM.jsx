@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Download, TrendingUp, Users, Clock, Target, FileText, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
-import { format, parseISO, differenceInDays, startOfMonth, endOfMonth, startOfYear, endOfYear } from "date-fns";
+import { format, parseISO, differenceInDays, startOfMonth, endOfMonth, startOfYear, endOfYear, addDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function RelatoriosCRMPage() {
