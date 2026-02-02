@@ -115,14 +115,33 @@ export default function CRMPage() {
     return filter;
   }, [filtroStatus, filtroUnidade, filtroVendedor, isVendedor, isRecepcao, vendedorDoUsuario, recepcionistaDoUsuario]);
 
-  // Carregar TODOS os leads sem paginação (voltando ao comportamento original)
-  const { data: leads = [], refetch: refetchLeads, isFetching } = useQuery({
-    queryKey: ['leads'],
-    queryFn: () => base44.entities.Lead.list("-created_date"),
-    initialData: [],
-    staleTime: 30000, // Cache por 30 segundos
-    cacheTime: 120000, // 2 minutos
+  // Carregar leads com filtro backend e paginação
+  const { data: leadsData, refetch: refetchLeads, isFetching } = useQuery({
+    queryKey: ['leads', buildBackendFilter(), paginaAtual],
+    queryFn: async () => {
+      const filter = buildBackendFilter();
+      const skip = (paginaAtual - 1) * LEADS_POR_PAGINA;
+      
+      // Buscar com filtro e paginação
+      const results = await base44.entities.Lead.filter(
+        filter,
+        "-created_date",
+        LEADS_POR_PAGINA + 1, // +1 para saber se tem próxima página
+        skip
+      );
+      
+      return {
+        leads: results.slice(0, LEADS_POR_PAGINA),
+        hasMore: results.length > LEADS_POR_PAGINA
+      };
+    },
+    initialData: { leads: [], hasMore: false },
+    staleTime: 60000, // Cache por 60 segundos - mais agressivo
+    cacheTime: 300000, // 5 minutos no cache
   });
+
+  const leads = leadsData?.leads || [];
+  const temMaisLeads = leadsData?.hasMore || false;
 
   // Subscrição em tempo real otimizada - apenas invalida cache
   useEffect(() => {
@@ -347,32 +366,21 @@ export default function CRMPage() {
     debouncedSearch(busca);
   }, [busca, debouncedSearch]);
 
-  // Filtrar leads no frontend (todos os filtros)
+  // Filtrar leads NO FRONTEND (apenas filtros que não podem ir pro backend)
   const leadsFiltrados = useMemo(() => {
-    return leads.filter(lead => {
-      // Filtros de cargo
-      if (isVendedor) {
-        if (lead.vendedor_id !== vendedorDoUsuario?.id) return false;
-        if (!["lead", "avulso", "plano_terapeutico"].includes(lead.status)) return false;
-      }
-      
-      if (isRecepcao) {
-        if (!recepcionistaDoUsuario) return false;
-        if (lead.unidade_id !== recepcionistaDoUsuario.unidade_id) return false;
-        if (!["avulso", "plano_terapeutico", "renovacao"].includes(lead.status)) return false;
-      }
+    let filtered = leads;
 
-      // Busca
-      const matchBusca = !buscaDebounced || 
+    // Busca por nome/telefone (frontend porque backend não tem LIKE otimizado)
+    if (buscaDebounced) {
+      filtered = filtered.filter(lead => 
         lead.nome?.toLowerCase().includes(buscaDebounced.toLowerCase()) ||
-        lead.telefone?.includes(buscaDebounced);
-      
-      // Filtros de status, unidade e vendedor
-      const matchStatus = filtroStatus === "todos" || lead.status === filtroStatus;
-      const matchUnidade = filtroUnidade === "todas" || lead.unidade_id === filtroUnidade;
-      const matchVendedor = filtroVendedor === "todos" || lead.vendedor_id === filtroVendedor;
-      
-      if (!matchBusca || !matchStatus || !matchUnidade || !matchVendedor) return false;
+        lead.telefone?.includes(buscaDebounced)
+      );
+    }
+
+    // Filtros de cargo já aplicados no backend via buildBackendFilter
+    return filtered.filter(lead => {
+      // Filtros de cargo já aplicados no backend
     
     // Filtro de Data (baseado no tipo selecionado)
     let matchData = true;
@@ -434,29 +442,33 @@ export default function CRMPage() {
 
       return matchData && matchRecepcao && matchTerapeuta;
     });
-  }, [leads, buscaDebounced, filtroStatus, filtroUnidade, filtroVendedor, filtroDataInicio, 
-      filtroDataFim, tipoFiltroData, filtroRecepcao, filtroTerapeuta, todosAgendamentos, 
-      recepcionistas, isVendedor, isRecepcao, vendedorDoUsuario, recepcionistaDoUsuario]);
+  }, [leads, buscaDebounced, filtroDataInicio, filtroDataFim, tipoFiltroData, 
+      filtroRecepcao, filtroTerapeuta, todosAgendamentos, recepcionistas]);
 
-  // Estatísticas - calcular do array de leads filtrado por cargo
-  const stats = useMemo(() => {
-    let leadsParaContar = leads;
-    
-    // Filtrar por cargo
-    if (isVendedor && vendedorDoUsuario) {
-      leadsParaContar = leads.filter(l => l.vendedor_id === vendedorDoUsuario.id);
-    }
-    if (isRecepcao && recepcionistaDoUsuario) {
-      leadsParaContar = leads.filter(l => l.unidade_id === recepcionistaDoUsuario.unidade_id);
-    }
+  // Estatísticas - buscar do backend com cache
+  const { data: stats = { lead: 0, avulso: 0, planoTerapeutico: 0, renovacao: 0 } } = useQuery({
+    queryKey: ['leads-stats', buildBackendFilter()],
+    queryFn: async () => {
+      const filter = buildBackendFilter();
+      
+      // Buscar contagens em paralelo
+      const [leadCount, avulsoCount, planoCount, renovacaoCount] = await Promise.all([
+        base44.entities.Lead.filter({ ...filter, status: 'lead' }, null, 0, 0).then(r => r.length),
+        base44.entities.Lead.filter({ ...filter, status: 'avulso' }, null, 0, 0).then(r => r.length),
+        base44.entities.Lead.filter({ ...filter, status: 'plano_terapeutico' }, null, 0, 0).then(r => r.length),
+        base44.entities.Lead.filter({ ...filter, status: 'renovacao' }, null, 0, 0).then(r => r.length),
+      ]);
 
-    return {
-      lead: leadsParaContar.filter(l => l.status === "lead").length,
-      avulso: leadsParaContar.filter(l => l.status === "avulso").length,
-      planoTerapeutico: leadsParaContar.filter(l => l.status === "plano_terapeutico").length,
-      renovacao: leadsParaContar.filter(l => l.status === "renovacao").length,
-    };
-  }, [leads, isVendedor, isRecepcao, vendedorDoUsuario, recepcionistaDoUsuario]);
+      return {
+        lead: leadCount,
+        avulso: avulsoCount,
+        planoTerapeutico: planoCount,
+        renovacao: renovacaoCount,
+      };
+    },
+    staleTime: 60000, // 1 minuto
+    cacheTime: 300000, // 5 minutos
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
@@ -833,11 +845,43 @@ export default function CRMPage() {
               ))}
             </div>
 
-            {leadsFiltrados.length === 0 && (
+            {leadsFiltrados.length === 0 && !isFetching && (
               <div className="bg-white rounded-xl shadow-lg p-12 text-center">
                 <UserPlus className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                 <p className="text-gray-500 text-lg">Nenhum lead encontrado</p>
                 <p className="text-gray-400 text-sm mt-2">Clique em "Novo Lead" para começar</p>
+              </div>
+            )}
+
+            {/* Paginação */}
+            {(temMaisLeads || paginaAtual > 1) && (
+              <div className="flex items-center justify-center gap-4 mt-6">
+                {paginaAtual > 1 && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setPaginaAtual(p => p - 1)}
+                    disabled={isFetching}
+                  >
+                    Página Anterior
+                  </Button>
+                )}
+                <span className="text-gray-600">Página {paginaAtual}</span>
+                {temMaisLeads && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setPaginaAtual(p => p + 1)}
+                    disabled={isFetching}
+                  >
+                    Próxima Página
+                  </Button>
+                )}
+              </div>
+            )}
+
+            {isFetching && (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="w-8 h-8 text-blue-600 animate-spin" />
+                <span className="ml-2 text-gray-600">Carregando leads...</span>
               </div>
             )}
           </>
