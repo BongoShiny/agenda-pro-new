@@ -60,6 +60,35 @@ export default function CRMPage() {
     loadUser();
   }, []);
 
+  const isAdmin = user?.role === 'admin';
+  const isSuperior = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades";
+  const isVendedor = user?.cargo === "vendedor";
+  const isRecepcao = user?.cargo === "recepcao";
+
+  const { data: vendedores = [] } = useQuery({
+    queryKey: ['vendedores'],
+    queryFn: () => base44.entities.Vendedor.list("nome"),
+    initialData: [],
+    staleTime: 300000,
+  });
+
+  const { data: recepcionistas = [] } = useQuery({
+    queryKey: ['recepcionistas'],
+    queryFn: () => base44.entities.Recepcionista.list("nome"),
+    initialData: [],
+    staleTime: 300000,
+  });
+
+  const vendedorDoUsuario = useMemo(() => 
+    vendedores.find(v => v.nome === user?.full_name || v.email === user?.email),
+    [vendedores, user]
+  );
+
+  const recepcionistaDoUsuario = useMemo(() => 
+    recepcionistas.find(r => r.email === user?.email),
+    [recepcionistas, user]
+  );
+
   // Construir filtro backend inteligente
   const buildBackendFilter = useCallback(() => {
     const filter = {};
@@ -137,20 +166,6 @@ export default function CRMPage() {
     queryFn: () => base44.entities.Unidade.list("nome"),
     initialData: [],
     staleTime: 300000, // 5 minutos - dados raramente mudam
-  });
-
-  const { data: vendedores = [] } = useQuery({
-    queryKey: ['vendedores'],
-    queryFn: () => base44.entities.Vendedor.list("nome"),
-    initialData: [],
-    staleTime: 300000,
-  });
-
-  const { data: recepcionistas = [] } = useQuery({
-    queryKey: ['recepcionistas'],
-    queryFn: () => base44.entities.Recepcionista.list("nome"),
-    initialData: [],
-    staleTime: 300000,
   });
 
   const { data: profissionais = [] } = useQuery({
@@ -298,11 +313,6 @@ export default function CRMPage() {
     }
   };
 
-  const isAdmin = user?.role === 'admin';
-  const isSuperior = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades";
-  const isVendedor = user?.cargo === "vendedor";
-  const isRecepcao = user?.cargo === "recepcao";
-
   // Definir quais colunas o usuário pode ver baseado no cargo
   const colunasVisiveis = (() => {
     if (isAdmin || isSuperior) {
@@ -350,17 +360,6 @@ export default function CRMPage() {
     
     return duplicados;
   }, [leads]);
-
-  // Memoizar vendedor e recepcionista do usuário
-  const vendedorDoUsuario = useMemo(() => 
-    vendedores.find(v => v.nome === user?.full_name || v.email === user?.email),
-    [vendedores, user]
-  );
-
-  const recepcionistaDoUsuario = useMemo(() => 
-    recepcionistas.find(r => r.email === user?.email),
-    [recepcionistas, user]
-  );
 
   // Handler para mudança de busca com debounce
   useEffect(() => {
