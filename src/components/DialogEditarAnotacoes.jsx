@@ -45,18 +45,9 @@ export default function DialogEditarAnotacoes({
     }
   }, [agendamento, aberto]);
 
-  const totalPago = (valores.sinal || 0) + (valores.recebimento_2 || 0) + (valores.final_pagamento || 0);
-  const faltaQuanto = (valores.valor_combinado || 0) - totalPago;
-
   const handleSalvar = () => {
     onSalvar({
-      vendedor_id: valores.vendedor_id,
-      vendedor_nome: valores.vendedor_nome,
-      valor_combinado: valores.valor_combinado,
-      sinal: valores.sinal,
-      recebimento_2: valores.recebimento_2,
-      final_pagamento: valores.final_pagamento,
-      falta_quanto: faltaQuanto,
+      data_pagamento: valores.data_pagamento,
       anotacao_venda: valores.anotacao_venda
     });
   };
