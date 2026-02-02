@@ -185,13 +185,23 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
   }, [modoEdicao, agendamento]);
 
   useEffect(() => {
-    if (formData.valor_original && formData.desconto) {
-      const original = parseFloat(formData.valor_original);
-      const desc = parseFloat(formData.desconto);
+    if (formData.valor_original && formData.desconto !== undefined) {
+      const original = parseFloat(formData.valor_original) || 0;
+      const desc = parseFloat(formData.desconto) || 0;
       const final = original - (original * desc / 100);
-      setFormData(prev => ({ ...prev, valor_final: final.toFixed(2) }));
+      
+      const sinal = parseFloat(formData.sinal) || 0;
+      const recebimento2 = parseFloat(formData.recebimento_2) || 0;
+      const totalPago = sinal + recebimento2;
+      const faltaPagar = final - totalPago;
+      
+      setFormData(prev => ({ 
+        ...prev, 
+        valor_final: final.toFixed(2),
+        final_pagamento: Math.max(0, faltaPagar).toFixed(2)
+      }));
     }
-  }, [formData.valor_original, formData.desconto]);
+  }, [formData.valor_original, formData.desconto, formData.sinal, formData.recebimento_2]);
 
   const motivosFechamento = [
     "Cliente verificou avaliação e não julgou",
@@ -384,70 +394,72 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                 <h4 className="font-semibold text-gray-900 border-b pb-2">💰 Valores e Pagamento</h4>
 
                 <div className="grid grid-cols-3 gap-3">
-                  <div>
-                    <Label>Valor Original</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={formData.valor_original}
-                      onChange={(e) => setFormData(prev => ({ ...prev, valor_original: e.target.value }))}
-                      placeholder="0,00"
-                    />
-                  </div>
-                  <div>
-                    <Label>Desconto (%)</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={formData.desconto}
-                      onChange={(e) => setFormData(prev => ({ ...prev, desconto: e.target.value }))}
-                      placeholder="0"
-                    />
-                  </div>
-                  <div>
-                    <Label>Valor Final *</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={formData.valor_final}
-                      onChange={(e) => setFormData(prev => ({ ...prev, valor_final: e.target.value }))}
-                      placeholder="0,00"
-                    />
-                  </div>
-                </div>
+                   <div>
+                     <Label>Valor Original *</Label>
+                     <Input
+                       type="number"
+                       step="0.01"
+                       value={formData.valor_original}
+                       onChange={(e) => setFormData(prev => ({ ...prev, valor_original: e.target.value }))}
+                       placeholder="0,00"
+                     />
+                   </div>
+                   <div>
+                     <Label>Desconto (%)</Label>
+                     <Input
+                       type="number"
+                       step="0.01"
+                       value={formData.desconto}
+                       onChange={(e) => setFormData(prev => ({ ...prev, desconto: e.target.value }))}
+                       placeholder="0"
+                     />
+                   </div>
+                   <div>
+                     <Label>Valor Final</Label>
+                     <Input
+                       type="number"
+                       step="0.01"
+                       value={formData.valor_final}
+                       disabled
+                       placeholder="0,00"
+                       className="bg-gray-100"
+                     />
+                   </div>
+                 </div>
 
-                <div className="grid grid-cols-3 gap-3 pt-3 border-t">
-                  <div>
-                    <Label>Sinal</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={formData.sinal}
-                      onChange={(e) => setFormData(prev => ({ ...prev, sinal: e.target.value }))}
-                      placeholder="0,00"
-                    />
-                  </div>
-                  <div>
-                    <Label>Recebimento 2</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={formData.recebimento_2}
-                      onChange={(e) => setFormData(prev => ({ ...prev, recebimento_2: e.target.value }))}
-                      placeholder="0,00"
-                    />
-                  </div>
-                  <div>
-                    <Label>Pagamento Final</Label>
-                    <Input
-                      type="number"
-                      step="0.01"
-                      value={formData.final_pagamento}
-                      onChange={(e) => setFormData(prev => ({ ...prev, final_pagamento: e.target.value }))}
-                      placeholder="0,00"
-                    />
-                  </div>
-                </div>
+                 <div className="grid grid-cols-3 gap-3 pt-3 border-t">
+                   <div>
+                     <Label>Sinal</Label>
+                     <Input
+                       type="number"
+                       step="0.01"
+                       value={formData.sinal}
+                       onChange={(e) => setFormData(prev => ({ ...prev, sinal: e.target.value }))}
+                       placeholder="0,00"
+                     />
+                   </div>
+                   <div>
+                     <Label>Recebimento 2</Label>
+                     <Input
+                       type="number"
+                       step="0.01"
+                       value={formData.recebimento_2}
+                       onChange={(e) => setFormData(prev => ({ ...prev, recebimento_2: e.target.value }))}
+                       placeholder="0,00"
+                     />
+                   </div>
+                   <div>
+                     <Label>Valor que Falta Pagar</Label>
+                     <Input
+                       type="number"
+                       step="0.01"
+                       value={formData.final_pagamento}
+                       disabled
+                       placeholder="0,00"
+                       className="bg-gray-100"
+                     />
+                   </div>
+                 </div>
 
                 <div>
                    <Label>Forma de Pagamento</Label>
