@@ -203,11 +203,16 @@ export default function RelatoriosFinanceirosPage() {
       } else {
         dataParaFiltro = ag.data_pagamento;
       }
-      
+
       // Se não houver data do tipo selecionado, não incluir
       if (!dataParaFiltro) return false;
-      
-      if (dataParaFiltro < dataInicio || dataParaFiltro > dataFim) return false;
+
+      // Normalizar datas para comparação (remover hora)
+      const dataFiltroNorm = dataParaFiltro.substring(0, 10);
+      const dataInicioNorm = dataInicio.substring(0, 10);
+      const dataFimNorm = dataFim.substring(0, 10);
+
+      if (dataFiltroNorm < dataInicioNorm || dataFiltroNorm > dataFimNorm) return false;
 
       // Filtro de unidade
       if (unidadeFiltro !== "todas" && ag.unidade_id !== unidadeFiltro) return false;
@@ -2202,7 +2207,10 @@ export default function RelatoriosFinanceirosPage() {
                      if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
 
                      // Aplicar filtro de período baseado em data_conversao
-                     if (ag.data_conversao < dataInicio || ag.data_conversao > dataFim) return false;
+                     const dataConversaoNorm = ag.data_conversao.substring(0, 10);
+                     const dataInicioNorm = dataInicio.substring(0, 10);
+                     const dataFimNorm = dataFim.substring(0, 10);
+                     if (dataConversaoNorm < dataInicioNorm || dataConversaoNorm > dataFimNorm) return false;
 
                      // Filtro de unidade
                      if (unidadeFiltro !== "todas" && ag.unidade_id !== unidadeFiltro) return false;
