@@ -52,7 +52,7 @@ const formatarDataPagamento = (dataString) => {
   return `${String(dia).padStart(2, '0')}/${String(mes).padStart(2, '0')}/${ano}`;
 };
 
-export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim }) {
+export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim, onEditarAnotacoes }) {
   const [unidadeSelecionada, setUnidadeSelecionada] = useState("todas");
   const [vendedorSelecionado, setVendedorSelecionado] = useState("todos");
   const [imagemDialog, setImagemDialog] = useState(null);
@@ -67,6 +67,7 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
   const [dataFimCustom, setDataFimCustom] = useState("");
   const [visualizacaoGrafico, setVisualizacaoGrafico] = useState("dia"); // dia, semana, mes
   const [mostrarGraficos, setMostrarGraficos] = useState(true);
+  const [modoEditarAnotacoes, setModoEditarAnotacoes] = useState(null);
   const queryClient = useQueryClient();
 
   const atualizarAgendamentoMutation = useMutation({
