@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ArrowLeft, Trophy, Users, TrendingUp, Target, Edit2, Save, X, Plus, ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
+import { createPageUrl } from "@/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
@@ -378,7 +379,7 @@ export default function RankingVendedoresPage() {
         <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
-              <Link to="/Agenda">
+              <Link to={createPageUrl("Agenda")}>
                 <Button variant="outline">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Voltar
