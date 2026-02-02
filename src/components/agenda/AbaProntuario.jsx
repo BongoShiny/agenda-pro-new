@@ -839,13 +839,37 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
 
           <div>
             <Label className="text-sm font-medium text-gray-700">MÚSCULOS LIBERADOS DOS PÉS:</Label>
-            <Textarea
-              value={prontuario.musculos_pes}
-              onChange={(e) => setProntuario({ ...prontuario, musculos_pes: e.target.value })}
-              placeholder="Liste os músculos..."
-              rows={2}
-              className="mt-1"
-            />
+            <div className="mt-1 flex flex-wrap gap-2 p-3 border rounded-md bg-white min-h-12">
+              {prontuario.musculos_pes?.split(',').filter(Boolean).map((m, idx) => (
+                <span key={idx} className="bg-lime-100 text-lime-800 px-3 py-1 rounded-full text-sm flex items-center gap-2">
+                  {m.trim()}
+                  <button onClick={() => setProntuario({
+                    ...prontuario,
+                    musculos_pes: prontuario.musculos_pes.split(',').filter((_, i) => i !== idx).join(',')
+                  })} className="hover:text-lime-600">
+                    <X className="w-3 h-3" />
+                  </button>
+                </span>
+              ))}
+              <Select onValueChange={(value) => {
+                const atual = prontuario.musculos_pes?.split(',').filter(Boolean) || [];
+                if (!atual.includes(value)) {
+                  setProntuario({
+                    ...prontuario,
+                    musculos_pes: [...atual, value].join(',')
+                  });
+                }
+              }}>
+                <SelectTrigger className="w-32 h-8">
+                  <SelectValue placeholder="Adicionar músculo" />
+                </SelectTrigger>
+                <SelectContent>
+                  {musculosOptions.pes.map(m => (
+                    <SelectItem key={m} value={m}>{m}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <div>
