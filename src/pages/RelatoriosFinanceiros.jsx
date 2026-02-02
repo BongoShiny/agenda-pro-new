@@ -2157,9 +2157,21 @@ export default function RelatoriosFinanceirosPage() {
                                   rows={2}
                                 />
                               ) : (
-                                <span className="text-xs text-gray-600 line-clamp-2">
-                                  {anotacaoVenda || "-"}
-                                </span>
+                                <div className="flex items-center justify-between gap-2">
+                                  <span className="text-xs text-gray-600 line-clamp-2">
+                                    {anotacaoVenda || "-"}
+                                  </span>
+                                  {(isAdmin || usuarioAtual?.cargo === "financeiro") && (
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => setModoEditarAnotacoes(ag.id)}
+                                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 text-xs flex-shrink-0"
+                                    >
+                                      <Edit3 className="w-3 h-3" />
+                                    </Button>
+                                  )}
+                                </div>
                               )}
                               </TableCell>
                               <TableCell className="px-4 py-3">
