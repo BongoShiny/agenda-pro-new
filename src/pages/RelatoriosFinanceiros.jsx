@@ -2368,15 +2368,8 @@ export default function RelatoriosFinanceirosPage() {
                                   const valorOriginal = lead.valor_original || 0;
                                   const valorFinal = lead.valor_final || 0;
                                   const desconto = valorOriginal > 0 ? ((valorOriginal - valorFinal) / valorOriginal * 100) : 0;
-                                  
-                                  // Calcular tempo para fechar
-                                  let diasParaFechar = null;
-                                  if (lead.data_entrada && lead.data_conversao) {
-                                    const entrada = new Date(lead.data_entrada);
-                                    const conversao = new Date(lead.data_conversao);
-                                    diasParaFechar = Math.floor((conversao - entrada) / (1000 * 60 * 60 * 24));
-                                  }
-                                  
+                                  const convertido = lead.convertido ? "✅ Sim" : "❌ Não";
+
                                   return (
                                     <TableRow key={lead.id}>
                                       <TableCell className="font-semibold">{lead.nome}</TableCell>
@@ -2389,25 +2382,17 @@ export default function RelatoriosFinanceirosPage() {
                                       <TableCell>
                                         {lead.data_conversao ? format(criarDataPura(lead.data_conversao), "dd/MM/yyyy", { locale: ptBR }) : "-"}
                                       </TableCell>
-                                      <TableCell className="text-center">
-                                        {diasParaFechar !== null ? (
-                                          <span className={`text-sm font-semibold px-2 py-1 rounded ${
-                                            diasParaFechar <= 7 ? 'bg-green-100 text-green-800' :
-                                            diasParaFechar <= 14 ? 'bg-yellow-100 text-yellow-800' :
-                                            'bg-red-100 text-red-800'
-                                          }`}>
-                                            {diasParaFechar} dias
-                                          </span>
-                                        ) : (
-                                          <span className="text-gray-400 text-xs">-</span>
-                                        )}
-                                      </TableCell>
                                       <TableCell className="font-medium">
                                         {lead.terapeuta_nome || "-"}
                                       </TableCell>
                                       <TableCell>
                                         <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded">
                                           {lead.recepcao_vendeu || "Sem Recepção"}
+                                        </span>
+                                      </TableCell>
+                                      <TableCell className="text-center">
+                                        <span className="text-sm font-semibold">
+                                          {convertido}
                                         </span>
                                       </TableCell>
                                       <TableCell className="text-right text-gray-600">
