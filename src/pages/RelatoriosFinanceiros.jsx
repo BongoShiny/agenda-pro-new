@@ -2232,6 +2232,7 @@ export default function RelatoriosFinanceirosPage() {
                    // Separar em fechadas e não fechadas
                    const agendamentosFechados = agendamentosConversao.filter(ag => ag.conversao_converteu === true);
                    const agendamentosNaoFechados = agendamentosConversao.filter(ag => ag.conversao_converteu === false);
+                   const totalNaoFechados = agendamentosNaoFechados.length;
 
                    // Calcular métricas para FECHADOS
                     const totalFechados = agendamentosFechados.length;
