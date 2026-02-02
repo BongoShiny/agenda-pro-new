@@ -865,6 +865,25 @@ export default function AgendaPage() {
       return;
     }
 
+    // ⚠️ CRÍTICO: Verificar se JÁ EXISTE agendamento (não bloqueio) COM O MESMO CLIENTE no mesmo horário
+    const duplicataAgendamento = agendamentos.find(ag => 
+      ag.data === dados.data &&
+      ag.profissional_id === dados.profissional_id &&
+      ag.unidade_id === dados.unidade_id &&
+      ag.hora_inicio === dados.hora_inicio &&
+      ag.cliente_id === dados.cliente_id && // ⚠️ MESMO CLIENTE
+      ag.status !== "cancelado" &&
+      ag.status !== "bloqueio" &&
+      ag.tipo !== "bloqueio" &&
+      ag.cliente_nome !== "FECHADO" &&
+      ag.id !== dados.id // Ignorar se estiver editando o próprio registro
+    );
+
+    if (duplicataAgendamento) {
+      alert(`⚠️ AGENDAMENTO DUPLICADO!\n\n👤 ${duplicataAgendamento.cliente_nome} já está agendado\n⏰ ${duplicataAgendamento.hora_inicio} - ${duplicataAgendamento.hora_fim}\n👨‍⚕️ Com ${duplicataAgendamento.profissional_nome}\n\nNão é permitido agendar a mesma pessoa em horários iguais!`);
+      return;
+    }
+
     if (dados.id) {
       // Modo edição
       const { id, ...dadosSemId } = dados;
