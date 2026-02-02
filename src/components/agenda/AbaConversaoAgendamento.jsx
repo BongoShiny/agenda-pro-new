@@ -21,6 +21,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
     recepcao_fechou: "",
     recepcao_nao_fechou: "",
     pacote_fechado: "",
+    sessoes_personalizadas: "",
     valor_original: agendamento.valor_combinado?.toString() || "",
     desconto: "",
     valor_final: agendamento.valor_combinado?.toString() || "",
@@ -63,10 +64,19 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
     }
 
     if (fechouPacote === true) {
-      if (!formData.data_conversao || !formData.pacote_fechado) {
-        alert("⚠️ Preencha os campos obrigatórios: Data de Conversão e Plano Fechado");
-        return;
-      }
+    if (!formData.data_conversao || !formData.pacote_fechado) {
+      alert("⚠️ Preencha os campos obrigatórios: Data de Conversão e Plano Fechado");
+      return;
+    }
+
+    if (formData.pacote_fechado === "plano_personalizado" && !formData.sessoes_personalizadas) {
+      alert("⚠️ Preencha o número de sessões para o plano personalizado");
+      return;
+    }
+
+      const planoPorSessoes = formData.pacote_fechado === "plano_personalizado" 
+        ? `plano_${formData.sessoes_personalizadas}_sessoes`
+        : formData.pacote_fechado;
 
       await updateAgendamentoMutation.mutateAsync({
         data_conversao: formData.data_conversao,
@@ -76,7 +86,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         recebimento_2: parseFloat(formData.recebimento_2) || 0,
         final_pagamento: parseFloat(formData.final_pagamento) || 0,
         observacoes: formData.observacoes,
-        conversao_plano: formData.pacote_fechado,
+        conversao_plano: planoPorSessoes,
         conversao_profissional_id: formData.terapeuta_id,
         conversao_profissional_nome: formData.terapeuta_nome,
         conversao_recepcionista: formData.recepcao_fechou,
@@ -115,6 +125,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
       recepcao_fechou: "",
       recepcao_nao_fechou: "",
       pacote_fechado: "",
+      sessoes_personalizadas: "",
       valor_original: agendamento.valor_combinado?.toString() || "",
       desconto: "",
       valor_final: agendamento.valor_combinado?.toString() || "",
@@ -140,6 +151,14 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
   // Recarregar dados quando entra em modo edição
   useEffect(() => {
     if (modoEdicao) {
+      // Extrair sessões personalizadas do plano se existirem
+      let sessoesPersonalizadas = "";
+      const planoArmazenado = agendamento.conversao_plano || prev?.pacote_fechado || "";
+      const matchSessoes = planoArmazenado.match(/plano_(\d+)_sessoes/);
+      if (matchSessoes && ![24, 16, 12, 8].includes(parseInt(matchSessoes[1]))) {
+        sessoesPersonalizadas = matchSessoes[1];
+      }
+
       setFormData(prev => ({
         ...prev,
         data_conversao: agendamento.data_conversao || prev.data_conversao,
@@ -148,7 +167,8 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         sinal: agendamento.sinal?.toString() || prev.sinal,
         recebimento_2: agendamento.recebimento_2?.toString() || prev.recebimento_2,
         final_pagamento: agendamento.final_pagamento?.toString() || prev.final_pagamento,
-        pacote_fechado: agendamento.conversao_plano || prev.pacote_fechado,
+        pacote_fechado: matchSessoes && ![24, 16, 12, 8].includes(parseInt(matchSessoes[1])) ? "plano_personalizado" : (agendamento.conversao_plano || prev.pacote_fechado),
+        sessoes_personalizadas: sessoesPersonalizadas,
         recepcao_fechou: agendamento.conversao_recepcionista || prev.recepcao_fechou,
         terapeuta_id: agendamento.conversao_profissional_id || agendamento.profissional_id || prev.terapeuta_id,
         terapeuta_nome: agendamento.conversao_profissional_nome || agendamento.profissional_nome || prev.terapeuta_nome,
@@ -287,7 +307,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
 
                   <div>
                     <Label>Plano Terapêutico Fechado *</Label>
-                    <Select value={formData.pacote_fechado} onValueChange={(value) => setFormData(prev => ({ ...prev, pacote_fechado: value }))}>
+                    <Select value={formData.pacote_fechado} onValueChange={(value) => setFormData(prev => ({ ...prev, pacote_fechado: value, sessoes_personalizadas: "" }))}>
                       <SelectTrigger>
                         <SelectValue placeholder="Selecione o plano..." />
                       </SelectTrigger>
@@ -297,9 +317,23 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                         <SelectItem value="plano_12_sessoes">Plano 12 Sessões</SelectItem>
                         <SelectItem value="plano_8_sessoes">Plano 8 Sessões</SelectItem>
                         <SelectItem value="sessao_avulsa">Sessão Avulsa</SelectItem>
+                        <SelectItem value="plano_personalizado">Plano Personalizado</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
+
+                  {formData.pacote_fechado === "plano_personalizado" && (
+                    <div>
+                      <Label>Número de Sessões *</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={formData.sessoes_personalizadas}
+                        onChange={(e) => setFormData(prev => ({ ...prev, sessoes_personalizadas: e.target.value }))}
+                        placeholder="Ex: 20"
+                      />
+                    </div>
+                  )}
 
                   <div>
                     <Label>Profissional *</Label>
