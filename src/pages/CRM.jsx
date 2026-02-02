@@ -737,7 +737,24 @@ export default function CRMPage() {
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 mt-3">
-            <div className="flex items-end lg:col-start-4">
+            {visualizacao === "kanban" && totalPaginas > 1 && (
+              <div>
+                <label className="text-xs text-gray-600 mb-1 block">Página</label>
+                <Select value={paginaAtual.toString()} onValueChange={(value) => setPaginaAtual(Number(value))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a página" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: totalPaginas }, (_, i) => i + 1).map(numero => (
+                      <SelectItem key={numero} value={numero.toString()}>
+                        Página {numero}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            <div className={`flex items-end ${visualizacao === "kanban" && totalPaginas > 1 ? '' : 'lg:col-start-4'}`}>
               <Button
                 variant="outline"
                 size="sm"
@@ -759,38 +776,6 @@ export default function CRMPage() {
               </Button>
             </div>
           </div>
-
-          {/* Paginação Global */}
-          {visualizacao === "kanban" && totalPaginas > 1 && (
-            <div className="mt-4 bg-gray-800 rounded-lg py-3 px-4">
-              <div className="flex items-center justify-between">
-                <span className="text-white text-sm font-medium">Páginas:</span>
-                <div className="flex items-center gap-2">
-                  {Array.from({ length: Math.min(totalPaginas, 10) }, (_, i) => i + 1).map(numero => (
-                    <button
-                      key={numero}
-                      onClick={() => setPaginaAtual(numero)}
-                      className={`w-8 h-8 rounded flex items-center justify-center text-sm font-medium transition-colors ${
-                        paginaAtual === numero 
-                          ? 'bg-blue-600 text-white' 
-                          : 'text-gray-300 hover:text-white hover:bg-gray-700'
-                      }`}
-                    >
-                      {numero}
-                    </button>
-                  ))}
-                  {totalPaginas > 10 && (
-                    <button
-                      onClick={() => setPaginaAtual(Math.min(paginaAtual + 1, totalPaginas))}
-                      className="text-blue-400 hover:text-blue-300 text-sm font-medium ml-2"
-                    >
-                      Mais
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
           </div>
 
         {/* Alerta de Duplicados */}
