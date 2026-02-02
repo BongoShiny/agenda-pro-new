@@ -2357,7 +2357,6 @@ export default function RelatoriosFinanceirosPage() {
                       {/* SEÇÃO 2: PLANOS NÃO FECHADOS */}
                       <div className="space-y-4">
                         <h2 className="text-xl font-bold text-red-700">❌ PLANOS NÃO FECHADOS</h2>
-                        <p className="text-sm text-gray-600">Motivo: {agendamentosNaoFechados.length > 0 ? agendamentosNaoFechados[0].conversao_motivo_nao_converteu : "-"}</p>
 
                         {/* Tabela Não Fechados */}
                         <div className="overflow-x-auto">
