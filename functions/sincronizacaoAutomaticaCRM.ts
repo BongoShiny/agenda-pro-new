@@ -52,15 +52,33 @@ Deno.serve(async (req) => {
 
     console.log(`✅ ${agendamentosValidos.length} agendamentos válidos`);
 
-    // Se já processou todos, resetar
+    // Se já processou todos, desativar automação
     if (controle.indice_atual >= agendamentosValidos.length) {
-      console.log('✅ Sincronização completa! Resetando...');
+      console.log('✅ SINCRONIZAÇÃO COMPLETA! Desativando automação...');
+      
+      // Buscar e desativar a automação
+      const automacoes = await base44.asServiceRole.listAutomations();
+      const automacao = automacoes.find(a => a.function_name === 'sincronizacaoAutomaticaCRM' && a.is_active);
+      
+      if (automacao) {
+        await base44.asServiceRole.updateAutomation(automacao.id, { is_active: false });
+        console.log('🛑 Automação desativada automaticamente');
+      }
+      
       await base44.asServiceRole.entities.ControleSincronizacaoCRM.update(controle.id, {
-        indice_atual: 0,
         em_progresso: false,
         ultima_execucao: new Date().toISOString()
       });
-      return Response.json({ message: 'Completo', resetado: true });
+      
+      return Response.json({ 
+        message: 'Sincronização completa!',
+        automacao_desativada: true,
+        totais: {
+          criados: controle.criados,
+          atualizados: controle.atualizados,
+          erros: controle.erros
+        }
+      });
     }
 
     // Marcar como em progresso
