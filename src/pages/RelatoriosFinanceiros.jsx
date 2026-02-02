@@ -2367,6 +2367,7 @@ export default function RelatoriosFinanceirosPage() {
                                 <TableHead>Cliente</TableHead>
                                 <TableHead>Telefone</TableHead>
                                 <TableHead>Unidade</TableHead>
+                                <TableHead>Data Não Converteu</TableHead>
                                 <TableHead>Terapeuta</TableHead>
                                 <TableHead>Recepção</TableHead>
                                 <TableHead>Motivo</TableHead>
@@ -2375,12 +2376,15 @@ export default function RelatoriosFinanceirosPage() {
                             </TableHeader>
                             <TableBody>
                               {agendamentosNaoFechados
-                                .sort((a, b) => new Date(b.created_date || 0) - new Date(a.created_date || 0))
+                                .sort((a, b) => new Date(b.data_conversao || 0) - new Date(a.data_conversao || 0))
                                 .map((ag) => (
                                   <TableRow key={ag.id}>
                                     <TableCell className="font-semibold">{ag.cliente_nome}</TableCell>
                                     <TableCell className="text-sm">{ag.cliente_telefone || "-"}</TableCell>
                                     <TableCell className="text-sm">{ag.unidade_nome || "-"}</TableCell>
+                                    <TableCell>
+                                      {ag.data_conversao ? format(criarDataPura(ag.data_conversao), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                                    </TableCell>
                                     <TableCell>{ag.conversao_profissional_nome || ag.profissional_nome || "-"}</TableCell>
                                     <TableCell>{ag.conversao_recepcionista_nao_converteu || "-"}</TableCell>
                                     <TableCell className="text-xs bg-red-50 px-2 py-1 rounded">{ag.conversao_motivo_nao_converteu || "-"}</TableCell>
