@@ -138,6 +138,7 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
   });
 
   const formatarPeriodo = () => {
+    if (!dataInicioFiltro || !dataFimFiltro) return "Período não definido";
     if (dataInicioFiltro === dataFimFiltro) {
       return format(new Date(dataInicioFiltro + 'T12:00:00'), "dd/MM/yyyy", { locale: ptBR });
     }
@@ -149,7 +150,7 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
 
   // Preparar dados para gráficos
   const prepararDadosGrafico = () => {
-    if (vendasFiltradas.length === 0) return [];
+    if (vendasFiltradas.length === 0 || !dataInicioFiltro || !dataFimFiltro) return [];
 
     const inicio = new Date(dataInicioFiltro + 'T12:00:00');
     const fim = new Date(dataFimFiltro + 'T12:00:00');
