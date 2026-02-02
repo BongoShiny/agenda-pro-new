@@ -2273,7 +2273,7 @@ export default function RelatoriosFinanceirosPage() {
                   return (
                     <div className="space-y-6">
                       {/* Métricas Resumidas */}
-                      <div className="grid grid-cols-5 gap-4">
+                      <div className="grid grid-cols-4 gap-4">
                         <div className="bg-blue-50 p-4 rounded-lg border border-blue-200">
                           <p className="text-sm text-blue-600 mb-1">Total de Conversões</p>
                           <p className="text-3xl font-bold text-blue-700">{totalConversoes}</p>
@@ -2290,12 +2290,7 @@ export default function RelatoriosFinanceirosPage() {
                           <p className="text-sm text-emerald-600 mb-1">Valor Final Total</p>
                           <p className="text-2xl font-bold text-emerald-700">{formatarMoeda(valorTotalFinal)}</p>
                         </div>
-                        <div className="bg-cyan-50 p-4 rounded-lg border border-cyan-200">
-                          <p className="text-sm text-cyan-600 mb-1">⏱️ Tempo Médio Conversão</p>
-                          <p className="text-3xl font-bold text-cyan-700">
-                            {tempoMedioConversao.toFixed(1)} dias
-                          </p>
-                        </div>
+
                       </div>
 
                       {/* Gráficos de Performance */}
@@ -2351,21 +2346,21 @@ export default function RelatoriosFinanceirosPage() {
                         <div className="overflow-x-auto">
                           <Table>
                             <TableHeader>
-                              <TableRow>
-                                <TableHead>Cliente</TableHead>
-                                <TableHead>Telefone</TableHead>
-                                <TableHead>Plano Fechado</TableHead>
-                                <TableHead>Data de Conversão</TableHead>
-                                <TableHead className="text-center">Tempo p/ Fechar</TableHead>
-                                <TableHead>Terapeuta</TableHead>
-                                <TableHead>Recepção</TableHead>
-                                <TableHead className="text-right">Valor Original</TableHead>
-                                <TableHead className="text-right">Desconto (%)</TableHead>
-                                <TableHead className="text-right">Valor Final</TableHead>
-                                <TableHead>Forma de Pagamento</TableHead>
-                                <TableHead className="text-center">Quantas Vezes</TableHead>
-                              </TableRow>
-                            </TableHeader>
+                               <TableRow>
+                                 <TableHead>Cliente</TableHead>
+                                 <TableHead>Telefone</TableHead>
+                                 <TableHead>Plano Fechado</TableHead>
+                                 <TableHead>Data de Conversão</TableHead>
+                                 <TableHead>Terapeuta</TableHead>
+                                 <TableHead>Recepção</TableHead>
+                                 <TableHead className="text-center">Fechou ?</TableHead>
+                                 <TableHead className="text-right">Valor Original</TableHead>
+                                 <TableHead className="text-right">Desconto (%)</TableHead>
+                                 <TableHead className="text-right">Valor Final</TableHead>
+                                 <TableHead>Forma de Pagamento</TableHead>
+                                 <TableHead className="text-center">Quantas Vezes</TableHead>
+                               </TableRow>
+                             </TableHeader>
                             <TableBody>
                               {leadsConvertidos
                                 .sort((a, b) => new Date(b.data_conversao || 0) - new Date(a.data_conversao || 0))
