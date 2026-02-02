@@ -26,6 +26,13 @@ const statusLabels = {
   bloqueio: { label: "FECHADO", color: "bg-red-600" }
 };
 
+const statusPacienteLabels = {
+  paciente_novo: { label: "Paciente Novo", color: "bg-blue-500" },
+  primeira_sessao: { label: "Primeira Sessão", color: "bg-cyan-500" },
+  ultima_sessao: { label: "Última Sessão", color: "bg-orange-500" },
+  cliente_retornou: { label: "Cliente Retornou", color: "bg-purple-500" }
+};
+
 // Mesma lógica em todos os componentes
 const criarDataPura = (dataString) => {
   if (!dataString) return new Date();
@@ -233,7 +240,9 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
                 <Tag className="w-5 h-5 text-gray-500 mt-0.5" />
                 <div>
                   <div className="text-sm text-gray-500">Status do Paciente</div>
-                  <div className="font-medium capitalize">{agendamento.status_paciente.replace(/_/g, ' ')}</div>
+                  <Badge className={`${statusPacienteLabels[agendamento.status_paciente]?.color || 'bg-gray-500'} text-white border-0 w-fit`}>
+                    {statusPacienteLabels[agendamento.status_paciente]?.label || agendamento.status_paciente.replace(/_/g, ' ')}
+                  </Badge>
                 </div>
               </div>
             )}
