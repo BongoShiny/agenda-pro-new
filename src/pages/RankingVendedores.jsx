@@ -163,15 +163,9 @@ export default function RankingVendedoresPage() {
   const inicioMes = `${anoSelecionado}-${mesFormatado}-01`;
   const fimMes = new Date(anoSelecionado, mesSelecionado, 0).toISOString().split('T')[0];
 
-  // Excluir todo fevereiro de 2026 (considerar apenas a partir de 01/03/2026)
-  const dataLimiteFevereiro = "2026-03-01";
-  
   const agendamentosFiltrados = agendamentos.filter(ag => {
     // Usar data_pagamento ao invés de data
     const dataFiltro = ag.data_pagamento || ag.data;
-    
-    // Excluir fevereiro 2026
-    if (dataFiltro < dataLimiteFevereiro) return false;
     
     if (viewMode === "dia") {
       return dataFiltro === inicioDia && ag.status !== "cancelado" && ag.status !== "bloqueio";
@@ -184,9 +178,6 @@ export default function RankingVendedoresPage() {
     const dataLead = lead.created_date ? lead.created_date.split('T')[0] : null;
     if (!dataLead) return false;
     
-    // Excluir fevereiro 2026
-    if (dataLead < dataLimiteFevereiro) return false;
-    
     if (viewMode === "dia") {
       return dataLead === inicioDia;
     } else {
@@ -195,9 +186,6 @@ export default function RankingVendedoresPage() {
   });
 
   const registrosManuaisFiltrados = registrosManuais.filter(reg => {
-    // Excluir fevereiro 2026
-    if (reg.data < dataLimiteFevereiro) return false;
-    
     if (viewMode === "dia") {
       return reg.data === inicioDia;
     } else {
