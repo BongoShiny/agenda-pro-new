@@ -464,6 +464,32 @@ export default function RelatoriosFinanceirosPage() {
     }
   };
 
+  const handleSalvarAnotacoes = async (agendamentoId, dadosNovos) => {
+    const agendamento = agendamentos.find(a => a.id === agendamentoId);
+    
+    try {
+      await atualizarAgendamentoMutation.mutateAsync({
+        id: agendamentoId,
+        dados: dadosNovos,
+        dadosAntigos: {
+          cliente_nome: agendamento.cliente_nome,
+          valor_combinado: agendamento.valor_combinado,
+          sinal: agendamento.sinal,
+          recebimento_2: agendamento.recebimento_2,
+          final_pagamento: agendamento.final_pagamento,
+          falta_quanto: agendamento.falta_quanto,
+          anotacao_venda: agendamento.anotacao_venda,
+          vendedor_id: agendamento.vendedor_id
+        }
+      });
+      
+      setModoEditarAnotacoes(null);
+    } catch (error) {
+      console.error("Erro ao salvar anotações:", error);
+      alert("Erro ao salvar: " + error.message);
+    }
+  };
+
   const handleCriarVendedor = async () => {
     if (!novoVendedor.nome) {
       alert("Por favor, preencha o nome do vendedor");
