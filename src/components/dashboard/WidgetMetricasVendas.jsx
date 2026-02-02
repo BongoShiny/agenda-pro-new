@@ -115,11 +115,10 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
   const dataInicioFiltro = dataInicioCustom || dataInicio;
   const dataFimFiltro = dataFimCustom || dataFim;
 
-  // Filtrar vendas baseado em data_pagamento (obrigatório) e que tenham vendedor
+  // Filtrar APENAS vendas com data_pagamento preenchida
   const vendasPeriodo = agendamentos.filter(ag => {
     if (ag.status === "bloqueio" || ag.tipo === "bloqueio") return false;
-    if (!ag.vendedor_id && !ag.vendedor_nome) return false; // Apenas com vendedor
-    if (!ag.data_pagamento) return false; // Obrigatório ter data de pagamento
+    if (!ag.data_pagamento) return false; // OBRIGATÓRIO: data de pagamento preenchida
     
     return ag.data_pagamento >= dataInicioFiltro && ag.data_pagamento <= dataFimFiltro;
   });
