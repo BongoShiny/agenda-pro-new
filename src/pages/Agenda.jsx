@@ -991,11 +991,14 @@ export default function AgendaPage() {
         dadosAntigos: agendamento
       });
 
-      // Criar log da mudança de status
+      // Criar log da mudança de status (com tipo específico para cancelamento)
+      const tipoLog = novoStatus === "cancelado" ? "excluiu_agendamento" : "editou_agendamento";
       await base44.entities.LogAcao.create({
-        tipo: "editou_agendamento",
+        tipo: tipoLog,
         usuario_email: usuarioAtual?.email || "sistema",
-        descricao: `Alterou status de "${statusLabelsLog[statusAntigo]}" para "${statusLabelsLog[novoStatus]}": ${agendamento.cliente_nome} com ${agendamento.profissional_nome} - ${agendamento.data} às ${agendamento.hora_inicio}`,
+        descricao: novoStatus === "cancelado" 
+          ? `Cancelou agendamento: ${agendamento.cliente_nome} com ${agendamento.profissional_nome} - ${agendamento.data} às ${agendamento.hora_inicio}`
+          : `Alterou status de "${statusLabelsLog[statusAntigo]}" para "${statusLabelsLog[novoStatus]}": ${agendamento.cliente_nome} com ${agendamento.profissional_nome} - ${agendamento.data} às ${agendamento.hora_inicio}`,
         entidade_tipo: "Agendamento",
         entidade_id: agendamento.id,
         dados_antigos: JSON.stringify({ status: statusAntigo }),
