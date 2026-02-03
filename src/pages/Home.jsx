@@ -281,15 +281,16 @@ export default function HomePage() {
           </Card>
 
           {/* Dialog Editar Anotações */}
-          <DialogEditarAnotacoes
-          aberto={!!modoEditarAnotacoes}
-          agendamento={agendamentos.find(a => a.id === modoEditarAnotacoes)}
-          vendedores={vendedores}
-          onClose={() => setModoEditarAnotacoes(null)}
-          onSalvar={(dados) => {
-            handleSalvarAnotacoes(modoEditarAnotacoes, dados);
-          }}
-          />
+           <DialogEditarAnotacoes
+           aberto={!!modoEditarAnotacoes}
+           agendamento={agendamentos.find(a => a.id === modoEditarAnotacoes)}
+           vendedores={vendedores}
+           onClose={() => setModoEditarAnotacoes(null)}
+           onSalvar={(dados) => {
+             handleSalvarAnotacoes(modoEditarAnotacoes, dados);
+           }}
+           usuarioAtual={usuarioAtual}
+           />
           </div>
           </div>
           );
