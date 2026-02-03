@@ -269,10 +269,7 @@ export default function NovoAgendamentoDialog({
     try {
       const combinado = parseFloat(formData.valor_combinado) || 0;
       const sinal = parseFloat(formData.sinal) || 0;
-      const recebimento2 = parseFloat(formData.recebimento_2) || 0;
-      const finalPagamento = parseFloat(formData.final_pagamento) || 0;
-      const totalPago = sinal + recebimento2 + finalPagamento;
-      const faltaCalculada = combinado - totalPago;
+      const faltaCalculada = combinado - sinal;
       
       // Só atualizar se o valor mudou (evita loop infinito)
       if (formData.falta_quanto !== faltaCalculada) {
@@ -281,7 +278,7 @@ export default function NovoAgendamentoDialog({
     } catch (error) {
       console.error("Erro ao calcular falta_quanto:", error);
     }
-  }, [formData.valor_combinado, formData.sinal, formData.recebimento_2, formData.final_pagamento]);
+  }, [formData.valor_combinado, formData.sinal]);
 
   const handleClienteChange = (clienteId) => {
     try {
@@ -979,44 +976,16 @@ export default function NovoAgendamentoDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Recebimento 2</Label>
-            <Input
-              type="number"
-              step="0.01"
-              placeholder="R$ 0,00"
-              value={formData.recebimento_2 || ""}
-              onChange={(e) => setFormData(prev => ({ 
-                ...prev, 
-                recebimento_2: e.target.value ? parseFloat(e.target.value) : null 
-              }))}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label>Final de Pagamento</Label>
-            <Input
-              type="number"
-              step="0.01"
-              placeholder="R$ 0,00"
-              value={formData.final_pagamento || ""}
-              onChange={(e) => setFormData(prev => ({ 
-                ...prev, 
-                final_pagamento: e.target.value ? parseFloat(e.target.value) : null 
-              }))}
-            />
-          </div>
-
-          <div className="space-y-2">
             <Label>Falta Quanto</Label>
             <Input
               type="text"
               placeholder="R$ 0,00"
               value={
                 formData.falta_quanto > 0 
-                  ? `+${formData.falta_quanto}` 
+                  ? `R$ ${formData.falta_quanto.toFixed(2)}` 
                   : formData.falta_quanto < 0 
-                    ? `PAGO A MAIS R$${Math.abs(formData.falta_quanto)}`
-                    : (formData.falta_quanto || "")
+                    ? `PAGO A MAIS R$${Math.abs(formData.falta_quanto).toFixed(2)}`
+                    : "R$ 0,00"
               }
               readOnly
               className="bg-gray-100"
