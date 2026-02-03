@@ -201,7 +201,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
     if (modoEdicao) {
       // Extrair sessões personalizadas do plano se existirem
       let sessoesPersonalizadas = "";
-      const planoArmazenado = agendamento.conversao_plano || prev?.pacote_fechado || "";
+      const planoArmazenado = agendamento.conversao_plano || "";
       const matchSessoes = planoArmazenado.match(/plano_(\d+)_sessoes/);
       if (matchSessoes && ![24, 16, 12, 8].includes(parseInt(matchSessoes[1]))) {
         sessoesPersonalizadas = matchSessoes[1];
