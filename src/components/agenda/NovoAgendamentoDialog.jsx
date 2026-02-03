@@ -919,31 +919,40 @@ export default function NovoAgendamentoDialog({
 
           <div className="space-y-2">
             <Label>Data do Pagamento {formData.vendedor_id && <span className="text-red-600">*</span>}</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button variant="outline" className="w-full justify-start">
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {formData.data_pagamento ? format(criarDataPura(formData.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={formData.data_pagamento ? criarDataPura(formData.data_pagamento) : undefined}
-                  onSelect={(date) => {
-                    if (date) {
-                      const ano = date.getFullYear();
-                      const mes = String(date.getMonth() + 1).padStart(2, '0');
-                      const dia = String(date.getDate()).padStart(2, '0');
-                      setFormData(prev => ({ ...prev, data_pagamento: `${ano}-${mes}-${dia}` }));
-                    }
-                  }}
-                  locale={ptBR}
-                />
-              </PopoverContent>
-            </Popover>
+            {formData.data_pagamento && modoEdicao ? (
+              <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-700">
+                {format(criarDataPura(formData.data_pagamento), "dd/MM/yyyy", { locale: ptBR })}
+              </div>
+            ) : (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" className="w-full justify-start" disabled={formData.data_pagamento && modoEdicao}>
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formData.data_pagamento ? format(criarDataPura(formData.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : "Selecionar"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={formData.data_pagamento ? criarDataPura(formData.data_pagamento) : undefined}
+                    onSelect={(date) => {
+                      if (date) {
+                        const ano = date.getFullYear();
+                        const mes = String(date.getMonth() + 1).padStart(2, '0');
+                        const dia = String(date.getDate()).padStart(2, '0');
+                        setFormData(prev => ({ ...prev, data_pagamento: `${ano}-${mes}-${dia}` }));
+                      }
+                    }}
+                    locale={ptBR}
+                  />
+                </PopoverContent>
+              </Popover>
+            )}
             {formData.vendedor_id && !formData.data_pagamento && (
               <p className="text-xs text-red-600">⚠️ Data de pagamento obrigatória quando vendedor selecionado</p>
+            )}
+            {formData.data_pagamento && modoEdicao && (
+              <p className="text-xs text-gray-500">🔒 Campo bloqueado - Data já registrada</p>
             )}
           </div>
 
@@ -1029,7 +1038,12 @@ export default function NovoAgendamentoDialog({
               onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
               placeholder="Observações adicionais"
               rows={2}
+              disabled={formData.observacoes && modoEdicao}
+              className={formData.observacoes && modoEdicao ? "bg-gray-100 cursor-not-allowed" : ""}
             />
+            {formData.observacoes && modoEdicao && (
+              <p className="text-xs text-gray-500">🔒 Campo bloqueado - Observações já registradas</p>
+            )}
           </div>
 
           <div className="col-span-2 space-y-2">
