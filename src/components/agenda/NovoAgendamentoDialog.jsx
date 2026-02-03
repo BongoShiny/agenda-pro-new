@@ -406,6 +406,12 @@ export default function NovoAgendamentoDialog({
          return;
        }
 
+       // Validar tipo obrigatório
+       if (!formData.tipo) {
+         alert("❌ Por favor, selecione o tipo de agendamento!");
+         return;
+       }
+
        // Preparar dados do serviço para salvamento
        const dataToSave = {
          ...formData,
@@ -748,7 +754,7 @@ export default function NovoAgendamentoDialog({
           </div>
 
           <div className="space-y-2">
-             <Label>Tipo</Label>
+             <Label>Tipo *</Label>
              <Select 
                value={formData.tipo} 
                onValueChange={(value) => {
@@ -760,7 +766,7 @@ export default function NovoAgendamentoDialog({
                }}
              >
                <SelectTrigger>
-                 <SelectValue />
+                 <SelectValue placeholder="Selecione o tipo..." />
                </SelectTrigger>
                <SelectContent>
                  <SelectItem value="consulta">Consulta</SelectItem>
@@ -1201,7 +1207,7 @@ export default function NovoAgendamentoDialog({
           </Button>
           <Button 
             onClick={handleSubmit}
-            disabled={!formData.cliente_nome || !formData.profissional_id || !formData.unidade_id || formData.servicos_selecionados.length === 0 || (formData.vendedor_id && !formData.data_pagamento)}
+            disabled={!formData.cliente_nome || !formData.profissional_id || !formData.unidade_id || formData.servicos_selecionados.length === 0 || !formData.tipo || (formData.vendedor_id && !formData.data_pagamento)}
             className="bg-blue-600 hover:bg-blue-700"
           >
             {modoEdicao ? "Salvar Alterações" : "Salvar Agendamento"}
