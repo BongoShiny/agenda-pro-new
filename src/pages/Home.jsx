@@ -289,7 +289,6 @@ export default function HomePage() {
           onSalvar={(dados) => {
             handleSalvarAnotacoes(modoEditarAnotacoes, dados);
           }}
-          tipoEdicao="completo"
           />
           </div>
           </div>
