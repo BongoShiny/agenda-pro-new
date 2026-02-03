@@ -29,12 +29,15 @@ export default function DialogEditarAnotacoes({
   vendedores,
   onClose,
   onSalvar,
-  tipoEdicao = "completo" // "completo" ou "apenas_anotacoes"
+  tipoEdicao = "completo", // "completo" ou "apenas_anotacoes"
+  usuarioAtual
 }) {
   const [valores, setValores] = React.useState({
     data_pagamento: agendamento?.data_pagamento,
     anotacao_venda: agendamento?.anotacao_venda
   });
+
+  const isSuperior = usuarioAtual?.cargo === "superior" || usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
 
   React.useEffect(() => {
     if (agendamento) {
