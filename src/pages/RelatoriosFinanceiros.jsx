@@ -73,6 +73,10 @@ export default function RelatoriosFinanceirosPage() {
   const [imagemDialogAnalise, setImagemDialogAnalise] = useState(null);
   const [observacoesDialogAnalise, setObservacoesDialogAnalise] = useState(null);
   const [abaAtiva, setAbaAtiva] = useState("dashboard");
+  const [dataInicioAnalise, setDataInicioAnalise] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"));
+  const [dataFimAnalise, setDataFimAnalise] = useState(format(endOfMonth(new Date()), "yyyy-MM-dd"));
+  const [unidadeAnalise, setUnidadeAnalise] = useState("todas");
+  const [gapExpandido, setGapExpandido] = useState(null);
   const [novoVendedor, setNovoVendedor] = useState({
     nome: "",
     email: "",
@@ -2263,216 +2267,461 @@ export default function RelatoriosFinanceirosPage() {
 
           {/* Aba Terapeuta x Recepção */}
           <TabsContent value="terapeuta-recepcao">
-            <Card>
-              <CardHeader>
-                <CardTitle>🤝 Análise Cruzada: Terapeuta x Recepção</CardTitle>
-                <p className="text-sm text-gray-500 mt-1">
-                  Análise de vendas por terapeuta e recepcionista com dados detalhados de conversão
-                </p>
-              </CardHeader>
-              <CardContent>
-                {(() => {
-                   // Filtrar agendamentos com data_conversao preenchida
-                   const agendamentosConversao = agendamentos.filter(ag => {
-                     if (!ag.data_conversao) return false;
-                     if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
-
-                     const dataFiltro = ag.data_conversao;
-                     const dataFiltroNorm = dataFiltro.substring(0, 10);
-                     const dataInicioNorm = dataInicio.substring(0, 10);
-                     const dataFimNorm = dataFim.substring(0, 10);
-                     if (dataFiltroNorm < dataInicioNorm || dataFiltroNorm > dataFimNorm) return false;
-
-                     if (unidadeFiltro !== "todas" && ag.unidade_id !== unidadeFiltro) return false;
-
-                     return true;
-                   });
-
-                   // Separar em fechadas e não fechadas
-                   const agendamentosFechados = agendamentosConversao.filter(ag => ag.conversao_converteu === true);
-                   const agendamentosNaoFechados = agendamentosConversao.filter(ag => ag.conversao_converteu === false);
-                   const totalNaoFechados = agendamentosNaoFechados.length;
-
-                   // Calcular métricas para FECHADOS
-                    const totalFechados = agendamentosFechados.length;
-                    const valorTotalFechados = agendamentosFechados.reduce((sum, ag) => sum + (ag.valor_combinado || 0), 0);
-                    const totalSinalFechados = agendamentosFechados.reduce((sum, ag) => sum + (ag.sinal || 0), 0);
-                    const totalRecebimento2Fechados = agendamentosFechados.reduce((sum, ag) => sum + (ag.recebimento_2 || 0), 0);
-                    const totalFinalPagamentoFechados = agendamentosFechados.reduce((sum, ag) => sum + (ag.final_pagamento || 0), 0);
-                    const totalRecebidoFechados = totalSinalFechados + totalRecebimento2Fechados + totalFinalPagamentoFechados;
-                    const totalAReceberFechados = valorTotalFechados - totalRecebidoFechados;
-
-                    // Agrupar FECHADOS por terapeuta e recepção
-                    const porTerapeutaRecepcaoFechados = {};
-                    agendamentosFechados.forEach(ag => {
-                     const terapeuta = ag.conversao_profissional_nome || ag.profissional_nome || "Sem Terapeuta";
-                     const recepcao = ag.conversao_recepcionista || "Sem Recepção";
-
-                     const chave = `${terapeuta}|${recepcao}`;
-                     if (!porTerapeutaRecepcaoFechados[chave]) {
-                       porTerapeutaRecepcaoFechados[chave] = {
-                         terapeuta,
-                         recepcao,
-                         conversoes: 0,
-                         valorCombinado: 0,
-                         sinal: 0,
-                         recebimento2: 0,
-                         finalPagamento: 0,
-                         totalRecebido: 0,
-                         aReceber: 0
-                       };
-                     }
-
-                     const totalPagoAg = (ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0);
-                     porTerapeutaRecepcaoFechados[chave].conversoes++;
-                     porTerapeutaRecepcaoFechados[chave].valorCombinado += ag.valor_combinado || 0;
-                     porTerapeutaRecepcaoFechados[chave].sinal += ag.sinal || 0;
-                     porTerapeutaRecepcaoFechados[chave].recebimento2 += ag.recebimento_2 || 0;
-                     porTerapeutaRecepcaoFechados[chave].finalPagamento += ag.final_pagamento || 0;
-                     porTerapeutaRecepcaoFechados[chave].totalRecebido += totalPagoAg;
-                     porTerapeutaRecepcaoFechados[chave].aReceber += (ag.valor_combinado || 0) - totalPagoAg;
-                     });
-
-                  return (
-                    <div className="space-y-8">
-                      {/* SEÇÃO 1: PLANOS FECHADOS */}
-                      <div className="space-y-4">
-                        <h2 className="text-xl font-bold text-green-700">✅ PLANOS FECHADOS</h2>
-
-                        {/* Métricas Fechados */}
-                        <div className="grid grid-cols-4 gap-4">
-                          <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                            <p className="text-sm text-green-600 mb-1">Total Fechado</p>
-                            <p className="text-3xl font-bold text-green-700">{totalFechados}</p>
-                          </div>
-                          <div className="bg-purple-50 p-4 rounded-lg border border-purple-200">
-                            <p className="text-sm text-purple-600 mb-1">Valor Combinado</p>
-                            <p className="text-2xl font-bold text-purple-700">{formatarMoeda(valorTotalFechados)}</p>
-                          </div>
-                          <div className="bg-emerald-50 p-4 rounded-lg border border-emerald-200">
-                            <p className="text-sm text-emerald-600 mb-1">Valor Recebido</p>
-                            <p className="text-2xl font-bold text-emerald-700">{formatarMoeda(totalRecebidoFechados)}</p>
-                          </div>
-                          <div className="bg-orange-50 p-4 rounded-lg border border-orange-200">
-                            <p className="text-sm text-orange-600 mb-1">A Receber</p>
-                            <p className="text-2xl font-bold text-orange-700">{formatarMoeda(totalAReceberFechados)}</p>
-                          </div>
-                        </div>
-
-                        {/* Tabela Fechados com Observações */}
-                        <div className="overflow-x-auto">
-                          <Table>
-                            <TableHeader>
-                              <TableRow className="bg-green-50">
-                                <TableHead>Cliente</TableHead>
-                                <TableHead>Telefone</TableHead>
-                                <TableHead>Unidade</TableHead>
-                                <TableHead>Terapeuta</TableHead>
-                                <TableHead>Recepção</TableHead>
-                                <TableHead>Data Conversão</TableHead>
-                                <TableHead className="text-right">Vlr. Combinado</TableHead>
-                                <TableHead className="text-right">Sinal</TableHead>
-                                <TableHead className="text-right">Receb. 2</TableHead>
-                                <TableHead className="text-right">Final</TableHead>
-                                <TableHead className="text-right">Total Recebido</TableHead>
-                                <TableHead className="text-right">A Receber</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {agendamentosFechados
-                                .sort((a, b) => new Date(b.data_conversao || 0) - new Date(a.data_conversao || 0))
-                                .map((ag) => {
-                                  const totalPagoAg = (ag.sinal || 0) + (ag.recebimento_2 || 0) + (ag.final_pagamento || 0);
-                                  const aReceberAg = (ag.valor_combinado || 0) - totalPagoAg;
-                                  return (
-                                    <TableRow key={ag.id}>
-                                      <TableCell className="font-semibold">{ag.cliente_nome}</TableCell>
-                                      <TableCell className="text-sm">{ag.cliente_telefone || "-"}</TableCell>
-                                      <TableCell className="text-sm">{ag.unidade_nome || "-"}</TableCell>
-                                      <TableCell>{ag.conversao_profissional_nome || ag.profissional_nome || "-"}</TableCell>
-                                      <TableCell>{ag.conversao_recepcionista || "-"}</TableCell>
-                                      <TableCell>
-                                        {ag.data_conversao ? format(criarDataPura(ag.data_conversao), "dd/MM/yyyy", { locale: ptBR }) : "-"}
-                                      </TableCell>
-                                      <TableCell className="text-right">{formatarMoeda(ag.valor_combinado)}</TableCell>
-                                      <TableCell className="text-right text-green-600">{formatarMoeda(ag.sinal)}</TableCell>
-                                      <TableCell className="text-right text-green-600">{formatarMoeda(ag.recebimento_2)}</TableCell>
-                                      <TableCell className="text-right text-green-600">{formatarMoeda(ag.final_pagamento)}</TableCell>
-                                      <TableCell className="text-right text-emerald-600 font-semibold">{formatarMoeda(totalPagoAg)}</TableCell>
-                                      <TableCell className="text-right text-orange-600 font-semibold">{formatarMoeda(aReceberAg)}</TableCell>
-                                    </TableRow>
-                                  );
-                                })}
-                            </TableBody>
-                          </Table>
-                          {totalFechados === 0 && (
-                            <div className="text-center py-8 text-gray-500">
-                              <p className="font-medium">Nenhum plano fechado neste período</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* SEÇÃO 2: PLANOS NÃO FECHADOS */}
-                      <div className="space-y-4">
-                        <h2 className="text-xl font-bold text-red-700">❌ PLANOS NÃO FECHADOS</h2>
-
-                        {/* Tabela Não Fechados */}
-                        <div className="overflow-x-auto">
-                          <Table>
-                            <TableHeader>
-                              <TableRow className="bg-red-50">
-                                <TableHead>Cliente</TableHead>
-                                <TableHead>Telefone</TableHead>
-                                <TableHead>Unidade</TableHead>
-                                <TableHead>Data Não Converteu</TableHead>
-                                <TableHead>Terapeuta</TableHead>
-                                <TableHead>Recepção</TableHead>
-                                <TableHead className="text-right">Valor Pago na Clínica</TableHead>
-                                <TableHead>Observações</TableHead>
-                              </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                              {agendamentosNaoFechados
-                                .sort((a, b) => new Date(b.data_conversao || 0) - new Date(a.data_conversao || 0))
-                                .map((ag) => (
-                                  <TableRow key={ag.id}>
-                                    <TableCell className="font-semibold">{ag.cliente_nome}</TableCell>
-                                    <TableCell className="text-sm">{ag.cliente_telefone || "-"}</TableCell>
-                                    <TableCell className="text-sm">{ag.unidade_nome || "-"}</TableCell>
-                                    <TableCell>
-                                      {ag.data_conversao ? format(criarDataPura(ag.data_conversao), "dd/MM/yyyy", { locale: ptBR }) : "-"}
-                                    </TableCell>
-                                    <TableCell>{ag.conversao_profissional_nome || ag.profissional_nome || "-"}</TableCell>
-                                    <TableCell>{ag.conversao_recepcionista_nao_converteu || "-"}</TableCell>
-                                    <TableCell className="text-right text-emerald-600 font-semibold">
-                                      {formatarMoeda(ag.nao_conversao_valor_pago)}
-                                    </TableCell>
-                                    <TableCell className="max-w-xs">
-                                      {ag.observacoes ? (
-                                        <span className="text-xs text-gray-600 line-clamp-2">
-                                          {ag.observacoes}
-                                        </span>
-                                      ) : (
-                                        <span className="text-gray-400 text-xs">-</span>
-                                      )}
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                            </TableBody>
-                          </Table>
-                          {totalNaoFechados === 0 && (
-                            <div className="text-center py-8 text-gray-500">
-                              <p className="font-medium">Nenhuma tentativa de não fechamento registrada</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
+            <div className="space-y-6">
+              {/* Filtros */}
+              <Card>
+                <CardContent className="pt-6">
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label>Clínica</Label>
+                      <Select value={unidadeAnalise} onValueChange={setUnidadeAnalise}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="todas">Todas as Clínicas</SelectItem>
+                          {unidadesFiltradas.map(u => (
+                            <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
-                  );
-                })()}
-              </CardContent>
-            </Card>
+                    <div className="space-y-2">
+                      <Label>Data Inicial</Label>
+                      <Input
+                        type="date"
+                        value={dataInicioAnalise}
+                        onChange={(e) => setDataInicioAnalise(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Data Final</Label>
+                      <Input
+                        type="date"
+                        value={dataFimAnalise}
+                        onChange={(e) => setDataFimAnalise(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>&nbsp;</Label>
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => {
+                          setDataInicioAnalise(format(startOfMonth(new Date()), "yyyy-MM-dd"));
+                          setDataFimAnalise(format(endOfMonth(new Date()), "yyyy-MM-dd"));
+                          setUnidadeAnalise("todas");
+                        }}
+                      >
+                        Limpar Filtros
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {(() => {
+                // Filtrar agendamentos com data_conversao
+                const agendamentosAnalise = agendamentos.filter(ag => {
+                  if (!ag.data_conversao) return false;
+                  if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
+
+                  const dataConv = ag.data_conversao.substring(0, 10);
+                  if (dataConv < dataInicioAnalise || dataConv > dataFimAnalise) return false;
+
+                  if (unidadeAnalise !== "todas" && ag.unidade_id !== unidadeAnalise) return false;
+
+                  return true;
+                });
+
+                const totalAnalises = agendamentosAnalise.length;
+                const totalConversoes = agendamentosAnalise.filter(ag => ag.conversao_converteu === true).length;
+                const taxaMediaGeral = totalAnalises > 0 ? ((totalConversoes / totalAnalises) * 100).toFixed(1) : 0;
+
+                // Construir matriz: Recepção x Terapeuta
+                const matrizDados = {};
+                const terapeutasSet = new Set();
+                const recepcionistasSet = new Set();
+
+                agendamentosAnalise.forEach(ag => {
+                  const terapeuta = ag.conversao_profissional_nome || ag.profissional_nome || "Sem Terapeuta";
+                  const recepcao = ag.conversao_recepcionista || ag.conversao_recepcionista_nao_converteu || "Sem Recepção";
+                  
+                  terapeutasSet.add(terapeuta);
+                  recepcionistasSet.add(recepcao);
+
+                  const chave = `${recepcao}|${terapeuta}`;
+                  if (!matrizDados[chave]) {
+                    matrizDados[chave] = {
+                      total: 0,
+                      convertidos: 0
+                    };
+                  }
+                  matrizDados[chave].total++;
+                  if (ag.conversao_converteu === true) {
+                    matrizDados[chave].convertidos++;
+                  }
+                });
+
+                const terapeutas = Array.from(terapeutasSet).sort();
+                const recepcionistas = Array.from(recepcionistasSet).sort();
+
+                // Calcular totais por recepcionista
+                const totaisPorRecepcao = {};
+                recepcionistas.forEach(rec => {
+                  let total = 0;
+                  let convertidos = 0;
+                  terapeutas.forEach(ter => {
+                    const dados = matrizDados[`${rec}|${ter}`];
+                    if (dados) {
+                      total += dados.total;
+                      convertidos += dados.convertidos;
+                    }
+                  });
+                  totaisPorRecepcao[rec] = {
+                    total,
+                    convertidos,
+                    taxa: total > 0 ? (convertidos / total) * 100 : 0
+                  };
+                });
+
+                // Calcular totais por terapeuta
+                const totaisPorTerapeuta = {};
+                terapeutas.forEach(ter => {
+                  let total = 0;
+                  let convertidos = 0;
+                  recepcionistas.forEach(rec => {
+                    const dados = matrizDados[`${rec}|${ter}`];
+                    if (dados) {
+                      total += dados.total;
+                      convertidos += dados.convertidos;
+                    }
+                  });
+                  totaisPorTerapeuta[ter] = {
+                    total,
+                    convertidos,
+                    taxa: total > 0 ? (convertidos / total) * 100 : 0
+                  };
+                });
+
+                // Identificar gaps (taxa abaixo de 15%)
+                const gapsRecepcao = recepcionistas
+                  .map(rec => ({
+                    tipo: "Recepção",
+                    nome: rec,
+                    ...totaisPorRecepcao[rec]
+                  }))
+                  .filter(g => g.taxa < 15 && g.total > 0);
+
+                const gapsTerapeuta = terapeutas
+                  .map(ter => ({
+                    tipo: "Terapeuta",
+                    nome: ter,
+                    ...totaisPorTerapeuta[ter]
+                  }))
+                  .filter(g => g.taxa < 15 && g.total > 0);
+
+                const todosGaps = [...gapsRecepcao, ...gapsTerapeuta].sort((a, b) => a.taxa - b.taxa);
+
+                // Rankings
+                const rankingRecepcao = recepcionistas
+                  .map(rec => ({
+                    nome: rec,
+                    ...totaisPorRecepcao[rec]
+                  }))
+                  .filter(r => r.total > 0)
+                  .sort((a, b) => b.taxa - a.taxa);
+
+                const rankingTerapeuta = terapeutas
+                  .map(ter => ({
+                    nome: ter,
+                    ...totaisPorTerapeuta[ter]
+                  }))
+                  .filter(t => t.total > 0)
+                  .sort((a, b) => b.taxa - a.taxa);
+
+                return (
+                  <div className="space-y-6">
+                    {/* KPIs */}
+                    <div className="grid grid-cols-4 gap-4">
+                      <Card className="border-2 border-blue-200 bg-blue-50">
+                        <CardContent className="pt-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                              <Target className="w-6 h-6 text-blue-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-blue-600 mb-1">TAXA MÉDIA</p>
+                              <p className="text-3xl font-bold text-blue-900">{taxaMediaGeral}%</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="border-2 border-green-200 bg-green-50">
+                        <CardContent className="pt-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                              <BarChart3 className="w-6 h-6 text-green-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-green-600 mb-1">TOTAL ANÁLISES</p>
+                              <p className="text-3xl font-bold text-green-900">{totalAnalises}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="border-2 border-purple-200 bg-purple-50">
+                        <CardContent className="pt-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                              <TrendingUp className="w-6 h-6 text-purple-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-purple-600 mb-1">CONVERSÕES</p>
+                              <p className="text-3xl font-bold text-purple-900">{totalConversoes}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="border-2 border-orange-200 bg-orange-50">
+                        <CardContent className="pt-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
+                              <TrendingDown className="w-6 h-6 text-orange-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-orange-600 mb-1">GAPS IDENTIFICADOS</p>
+                              <p className="text-3xl font-bold text-orange-900">{todosGaps.length}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Gaps Identificados */}
+                    {todosGaps.length > 0 && (
+                      <Card className="border-orange-200">
+                        <CardHeader className="bg-orange-50">
+                          <CardTitle className="flex items-center gap-2 text-orange-900">
+                            <TrendingDown className="w-5 h-5" />
+                            Gaps Identificados - Atenção Necessária
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-6">
+                          <div className="space-y-3">
+                            {todosGaps.map((gap, idx) => {
+                              const isCritico = gap.taxa < 10;
+                              const isExpandido = gapExpandido === `${gap.tipo}-${gap.nome}`;
+                              
+                              return (
+                                <div
+                                  key={idx}
+                                  className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                                    isCritico ? 'border-red-300 bg-red-50' : 'border-orange-300 bg-orange-50'
+                                  }`}
+                                  onClick={() => setGapExpandido(isExpandido ? null : `${gap.tipo}-${gap.nome}`)}
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-3">
+                                      <span className={`px-3 py-1 rounded text-xs font-bold ${
+                                        isCritico ? 'bg-red-600 text-white' : 'bg-orange-600 text-white'
+                                      }`}>
+                                        {isCritico ? 'CRÍTICO' : 'ATENÇÃO'}
+                                      </span>
+                                      <div>
+                                        <p className="font-semibold text-gray-900">
+                                          {gap.tipo}: {gap.nome}
+                                        </p>
+                                        <p className="text-sm text-gray-600">
+                                          Taxa de conversão: {gap.taxa.toFixed(1)}% | Volume: {gap.total} atendimentos
+                                        </p>
+                                      </div>
+                                    </div>
+                                    <ChevronDown className={`w-5 h-5 text-gray-400 transition-transform ${isExpandido ? 'rotate-180' : ''}`} />
+                                  </div>
+                                  
+                                  {isExpandido && (
+                                    <div className="mt-4 pt-4 border-t border-gray-300">
+                                      <p className="text-sm text-gray-700">
+                                        <strong>Conversões:</strong> {gap.convertidos} de {gap.total} tentativas
+                                      </p>
+                                      <p className="text-sm text-gray-600 mt-2">
+                                        Recomendação: Avaliar processos e oferecer treinamento para melhorar a taxa de conversão.
+                                      </p>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Matriz Cruzada */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Matriz Cruzada - Recepção x Terapeuta</CardTitle>
+                        <div className="flex items-center gap-4 mt-2 text-xs">
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 rounded bg-green-500"></div>
+                            <span>Acima da média</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 rounded bg-yellow-500"></div>
+                            <span>Dentro da média</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <div className="w-4 h-4 rounded bg-red-500"></div>
+                            <span>Abaixo da média</span>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="overflow-x-auto">
+                          <table className="w-full border-collapse text-sm">
+                            <thead>
+                              <tr>
+                                <th className="border border-gray-300 bg-gray-100 px-4 py-3 text-left font-semibold sticky left-0 z-10">
+                                  Recepção \ Terapeuta
+                                </th>
+                                {terapeutas.map(ter => (
+                                  <th key={ter} className="border border-gray-300 bg-gray-100 px-4 py-3 text-center font-semibold min-w-[100px]">
+                                    {ter}
+                                  </th>
+                                ))}
+                                <th className="border border-gray-300 bg-green-100 px-4 py-3 text-center font-bold min-w-[100px]">
+                                  TOTAL
+                                </th>
+                              </tr>
+                            </thead>
+                            <tbody>
+                              {recepcionistas.map(rec => (
+                                <tr key={rec}>
+                                  <td className="border border-gray-300 bg-gray-50 px-4 py-3 font-semibold sticky left-0 z-10">
+                                    {rec}
+                                  </td>
+                                  {terapeutas.map(ter => {
+                                    const dados = matrizDados[`${rec}|${ter}`];
+                                    if (!dados || dados.total === 0) {
+                                      return (
+                                        <td key={ter} className="border border-gray-300 px-4 py-3 text-center text-gray-400">
+                                          -
+                                        </td>
+                                      );
+                                    }
+
+                                    const taxa = (dados.convertidos / dados.total) * 100;
+                                    const corFundo = taxa >= parseFloat(taxaMediaGeral) 
+                                      ? 'bg-green-500' 
+                                      : taxa >= parseFloat(taxaMediaGeral) * 0.7
+                                      ? 'bg-yellow-500'
+                                      : 'bg-red-500';
+
+                                    return (
+                                      <td key={ter} className="border border-gray-300 px-4 py-3">
+                                        <div className="flex flex-col items-center gap-1">
+                                          <div className={`${corFundo} text-white font-bold px-3 py-1 rounded text-base`}>
+                                            {taxa.toFixed(0)}%
+                                          </div>
+                                          <div className="text-xs text-gray-600">
+                                            {dados.convertidos}/{dados.total}
+                                          </div>
+                                        </div>
+                                      </td>
+                                    );
+                                  })}
+                                  <td className="border border-gray-300 bg-green-50 px-4 py-3">
+                                    <div className="flex flex-col items-center gap-1">
+                                      <div className="text-green-900 font-bold text-base">
+                                        {totaisPorRecepcao[rec].taxa.toFixed(0)}%
+                                      </div>
+                                      <div className="text-xs text-gray-600">
+                                        {totaisPorRecepcao[rec].convertidos}/{totaisPorRecepcao[rec].total}
+                                      </div>
+                                    </div>
+                                  </td>
+                                </tr>
+                              ))}
+                            </tbody>
+                          </table>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Rankings */}
+                    <div className="grid grid-cols-2 gap-6">
+                      {/* Ranking Recepção */}
+                      <Card>
+                        <CardHeader className="bg-purple-50">
+                          <CardTitle className="flex items-center gap-2 text-purple-900">
+                            <TrendingUp className="w-5 h-5" />
+                            Ranking Recepção
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-6">
+                          <div className="space-y-3">
+                            {rankingRecepcao.map((rec, idx) => (
+                              <div key={idx} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-900">
+                                    {idx + 1}
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold text-gray-900">{rec.nome}</p>
+                                    <p className="text-xs text-gray-500">
+                                      {rec.total} atendimentos | {rec.convertidos} conversões
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-2xl font-bold text-purple-900">{rec.taxa.toFixed(0)}%</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      {/* Ranking Terapeuta */}
+                      <Card>
+                        <CardHeader className="bg-amber-50">
+                          <CardTitle className="flex items-center gap-2 text-amber-900">
+                            <TrendingUp className="w-5 h-5" />
+                            Ranking Terapeuta
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-6">
+                          <div className="space-y-3">
+                            {rankingTerapeuta.map((ter, idx) => (
+                              <div key={idx} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center font-bold text-amber-900">
+                                    {idx + 1}
+                                  </div>
+                                  <div>
+                                    <p className="font-semibold text-gray-900">{ter.nome}</p>
+                                    <p className="text-xs text-gray-500">
+                                      {ter.total} atendimentos | {ter.convertidos} conversões
+                                    </p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <p className="text-2xl font-bold text-amber-900">{ter.taxa.toFixed(0)}%</p>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
           </TabsContent>
 
           {/* Aba Por Vendedor */}
