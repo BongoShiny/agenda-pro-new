@@ -1765,6 +1765,7 @@ export default function RelatoriosFinanceirosPage() {
                                 <TableHead>Data Agendamento</TableHead>
                                  <TableHead>Data do Pagamento</TableHead>
                                  <TableHead>Pacote</TableHead>
+                                 <TableHead>Forma de Pagamento</TableHead>
                                  <TableHead className="text-right">Valor</TableHead>
                                 <TableHead className="text-right">Pago</TableHead>
                                 <TableHead className="text-right">A Receber</TableHead>
@@ -1813,10 +1814,26 @@ export default function RelatoriosFinanceirosPage() {
                                           <span className="text-gray-400 text-xs">-</span>
                                         )}
                                       </TableCell>
+                                      <TableCell>
+                                        {venda.forma_pagamento ? (
+                                          <span className="text-xs">
+                                            {venda.forma_pagamento === "pix" ? "📱 PIX" :
+                                             venda.forma_pagamento === "link_pagamento" ? "🔗 Link" :
+                                             venda.forma_pagamento === "pago_na_clinica" ? "💳 Clínica" :
+                                             venda.forma_pagamento === "dinheiro" ? "💵 Dinheiro" :
+                                             venda.forma_pagamento === "cartao_credito" ? "💳 Crédito" :
+                                             venda.forma_pagamento === "cartao_debito" ? "💳 Débito" :
+                                             venda.forma_pagamento === "boleto" ? "🧾 Boleto" :
+                                             venda.forma_pagamento}
+                                          </span>
+                                        ) : (
+                                          <span className="text-gray-400 text-xs">-</span>
+                                        )}
+                                      </TableCell>
                                       <TableCell className="text-right font-semibold">
                                         {formatarMoeda(venda.valor_combinado)}
                                       </TableCell>
-                                      <TableCell className="text-right text-emerald-600">
+                                      <TableCell className="text-right text-emerald-600 font-semibold">
                                         {formatarMoeda(totalPago)}
                                       </TableCell>
                                       <TableCell className="text-right text-orange-600">
