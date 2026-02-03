@@ -1159,7 +1159,7 @@ export default function AgendaPage() {
   const isVendedor = usuarioAtual?.cargo === "vendedor";
 
   // Loading enquanto carrega dados
-  if (!usuarioAtual || unidades.length === 0 || agendamentos.length === 0) {
+  if (!usuarioAtual || unidades.length === 0) {
     return (
       <div className="h-screen flex flex-col bg-gray-50">
         <div className="flex-1 flex items-center justify-center">
