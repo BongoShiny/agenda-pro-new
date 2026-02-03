@@ -198,13 +198,17 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
       recebimento_2: "",
       valor_falta_pagar: "",
       forma_pagamento: "pix",
+      forma_pagamento_2: "",
       parcelas: "1",
+      parcelas_2: "",
       motivos_fechamento: [],
       observacoes: "",
       motivo_nao_conversao: "",
       nao_conversao_valor_pago: "",
       nao_conversao_forma_pagamento: "",
+      nao_conversao_forma_pagamento_2: "",
       nao_conversao_parcelas: "",
+      nao_conversao_parcelas_2: "",
     });
   };
 
