@@ -74,12 +74,21 @@ export default function DialogEditarAnotacoes({
 
           <div className="space-y-2">
             <Label>Anotação da Venda</Label>
-            <Textarea
-              value={valores.anotacao_venda || ""}
-              onChange={(e) => setValores(prev => ({ ...prev, anotacao_venda: e.target.value }))}
-              placeholder="Anotação da venda..."
-              rows={4}
-            />
+            {isSuperior ? (
+              <Textarea
+                value={valores.anotacao_venda || ""}
+                onChange={(e) => setValores(prev => ({ ...prev, anotacao_venda: e.target.value }))}
+                placeholder="Anotação da venda..."
+                rows={4}
+              />
+            ) : (
+              <>
+                <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-700 min-h-[100px] whitespace-pre-wrap overflow-y-auto">
+                  {valores.anotacao_venda || "-"}
+                </div>
+                <p className="text-xs text-gray-500">🔒 Campo bloqueado - Apenas superiores podem editar</p>
+              </>
+            )}
           </div>
         </div>
 
