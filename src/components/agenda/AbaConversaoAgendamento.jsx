@@ -167,14 +167,18 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
     });
   };
 
-  const handleMotivoCheck = (motivo) => {
+  const handleMotivoCheck = React.useCallback((motivo) => {
     setFormData(prev => ({
       ...prev,
       motivos_fechamento: prev.motivos_fechamento.includes(motivo)
         ? prev.motivos_fechamento.filter(m => m !== motivo)
         : [...prev.motivos_fechamento, motivo]
     }));
-  };
+  }, []);
+
+  const handleObservacoesChange = React.useCallback((value) => {
+    setFormData(prev => ({ ...prev, observacoes: value }));
+  }, []);
 
   // Recarregar dados quando entra em modo edição
   useEffect(() => {
@@ -210,22 +214,23 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
   }, [modoEdicao, agendamento]);
 
   useEffect(() => {
-    if (formData.valor_original && formData.desconto !== undefined) {
-      const original = parseFloat(formData.valor_original) || 0;
-      const desc = parseFloat(formData.desconto) || 0;
-      const final = original - (original * desc / 100);
-      
-      const sinal = parseFloat(formData.sinal) || 0;
-      const recebimento2 = parseFloat(formData.recebimento_2) || 0;
-      const totalPago = sinal + recebimento2;
-      const faltaPagar = final - totalPago;
-      
-      setFormData(prev => ({ 
-        ...prev, 
-        valor_final: final.toFixed(2),
-        final_pagamento: Math.max(0, faltaPagar).toFixed(2)
-      }));
-    }
+    // Não recalcula se não houver valor original ou se estiver editando texto
+    if (!formData.valor_original || formData.desconto === undefined) return;
+    
+    const original = parseFloat(formData.valor_original) || 0;
+    const desc = parseFloat(formData.desconto) || 0;
+    const final = original - (original * desc / 100);
+    
+    const sinal = parseFloat(formData.sinal) || 0;
+    const recebimento2 = parseFloat(formData.recebimento_2) || 0;
+    const totalPago = sinal + recebimento2;
+    const faltaPagar = final - totalPago;
+    
+    setFormData(prev => ({ 
+      ...prev, 
+      valor_final: final.toFixed(2),
+      final_pagamento: Math.max(0, faltaPagar).toFixed(2)
+    }));
   }, [formData.valor_original, formData.desconto, formData.sinal, formData.recebimento_2]);
 
   const motivosFechamento = [
@@ -598,7 +603,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                     <Label className="block mb-2">Especifique o motivo:</Label>
                     <Textarea
                       value={formData.observacoes}
-                      onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
+                      onChange={(e) => handleObservacoesChange(e.target.value)}
                       placeholder="Descreva o motivo específico aqui..."
                       rows={3}
                     />
@@ -664,7 +669,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                   <Label className="block mb-2">Especifique o motivo:</Label>
                   <Textarea
                     value={formData.observacoes}
-                    onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
+                    onChange={(e) => handleObservacoesChange(e.target.value)}
                     placeholder="Descreva o motivo específico aqui..."
                     rows={3}
                   />
