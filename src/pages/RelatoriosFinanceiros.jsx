@@ -2428,6 +2428,7 @@ export default function RelatoriosFinanceirosPage() {
                                 <TableHead>Data Não Converteu</TableHead>
                                 <TableHead>Terapeuta</TableHead>
                                 <TableHead>Recepção</TableHead>
+                                <TableHead className="text-right">Valor Pago na Clínica</TableHead>
                                 <TableHead>Observações</TableHead>
                               </TableRow>
                             </TableHeader>
@@ -2444,6 +2445,9 @@ export default function RelatoriosFinanceirosPage() {
                                     </TableCell>
                                     <TableCell>{ag.conversao_profissional_nome || ag.profissional_nome || "-"}</TableCell>
                                     <TableCell>{ag.conversao_recepcionista_nao_converteu || "-"}</TableCell>
+                                    <TableCell className="text-right text-emerald-600 font-semibold">
+                                      {formatarMoeda(ag.nao_conversao_valor_pago)}
+                                    </TableCell>
                                     <TableCell className="max-w-xs">
                                       {ag.observacoes ? (
                                         <span className="text-xs text-gray-600 line-clamp-2">
