@@ -267,7 +267,9 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         terapeuta_nome: agendamento.conversao_profissional_nome || agendamento.profissional_nome || prev.terapeuta_nome,
         motivos_fechamento: agendamento.conversao_motivos?.split(",").map(m => m.trim()).filter(m => m) || prev.motivos_fechamento,
         forma_pagamento: agendamento.conversao_forma_pagamento || prev.forma_pagamento,
+        forma_pagamento_2: agendamento.conversao_forma_pagamento_2 || prev.forma_pagamento_2,
         parcelas: agendamento.conversao_parcelas?.toString() || "1",
+        parcelas_2: agendamento.conversao_parcelas_2?.toString() || prev.parcelas_2,
         desconto: agendamento.conversao_desconto?.toString() || prev.desconto,
         observacoes: agendamento.observacoes || prev.observacoes,
       }));
