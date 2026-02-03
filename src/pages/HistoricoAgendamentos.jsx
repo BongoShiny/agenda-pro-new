@@ -48,7 +48,7 @@ const statusLabels = {
 const tipoAcaoLabels = {
     criou_agendamento: "Criou Agendamento",
     editou_agendamento: "Editou Agendamento",
-    excluiu_agendamento: "Excluiu Agendamento",
+    excluiu_agendamento: "Excluiu/Cancelou Agendamento",
     bloqueou_horario: "Bloqueou Horário",
     desbloqueou_horario: "Desbloqueou Horário",
     criou_terapeuta: "Criou Terapeuta",
