@@ -231,7 +231,7 @@ export default function AdministradorPage() {
           )}
 
           {(isAdmin || isGerencia) && (
-          <Link to={createPageUrl("LancarVendas")} className="block">
+          <Link to={createPageUrl("GerenciarClientesVendas")} className="block">
             <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-teal-300 transition-all cursor-pointer h-full">
               <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mb-4">
                 <DollarSign className="w-6 h-6 text-teal-600" />
