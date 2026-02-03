@@ -98,7 +98,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         conversao_converteu: true,
       });
 
-      alert("🎉 Plano fechado com sucesso!");
+      // Não mostra alert, deixa a mensagem de sucesso aparecer no card
     } else {
       if (!formData.motivo_nao_conversao) {
         alert("⚠️ Selecione o motivo de não conversão");
@@ -113,8 +113,6 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         conversao_motivo_nao_converteu: formData.motivo_nao_conversao,
         conversao_recepcionista_nao_converteu: formData.recepcao_nao_fechou,
       });
-
-      alert("✅ Tentativa registrada!");
     }
 
     setModoRegistro(false);
@@ -227,10 +225,12 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
   ];
 
   const jaFechou = agendamento.conversao_converteu === true;
+  const jaNaoFechou = agendamento.conversao_converteu === false;
 
   return (
     <div className="space-y-4 py-4">
-      {jaFechou && (
+      {/* Mensagem quando plano foi FECHADO */}
+      {jaFechou && !modoRegistro && (
         <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 flex-1">
@@ -238,10 +238,13 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                 <CheckCircle className="w-6 h-6 text-white" />
               </div>
               <div className="flex-1">
-                <h3 className="font-bold text-green-900">Plano Fechado com Sucesso!</h3>
-                <p className="text-sm text-green-700">
-                    {`Plano: ${agendamento.conversao_plano} | Recepção: ${agendamento.conversao_recepcionista} | Motivos: ${agendamento.conversao_motivos}`}
-                  </p>
+                <h3 className="font-bold text-green-900">✅ Seu registro foi enviado para análise</h3>
+                <p className="text-sm text-green-700 mt-1">
+                  Caso queira editar, clique no lápis ao lado e edite o registro.
+                </p>
+                <p className="text-xs text-green-600 mt-2">
+                  {`Plano: ${agendamento.conversao_plano} | Recepção: ${agendamento.conversao_recepcionista}`}
+                </p>
               </div>
             </div>
             <Button 
@@ -252,6 +255,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                setModoRegistro(true);
                setFechouPacote(true);
              }}
+             className="flex-shrink-0 border-green-600 text-green-700 hover:bg-green-100"
             >
              <Edit className="w-4 h-4" />
             </Button>
@@ -259,19 +263,49 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         </div>
       )}
 
-      {!modoRegistro && (
+      {/* Mensagem quando NÃO fechou */}
+      {jaNaoFechou && !modoRegistro && (
+        <div className="bg-orange-50 border-l-4 border-orange-500 rounded-lg p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3 flex-1">
+              <div className="w-10 h-10 bg-orange-500 rounded-full flex items-center justify-center">
+                <CheckCircle className="w-6 h-6 text-white" />
+              </div>
+              <div className="flex-1">
+                <h3 className="font-bold text-orange-900">✅ Seu registro foi enviado para análise</h3>
+                <p className="text-sm text-orange-700 mt-1">
+                  Caso queira editar, clique no lápis ao lado e edite o registro.
+                </p>
+                <p className="text-xs text-orange-600 mt-2">
+                  {`Motivo: ${agendamento.conversao_motivo_nao_converteu}`}
+                </p>
+              </div>
+            </div>
+            <Button 
+             variant="outline" 
+             size="sm"
+             onClick={() => {
+               setModoEdicao(true);
+               setModoRegistro(true);
+               setFechouPacote(false);
+             }}
+             className="flex-shrink-0 border-orange-600 text-orange-700 hover:bg-orange-100"
+            >
+             <Edit className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {!modoRegistro && !jaFechou && !jaNaoFechou && (
         <Button 
           onClick={() => {
-            if (jaFechou) {
-              setModoEdicao(true);
-              setFechouPacote(true);
-            }
             setModoRegistro(true);
           }}
           className="w-full bg-green-600 hover:bg-green-700 text-white"
         >
           <Plus className="w-4 h-4 mr-2" />
-          {jaFechou ? "Editar Plano Fechado" : "Registrar Conversão"}
+          Registrar Conversão
         </Button>
       )}
 
