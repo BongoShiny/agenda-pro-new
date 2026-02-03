@@ -62,18 +62,21 @@ export default function DialogEditarAnotacoes({
         <div className="space-y-4 py-4">
           <div className="space-y-2">
             <Label>Data do Pagamento</Label>
-            <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-700 cursor-not-allowed">
-              {valores.data_pagamento || "-"}
-            </div>
-            <p className="text-xs text-gray-500">🔒 Campo desabilitado - Não é possível editar aqui</p>
+            <Input
+              type="date"
+              value={valores.data_pagamento || ""}
+              onChange={(e) => setValores(prev => ({ ...prev, data_pagamento: e.target.value }))}
+            />
           </div>
 
           <div className="space-y-2">
             <Label>Anotação da Venda</Label>
-            <div className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100 text-gray-700 min-h-[100px] overflow-y-auto">
-              {valores.anotacao_venda || "-"}
-            </div>
-            <p className="text-xs text-gray-500">🔒 Campo desabilitado - Não é possível editar aqui</p>
+            <Textarea
+              value={valores.anotacao_venda || ""}
+              onChange={(e) => setValores(prev => ({ ...prev, anotacao_venda: e.target.value }))}
+              placeholder="Anotação da venda..."
+              rows={4}
+            />
           </div>
         </div>
 
