@@ -2690,7 +2690,6 @@ export default function RelatoriosFinanceirosPage() {
         onSalvar={(dados) => {
           handleSalvarAnotacoes(modoEditarAnotacoes, dados);
         }}
-        tipoEdicao="completo"
       />
 
       {/* Dialog Criar Vendedor */}
