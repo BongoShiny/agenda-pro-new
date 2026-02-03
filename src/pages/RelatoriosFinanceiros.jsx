@@ -1360,6 +1360,218 @@ export default function RelatoriosFinanceirosPage() {
             </div>
           </TabsContent>
 
+          <TabsContent value="conversao">
+            <div className="space-y-6">
+              {/* Filtros */}
+              <Card className="bg-blue-50 border-2 border-blue-200">
+                <CardHeader>
+                  <CardTitle className="text-blue-900">📊 Análise de Conversão</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Data Inicial</Label>
+                      <Input
+                        type="date"
+                        value={dataInicioAnalise}
+                        onChange={(e) => setDataInicioAnalise(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Data Final</Label>
+                      <Input
+                        type="date"
+                        value={dataFimAnalise}
+                        onChange={(e) => setDataFimAnalise(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Unidade</Label>
+                      <Select value={unidadeAnalise} onValueChange={setUnidadeAnalise}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="todas">Todas as Clínicas</SelectItem>
+                          {unidadesFiltradas.map(u => (
+                            <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {(() => {
+                // Filtrar agendamentos com conversão (data_conversao)
+                const agendamentosConversao = agendamentos.filter(ag => {
+                  if (!ag.data_conversao) return false;
+                  if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
+
+                  const dataConv = ag.data_conversao.substring(0, 10);
+                  if (dataConv < dataInicioAnalise || dataConv > dataFimAnalise) return false;
+
+                  if (unidadeAnalise !== "todas" && ag.unidade_id !== unidadeAnalise) return false;
+
+                  return true;
+                });
+
+                // Contar pacientes novos e conversões
+                const pacientesNovos = agendamentosConversao.filter(ag => ag.status_paciente === "paciente_novo").length;
+                const planosFechados = agendamentosConversao.filter(ag => ag.conversao_converteu === true).length;
+                const naofechados = agendamentosConversao.filter(ag => ag.conversao_converteu === false).length;
+                const taxaConversao = pacientesNovos > 0 ? ((planosFechados / pacientesNovos) * 100).toFixed(1) : 0;
+
+                // Dados por mês
+                const dadosPorMes = {};
+                agendamentosConversao.forEach(ag => {
+                  const mesAno = ag.data_conversao.substring(0, 7);
+                  if (!dadosPorMes[mesAno]) {
+                    dadosPorMes[mesAno] = {
+                      mes: mesAno,
+                      pacientesNovos: 0,
+                      planosFechados: 0,
+                      naoFechados: 0
+                    };
+                  }
+                  if (ag.status_paciente === "paciente_novo") {
+                    dadosPorMes[mesAno].pacientesNovos++;
+                  }
+                  if (ag.conversao_converteu === true) {
+                    dadosPorMes[mesAno].planosFechados++;
+                  } else if (ag.conversao_converteu === false) {
+                    dadosPorMes[mesAno].naoFechados++;
+                  }
+                });
+
+                const dadosMesesOrdenados = Object.values(dadosPorMes).sort((a, b) => a.mes.localeCompare(b.mes));
+
+                return (
+                  <div className="space-y-6">
+                    {/* Cards KPI */}
+                    <div className="grid grid-cols-4 gap-4">
+                      <Card className="border-2 border-green-200 bg-green-50">
+                        <CardContent className="pt-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
+                              <UserPlus className="w-6 h-6 text-green-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-green-600 mb-1">Pacientes Novos</p>
+                              <p className="text-3xl font-bold text-green-900">{pacientesNovos}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="border-2 border-emerald-200 bg-emerald-50">
+                        <CardContent className="pt-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center">
+                              <CheckCircle className="w-6 h-6 text-emerald-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-emerald-600 mb-1">Planos Fechados</p>
+                              <p className="text-3xl font-bold text-emerald-900">{planosFechados}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="border-2 border-orange-200 bg-orange-50">
+                        <CardContent className="pt-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
+                              <Clock className="w-6 h-6 text-orange-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-orange-600 mb-1">Não Fechados</p>
+                              <p className="text-3xl font-bold text-orange-900">{naofechados}</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+
+                      <Card className="border-2 border-purple-200 bg-purple-50">
+                        <CardContent className="pt-6">
+                          <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                              <TrendingUp className="w-6 h-6 text-purple-600" />
+                            </div>
+                            <div>
+                              <p className="text-sm text-purple-600 mb-1">Taxa de Conversão</p>
+                              <p className="text-3xl font-bold text-purple-900">{taxaConversao}%</p>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Gráfico de Tendência */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>📈 Conversão por Mês</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ResponsiveContainer width="100%" height={300}>
+                          <BarChart data={dadosMesesOrdenados}>
+                            <CartesianGrid strokeDasharray="3 3" />
+                            <XAxis dataKey="mes" />
+                            <YAxis />
+                            <Tooltip />
+                            <Legend />
+                            <Bar dataKey="pacientesNovos" fill="#10b981" name="Pacientes Novos" />
+                            <Bar dataKey="planosFechados" fill="#059669" name="Planos Fechados" />
+                            <Bar dataKey="naoFechados" fill="#f97316" name="Não Fechados" />
+                          </BarChart>
+                        </ResponsiveContainer>
+                      </CardContent>
+                    </Card>
+
+                    {/* Tabela Detalhada */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Detalhamento por Mês</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <Table>
+                          <TableHeader>
+                            <TableRow>
+                              <TableHead>Mês</TableHead>
+                              <TableHead className="text-right">Pacientes Novos</TableHead>
+                              <TableHead className="text-right">Planos Fechados</TableHead>
+                              <TableHead className="text-right">Não Fechados</TableHead>
+                              <TableHead className="text-right">Taxa de Conversão</TableHead>
+                            </TableRow>
+                          </TableHeader>
+                          <TableBody>
+                            {dadosMesesOrdenados.map((dado, idx) => {
+                              const taxa = dado.pacientesNovos > 0 ? ((dado.planosFechados / dado.pacientesNovos) * 100).toFixed(1) : 0;
+                              return (
+                                <TableRow key={idx}>
+                                  <TableCell className="font-medium">{format(new Date(dado.mes + "-01"), "MMMM 'de' yyyy", { locale: ptBR })}</TableCell>
+                                  <TableCell className="text-right text-green-600 font-semibold">{dado.pacientesNovos}</TableCell>
+                                  <TableCell className="text-right text-emerald-600 font-semibold">{dado.planosFechados}</TableCell>
+                                  <TableCell className="text-right text-orange-600 font-semibold">{dado.naoFechados}</TableCell>
+                                  <TableCell className="text-right">
+                                    <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-bold">
+                                      {taxa}%
+                                    </span>
+                                  </TableCell>
+                                </TableRow>
+                              );
+                            })}
+                          </TableBody>
+                        </Table>
+                      </CardContent>
+                    </Card>
+                  </div>
+                );
+              })()}
+            </div>
+          </TabsContent>
+
            <TabsContent value="analise-dia">
              <Card>
                <CardHeader>
