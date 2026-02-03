@@ -1099,6 +1099,23 @@ export default function AgendaPage() {
     
     const isBloqueio = ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO";
     
+    // LOG DETALHADO DE TODOS OS AGENDAMENTOS
+    console.log(`📋 Agendamento ${ag.id}:`, {
+      cliente: ag.cliente_nome,
+      data: ag.data,
+      dataFiltro: dataFiltro,
+      isDataMatch,
+      unidade: ag.unidade_nome,
+      unidadeId: ag.unidade_id,
+      unidadeSelecionadaId: unidadeSelecionada?.id,
+      isUnidadeMatch,
+      profissional: ag.profissional_nome,
+      isProfissionalMatch,
+      isClienteMatch,
+      isStatusMatch,
+      PASSA: isDataMatch && isUnidadeMatch && isUnidadeFilterMatch && isClienteMatch && isProfissionalMatch && isServicoMatch && isStatusMatch && isDataFilterMatch
+    });
+    
     if (isBloqueio) {
       console.log(`🔒 BLOQUEIO ENCONTRADO:`, {
         id: ag.id,
