@@ -230,6 +230,17 @@ export default function AdministradorPage() {
           </Link>
           )}
 
+          {(isAdmin || isGerencia) && (
+          <Link to={createPageUrl("LancarVendas")} className="block">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-teal-300 transition-all cursor-pointer h-full">
+              <div className="w-12 h-12 bg-teal-100 rounded-lg flex items-center justify-center mb-4">
+                <DollarSign className="w-6 h-6 text-teal-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Gerenciar Clientes do Lançar Vendas</h3>
+              <p className="text-sm text-gray-500">Gerenciar e visualizar clientes cadastrados no lançamento de vendas</p>
+            </div>
+          </Link>
+          )}
 
 
 
