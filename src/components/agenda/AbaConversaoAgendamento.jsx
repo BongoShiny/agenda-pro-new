@@ -23,14 +23,14 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
     recepcao_nao_fechou: "",
     pacote_fechado: "",
     sessoes_personalizadas: "",
-    valor_original: agendamento.valor_combinado?.toString() || "",
-    desconto: "",
-    valor_final: agendamento.valor_combinado?.toString() || "",
-    sinal: agendamento.sinal?.toString() || "",
-    recebimento_2: agendamento.recebimento_2?.toString() || "",
-    final_pagamento: agendamento.final_pagamento?.toString() || "",
-    forma_pagamento: "pix",
-    parcelas: "1",
+    valor_original: agendamento.conversao_valor_original?.toString() || "",
+    desconto: agendamento.conversao_desconto?.toString() || "",
+    valor_final: agendamento.conversao_valor_final?.toString() || "",
+    sinal: agendamento.conversao_sinal?.toString() || "",
+    recebimento_2: agendamento.conversao_recebimento_2?.toString() || "",
+    valor_falta_pagar: agendamento.conversao_valor_falta_pagar?.toString() || "",
+    forma_pagamento: agendamento.conversao_forma_pagamento || "pix",
+    parcelas: agendamento.conversao_parcelas?.toString() || "1",
     motivos_fechamento: [],
     observacoes: "",
     motivo_nao_conversao: "",
@@ -78,6 +78,11 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         conversao_motivo_nao_converteu: null,
         conversao_recepcionista_nao_converteu: null,
         conversao_parcelas: null,
+        conversao_valor_original: null,
+        conversao_valor_final: null,
+        conversao_sinal: null,
+        conversao_recebimento_2: null,
+        conversao_valor_falta_pagar: null,
       });
 
       alert("✅ Registro de conversão excluído com sucesso!");
@@ -115,10 +120,6 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
       await updateAgendamentoMutation.mutateAsync({
         data_conversao: formData.data_conversao,
         status: "concluido",
-        valor_combinado: parseFloat(formData.valor_final) || agendamento.valor_combinado,
-        sinal: parseFloat(formData.sinal) || 0,
-        recebimento_2: parseFloat(formData.recebimento_2) || 0,
-        final_pagamento: parseFloat(formData.final_pagamento) || 0,
         observacoes: formData.observacoes,
         conversao_plano: planoPorSessoes,
         conversao_profissional_id: formData.terapeuta_id,
@@ -128,6 +129,11 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         conversao_forma_pagamento: formData.forma_pagamento,
         conversao_desconto: parseFloat(formData.desconto) || 0,
         conversao_parcelas: parseInt(formData.parcelas) || 1,
+        conversao_valor_original: parseFloat(formData.valor_original) || 0,
+        conversao_valor_final: parseFloat(formData.valor_final) || 0,
+        conversao_sinal: parseFloat(formData.sinal) || 0,
+        conversao_recebimento_2: parseFloat(formData.recebimento_2) || 0,
+        conversao_valor_falta_pagar: parseFloat(formData.valor_falta_pagar) || 0,
         conversao_converteu: true,
       });
 
@@ -164,12 +170,12 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
       recepcao_nao_fechou: "",
       pacote_fechado: "",
       sessoes_personalizadas: "",
-      valor_original: agendamento.valor_combinado?.toString() || "",
+      valor_original: "",
       desconto: "",
-      valor_final: agendamento.valor_combinado?.toString() || "",
-      sinal: agendamento.sinal?.toString() || "",
-      recebimento_2: agendamento.recebimento_2?.toString() || "",
-      final_pagamento: agendamento.final_pagamento?.toString() || "",
+      valor_final: "",
+      sinal: "",
+      recebimento_2: "",
+      valor_falta_pagar: "",
       forma_pagamento: "pix",
       parcelas: "1",
       motivos_fechamento: [],
@@ -221,11 +227,11 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
       setFormData(prev => ({
         ...prev,
         data_conversao: agendamento.data_conversao || prev.data_conversao,
-        valor_original: agendamento.valor_combinado?.toString() || prev.valor_original,
-        valor_final: agendamento.valor_combinado?.toString() || prev.valor_final,
-        sinal: agendamento.sinal?.toString() || prev.sinal,
-        recebimento_2: agendamento.recebimento_2?.toString() || prev.recebimento_2,
-        final_pagamento: agendamento.final_pagamento?.toString() || prev.final_pagamento,
+        valor_original: agendamento.conversao_valor_original?.toString() || prev.valor_original,
+        valor_final: agendamento.conversao_valor_final?.toString() || prev.valor_final,
+        sinal: agendamento.conversao_sinal?.toString() || prev.sinal,
+        recebimento_2: agendamento.conversao_recebimento_2?.toString() || prev.recebimento_2,
+        valor_falta_pagar: agendamento.conversao_valor_falta_pagar?.toString() || prev.valor_falta_pagar,
         pacote_fechado: matchSessoes && ![24, 16, 12, 8].includes(parseInt(matchSessoes[1])) ? "plano_personalizado" : (agendamento.conversao_plano || prev.pacote_fechado),
         sessoes_personalizadas: sessoesPersonalizadas,
         recepcao_fechou: agendamento.conversao_recepcionista || prev.recepcao_fechou,
@@ -256,7 +262,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
     setFormData(prev => ({ 
       ...prev, 
       valor_final: final.toFixed(2),
-      final_pagamento: Math.max(0, faltaPagar).toFixed(2)
+      valor_falta_pagar: Math.max(0, faltaPagar).toFixed(2)
     }));
   }, [formData.valor_original, formData.desconto, formData.sinal, formData.recebimento_2]);
 
@@ -566,7 +572,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                      <Input
                        type="number"
                        step="0.01"
-                       value={formData.final_pagamento}
+                       value={formData.valor_falta_pagar}
                        disabled
                        placeholder="0,00"
                        className="bg-gray-100"
