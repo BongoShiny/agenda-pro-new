@@ -34,7 +34,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
     motivos_fechamento: [],
     observacoes: "",
     motivo_nao_conversao: "",
-    nao_conversao_valor_pago: agendamento.nao_conversao_valor_pago?.toString() || "",
+    nao_conversao_valor_pago: agendamento.nao_conversao_valor_pago?.toString() || (agendamento.falta_quanto > 0 ? agendamento.falta_quanto.toString() : "0"),
     nao_conversao_forma_pagamento: agendamento.nao_conversao_forma_pagamento || "",
     nao_conversao_parcelas: agendamento.nao_conversao_parcelas?.toString() || "",
   });
@@ -706,49 +706,45 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
               </div>
 
               <div className="bg-green-50 rounded-lg p-4 border border-green-200">
-                <Label className="font-semibold text-green-900 mb-2 block">💰 Valor Pago na Clínica (Opcional)</Label>
+                <Label className="font-semibold text-green-900 mb-2 block">💰 Valor Pago na Clínica *</Label>
                 <p className="text-xs text-green-700 mb-3">Valor do restante pago na clínica após a avaliação. Este valor abate do "Falta Quanto" do Valor Combinado dos Detalhes (para abater nos relatórios Terapeuta x Recepção)</p>
                 <Input
-                  type="number"
-                  step="0.01"
-                  value={formData.nao_conversao_valor_pago}
-                  onChange={(e) => setFormData(prev => ({ ...prev, nao_conversao_valor_pago: e.target.value }))}
-                  placeholder="R$ 0,00"
-                  className="mb-3"
+                  type="text"
+                  value={`R$ ${parseFloat(formData.nao_conversao_valor_pago || 0).toFixed(2)}`}
+                  disabled
+                  className="mb-3 bg-gray-100 font-semibold text-lg"
                 />
 
-                {formData.nao_conversao_valor_pago && parseFloat(formData.nao_conversao_valor_pago) > 0 && (
-                  <div className="space-y-3 pt-3 border-t border-green-300">
-                    <div>
-                      <Label className="text-green-900">Forma de Pagamento *</Label>
-                      <Select value={formData.nao_conversao_forma_pagamento} onValueChange={(value) => setFormData(prev => ({ ...prev, nao_conversao_forma_pagamento: value }))}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione a forma" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pix">PIX</SelectItem>
-                          <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                          <SelectItem value="boleto">Boleto</SelectItem>
-                          <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
-                          <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {(formData.nao_conversao_forma_pagamento === "boleto" || formData.nao_conversao_forma_pagamento === "cartao_credito") && (
-                      <div>
-                        <Label className="text-green-900">Quantas Parcelas? *</Label>
-                        <Input
-                          type="number"
-                          min="1"
-                          value={formData.nao_conversao_parcelas}
-                          onChange={(e) => setFormData(prev => ({ ...prev, nao_conversao_parcelas: e.target.value }))}
-                          placeholder="Ex: 2"
-                        />
-                      </div>
-                    )}
+                <div className="space-y-3 pt-3 border-t border-green-300">
+                  <div>
+                    <Label className="text-green-900">Forma de Pagamento *</Label>
+                    <Select value={formData.nao_conversao_forma_pagamento} onValueChange={(value) => setFormData(prev => ({ ...prev, nao_conversao_forma_pagamento: value }))}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione a forma" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="pix">PIX</SelectItem>
+                        <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                        <SelectItem value="boleto">Boleto</SelectItem>
+                        <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
+                        <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                )}
+
+                  {(formData.nao_conversao_forma_pagamento === "boleto" || formData.nao_conversao_forma_pagamento === "cartao_credito") && (
+                    <div>
+                      <Label className="text-green-900">Quantas Parcelas? *</Label>
+                      <Input
+                        type="number"
+                        min="1"
+                        value={formData.nao_conversao_parcelas}
+                        onChange={(e) => setFormData(prev => ({ ...prev, nao_conversao_parcelas: e.target.value }))}
+                        placeholder="Ex: 2"
+                      />
+                    </div>
+                  )}
+                </div>
               </div>
 
               <div>
