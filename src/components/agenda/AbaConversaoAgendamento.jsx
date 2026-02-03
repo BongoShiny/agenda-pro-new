@@ -35,6 +35,8 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
     observacoes: "",
     motivo_nao_conversao: "",
     nao_conversao_valor_pago: agendamento.nao_conversao_valor_pago?.toString() || "",
+    nao_conversao_forma_pagamento: agendamento.nao_conversao_forma_pagamento || "",
+    nao_conversao_parcelas: agendamento.nao_conversao_parcelas?.toString() || "",
   });
 
   const queryClient = useQueryClient();
@@ -85,6 +87,8 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         conversao_recebimento_2: null,
         conversao_valor_falta_pagar: null,
         nao_conversao_valor_pago: null,
+        nao_conversao_forma_pagamento: null,
+        nao_conversao_parcelas: null,
       });
 
       alert("✅ Registro de conversão excluído com sucesso!");
@@ -151,6 +155,9 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         return;
       }
 
+      const valorPago = parseFloat(formData.nao_conversao_valor_pago) || 0;
+      const novoFaltaQuanto = (agendamento.falta_quanto || 0) - valorPago;
+
       await updateAgendamentoMutation.mutateAsync({
         data_conversao: formData.data_conversao,
         status: "concluido",
@@ -158,7 +165,10 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         conversao_converteu: false,
         conversao_motivo_nao_converteu: formData.motivo_nao_conversao,
         conversao_recepcionista_nao_converteu: formData.recepcao_nao_fechou,
-        nao_conversao_valor_pago: parseFloat(formData.nao_conversao_valor_pago) || 0,
+        nao_conversao_valor_pago: valorPago,
+        nao_conversao_forma_pagamento: formData.nao_conversao_forma_pagamento,
+        nao_conversao_parcelas: parseInt(formData.nao_conversao_parcelas) || null,
+        falta_quanto: novoFaltaQuanto,
       });
     }
 
@@ -185,6 +195,8 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
       observacoes: "",
       motivo_nao_conversao: "",
       nao_conversao_valor_pago: "",
+      nao_conversao_forma_pagamento: "",
+      nao_conversao_parcelas: "",
     });
   };
 
@@ -358,7 +370,18 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                 <p className="text-xs text-orange-600 mt-2">
                   {`Motivo: ${agendamento.conversao_motivo_nao_converteu}`}
                   {agendamento.nao_conversao_valor_pago > 0 && (
-                    <span className="ml-2 font-semibold">| Valor Pago: R$ {agendamento.nao_conversao_valor_pago.toFixed(2)}</span>
+                    <>
+                      <span className="ml-2 font-semibold">| Valor Pago: R$ {agendamento.nao_conversao_valor_pago.toFixed(2)}</span>
+                      {agendamento.nao_conversao_forma_pagamento && (
+                        <span className="ml-2">
+                          ({agendamento.nao_conversao_forma_pagamento === "pix" && "PIX"}
+                          {agendamento.nao_conversao_forma_pagamento === "dinheiro" && "Dinheiro"}
+                          {agendamento.nao_conversao_forma_pagamento === "boleto" && `Boleto ${agendamento.nao_conversao_parcelas || 1}x`}
+                          {agendamento.nao_conversao_forma_pagamento === "cartao_credito" && `Crédito ${agendamento.nao_conversao_parcelas || 1}x`}
+                          {agendamento.nao_conversao_forma_pagamento === "cartao_debito" && "Débito"})
+                        </span>
+                      )}
+                    </>
                   )}
                 </p>
               </div>
@@ -691,7 +714,41 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                   value={formData.nao_conversao_valor_pago}
                   onChange={(e) => setFormData(prev => ({ ...prev, nao_conversao_valor_pago: e.target.value }))}
                   placeholder="R$ 0,00"
+                  className="mb-3"
                 />
+
+                {formData.nao_conversao_valor_pago && parseFloat(formData.nao_conversao_valor_pago) > 0 && (
+                  <div className="space-y-3 pt-3 border-t border-green-300">
+                    <div>
+                      <Label className="text-green-900">Forma de Pagamento *</Label>
+                      <Select value={formData.nao_conversao_forma_pagamento} onValueChange={(value) => setFormData(prev => ({ ...prev, nao_conversao_forma_pagamento: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione a forma" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="pix">PIX</SelectItem>
+                          <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                          <SelectItem value="boleto">Boleto</SelectItem>
+                          <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
+                          <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {(formData.nao_conversao_forma_pagamento === "boleto" || formData.nao_conversao_forma_pagamento === "cartao_credito") && (
+                      <div>
+                        <Label className="text-green-900">Quantas Parcelas? *</Label>
+                        <Input
+                          type="number"
+                          min="1"
+                          value={formData.nao_conversao_parcelas}
+                          onChange={(e) => setFormData(prev => ({ ...prev, nao_conversao_parcelas: e.target.value }))}
+                          placeholder="Ex: 2"
+                        />
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               <div>
