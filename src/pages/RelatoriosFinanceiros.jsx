@@ -1113,7 +1113,8 @@ export default function RelatoriosFinanceirosPage() {
            <TabsList>
              <TabsTrigger value="dashboard">📊 Dashboard</TabsTrigger>
                <TabsTrigger value="conversao">✅ Conversão</TabsTrigger>
-               <TabsTrigger value="analise-dia">📅 Análise do Dia</TabsTrigger>
+                 <TabsTrigger value="conversao-detalhada">🔍 Conversão Detalhada</TabsTrigger>
+                 <TabsTrigger value="analise-dia">📅 Análise do Dia</TabsTrigger>
                <TabsTrigger value="profissional">Por Profissional</TabsTrigger>
                <TabsTrigger value="unidade">Por Unidade</TabsTrigger>
                <TabsTrigger value="analise-mensal">Análise Mensal</TabsTrigger>
