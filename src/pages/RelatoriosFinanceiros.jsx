@@ -3419,6 +3419,7 @@ export default function RelatoriosFinanceirosPage() {
         onSalvar={(dados) => {
           handleSalvarAnotacoes(modoEditarAnotacoes, dados);
         }}
+        usuarioAtual={usuarioAtual}
       />
 
       {/* Dialog Criar Vendedor */}
