@@ -97,6 +97,11 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
       return;
     }
 
+    if (!formData.recepcao_fechou) {
+      alert("⚠️ Selecione a recepcionista que fechou");
+      return;
+    }
+
     if (formData.pacote_fechado === "plano_personalizado" && !formData.sessoes_personalizadas) {
       alert("⚠️ Preencha o número de sessões para o plano personalizado");
       return;
@@ -127,6 +132,11 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
 
       // Não mostra alert, deixa a mensagem de sucesso aparecer no card
     } else {
+      if (!formData.recepcao_nao_fechou) {
+        alert("⚠️ Selecione a recepcionista que não fechou");
+        return;
+      }
+
       if (!formData.motivo_nao_conversao) {
         alert("⚠️ Selecione o motivo de não conversão");
         return;
@@ -709,7 +719,8 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                 </Button>
               <Button 
                 onClick={handleSalvarRegistro}
-                className="flex-1 bg-green-600 hover:bg-green-700"
+                disabled={fechouPacote === true ? !formData.recepcao_fechou : !formData.recepcao_nao_fechou}
+                className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Salvar Registro
               </Button>
