@@ -545,6 +545,11 @@ export default function AgendaDiaView({
                     ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO"
                   );
 
+                  // CRÍTICO: Se há agendamento real (não bloqueio), sempre mostrar, mesmo que o horário tenha passado
+                  const temAgendamentoReal = agendamentosSlot.some(ag => 
+                    ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO"
+                  );
+
                   // Se o slot está coberto por um agendamento de múltiplas horas
                   // Renderizar área clicável com fundo do bloqueio
                   if (agendamentoQueCobreSlot) {
@@ -579,7 +584,7 @@ export default function AgendaDiaView({
                         idx % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'
                       }`}
                     >
-                      {!isOcupado && horarioPassou ? (
+                      {!isOcupado && !temAgendamentoReal && horarioPassou ? (
                         <Popover>
                           <PopoverTrigger asChild>
                             <button className="w-full h-full bg-gray-200 rounded flex items-center justify-center md:cursor-default md:pointer-events-none">
@@ -597,7 +602,7 @@ export default function AgendaDiaView({
                             <div className="text-xs text-gray-600">Este horário já passou</div>
                           </PopoverContent>
                         </Popover>
-                      ) : mostrarLotado ? (
+                      ) : !isOcupado && !temAgendamentoReal && mostrarLotado ? (
                         <Popover>
                           <PopoverTrigger asChild>
                             <button className="w-full h-full bg-orange-200 rounded flex items-center justify-center md:cursor-default md:pointer-events-none">
@@ -615,7 +620,7 @@ export default function AgendaDiaView({
                             <div className="text-xs text-orange-700">Limite de atendimentos atingido neste horário</div>
                           </PopoverContent>
                         </Popover>
-                      ) : !isOcupado && !temBloqueio && !limiteSabadoAtingido ? (
+                      ) : !isOcupado && !temAgendamentoReal && !temBloqueio && !limiteSabadoAtingido ? (
                         <SlotMenu
                           open={isMenuAberto}
                           onOpenChange={(open) => {
@@ -630,7 +635,7 @@ export default function AgendaDiaView({
                             onClick={() => handleSlotClick(unidadeSelecionada.id, terapeuta.id, horario)}
                           />
                         </SlotMenu>
-                      ) : !isOcupado && temBloqueio ? (
+                      ) : !isOcupado && !temAgendamentoReal && temBloqueio ? (
                         <Popover>
                           <PopoverTrigger asChild>
                             <button className="w-full h-full bg-red-600 rounded flex items-center justify-center md:cursor-default md:pointer-events-none">
