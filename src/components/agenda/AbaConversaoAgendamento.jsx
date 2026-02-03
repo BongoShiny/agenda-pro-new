@@ -30,13 +30,17 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
     recebimento_2: agendamento.conversao_recebimento_2?.toString() || "",
     valor_falta_pagar: agendamento.conversao_valor_falta_pagar?.toString() || "",
     forma_pagamento: agendamento.conversao_forma_pagamento || "pix",
+    forma_pagamento_2: agendamento.conversao_forma_pagamento_2 || "",
     parcelas: agendamento.conversao_parcelas?.toString() || "1",
+    parcelas_2: agendamento.conversao_parcelas_2?.toString() || "",
     motivos_fechamento: [],
     observacoes: "",
     motivo_nao_conversao: "",
     nao_conversao_valor_pago: agendamento.nao_conversao_valor_pago?.toString() || (agendamento.falta_quanto > 0 ? agendamento.falta_quanto.toString() : "0"),
     nao_conversao_forma_pagamento: agendamento.nao_conversao_forma_pagamento || "",
+    nao_conversao_forma_pagamento_2: agendamento.nao_conversao_forma_pagamento_2 || "",
     nao_conversao_parcelas: agendamento.nao_conversao_parcelas?.toString() || "",
+    nao_conversao_parcelas_2: agendamento.nao_conversao_parcelas_2?.toString() || "",
   });
 
   const queryClient = useQueryClient();
