@@ -716,35 +716,65 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                 />
 
                 <div className="space-y-3 pt-3 border-t border-green-300">
-                  <div>
-                    <Label className="text-green-900">Forma de Pagamento *</Label>
-                    <Select value={formData.nao_conversao_forma_pagamento} onValueChange={(value) => setFormData(prev => ({ ...prev, nao_conversao_forma_pagamento: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione a forma" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="pix">PIX</SelectItem>
-                        <SelectItem value="dinheiro">Dinheiro</SelectItem>
-                        <SelectItem value="boleto">Boleto</SelectItem>
-                        <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
-                        <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                   <div>
+                     <Label className="text-green-900">1ª Forma de Pagamento *</Label>
+                     <Select value={formData.nao_conversao_forma_pagamento} onValueChange={(value) => setFormData(prev => ({ ...prev, nao_conversao_forma_pagamento: value }))}>
+                       <SelectTrigger>
+                         <SelectValue placeholder="Selecione a forma" />
+                       </SelectTrigger>
+                       <SelectContent>
+                         <SelectItem value="pix">PIX</SelectItem>
+                         <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                         <SelectItem value="boleto">Boleto</SelectItem>
+                         <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
+                         <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
+                       </SelectContent>
+                     </Select>
+                   </div>
 
-                  {(formData.nao_conversao_forma_pagamento === "boleto" || formData.nao_conversao_forma_pagamento === "cartao_credito") && (
-                    <div>
-                      <Label className="text-green-900">Quantas Parcelas? *</Label>
-                      <Input
-                        type="number"
-                        min="1"
-                        value={formData.nao_conversao_parcelas}
-                        onChange={(e) => setFormData(prev => ({ ...prev, nao_conversao_parcelas: e.target.value }))}
-                        placeholder="Ex: 2"
-                      />
-                    </div>
-                  )}
-                </div>
+                   {(formData.nao_conversao_forma_pagamento === "boleto" || formData.nao_conversao_forma_pagamento === "cartao_credito") && (
+                     <div>
+                       <Label className="text-green-900">Quantas Parcelas? *</Label>
+                       <Input
+                         type="number"
+                         min="1"
+                         value={formData.nao_conversao_parcelas}
+                         onChange={(e) => setFormData(prev => ({ ...prev, nao_conversao_parcelas: e.target.value }))}
+                         placeholder="Ex: 2"
+                       />
+                     </div>
+                   )}
+
+                   <div>
+                     <Label className="text-green-900">2ª Forma de Pagamento</Label>
+                     <Select value={formData.nao_conversao_forma_pagamento_2 || ""} onValueChange={(value) => setFormData(prev => ({ ...prev, nao_conversao_forma_pagamento_2: value }))}>
+                       <SelectTrigger>
+                         <SelectValue placeholder="Selecione a forma" />
+                       </SelectTrigger>
+                       <SelectContent>
+                         <SelectItem value={null}>Nenhuma</SelectItem>
+                         <SelectItem value="pix">PIX</SelectItem>
+                         <SelectItem value="dinheiro">Dinheiro</SelectItem>
+                         <SelectItem value="boleto">Boleto</SelectItem>
+                         <SelectItem value="cartao_credito">Cartão de Crédito</SelectItem>
+                         <SelectItem value="cartao_debito">Cartão de Débito</SelectItem>
+                       </SelectContent>
+                     </Select>
+                   </div>
+
+                   {formData.nao_conversao_forma_pagamento_2 && (formData.nao_conversao_forma_pagamento_2 === "boleto" || formData.nao_conversao_forma_pagamento_2 === "cartao_credito") && (
+                     <div>
+                       <Label className="text-green-900">Quantas Parcelas? (2ª Forma)</Label>
+                       <Input
+                         type="number"
+                         min="1"
+                         value={formData.nao_conversao_parcelas_2 || ""}
+                         onChange={(e) => setFormData(prev => ({ ...prev, nao_conversao_parcelas_2: e.target.value }))}
+                         placeholder="Ex: 2"
+                       />
+                     </div>
+                   )}
+                 </div>
               </div>
 
               <div>
