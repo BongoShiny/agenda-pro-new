@@ -817,54 +817,63 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
            setEmailSelecionado("");
          }
        }}>
-         <DialogContent className="max-w-2xl">
+         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
            <DialogHeader>
-             <DialogTitle>📢 Notificar Vendedor - {notificacaoDialog?.cliente}</DialogTitle>
+             <DialogTitle>📢 Notificar Vendedor</DialogTitle>
            </DialogHeader>
-           <div className="space-y-4">
+           <div className="space-y-6">
              {/* Informações do Agendamento */}
              {notificacaoDialog && (() => {
                const venda = agendamentos.find(a => a.id === notificacaoDialog.agendamentoId);
                if (!venda) return null;
                
                return (
-                 <div className="bg-blue-50 rounded-lg p-4 space-y-2 border border-blue-200">
-                   <h4 className="font-semibold text-blue-900 mb-3">Informações do Agendamento</h4>
-                   <div className="grid grid-cols-2 gap-3 text-sm">
-                     <div>
-                       <span className="font-medium text-blue-800">Cliente:</span>
-                       <p className="text-gray-800">{venda.cliente_nome || "-"}</p>
+                 <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-6 border-2 border-blue-300 shadow-sm">
+                   <h3 className="font-bold text-blue-900 mb-4 text-lg flex items-center gap-2">
+                     <FileText className="w-5 h-5" />
+                     Agendamento
+                   </h3>
+                   <div className="space-y-3 text-sm">
+                     <div className="bg-white rounded-lg p-3 border border-blue-200">
+                       <span className="font-semibold text-blue-800 block mb-1">Cliente:</span>
+                       <p className="text-gray-900 text-base">{venda.cliente_nome || "-"}</p>
                      </div>
-                     <div>
-                       <span className="font-medium text-blue-800">Número:</span>
-                       <p className="text-gray-800">{venda.cliente_telefone || "-"}</p>
+                     
+                     <div className="bg-white rounded-lg p-3 border border-blue-200">
+                       <span className="font-semibold text-blue-800 block mb-1">Número:</span>
+                       <p className="text-gray-900 text-base">{venda.cliente_telefone || "-"}</p>
                      </div>
-                     <div>
-                       <span className="font-medium text-blue-800">Unidade:</span>
-                       <p className="text-gray-800">{venda.unidade_nome || "-"}</p>
+                     
+                     <div className="bg-white rounded-lg p-3 border border-blue-200">
+                       <span className="font-semibold text-blue-800 block mb-1">Unidade:</span>
+                       <p className="text-gray-900 text-base">{venda.unidade_nome || "-"}</p>
                      </div>
-                     <div>
-                       <span className="font-medium text-blue-800">Vendedor:</span>
-                       <p className="text-gray-800">{venda.vendedor_nome || "-"}</p>
+                     
+                     <div className="bg-white rounded-lg p-3 border border-blue-200">
+                       <span className="font-semibold text-blue-800 block mb-1">Vendedor:</span>
+                       <p className="text-gray-900 text-base">{venda.vendedor_nome || "-"}</p>
                      </div>
-                     <div>
-                       <span className="font-medium text-blue-800">Terapeuta:</span>
-                       <p className="text-gray-800">{venda.profissional_nome || "-"}</p>
+                     
+                     <div className="bg-white rounded-lg p-3 border border-blue-200">
+                       <span className="font-semibold text-blue-800 block mb-1">Terapeuta:</span>
+                       <p className="text-gray-900 text-base">{venda.profissional_nome || "-"}</p>
                      </div>
-                     <div>
-                       <span className="font-medium text-blue-800">Data do pagamento:</span>
-                       <p className="text-gray-800">{formatarDataPagamento(venda.data_pagamento)}</p>
+                     
+                     <div className="bg-white rounded-lg p-3 border border-blue-200">
+                       <span className="font-semibold text-blue-800 block mb-1">Data do pagamento:</span>
+                       <p className="text-gray-900 text-base">{formatarDataPagamento(venda.data_pagamento)}</p>
                      </div>
-                     <div className="col-span-2">
-                       <span className="font-medium text-blue-800">Comprovante:</span>
+                     
+                     <div className="bg-white rounded-lg p-3 border border-blue-200">
+                       <span className="font-semibold text-blue-800 block mb-1">Comprovante:</span>
                        {venda.comprovante_1 ? (
                          <a 
                            href={venda.comprovante_1} 
                            target="_blank" 
                            rel="noopener noreferrer"
-                           className="text-blue-600 hover:underline flex items-center gap-1 mt-1"
+                           className="text-blue-600 hover:underline flex items-center gap-2 mt-1 font-medium"
                          >
-                           <ImageIcon className="w-3 h-3" />
+                           <ImageIcon className="w-4 h-4" />
                            Ver comprovante
                          </a>
                        ) : (
@@ -876,31 +885,40 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                );
              })()}
              
-             <div>
-               <label className="text-sm font-medium block mb-2">Selecionar Email</label>
-               <Select value={emailSelecionado} onValueChange={setEmailSelecionado}>
-                 <SelectTrigger className="w-full">
-                   <SelectValue placeholder="Escolha o email do vendedor para notificar" />
-                 </SelectTrigger>
-                 <SelectContent>
-                   {vendedores.map(v => (
-                     <SelectItem key={v.id} value={v.email || v.nome}>
-                       {v.nome} {v.email ? `(${v.email})` : ""}
-                     </SelectItem>
-                   ))}
-                 </SelectContent>
-               </Select>
+             {/* Seção de Erro */}
+             <div className="bg-red-50 rounded-xl p-6 border-2 border-red-300 shadow-sm">
+               <h3 className="font-bold text-red-900 mb-4 text-lg">⚠️ Descrição do Erro</h3>
+               
+               <div className="space-y-4">
+                 <div>
+                   <label className="text-sm font-semibold text-red-800 block mb-2">Selecionar Email do Vendedor</label>
+                   <Select value={emailSelecionado} onValueChange={setEmailSelecionado}>
+                     <SelectTrigger className="w-full bg-white">
+                       <SelectValue placeholder="Escolha o email do vendedor para notificar" />
+                     </SelectTrigger>
+                     <SelectContent>
+                       {vendedores.map(v => (
+                         <SelectItem key={v.id} value={v.email || v.nome}>
+                           {v.nome} {v.email ? `(${v.email})` : ""}
+                         </SelectItem>
+                       ))}
+                     </SelectContent>
+                   </Select>
+                 </div>
+                 
+                 <div>
+                   <label className="text-sm font-semibold text-red-800 block mb-2">Mensagem de Erro</label>
+                   <Textarea
+                     value={mensagemNotificacao}
+                     onChange={(e) => setMensagemNotificacao(e.target.value)}
+                     placeholder="Descreva o que está faltando ou o erro encontrado..."
+                     className="min-h-[140px] bg-white border-red-200 focus:border-red-400"
+                   />
+                 </div>
+               </div>
              </div>
-             <div>
-               <label className="text-sm font-medium block mb-2">Mensagem de Erro</label>
-               <Textarea
-                 value={mensagemNotificacao}
-                 onChange={(e) => setMensagemNotificacao(e.target.value)}
-                 placeholder="Descreva o que está faltando ou o erro encontrado..."
-                 className="min-h-[120px]"
-               />
-             </div>
-             <div className="flex justify-end gap-2">
+             
+             <div className="flex justify-end gap-3 pt-2">
                <Button
                  variant="outline"
                  onClick={() => {
@@ -908,6 +926,7 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                    setMensagemNotificacao("");
                    setEmailSelecionado("");
                  }}
+                 size="lg"
                >
                  Cancelar
                </Button>
@@ -928,6 +947,7 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                    });
                  }}
                  className="bg-red-600 hover:bg-red-700"
+                 size="lg"
                >
                  Enviar Notificação
                </Button>
