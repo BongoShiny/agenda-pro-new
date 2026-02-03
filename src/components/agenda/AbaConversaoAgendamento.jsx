@@ -612,15 +612,17 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                 </div>
               </div>
 
-              <div>
-                <Label>Observações</Label>
-                <Textarea
-                  value={formData.observacoes}
-                  onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
-                  placeholder="Detalhes sobre o encontro..."
-                  rows={3}
-                />
-              </div>
+              {formData.motivo_nao_conversao === "Outro" && (
+                <div className="bg-white rounded-lg border p-3">
+                  <Label className="block mb-2">Especifique o motivo:</Label>
+                  <Textarea
+                    value={formData.observacoes}
+                    onChange={(e) => setFormData(prev => ({ ...prev, observacoes: e.target.value }))}
+                    placeholder="Descreva o motivo específico aqui..."
+                    rows={3}
+                  />
+                </div>
+              )}
             </div>
           )}
 
