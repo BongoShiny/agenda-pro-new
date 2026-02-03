@@ -173,7 +173,9 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         conversao_recepcionista_nao_converteu: formData.recepcao_nao_fechou,
         nao_conversao_valor_pago: valorPago,
         nao_conversao_forma_pagamento: formData.nao_conversao_forma_pagamento,
+        nao_conversao_forma_pagamento_2: formData.nao_conversao_forma_pagamento_2 || null,
         nao_conversao_parcelas: parseInt(formData.nao_conversao_parcelas) || null,
+        nao_conversao_parcelas_2: formData.nao_conversao_parcelas_2 ? parseInt(formData.nao_conversao_parcelas_2) : null,
         falta_quanto: novoFaltaQuanto,
       });
     }
