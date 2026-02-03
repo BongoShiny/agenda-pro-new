@@ -78,19 +78,39 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
   });
 
   const criarAlertaMutation = useMutation({
-    mutationFn: ({ vendedorEmail, agendamentoId, mensagem }) =>
-      base44.entities.Alerta.create({
+    mutationFn: ({ vendedorEmail, agendamentoId, mensagem }) => {
+      const venda = agendamentos.find(a => a.id === agendamentoId);
+      
+      // Montar mensagem estruturada com informações do agendamento
+      const mensagemCompleta = `
+📋 AGENDAMENTO:
+
+Cliente: ${venda?.cliente_nome || "-"}
+Número: ${venda?.cliente_telefone || "-"}
+Unidade: ${venda?.unidade_nome || "-"}
+Vendedor: ${venda?.vendedor_nome || "-"}
+Terapeuta: ${venda?.profissional_nome || "-"}
+Data do pagamento: ${formatarDataPagamento(venda?.data_pagamento)}
+Comprovante: ${venda?.comprovante_1 ? "Disponível" : "Não anexado"}
+
+⚠️ DESCRIÇÃO DO ERRO:
+${mensagem}
+      `.trim();
+
+      return base44.entities.Alerta.create({
         usuario_email: vendedorEmail,
         titulo: "Erro em Agendamento",
-        mensagem: mensagem,
+        mensagem: mensagemCompleta,
         tipo: "error",
         agendamento_id: agendamentoId,
         lido: false,
         enviado_por: "sistema"
-      }),
+      });
+    },
     onSuccess: () => {
       setNotificacaoDialog(null);
       setMensagemNotificacao("");
+      setEmailSelecionado("");
       alert("✅ Notificação enviada ao vendedor!");
     },
   });
