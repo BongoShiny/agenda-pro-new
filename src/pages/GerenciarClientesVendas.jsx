@@ -33,11 +33,13 @@ export default function GerenciarClientesVendasPage() {
     queryKey: ['lancamentos-vendas'],
     queryFn: async () => {
       const agendamentos = await base44.entities.Agendamento.list("-created_date");
-      // Filtrar apenas os lançamentos de vendas (tipo avulsa ou plano_terapeutico com status concluído)
+      // Filtrar apenas os lançamentos de vendas
+      // Identificamos pelo formato específico das observações criadas no Lançar Vendas
       return agendamentos.filter(a => 
         (a.tipo === "avulsa" || a.tipo === "plano_terapeutico") && 
         a.status === "concluido" &&
-        a.criador_email // Garantir que foi criado através do lançamento de vendas
+        a.observacoes_vendedores && 
+        a.observacoes_vendedores.includes("Motivo:") // Campo específico do Lançar Vendas
       );
     },
     initialData: [],
