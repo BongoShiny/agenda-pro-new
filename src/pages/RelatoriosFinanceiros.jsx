@@ -1112,14 +1112,15 @@ export default function RelatoriosFinanceirosPage() {
          <Tabs value={abaAtiva} onValueChange={setAbaAtiva} className="w-full">
            <TabsList>
              <TabsTrigger value="dashboard">📊 Dashboard</TabsTrigger>
-             <TabsTrigger value="analise-dia">📅 Análise do Dia</TabsTrigger>
-             <TabsTrigger value="profissional">Por Profissional</TabsTrigger>
-             <TabsTrigger value="unidade">Por Unidade</TabsTrigger>
-             <TabsTrigger value="analise-mensal">Análise Mensal</TabsTrigger>
-             <TabsTrigger value="detalhado">Detalhado</TabsTrigger>
-             <TabsTrigger value="por-vendedor">Por Vendedor</TabsTrigger>
-             <TabsTrigger value="restante-clinica">💳 Restante (Clínica)</TabsTrigger>
-             <TabsTrigger value="terapeuta-recepcao">🤝 Terapeuta x Recepção</TabsTrigger>
+               <TabsTrigger value="conversao">✅ Conversão</TabsTrigger>
+               <TabsTrigger value="analise-dia">📅 Análise do Dia</TabsTrigger>
+               <TabsTrigger value="profissional">Por Profissional</TabsTrigger>
+               <TabsTrigger value="unidade">Por Unidade</TabsTrigger>
+               <TabsTrigger value="analise-mensal">Análise Mensal</TabsTrigger>
+               <TabsTrigger value="detalhado">Detalhado</TabsTrigger>
+               <TabsTrigger value="por-vendedor">Por Vendedor</TabsTrigger>
+               <TabsTrigger value="restante-clinica">💳 Restante (Clínica)</TabsTrigger>
+               <TabsTrigger value="terapeuta-recepcao">🤝 Terapeuta x Recepção</TabsTrigger>
            </TabsList>
 
           <TabsContent value="dashboard">
