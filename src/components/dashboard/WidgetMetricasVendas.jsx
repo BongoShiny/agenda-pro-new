@@ -755,18 +755,21 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
                                 )}
                              </TableCell>
                             <TableCell>
-                              <Button
-                                onClick={() => setNotificacaoDialog({
-                                  vendedorEmail: venda.vendedor_nome,
-                                  agendamentoId: venda.id,
-                                  cliente: venda.cliente_nome
-                                })}
-                                variant="outline"
-                                size="sm"
-                                className="text-xs bg-red-50 hover:bg-red-100 text-red-600"
-                              >
-                                ⚠️ Notificar
-                              </Button>
+                             <Button
+                               onClick={() => {
+                                 setNotificacaoDialog({
+                                   vendedorEmail: venda.vendedor_nome,
+                                   agendamentoId: venda.id,
+                                   cliente: venda.cliente_nome
+                                 });
+                                 setEmailSelecionado(vendedores.find(v => v.nome === venda.vendedor_nome)?.email || "");
+                               }}
+                               variant="outline"
+                               size="sm"
+                               className="text-xs bg-red-50 hover:bg-red-100 text-red-600"
+                             >
+                               ⚠️ Notificar
+                             </Button>
                             </TableCell>
                             </TableRow>
                         );
@@ -819,6 +822,60 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
              <DialogTitle>📢 Notificar Vendedor - {notificacaoDialog?.cliente}</DialogTitle>
            </DialogHeader>
            <div className="space-y-4">
+             {/* Informações do Agendamento */}
+             {notificacaoDialog && (() => {
+               const venda = agendamentos.find(a => a.id === notificacaoDialog.agendamentoId);
+               if (!venda) return null;
+               
+               return (
+                 <div className="bg-blue-50 rounded-lg p-4 space-y-2 border border-blue-200">
+                   <h4 className="font-semibold text-blue-900 mb-3">Informações do Agendamento</h4>
+                   <div className="grid grid-cols-2 gap-3 text-sm">
+                     <div>
+                       <span className="font-medium text-blue-800">Cliente:</span>
+                       <p className="text-gray-800">{venda.cliente_nome || "-"}</p>
+                     </div>
+                     <div>
+                       <span className="font-medium text-blue-800">Número:</span>
+                       <p className="text-gray-800">{venda.cliente_telefone || "-"}</p>
+                     </div>
+                     <div>
+                       <span className="font-medium text-blue-800">Unidade:</span>
+                       <p className="text-gray-800">{venda.unidade_nome || "-"}</p>
+                     </div>
+                     <div>
+                       <span className="font-medium text-blue-800">Vendedor:</span>
+                       <p className="text-gray-800">{venda.vendedor_nome || "-"}</p>
+                     </div>
+                     <div>
+                       <span className="font-medium text-blue-800">Terapeuta:</span>
+                       <p className="text-gray-800">{venda.profissional_nome || "-"}</p>
+                     </div>
+                     <div>
+                       <span className="font-medium text-blue-800">Data do pagamento:</span>
+                       <p className="text-gray-800">{formatarDataPagamento(venda.data_pagamento)}</p>
+                     </div>
+                     <div className="col-span-2">
+                       <span className="font-medium text-blue-800">Comprovante:</span>
+                       {venda.comprovante_1 ? (
+                         <a 
+                           href={venda.comprovante_1} 
+                           target="_blank" 
+                           rel="noopener noreferrer"
+                           className="text-blue-600 hover:underline flex items-center gap-1 mt-1"
+                         >
+                           <ImageIcon className="w-3 h-3" />
+                           Ver comprovante
+                         </a>
+                       ) : (
+                         <p className="text-gray-500">-</p>
+                       )}
+                     </div>
+                   </div>
+                 </div>
+               );
+             })()}
+             
              <div>
                <label className="text-sm font-medium block mb-2">Selecionar Email</label>
                <Select value={emailSelecionado} onValueChange={setEmailSelecionado}>
