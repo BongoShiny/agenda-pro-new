@@ -66,12 +66,7 @@ export default function DialogEditarAnotacoes({
               type="date"
               value={valores.data_pagamento || ""}
               onChange={(e) => setValores(prev => ({ ...prev, data_pagamento: e.target.value }))}
-              disabled={!!agendamento?.data_pagamento}
-              className={agendamento?.data_pagamento ? "bg-gray-100 cursor-not-allowed" : ""}
             />
-            {agendamento?.data_pagamento && (
-              <p className="text-xs text-gray-500">🔒 Campo bloqueado - Data de pagamento já registrada</p>
-            )}
           </div>
 
           <div className="space-y-2">
@@ -81,12 +76,7 @@ export default function DialogEditarAnotacoes({
               onChange={(e) => setValores(prev => ({ ...prev, anotacao_venda: e.target.value }))}
               placeholder="Anotação da venda..."
               rows={4}
-              disabled={!!agendamento?.anotacao_venda}
-              className={agendamento?.anotacao_venda ? "bg-gray-100 cursor-not-allowed" : ""}
             />
-            {agendamento?.anotacao_venda && (
-              <p className="text-xs text-gray-500">🔒 Campo bloqueado - Observação já registrada</p>
-            )}
           </div>
         </div>
 
