@@ -77,6 +77,9 @@ export default function RelatoriosFinanceirosPage() {
   const [dataFimAnalise, setDataFimAnalise] = useState(format(endOfMonth(new Date()), "yyyy-MM-dd"));
   const [unidadeAnalise, setUnidadeAnalise] = useState("todas");
   const [gapExpandido, setGapExpandido] = useState(null);
+  const [dataRestante, setDataRestante] = useState(format(new Date(), "yyyy-MM-dd"));
+  const [unidadeRestante, setUnidadeRestante] = useState("todas");
+  const [vendedorRestante, setVendedorRestante] = useState("todos");
   const [novoVendedor, setNovoVendedor] = useState({
     nome: "",
     email: "",
@@ -1115,6 +1118,7 @@ export default function RelatoriosFinanceirosPage() {
              <TabsTrigger value="analise-mensal">Análise Mensal</TabsTrigger>
              <TabsTrigger value="detalhado">Detalhado</TabsTrigger>
              <TabsTrigger value="por-vendedor">Por Vendedor</TabsTrigger>
+             <TabsTrigger value="restante-clinica">💳 Restante (Clínica)</TabsTrigger>
              <TabsTrigger value="terapeuta-recepcao">🤝 Terapeuta x Recepção</TabsTrigger>
            </TabsList>
 
@@ -2263,6 +2267,248 @@ export default function RelatoriosFinanceirosPage() {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Aba Restante (Clínica) */}
+          <TabsContent value="restante-clinica">
+            <div className="space-y-6">
+              {/* Filtros */}
+              <Card className="bg-emerald-50 border-2 border-emerald-200">
+                <CardHeader>
+                  <CardTitle className="text-emerald-900 flex items-center gap-2">
+                    <FileText className="w-5 h-5" />
+                    Conferência Financeira
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="space-y-2">
+                      <Label>Data</Label>
+                      <Input
+                        type="date"
+                        value={dataRestante}
+                        onChange={(e) => setDataRestante(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Clínica</Label>
+                      <Select value={unidadeRestante} onValueChange={setUnidadeRestante}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="todas">Todas as clínicas</SelectItem>
+                          {unidadesFiltradas.map(u => (
+                            <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Vendedor</Label>
+                      <Select value={vendedorRestante} onValueChange={setVendedorRestante}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="todos">Todos os vendedores</SelectItem>
+                          {vendedores.filter(v => v.ativo).map(v => (
+                            <SelectItem key={v.id} value={v.id}>{v.nome}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {(() => {
+                // Filtrar planos fechados com valores pendentes
+                const planosComRestante = agendamentos.filter(ag => {
+                  if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
+                  if (ag.conversao_converteu !== true) return false; // Apenas planos fechados
+                  
+                  // Filtrar por data de conversão
+                  if (!ag.data_conversao) return false;
+                  const dataConv = ag.data_conversao.substring(0, 10);
+                  if (dataConv !== dataRestante) return false;
+
+                  // Filtrar por unidade
+                  if (unidadeRestante !== "todas" && ag.unidade_id !== unidadeRestante) return false;
+
+                  // Filtrar por vendedor
+                  if (vendedorRestante !== "todos" && ag.vendedor_id !== vendedorRestante) return false;
+
+                  return true;
+                });
+
+                const totalAVencer = planosComRestante.reduce((sum, ag) => {
+                  const totalPago = (ag.conversao_sinal || 0) + (ag.conversao_recebimento_2 || 0);
+                  const restante = (ag.conversao_valor_final || 0) - totalPago;
+                  return sum + restante;
+                }, 0);
+
+                const totalPendente = planosComRestante.filter(ag => {
+                  const totalPago = (ag.conversao_sinal || 0) + (ag.conversao_recebimento_2 || 0);
+                  return totalPago < (ag.conversao_valor_final || 0);
+                }).reduce((sum, ag) => {
+                  const totalPago = (ag.conversao_sinal || 0) + (ag.conversao_recebimento_2 || 0);
+                  return sum + ((ag.conversao_valor_final || 0) - totalPago);
+                }, 0);
+
+                const pacotesContratados = planosComRestante.length;
+
+                return (
+                  <div className="space-y-6">
+                    {/* Título */}
+                    <div>
+                      <h2 className="text-2xl font-bold text-gray-900">
+                        Restante a Receber - {format(criarDataPura(dataRestante), "dd/MM/yyyy", { locale: ptBR })}
+                      </h2>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {planosComRestante.length} clientes com restante pendente
+                      </p>
+                    </div>
+
+                    {/* Abas: Sinal (WhatsApp) e Restante (Clínica) */}
+                    <Tabs defaultValue="restante-clinica" className="w-full">
+                      <TabsList>
+                        <TabsTrigger value="sinal-whatsapp">Sinal (WhatsApp)</TabsTrigger>
+                        <TabsTrigger value="restante-clinica">Restante (Clínica)</TabsTrigger>
+                      </TabsList>
+
+                      <TabsContent value="restante-clinica" className="space-y-6">
+                        {/* Cards de Métricas */}
+                        <div className="grid grid-cols-3 gap-4">
+                          <Card className="border-2 border-blue-200 bg-blue-50">
+                            <CardContent className="pt-6">
+                              <div className="flex items-center gap-3">
+                                <TrendingUp className="w-10 h-10 text-blue-600" />
+                                <div>
+                                  <p className="text-sm text-blue-600 mb-1">Total a Vencer</p>
+                                  <p className="text-3xl font-bold text-blue-900">{formatarMoeda(totalAVencer)}</p>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+
+                          <Card className="border-2 border-orange-200 bg-orange-50">
+                            <CardContent className="pt-6">
+                              <div className="flex items-center gap-3">
+                                <Clock className="w-10 h-10 text-orange-600" />
+                                <div>
+                                  <p className="text-sm text-orange-600 mb-1">Total Pendente</p>
+                                  <p className="text-3xl font-bold text-orange-900">{formatarMoeda(totalPendente)}</p>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+
+                          <Card className="border-2 border-green-200 bg-green-50">
+                            <CardContent className="pt-6">
+                              <div className="flex items-center gap-3">
+                                <Package className="w-10 h-10 text-green-600" />
+                                <div>
+                                  <p className="text-sm text-green-600 mb-1">Pacotes Contratados</p>
+                                  <p className="text-3xl font-bold text-green-900">{pacotesContratados}</p>
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        </div>
+
+                        {/* Detalhamento do Restante */}
+                        <Card>
+                          <CardHeader>
+                            <CardTitle>Detalhamento do Restante</CardTitle>
+                          </CardHeader>
+                          <CardContent>
+                            {planosComRestante.length > 0 ? (
+                              <div className="space-y-4">
+                                {planosComRestante.map(ag => {
+                                  const totalPago = (ag.conversao_sinal || 0) + (ag.conversao_recebimento_2 || 0);
+                                  const restantePagar = (ag.conversao_valor_final || 0) - totalPago;
+                                  const sessoesFeitasConversao = ag.sessoes_feitas || 0;
+                                  const totalSessoesConversao = ag.quantas_sessoes || 0;
+
+                                  return (
+                                    <div key={ag.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                                      <div className="grid grid-cols-4 gap-4">
+                                        <div>
+                                          <p className="text-xs text-gray-500">Cliente</p>
+                                          <p className="font-semibold text-gray-900">{ag.cliente_nome}</p>
+                                        </div>
+                                        <div>
+                                          <p className="text-xs text-gray-500">Unidade</p>
+                                          <p className="font-semibold text-gray-900">{ag.unidade_nome || "-"}</p>
+                                        </div>
+                                        <div>
+                                          <p className="text-xs text-gray-500">Plano</p>
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded font-medium">
+                                              {ag.conversao_plano?.replace(/_/g, ' ') || "Plano"}
+                                            </span>
+                                            {ag.conversao_forma_pagamento && (
+                                              <span className="text-xs text-gray-600">
+                                                ({ag.conversao_forma_pagamento === "pix" ? "PIX" : 
+                                                  ag.conversao_forma_pagamento === "cartao_credito" ? "Crédito" :
+                                                  ag.conversao_forma_pagamento === "cartao_debito" ? "Débito" :
+                                                  ag.conversao_forma_pagamento})
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                        <div>
+                                          <p className="text-xs text-gray-500">Vendedor</p>
+                                          <p className="font-semibold text-gray-900">{ag.vendedor_nome || "-"}</p>
+                                        </div>
+                                      </div>
+
+                                      <div className="grid grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-200">
+                                        <div>
+                                          <p className="text-xs text-gray-500">Valor Total</p>
+                                          <p className="text-lg font-bold text-blue-900">{formatarMoeda(ag.conversao_valor_final)}</p>
+                                        </div>
+                                        <div>
+                                          <p className="text-xs text-gray-500">Sinal + Restante Pago</p>
+                                          <p className="text-lg font-bold text-emerald-600">{formatarMoeda(totalPago)}</p>
+                                        </div>
+                                        <div>
+                                          <p className="text-xs text-gray-500">Restante a Pagar</p>
+                                          <p className="text-lg font-bold text-orange-600">{formatarMoeda(restantePagar)}</p>
+                                        </div>
+                                        <div>
+                                          <p className="text-xs text-gray-500">Sessões</p>
+                                          <p className="text-lg font-bold text-purple-900">
+                                            {sessoesFeitasConversao}/{totalSessoesConversao}
+                                          </p>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            ) : (
+                              <div className="text-center py-12 text-gray-500">
+                                <Package className="w-12 h-12 mx-auto mb-4 text-gray-400" />
+                                <p className="font-medium">Nenhum cliente com restante pendente</p>
+                                <p className="text-sm mt-2">Ajuste os filtros para ver outros dados</p>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
+                      </TabsContent>
+
+                      <TabsContent value="sinal-whatsapp">
+                        <div className="text-center py-12 text-gray-500">
+                          <p className="font-medium">Aba Sinal (WhatsApp) em desenvolvimento</p>
+                        </div>
+                      </TabsContent>
+                    </Tabs>
+                  </div>
+                );
+              })()}
+            </div>
           </TabsContent>
 
           {/* Aba Terapeuta x Recepção */}
