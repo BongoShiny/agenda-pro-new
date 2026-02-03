@@ -33,14 +33,18 @@ export default function GerenciarClientesVendasPage() {
     queryKey: ['lancamentos-vendas'],
     queryFn: async () => {
       const agendamentos = await base44.entities.Agendamento.list("-created_date");
-      // Filtrar apenas os lançamentos de vendas
-      // Identificamos pelo formato específico das observações criadas no Lançar Vendas
-      return agendamentos.filter(a => 
-        (a.tipo === "avulsa" || a.tipo === "plano_terapeutico") && 
-        a.status === "concluido" &&
-        a.observacoes_vendedores && 
-        a.observacoes_vendedores.includes("Motivo:") // Campo específico do Lançar Vendas
-      );
+      // Filtrar apenas os lançamentos de vendas através de critérios específicos
+      return agendamentos.filter(a => {
+        const isAvulsaOuPlano = a.tipo === "avulsa" || a.tipo === "plano_terapeutico";
+        const isConcluido = a.status === "concluido";
+        const isPacienteNovo = a.status_paciente === "paciente_novo";
+        const temFormatoLancamento = a.observacoes_vendedores && 
+                                      a.observacoes_vendedores.includes("Motivo:") && 
+                                      a.observacoes_vendedores.includes("Queixa:") &&
+                                      a.observacoes_vendedores.includes("Pago por:");
+        
+        return isAvulsaOuPlano && isConcluido && isPacienteNovo && temFormatoLancamento;
+      });
     },
     initialData: [],
   });
