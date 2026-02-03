@@ -297,7 +297,53 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               </div>
             )}
 
-
+            {!isTerapia && (agendamento.valor_combinado || agendamento.sinal || agendamento.vendedor_nome) && (
+              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <DollarSign className="w-5 h-5 text-amber-600" />
+                  <h4 className="font-semibold text-amber-900">Valores e Pagamento (Avulso)</h4>
+                </div>
+                <div className="space-y-2">
+                  {agendamento.valor_combinado && (
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Valor Combinado:</span>
+                      <span className="font-medium">R$ {agendamento.valor_combinado.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {agendamento.sinal && (
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Sinal:</span>
+                      <span className="font-medium">R$ {agendamento.sinal.toFixed(2)}</span>
+                    </div>
+                  )}
+                  {agendamento.falta_quanto !== null && agendamento.falta_quanto !== undefined && (
+                    <div className="flex justify-between border-t border-amber-300 pt-2">
+                      <span className="text-sm text-gray-600">Falta Quanto:</span>
+                      <span className="font-bold text-amber-900">
+                        {agendamento.falta_quanto > 0 
+                          ? `R$ ${agendamento.falta_quanto.toFixed(2)}` 
+                          : agendamento.falta_quanto < 0 
+                            ? `PAGO A MAIS R$ ${Math.abs(agendamento.falta_quanto).toFixed(2)}`
+                            : "R$ 0,00"
+                        }
+                      </span>
+                    </div>
+                  )}
+                  {agendamento.vendedor_nome && (
+                    <div className="flex justify-between border-t border-amber-300 pt-2 mt-2">
+                      <span className="text-sm text-gray-600">Vendedor:</span>
+                      <span className="font-medium">{agendamento.vendedor_nome}</span>
+                    </div>
+                  )}
+                  {agendamento.data_pagamento && (
+                    <div className="flex justify-between">
+                      <span className="text-sm text-gray-600">Data Pagamento:</span>
+                      <span className="font-medium">{format(criarDataPura(agendamento.data_pagamento), "dd/MM/yyyy", { locale: ptBR })}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
               <div className="space-y-2">
