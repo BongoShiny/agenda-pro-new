@@ -684,7 +684,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
 
               <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                 <Label className="font-semibold text-green-900 mb-2 block">💰 Valor Pago na Clínica (Opcional)</Label>
-                <p className="text-xs text-green-700 mb-3">Valor do restante pago na clínica após a avaliação (para abater nos relatórios Terapeuta x Recepção)</p>
+                <p className="text-xs text-green-700 mb-3">Valor do restante pago na clínica após a avaliação. Este valor abate do "Falta Quanto" do Valor Combinado dos Detalhes (para abater nos relatórios Terapeuta x Recepção)</p>
                 <Input
                   type="number"
                   step="0.01"
