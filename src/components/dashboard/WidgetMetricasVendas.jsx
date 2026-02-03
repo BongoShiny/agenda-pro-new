@@ -888,7 +888,6 @@ export default function WidgetMetricasVendas({ agendamentos, dataInicio, dataFim
          onSalvar={(dados) => {
            handleSalvarEdicaoCompleta(modoEditarAnotacoes, dados);
          }}
-         tipoEdicao="completo"
        />
        </Card>
        );
