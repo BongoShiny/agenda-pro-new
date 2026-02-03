@@ -176,9 +176,25 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
     }));
   }, []);
 
+  // Debounce para o campo de observações
+  const debounceTimerRef = useRef(null);
+  const [localObservacoes, setLocalObservacoes] = useState(formData.observacoes);
+
   const handleObservacoesChange = React.useCallback((value) => {
-    setFormData(prev => ({ ...prev, observacoes: value }));
+    setLocalObservacoes(value);
+    
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current);
+    }
+    
+    debounceTimerRef.current = setTimeout(() => {
+      setFormData(prev => ({ ...prev, observacoes: value }));
+    }, 300);
   }, []);
+
+  useEffect(() => {
+    setLocalObservacoes(formData.observacoes);
+  }, [formData.observacoes]);
 
   // Recarregar dados quando entra em modo edição
   useEffect(() => {
@@ -602,7 +618,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                   <div className="bg-white rounded-lg border p-3 mt-3">
                     <Label className="block mb-2">Especifique o motivo:</Label>
                     <Textarea
-                      value={formData.observacoes}
+                      value={localObservacoes}
                       onChange={(e) => handleObservacoesChange(e.target.value)}
                       placeholder="Descreva o motivo específico aqui..."
                       rows={3}
@@ -668,7 +684,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                 <div className="bg-white rounded-lg border p-3">
                   <Label className="block mb-2">Especifique o motivo:</Label>
                   <Textarea
-                    value={formData.observacoes}
+                    value={localObservacoes}
                     onChange={(e) => handleObservacoesChange(e.target.value)}
                     placeholder="Descreva o motivo específico aqui..."
                     rows={3}
