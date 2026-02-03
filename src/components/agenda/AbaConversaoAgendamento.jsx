@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { CheckCircle, Edit, Plus } from "lucide-react";
+import { CheckCircle, Edit, Plus, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 
 export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
@@ -57,6 +57,33 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
       onUpdate?.();
     },
   });
+
+  const handleExcluirRegistro = async () => {
+    const confirmacao = window.confirm("⚠️ Tem certeza que deseja excluir este registro de conversão?\n\nO agendamento não será excluído, apenas os dados da conversão.");
+    
+    if (!confirmacao) return;
+
+    try {
+      await updateAgendamentoMutation.mutateAsync({
+        data_conversao: null,
+        conversao_plano: null,
+        conversao_profissional_id: null,
+        conversao_profissional_nome: null,
+        conversao_recepcionista: null,
+        conversao_motivos: null,
+        conversao_forma_pagamento: null,
+        conversao_desconto: null,
+        conversao_converteu: null,
+        conversao_motivo_nao_converteu: null,
+        conversao_recepcionista_nao_converteu: null,
+        conversao_parcelas: null,
+      });
+
+      alert("✅ Registro de conversão excluído com sucesso!");
+    } catch (error) {
+      alert("❌ Erro ao excluir o registro: " + error.message);
+    }
+  };
 
   const handleSalvarRegistro = async () => {
     if (fechouPacote === null) {
@@ -247,18 +274,28 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                 </p>
               </div>
             </div>
-            <Button 
-             variant="outline" 
-             size="sm"
-             onClick={() => {
-               setModoEdicao(true);
-               setModoRegistro(true);
-               setFechouPacote(true);
-             }}
-             className="flex-shrink-0 border-green-600 text-green-700 hover:bg-green-100"
-            >
-             <Edit className="w-4 h-4" />
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+               variant="outline" 
+               size="sm"
+               onClick={() => {
+                 setModoEdicao(true);
+                 setModoRegistro(true);
+                 setFechouPacote(true);
+               }}
+               className="flex-shrink-0 border-green-600 text-green-700 hover:bg-green-100"
+              >
+               <Edit className="w-4 h-4" />
+              </Button>
+              <Button 
+               variant="outline" 
+               size="sm"
+               onClick={handleExcluirRegistro}
+               className="flex-shrink-0 border-red-600 text-red-700 hover:bg-red-100"
+              >
+               <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       )}
@@ -281,18 +318,28 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                 </p>
               </div>
             </div>
-            <Button 
-             variant="outline" 
-             size="sm"
-             onClick={() => {
-               setModoEdicao(true);
-               setModoRegistro(true);
-               setFechouPacote(false);
-             }}
-             className="flex-shrink-0 border-orange-600 text-orange-700 hover:bg-orange-100"
-            >
-             <Edit className="w-4 h-4" />
-            </Button>
+            <div className="flex gap-2">
+              <Button 
+               variant="outline" 
+               size="sm"
+               onClick={() => {
+                 setModoEdicao(true);
+                 setModoRegistro(true);
+                 setFechouPacote(false);
+               }}
+               className="flex-shrink-0 border-orange-600 text-orange-700 hover:bg-orange-100"
+              >
+               <Edit className="w-4 h-4" />
+              </Button>
+              <Button 
+               variant="outline" 
+               size="sm"
+               onClick={handleExcluirRegistro}
+               className="flex-shrink-0 border-red-600 text-red-700 hover:bg-red-100"
+              >
+               <Trash2 className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
       )}
