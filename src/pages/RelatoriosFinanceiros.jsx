@@ -1573,6 +1573,350 @@ export default function RelatoriosFinanceirosPage() {
             </div>
           </TabsContent>
 
+          <TabsContent value="conversao-detalhada">
+            <div className="space-y-6">
+              {/* Filtros */}
+              <Card className="bg-indigo-50 border-2 border-indigo-200">
+                <CardHeader>
+                  <CardTitle className="text-indigo-900">🔍 Conversão Detalhada por Terapeuta e Recepcionista</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label>Data Inicial</Label>
+                      <Input
+                        type="date"
+                        value={dataInicioAnalise}
+                        onChange={(e) => setDataInicioAnalise(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Data Final</Label>
+                      <Input
+                        type="date"
+                        value={dataFimAnalise}
+                        onChange={(e) => setDataFimAnalise(e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Unidade</Label>
+                      <Select value={unidadeAnalise} onValueChange={setUnidadeAnalise}>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="todas">Todas as Clínicas</SelectItem>
+                          {unidadesFiltradas.map(u => (
+                            <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label>&nbsp;</Label>
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => {
+                          setDataInicioAnalise(format(startOfMonth(new Date()), "yyyy-MM-dd"));
+                          setDataFimAnalise(format(endOfMonth(new Date()), "yyyy-MM-dd"));
+                          setUnidadeAnalise("todas");
+                        }}
+                      >
+                        Limpar Filtros
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {(() => {
+                // Filtrar agendamentos com conversão
+                const agendamentosConvDetalhada = agendamentos.filter(ag => {
+                  if (!ag.data_conversao) return false;
+                  if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
+
+                  const dataConv = ag.data_conversao.substring(0, 10);
+                  if (dataConv < dataInicioAnalise || dataConv > dataFimAnalise) return false;
+
+                  if (unidadeAnalise !== "todas" && ag.unidade_id !== unidadeAnalise) return false;
+
+                  return true;
+                });
+
+                // Separar em fechados e não fechados
+                const planosConvertidos = agendamentosConvDetalhada.filter(ag => ag.conversao_converteu === true);
+                const planosNaoConvertidos = agendamentosConvDetalhada.filter(ag => ag.conversao_converteu === false);
+
+                // Dados por Terapeuta/Recepção
+                const matrizDetalhada = {};
+                agendamentosConvDetalhada.forEach(ag => {
+                  const terapeuta = ag.conversao_profissional_nome || ag.profissional_nome || "Sem Terapeuta";
+                  const recepcao = ag.conversao_converteu 
+                    ? (ag.conversao_recepcionista || "Sem Recepção")
+                    : (ag.conversao_recepcionista_nao_converteu || "Sem Recepção");
+
+                  const chave = `${terapeuta}|${recepcao}`;
+                  if (!matrizDetalhada[chave]) {
+                    matrizDetalhada[chave] = {
+                      terapeuta,
+                      recepcao,
+                      total: 0,
+                      convertidos: 0,
+                      naoConvertidos: 0,
+                      taxaConversao: 0
+                    };
+                  }
+                  matrizDetalhada[chave].total++;
+                  if (ag.conversao_converteu === true) {
+                    matrizDetalhada[chave].convertidos++;
+                  } else {
+                    matrizDetalhada[chave].naoConvertidos++;
+                  }
+                });
+
+                const dadosMatriz = Object.values(matrizDetalhada)
+                  .map(d => ({
+                    ...d,
+                    taxaConversao: d.total > 0 ? ((d.convertidos / d.total) * 100).toFixed(1) : 0
+                  }))
+                  .sort((a, b) => parseFloat(b.taxaConversao) - parseFloat(a.taxaConversao));
+
+                // Dados para gráfico de pizza
+                const dadosPizza = dadosMatriz.map(d => ({
+                  name: `${d.terapeuta} / ${d.recepcao}`,
+                  value: d.convertidos
+                }));
+
+                const cores = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4', '#f97316'];
+
+                return (
+                  <div className="space-y-6">
+                    {/* KPIs */}
+                    <div className="grid grid-cols-4 gap-4">
+                      <Card className="border-2 border-blue-200 bg-blue-50">
+                        <CardContent className="pt-6">
+                          <p className="text-sm text-blue-600 mb-1">Total de Análises</p>
+                          <p className="text-3xl font-bold text-blue-900">{agendamentosConvDetalhada.length}</p>
+                        </CardContent>
+                      </Card>
+                      <Card className="border-2 border-emerald-200 bg-emerald-50">
+                        <CardContent className="pt-6">
+                          <p className="text-sm text-emerald-600 mb-1">Planos Fechados</p>
+                          <p className="text-3xl font-bold text-emerald-900">{planosConvertidos.length}</p>
+                        </CardContent>
+                      </Card>
+                      <Card className="border-2 border-orange-200 bg-orange-50">
+                        <CardContent className="pt-6">
+                          <p className="text-sm text-orange-600 mb-1">Planos Não Fechados</p>
+                          <p className="text-3xl font-bold text-orange-900">{planosNaoConvertidos.length}</p>
+                        </CardContent>
+                      </Card>
+                      <Card className="border-2 border-purple-200 bg-purple-50">
+                        <CardContent className="pt-6">
+                          <p className="text-sm text-purple-600 mb-1">Taxa Geral</p>
+                          <p className="text-3xl font-bold text-purple-900">
+                            {agendamentosConvDetalhada.length > 0 ? ((planosConvertidos.length / agendamentosConvDetalhada.length) * 100).toFixed(1) : 0}%
+                          </p>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Gráfico Pizza */}
+                    {dadosPizza.length > 0 && (
+                      <Card>
+                        <CardHeader>
+                          <CardTitle>Performance por Terapeuta/Recepcionista (Planos Fechados)</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <ResponsiveContainer width="100%" height={300}>
+                            <PieChart>
+                              <Pie
+                                data={dadosPizza}
+                                cx="50%"
+                                cy="50%"
+                                labelLine={false}
+                                label={({ name, value }) => `${name}: ${value}`}
+                                outerRadius={100}
+                                fill="#8884d8"
+                                dataKey="value"
+                              >
+                                {dadosPizza.map((entry, index) => (
+                                  <Cell key={`cell-${index}`} fill={cores[index % cores.length]} />
+                                ))}
+                              </Pie>
+                              <Tooltip />
+                            </PieChart>
+                          </ResponsiveContainer>
+                        </CardContent>
+                      </Card>
+                    )}
+
+                    {/* Tabela Matriz */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Taxa de Conversão por Dupla (Terapeuta/Recepcionista)</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>Terapeuta</TableHead>
+                                <TableHead>Recepcionista</TableHead>
+                                <TableHead className="text-right">Total</TableHead>
+                                <TableHead className="text-right">Fechados</TableHead>
+                                <TableHead className="text-right">Não Fechados</TableHead>
+                                <TableHead className="text-right">Taxa %</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {dadosMatriz.map((dado, idx) => (
+                                <TableRow key={idx} className="hover:bg-gray-50">
+                                  <TableCell className="font-medium">{dado.terapeuta}</TableCell>
+                                  <TableCell>{dado.recepcao}</TableCell>
+                                  <TableCell className="text-right">{dado.total}</TableCell>
+                                  <TableCell className="text-right text-emerald-600 font-semibold">{dado.convertidos}</TableCell>
+                                  <TableCell className="text-right text-orange-600 font-semibold">{dado.naoConvertidos}</TableCell>
+                                  <TableCell className="text-right">
+                                    <span className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full font-bold">
+                                      {dado.taxaConversao}%
+                                    </span>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Planos Fechados */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <CheckCircle className="w-5 h-5 text-emerald-600" />
+                          Planos Fechados
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {planosConvertidos.length > 0 ? (
+                          <div className="overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Cliente</TableHead>
+                                  <TableHead>Terapeuta</TableHead>
+                                  <TableHead>Recepcionista</TableHead>
+                                  <TableHead>Plano Contratado</TableHead>
+                                  <TableHead>Forma Pagamento</TableHead>
+                                  <TableHead className="text-right">Valor Final</TableHead>
+                                  <TableHead>Data Conversão</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {planosConvertidos.map((ag, idx) => (
+                                  <TableRow key={idx}>
+                                    <TableCell className="font-medium">{ag.cliente_nome}</TableCell>
+                                    <TableCell>{ag.conversao_profissional_nome || ag.profissional_nome || "-"}</TableCell>
+                                    <TableCell>{ag.conversao_recepcionista || "-"}</TableCell>
+                                    <TableCell>
+                                      <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded text-sm font-medium">
+                                        {ag.conversao_plano?.replace(/_/g, ' ') || "-"}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell>
+                                      {ag.conversao_forma_pagamento === "pix" ? "📱 PIX" :
+                                       ag.conversao_forma_pagamento === "cartao_credito" ? "💳 Crédito" :
+                                       ag.conversao_forma_pagamento === "cartao_debito" ? "💳 Débito" :
+                                       ag.conversao_forma_pagamento === "dinheiro" ? "💵 Dinheiro" :
+                                       ag.conversao_forma_pagamento}
+                                    </TableCell>
+                                    <TableCell className="text-right font-bold text-emerald-600">
+                                      {formatarMoeda(ag.conversao_valor_final)}
+                                    </TableCell>
+                                    <TableCell>
+                                      {ag.data_conversao ? format(criarDataPura(ag.data_conversao), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        ) : (
+                          <div className="text-center py-8 text-gray-500">
+                            <p>Nenhum plano fechado no período</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+
+                    {/* Planos Não Fechados */}
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="flex items-center gap-2">
+                          <Clock className="w-5 h-5 text-orange-600" />
+                          Planos Não Fechados
+                        </CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {planosNaoConvertidos.length > 0 ? (
+                          <div className="overflow-x-auto">
+                            <Table>
+                              <TableHeader>
+                                <TableRow>
+                                  <TableHead>Cliente</TableHead>
+                                  <TableHead>Terapeuta</TableHead>
+                                  <TableHead>Recepcionista</TableHead>
+                                  <TableHead>Motivo da Não Conversão</TableHead>
+                                  <TableHead>Valor Pago</TableHead>
+                                  <TableHead>Forma Pagamento</TableHead>
+                                  <TableHead>Data Conversão</TableHead>
+                                </TableRow>
+                              </TableHeader>
+                              <TableBody>
+                                {planosNaoConvertidos.map((ag, idx) => (
+                                  <TableRow key={idx}>
+                                    <TableCell className="font-medium">{ag.cliente_nome}</TableCell>
+                                    <TableCell>{ag.profissional_nome || "-"}</TableCell>
+                                    <TableCell>{ag.conversao_recepcionista_nao_converteu || "-"}</TableCell>
+                                    <TableCell>
+                                      <span className="bg-orange-100 text-orange-800 px-2 py-1 rounded text-sm font-medium">
+                                        {ag.conversao_motivo_nao_converteu || "-"}
+                                      </span>
+                                    </TableCell>
+                                    <TableCell className="text-right font-semibold">
+                                      {formatarMoeda(ag.nao_conversao_valor_pago)}
+                                    </TableCell>
+                                    <TableCell>
+                                      {ag.nao_conversao_forma_pagamento === "pix" ? "📱 PIX" :
+                                       ag.nao_conversao_forma_pagamento === "dinheiro" ? "💵 Dinheiro" :
+                                       ag.nao_conversao_forma_pagamento === "boleto" ? "🧾 Boleto" :
+                                       ag.nao_conversao_forma_pagamento === "cartao_credito" ? "💳 Crédito" :
+                                       ag.nao_conversao_forma_pagamento === "cartao_debito" ? "💳 Débito" :
+                                       ag.nao_conversao_forma_pagamento || "-"}
+                                    </TableCell>
+                                    <TableCell>
+                                      {ag.data_conversao ? format(criarDataPura(ag.data_conversao), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                                    </TableCell>
+                                  </TableRow>
+                                ))}
+                              </TableBody>
+                            </Table>
+                          </div>
+                        ) : (
+                          <div className="text-center py-8 text-gray-500">
+                            <p>Todos os planos foram fechados! 🎉</p>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </div>
+                );
+              })()}
+            </div>
+          </TabsContent>
+
            <TabsContent value="analise-dia">
              <Card>
                <CardHeader>
