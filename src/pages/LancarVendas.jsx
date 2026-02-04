@@ -46,6 +46,7 @@ export default function LancarVendasPage() {
   const [modoEdicao, setModoEdicao] = useState(false);
   const [editandoInformacoes, setEditandoInformacoes] = useState("");
   const [editandoComprovanteUrl, setEditandoComprovanteUrl] = useState("");
+  const [editandoUnidadeId, setEditandoUnidadeId] = useState("");
 
   useEffect(() => {
     const loadUser = async () => {
@@ -143,19 +144,29 @@ export default function LancarVendasPage() {
     setRegistroSelecionado(venda);
     setEditandoInformacoes(venda.informacoes);
     setEditandoComprovanteUrl(venda.comprovante_url || "");
+    setEditandoUnidadeId(venda.unidade_id || "");
     setModoEdicao(true);
     setDialogAberto(true);
   };
 
   const salvarEdicao = () => {
+    if (!editandoUnidadeId) {
+      alert("⚠️ Selecione a unidade!");
+      return;
+    }
+
     if (!editandoInformacoes.trim()) {
       alert("⚠️ Preencha as informações da venda!");
       return;
     }
 
+    const unidade = unidades.find(u => u.id === editandoUnidadeId);
+
     atualizarRegistroMutation.mutate({
       id: registroSelecionado.id,
       dados: {
+        unidade_id: editandoUnidadeId,
+        unidade_nome: unidade?.nome || "",
         informacoes: editandoInformacoes,
         comprovante_url: editandoComprovanteUrl,
       }
@@ -419,6 +430,24 @@ export default function LancarVendasPage() {
               {registroSelecionado && (
                 modoEdicao ? (
                   <div className="space-y-4">
+                    <div className="border rounded-lg p-4 space-y-3 bg-red-50">
+                      <h3 className="font-semibold flex items-center gap-2">
+                        🏢 Unidade: <span className="text-red-600">*</span>
+                      </h3>
+                      <Select value={editandoUnidadeId} onValueChange={setEditandoUnidadeId}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Escolha a unidade" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {unidades.map((unidade) => (
+                            <SelectItem key={unidade.id} value={unidade.id}>
+                              {unidade.nome}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     <div className="border rounded-lg p-4 space-y-3">
                       <h3 className="font-semibold">Informações:</h3>
                       <Textarea
