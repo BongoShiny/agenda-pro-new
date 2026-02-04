@@ -1,13 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, DollarSign, Save, X, Upload } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, DollarSign, Save, X, Upload, Eye, ExternalLink, List } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function LancarVendasPage() {
   const navigate = useNavigate();
@@ -15,7 +31,9 @@ export default function LancarVendasPage() {
   const [user, setUser] = useState(null);
   const [uploadingComprovante, setUploadingComprovante] = useState(false);
   const [informacoesVenda, setInformacoesVenda] = useState("");
+  const [dataPagamento, setDataPagamento] = useState(format(new Date(), "yyyy-MM-dd"));
   const [comprovanteUrl, setComprovanteUrl] = useState("");
+  const [mostrarVendasLancadas, setMostrarVendasLancadas] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -25,6 +43,17 @@ export default function LancarVendasPage() {
     loadUser();
   }, []);
 
+  const { data: minhasVendas = [] } = useQuery({
+    queryKey: ['minhas-vendas', user?.email],
+    queryFn: async () => {
+      if (!user?.email) return [];
+      const vendas = await base44.entities.RegistroManualVendas.filter({ criado_por: user.email });
+      return vendas.sort((a, b) => new Date(b.data_registro) - new Date(a.data_registro));
+    },
+    enabled: !!user?.email,
+    initialData: [],
+  });
+
   const criarRegistroMutation = useMutation({
     mutationFn: async (dadosRegistro) => {
       return await base44.entities.RegistroManualVendas.create(dadosRegistro);
@@ -32,9 +61,10 @@ export default function LancarVendasPage() {
     onSuccess: () => {
       alert("✅ Venda registrada com sucesso!");
       queryClient.invalidateQueries({ queryKey: ['registros-vendas'] });
+      queryClient.invalidateQueries({ queryKey: ['minhas-vendas', user?.email] });
       setInformacoesVenda("");
+      setDataPagamento(format(new Date(), "yyyy-MM-dd"));
       setComprovanteUrl("");
-      navigate(createPageUrl("GerenciarClientesVendas"));
     },
     onError: (error) => {
       alert(`❌ Erro ao registrar venda: ${error.message}`);
@@ -65,8 +95,14 @@ export default function LancarVendasPage() {
       return;
     }
 
+    if (!dataPagamento) {
+      alert("⚠️ Preencha a data do pagamento!");
+      return;
+    }
+
     criarRegistroMutation.mutate({
       informacoes: informacoesVenda,
+      data_pagamento: dataPagamento,
       comprovante_url: comprovanteUrl,
       criado_por: user?.email,
       data_registro: format(new Date(), "yyyy-MM-dd"),
@@ -105,6 +141,9 @@ export default function LancarVendasPage() {
     );
   }
 
+  const [registroSelecionado, setRegistroSelecionado] = useState(null);
+  const [dialogAberto, setDialogAberto] = useState(false);
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-4">
       <div className="max-w-4xl mx-auto">
@@ -123,76 +162,203 @@ export default function LancarVendasPage() {
                 <p className="text-gray-600 mt-1">Registre vendas nos relatórios financeiros</p>
               </div>
             </div>
+            <Button 
+              variant="outline" 
+              onClick={() => setMostrarVendasLancadas(!mostrarVendasLancadas)}
+              className="bg-blue-50 border-blue-300 hover:bg-blue-100"
+            >
+              <List className="w-4 h-4 mr-2" />
+              {mostrarVendasLancadas ? "Ocultar" : "Ver vendas lançadas"}
+            </Button>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Informações da Venda */}
-            <div className="border-2 border-gray-200 rounded-lg p-4 space-y-4">
-              <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                📝 Insira as informações da sua venda:
-              </h3>
-              
-              <Textarea
-                value={informacoesVenda}
-                onChange={(e) => setInformacoesVenda(e.target.value)}
-                placeholder="Digite todas as informações da venda aqui..."
-                rows={10}
-                className="w-full"
-              />
+          {mostrarVendasLancadas ? (
+            <div className="space-y-4">
+              <h2 className="text-xl font-bold text-gray-900">Minhas Vendas Lançadas</h2>
+              <div className="border rounded-lg overflow-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Data Registro</TableHead>
+                      <TableHead>Data Pagamento</TableHead>
+                      <TableHead className="text-center">Ações</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {minhasVendas.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={3} className="text-center text-gray-500 py-8">
+                          Você ainda não lançou nenhuma venda
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      minhasVendas.map((venda) => (
+                        <TableRow key={venda.id}>
+                          <TableCell>
+                            {venda.data_registro ? format(new Date(venda.data_registro), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                          </TableCell>
+                          <TableCell>
+                            {venda.data_pagamento ? format(new Date(venda.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setRegistroSelecionado(venda);
+                                setDialogAberto(true);
+                              }}
+                            >
+                              <Eye className="w-4 h-4 mr-2" />
+                              Ver detalhes
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Informações da Venda */}
+              <div className="border-2 border-gray-200 rounded-lg p-4 space-y-4">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  📝 Insira as informações da sua venda:
+                </h3>
+                
+                <Textarea
+                  value={informacoesVenda}
+                  onChange={(e) => setInformacoesVenda(e.target.value)}
+                  placeholder="Digite todas as informações da venda aqui..."
+                  rows={10}
+                  className="w-full"
+                />
+              </div>
 
-            {/* Anexar Comprovante */}
-            <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
-              <Label className="mb-2 block">Anexar Comprovante</Label>
-              <div className="flex items-center gap-4">
-                <label className="flex-1 cursor-pointer">
-                  <div className="flex items-center justify-center gap-3 border-2 border-gray-300 rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <Upload className="w-5 h-5 text-gray-500" />
-                    <span className="text-sm text-gray-600">
-                      {comprovanteUrl ? "✅ Comprovante anexado" : "Clique para anexar comprovante"}
-                    </span>
-                  </div>
-                  <input
-                    type="file"
-                    accept="image/*"
-                    onChange={handleUploadComprovante}
-                    className="hidden"
-                    disabled={uploadingComprovante}
-                  />
-                </label>
-                {comprovanteUrl && (
-                  <a href={comprovanteUrl} target="_blank" rel="noopener noreferrer">
-                    <Button type="button" variant="outline" size="sm">
-                      Ver Comprovante
-                    </Button>
-                  </a>
+              {/* Data do Pagamento */}
+              <div className="border-2 border-gray-200 rounded-lg p-4 space-y-4">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  📅 Data do pagamento:
+                </h3>
+                
+                <Input
+                  type="date"
+                  value={dataPagamento}
+                  onChange={(e) => setDataPagamento(e.target.value)}
+                  className="w-full"
+                />
+              </div>
+
+              {/* Anexar Comprovante */}
+              <div className="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2 mb-4">
+                  📎 Anexar Comprovante:
+                </h3>
+                <div className="flex items-center gap-4">
+                  <label className="flex-1 cursor-pointer">
+                    <div className="flex items-center justify-center gap-3 border-2 border-gray-300 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                      <Upload className="w-5 h-5 text-gray-500" />
+                      <span className="text-sm text-gray-600">
+                        {comprovanteUrl ? "✅ Comprovante anexado" : "Clique para anexar comprovante"}
+                      </span>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleUploadComprovante}
+                      className="hidden"
+                      disabled={uploadingComprovante}
+                    />
+                  </label>
+                  {comprovanteUrl && (
+                    <a href={comprovanteUrl} target="_blank" rel="noopener noreferrer">
+                      <Button type="button" variant="outline" size="sm">
+                        Ver Comprovante
+                      </Button>
+                    </a>
+                  )}
+                </div>
+                {uploadingComprovante && (
+                  <p className="text-sm text-blue-600 mt-2">Enviando comprovante...</p>
                 )}
               </div>
-              {uploadingComprovante && (
-                <p className="text-sm text-blue-600 mt-2">Enviando comprovante...</p>
-              )}
-            </div>
 
-            {/* Botões */}
-            <div className="flex justify-end gap-3">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => navigate(createPageUrl("Agenda"))}
-              >
-                <X className="w-4 h-4 mr-2" />
-                Cancelar
-              </Button>
-              <Button 
-                type="submit" 
-                className="bg-green-600 hover:bg-green-700"
-                disabled={criarRegistroMutation.isPending}
-              >
-                <Save className="w-4 h-4 mr-2" />
-                {criarRegistroMutation.isPending ? "Salvando..." : "Lançar Venda"}
-              </Button>
-            </div>
-          </form>
+              {/* Botões */}
+              <div className="flex justify-end gap-3">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => navigate(createPageUrl("Agenda"))}
+                >
+                  <X className="w-4 h-4 mr-2" />
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-green-600 hover:bg-green-700"
+                  disabled={criarRegistroMutation.isPending}
+                >
+                  <Save className="w-4 h-4 mr-2" />
+                  {criarRegistroMutation.isPending ? "Salvando..." : "Lançar Venda"}
+                </Button>
+              </div>
+            </form>
+          )}
+
+          {/* Dialog com Detalhes */}
+          <Dialog open={dialogAberto} onOpenChange={setDialogAberto}>
+            <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Detalhes da Venda</DialogTitle>
+              </DialogHeader>
+              
+              {registroSelecionado && (
+                <div className="space-y-4">
+                  <div className="border rounded-lg p-4 bg-gray-50">
+                    <h3 className="font-semibold mb-2">Informações:</h3>
+                    <p className="whitespace-pre-wrap text-sm">{registroSelecionado.informacoes}</p>
+                  </div>
+
+                  <div className="border rounded-lg p-4 bg-blue-50">
+                    <h3 className="font-semibold mb-2">Data do Pagamento:</h3>
+                    <p className="text-sm">
+                      {registroSelecionado.data_pagamento ? format(new Date(registroSelecionado.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                    </p>
+                  </div>
+
+                  {registroSelecionado.comprovante_url && (
+                    <div className="border rounded-lg p-4">
+                      <h3 className="font-semibold mb-3">Comprovante:</h3>
+                      <div className="space-y-3">
+                        <img 
+                          src={registroSelecionado.comprovante_url} 
+                          alt="Comprovante" 
+                          className="w-full max-w-md rounded-lg border"
+                        />
+                        <a 
+                          href={registroSelecionado.comprovante_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-block"
+                        >
+                          <Button variant="outline" size="sm">
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Abrir em nova guia
+                          </Button>
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="text-sm text-gray-500">
+                    <p><strong>Registrado em:</strong> {registroSelecionado.data_registro ? format(new Date(registroSelecionado.data_registro), "dd/MM/yyyy", { locale: ptBR }) : "-"}</p>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>

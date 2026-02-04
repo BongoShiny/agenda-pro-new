@@ -29,6 +29,8 @@ export default function GerenciarClientesVendasPage() {
   const [user, setUser] = useState(null);
   const [registroSelecionado, setRegistroSelecionado] = useState(null);
   const [dialogAberto, setDialogAberto] = useState(false);
+  const [dataInicio, setDataInicio] = useState("");
+  const [dataFim, setDataFim] = useState("");
 
   React.useEffect(() => {
     const loadUser = async () => {
@@ -73,13 +75,23 @@ export default function GerenciarClientesVendasPage() {
     );
   }
 
-  // Filtrar por busca
+  // Filtrar por busca e data
   const registrosFiltrados = registros.filter(r => {
     const termo = busca.toLowerCase();
-    return (
+    const matchBusca = (
       r.informacoes?.toLowerCase().includes(termo) ||
       r.criado_por?.toLowerCase().includes(termo)
     );
+
+    let matchData = true;
+    if (dataInicio && r.data_pagamento) {
+      matchData = matchData && r.data_pagamento >= dataInicio;
+    }
+    if (dataFim && r.data_pagamento) {
+      matchData = matchData && r.data_pagamento <= dataFim;
+    }
+
+    return matchBusca && matchData;
   });
 
   return (
@@ -103,8 +115,8 @@ export default function GerenciarClientesVendasPage() {
             </div>
           </div>
 
-          {/* Busca */}
-          <div className="mb-6">
+          {/* Busca e Filtros */}
+          <div className="mb-6 space-y-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
@@ -114,10 +126,39 @@ export default function GerenciarClientesVendasPage() {
                 className="pl-10"
               />
             </div>
+
+            <div className="flex gap-4 items-end">
+              <div className="flex-1">
+                <label className="text-sm font-medium mb-1 block">Data Pagamento Inicial</label>
+                <Input
+                  type="date"
+                  value={dataInicio}
+                  onChange={(e) => setDataInicio(e.target.value)}
+                />
+              </div>
+              <div className="flex-1">
+                <label className="text-sm font-medium mb-1 block">Data Pagamento Final</label>
+                <Input
+                  type="date"
+                  value={dataFim}
+                  onChange={(e) => setDataFim(e.target.value)}
+                />
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setDataInicio("");
+                  setDataFim("");
+                  setBusca("");
+                }}
+              >
+                Limpar Filtros
+              </Button>
+            </div>
           </div>
 
           {/* Estatísticas */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
             <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
               <div className="flex items-center gap-3">
                 <FileText className="w-8 h-8 text-teal-600" />
@@ -132,7 +173,17 @@ export default function GerenciarClientesVendasPage() {
               <div className="flex items-center gap-3">
                 <Users className="w-8 h-8 text-blue-600" />
                 <div>
-                  <p className="text-sm text-gray-600">Filtrados</p>
+                  <p className="text-sm text-gray-600">Vendas Filtradas</p>
+                  <p className="text-2xl font-bold text-gray-900">{registrosFiltrados.length}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <FileText className="w-8 h-8 text-green-600" />
+                <div>
+                  <p className="text-sm text-gray-600">Total de Vendas</p>
                   <p className="text-2xl font-bold text-gray-900">{registrosFiltrados.length}</p>
                 </div>
               </div>
@@ -145,6 +196,7 @@ export default function GerenciarClientesVendasPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Data Registro</TableHead>
+                  <TableHead>Data Pagamento</TableHead>
                   <TableHead>Criado Por</TableHead>
                   <TableHead className="text-center">Ações</TableHead>
                 </TableRow>
@@ -152,8 +204,8 @@ export default function GerenciarClientesVendasPage() {
               <TableBody>
                 {registrosFiltrados.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center text-gray-500 py-8">
-                      {busca ? "Nenhum registro encontrado com esse termo" : "Nenhum registro cadastrado ainda"}
+                    <TableCell colSpan={4} className="text-center text-gray-500 py-8">
+                      {busca || dataInicio || dataFim ? "Nenhum registro encontrado com esses filtros" : "Nenhum registro cadastrado ainda"}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -161,6 +213,9 @@ export default function GerenciarClientesVendasPage() {
                     <TableRow key={registro.id}>
                       <TableCell>
                         {registro.data_registro ? format(new Date(registro.data_registro), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                      </TableCell>
+                      <TableCell>
+                        {registro.data_pagamento ? format(new Date(registro.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : "-"}
                       </TableCell>
                       <TableCell>{registro.criado_por || "-"}</TableCell>
                       <TableCell className="text-center">
@@ -193,8 +248,15 @@ export default function GerenciarClientesVendasPage() {
               {registroSelecionado && (
                 <div className="space-y-4">
                   <div className="border rounded-lg p-4 bg-gray-50">
-                    <h3 className="font-semibold mb-2">Descrição:</h3>
+                    <h3 className="font-semibold mb-2">Informações:</h3>
                     <p className="whitespace-pre-wrap text-sm">{registroSelecionado.informacoes}</p>
+                  </div>
+
+                  <div className="border rounded-lg p-4 bg-blue-50">
+                    <h3 className="font-semibold mb-2">Data do Pagamento:</h3>
+                    <p className="text-sm">
+                      {registroSelecionado.data_pagamento ? format(new Date(registroSelecionado.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                    </p>
                   </div>
 
                   {registroSelecionado.comprovante_url && (
