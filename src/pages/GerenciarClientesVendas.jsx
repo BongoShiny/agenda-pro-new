@@ -3,9 +3,11 @@ import { base44 } from "@/api/base44Client";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Users, Search, Calendar, DollarSign, Phone, User } from "lucide-react";
+import { ArrowLeft, Users, Search, FileText, Eye, ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import {
   Table,
   TableBody,
@@ -14,11 +16,19 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function GerenciarClientesVendasPage() {
   const navigate = useNavigate();
   const [busca, setBusca] = useState("");
   const [user, setUser] = useState(null);
+  const [registroSelecionado, setRegistroSelecionado] = useState(null);
+  const [dialogAberto, setDialogAberto] = useState(false);
 
   React.useEffect(() => {
     const loadUser = async () => {
@@ -28,24 +38,10 @@ export default function GerenciarClientesVendasPage() {
     loadUser();
   }, []);
 
-  // Buscar todos os agendamentos do tipo avulsa e plano_terapeutico (lançamentos de vendas)
-  const { data: lancamentos = [] } = useQuery({
-    queryKey: ['lancamentos-vendas'],
-    queryFn: async () => {
-      const agendamentos = await base44.entities.Agendamento.list("-created_date");
-      // Filtrar apenas os lançamentos de vendas através de critérios específicos
-      return agendamentos.filter(a => {
-        const isAvulsaOuPlano = a.tipo === "avulsa" || a.tipo === "plano_terapeutico";
-        const isConcluido = a.status === "concluido";
-        const isPacienteNovo = a.status_paciente === "paciente_novo";
-        const temFormatoLancamento = a.observacoes_vendedores && 
-                                      a.observacoes_vendedores.includes("Motivo:") && 
-                                      a.observacoes_vendedores.includes("Queixa:") &&
-                                      a.observacoes_vendedores.includes("Pago por:");
-        
-        return isAvulsaOuPlano && isConcluido && isPacienteNovo && temFormatoLancamento;
-      });
-    },
+  // Buscar registros de vendas
+  const { data: registros = [] } = useQuery({
+    queryKey: ['registros-vendas'],
+    queryFn: () => base44.entities.RegistroManualVendas.list("-created_date"),
     initialData: [],
   });
 
@@ -78,26 +74,13 @@ export default function GerenciarClientesVendasPage() {
   }
 
   // Filtrar por busca
-  const lancamentosFiltrados = lancamentos.filter(l => {
+  const registrosFiltrados = registros.filter(r => {
     const termo = busca.toLowerCase();
     return (
-      l.cliente_nome?.toLowerCase().includes(termo) ||
-      l.cliente_telefone?.toLowerCase().includes(termo) ||
-      l.vendedor_nome?.toLowerCase().includes(termo) ||
-      l.servico_nome?.toLowerCase().includes(termo)
+      r.informacoes?.toLowerCase().includes(termo) ||
+      r.criado_por?.toLowerCase().includes(termo)
     );
   });
-
-  const formatarMoeda = (valor) => {
-    if (!valor && valor !== 0) return "-";
-    return `R$ ${parseFloat(valor).toFixed(2).replace(".", ",")}`;
-  };
-
-  const formatarData = (data) => {
-    if (!data) return "-";
-    const [ano, mes, dia] = data.split("-");
-    return `${dia}/${mes}/${ano}`;
-  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-100 p-6">
@@ -113,9 +96,9 @@ export default function GerenciarClientesVendasPage() {
               <div>
                 <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
                   <Users className="w-8 h-8 text-teal-600" />
-                  Clientes do Lançar Vendas
+                  Gerenciar Lançar Vendas
                 </h1>
-                <p className="text-gray-600 mt-1">Todos os clientes cadastrados no lançamento de vendas</p>
+                <p className="text-gray-600 mt-1">Visualize todos os registros de vendas manuais</p>
               </div>
             </div>
           </div>
@@ -125,7 +108,7 @@ export default function GerenciarClientesVendasPage() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
               <Input
-                placeholder="Buscar por nome, telefone, vendedor ou serviço..."
+                placeholder="Buscar por informações ou usuário..."
                 value={busca}
                 onChange={(e) => setBusca(e.target.value)}
                 className="pl-10"
@@ -134,37 +117,23 @@ export default function GerenciarClientesVendasPage() {
           </div>
 
           {/* Estatísticas */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
             <div className="bg-teal-50 border border-teal-200 rounded-lg p-4">
               <div className="flex items-center gap-3">
-                <Users className="w-8 h-8 text-teal-600" />
+                <FileText className="w-8 h-8 text-teal-600" />
                 <div>
-                  <p className="text-sm text-gray-600">Total de Lançamentos</p>
-                  <p className="text-2xl font-bold text-gray-900">{lancamentos.length}</p>
+                  <p className="text-sm text-gray-600">Total de Registros</p>
+                  <p className="text-2xl font-bold text-gray-900">{registros.length}</p>
                 </div>
               </div>
             </div>
             
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
               <div className="flex items-center gap-3">
-                <DollarSign className="w-8 h-8 text-blue-600" />
+                <Users className="w-8 h-8 text-blue-600" />
                 <div>
-                  <p className="text-sm text-gray-600">Valor Total Combinado</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {formatarMoeda(lancamentos.reduce((acc, l) => acc + (l.valor_combinado || 0), 0))}
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="flex items-center gap-3">
-                <DollarSign className="w-8 h-8 text-green-600" />
-                <div>
-                  <p className="text-sm text-gray-600">Total Recebido</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {formatarMoeda(lancamentos.reduce((acc, l) => acc + ((l.sinal || 0) + (l.final_pagamento || 0)), 0))}
-                  </p>
+                  <p className="text-sm text-gray-600">Filtrados</p>
+                  <p className="text-2xl font-bold text-gray-900">{registrosFiltrados.length}</p>
                 </div>
               </div>
             </div>
@@ -175,74 +144,91 @@ export default function GerenciarClientesVendasPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Cliente</TableHead>
-                  <TableHead>Telefone</TableHead>
-                  <TableHead>Serviço</TableHead>
-                  <TableHead>Vendedor</TableHead>
-                  <TableHead>Data</TableHead>
-                  <TableHead>Tipo</TableHead>
-                  <TableHead className="text-right">Valor Combinado</TableHead>
-                  <TableHead className="text-right">Valor Pago</TableHead>
-                  <TableHead className="text-right">Falta</TableHead>
+                  <TableHead>Data Registro</TableHead>
+                  <TableHead>Criado Por</TableHead>
+                  <TableHead className="text-center">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {lancamentosFiltrados.length === 0 ? (
+                {registrosFiltrados.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={9} className="text-center text-gray-500 py-8">
-                      {busca ? "Nenhum lançamento encontrado com esse termo" : "Nenhum lançamento cadastrado ainda"}
+                    <TableCell colSpan={3} className="text-center text-gray-500 py-8">
+                      {busca ? "Nenhum registro encontrado com esse termo" : "Nenhum registro cadastrado ainda"}
                     </TableCell>
                   </TableRow>
                 ) : (
-                  lancamentosFiltrados.map((lancamento) => {
-                    const totalPago = (lancamento.sinal || 0) + (lancamento.final_pagamento || 0);
-                    return (
-                      <TableRow key={lancamento.id}>
-                        <TableCell className="font-medium">
-                          <div className="flex items-center gap-2">
-                            <User className="w-4 h-4 text-gray-400" />
-                            {lancamento.cliente_nome}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Phone className="w-4 h-4 text-gray-400" />
-                            {lancamento.cliente_telefone || "-"}
-                          </div>
-                        </TableCell>
-                        <TableCell className="max-w-xs truncate">{lancamento.servico_nome}</TableCell>
-                        <TableCell>{lancamento.vendedor_nome || "-"}</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="w-4 h-4 text-gray-400" />
-                            {formatarData(lancamento.data)}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <span className={`px-2 py-1 rounded text-xs font-semibold ${
-                            lancamento.tipo === "plano_terapeutico" 
-                              ? "bg-purple-100 text-purple-800" 
-                              : "bg-blue-100 text-blue-800"
-                          }`}>
-                            {lancamento.tipo === "plano_terapeutico" ? "Plano" : "Avulso"}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right font-semibold">
-                          {formatarMoeda(lancamento.valor_combinado)}
-                        </TableCell>
-                        <TableCell className="text-right text-green-600 font-semibold">
-                          {formatarMoeda(totalPago)}
-                        </TableCell>
-                        <TableCell className="text-right text-red-600 font-semibold">
-                          {formatarMoeda(lancamento.falta_quanto)}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
+                  registrosFiltrados.map((registro) => (
+                    <TableRow key={registro.id}>
+                      <TableCell>
+                        {registro.data_registro ? format(new Date(registro.data_registro), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                      </TableCell>
+                      <TableCell>{registro.criado_por || "-"}</TableCell>
+                      <TableCell className="text-center">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setRegistroSelecionado(registro);
+                            setDialogAberto(true);
+                          }}
+                        >
+                          <Eye className="w-4 h-4 mr-2" />
+                          Informações da venda
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
                 )}
               </TableBody>
             </Table>
           </div>
+
+          {/* Dialog com Informações */}
+          <Dialog open={dialogAberto} onOpenChange={setDialogAberto}>
+            <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>Informações da Venda</DialogTitle>
+              </DialogHeader>
+              
+              {registroSelecionado && (
+                <div className="space-y-4">
+                  <div className="border rounded-lg p-4 bg-gray-50">
+                    <h3 className="font-semibold mb-2">Descrição:</h3>
+                    <p className="whitespace-pre-wrap text-sm">{registroSelecionado.informacoes}</p>
+                  </div>
+
+                  {registroSelecionado.comprovante_url && (
+                    <div className="border rounded-lg p-4">
+                      <h3 className="font-semibold mb-3">Comprovante:</h3>
+                      <div className="space-y-3">
+                        <img 
+                          src={registroSelecionado.comprovante_url} 
+                          alt="Comprovante" 
+                          className="w-full max-w-md rounded-lg border"
+                        />
+                        <a 
+                          href={registroSelecionado.comprovante_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="inline-block"
+                        >
+                          <Button variant="outline" size="sm">
+                            <ExternalLink className="w-4 h-4 mr-2" />
+                            Abrir em nova guia
+                          </Button>
+                        </a>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="text-sm text-gray-500">
+                    <p><strong>Registrado em:</strong> {registroSelecionado.data_registro ? format(new Date(registroSelecionado.data_registro), "dd/MM/yyyy", { locale: ptBR }) : "-"}</p>
+                    <p><strong>Por:</strong> {registroSelecionado.criado_por}</p>
+                  </div>
+                </div>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
       </div>
     </div>
