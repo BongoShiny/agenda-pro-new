@@ -31,7 +31,6 @@ export default function LancarVendasPage() {
   const [user, setUser] = useState(null);
   const [uploadingComprovante, setUploadingComprovante] = useState(false);
   const [informacoesVenda, setInformacoesVenda] = useState("");
-  const [dataPagamento, setDataPagamento] = useState(format(new Date(), "yyyy-MM-dd"));
   const [comprovanteUrl, setComprovanteUrl] = useState("");
   const [mostrarVendasLancadas, setMostrarVendasLancadas] = useState(false);
   const [registroSelecionado, setRegistroSelecionado] = useState(null);
@@ -69,7 +68,6 @@ export default function LancarVendasPage() {
       queryClient.invalidateQueries({ queryKey: ['registros-vendas'] });
       queryClient.invalidateQueries({ queryKey: ['minhas-vendas', user?.email] });
       setInformacoesVenda("");
-      setDataPagamento(format(new Date(), "yyyy-MM-dd"));
       setComprovanteUrl("");
     },
     onError: (error) => {
@@ -169,14 +167,9 @@ export default function LancarVendasPage() {
       return;
     }
 
-    if (!dataPagamento) {
-      alert("⚠️ Preencha a data do pagamento!");
-      return;
-    }
-
     criarRegistroMutation.mutate({
       informacoes: informacoesVenda,
-      data_pagamento: dataPagamento,
+      data_pagamento: format(new Date(), "yyyy-MM-dd"),
       comprovante_url: comprovanteUrl,
       criado_por: user?.email,
       data_registro: format(new Date(), "yyyy-MM-dd"),
@@ -322,20 +315,6 @@ export default function LancarVendasPage() {
                   onChange={(e) => setInformacoesVenda(e.target.value)}
                   placeholder="Digite todas as informações da venda aqui..."
                   rows={10}
-                  className="w-full"
-                />
-              </div>
-
-              {/* Data do Pagamento */}
-              <div className="border-2 border-gray-200 rounded-lg p-4 space-y-4">
-                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                  📅 Data do pagamento:
-                </h3>
-                
-                <Input
-                  type="date"
-                  value={dataPagamento}
-                  onChange={(e) => setDataPagamento(e.target.value)}
                   className="w-full"
                 />
               </div>
