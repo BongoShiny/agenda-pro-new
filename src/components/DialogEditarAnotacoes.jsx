@@ -34,7 +34,8 @@ export default function DialogEditarAnotacoes({
 }) {
   const [valores, setValores] = React.useState({
     data_pagamento: agendamento?.data_pagamento,
-    anotacao_venda: agendamento?.anotacao_venda
+    anotacao_venda: agendamento?.anotacao_venda,
+    observacoes: agendamento?.observacoes
   });
 
   const isSuperior = usuarioAtual?.cargo === "superior" || usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
@@ -43,7 +44,8 @@ export default function DialogEditarAnotacoes({
     if (agendamento) {
       setValores({
         data_pagamento: agendamento.data_pagamento,
-        anotacao_venda: agendamento.anotacao_venda
+        anotacao_venda: agendamento.anotacao_venda,
+        observacoes: agendamento.observacoes
       });
     }
   }, [agendamento, aberto]);
@@ -51,7 +53,8 @@ export default function DialogEditarAnotacoes({
   const handleSalvar = () => {
     onSalvar({
       data_pagamento: valores.data_pagamento,
-      anotacao_venda: valores.anotacao_venda
+      anotacao_venda: valores.anotacao_venda,
+      observacoes: valores.observacoes
     });
   };
 
@@ -89,6 +92,16 @@ export default function DialogEditarAnotacoes({
                 <p className="text-xs text-gray-500">🔒 Campo bloqueado - Apenas superiores podem editar</p>
               </>
             )}
+          </div>
+
+          <div className="space-y-2">
+            <Label>Observações</Label>
+            <Textarea
+              value={valores.observacoes || ""}
+              onChange={(e) => setValores(prev => ({ ...prev, observacoes: e.target.value }))}
+              placeholder="Observações gerais do agendamento..."
+              rows={4}
+            />
           </div>
         </div>
 
