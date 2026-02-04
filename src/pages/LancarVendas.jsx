@@ -32,6 +32,7 @@ export default function LancarVendasPage() {
   const [uploadingComprovante, setUploadingComprovante] = useState(false);
   const [informacoesVenda, setInformacoesVenda] = useState("");
   const [comprovanteUrl, setComprovanteUrl] = useState("");
+  const [unidadeSelecionada, setUnidadeSelecionada] = useState("");
   const [mostrarVendasLancadas, setMostrarVendasLancadas] = useState(false);
   const [registroSelecionado, setRegistroSelecionado] = useState(null);
   const [dialogAberto, setDialogAberto] = useState(false);
@@ -68,6 +69,7 @@ export default function LancarVendasPage() {
       queryClient.invalidateQueries({ queryKey: ['minhas-vendas', user?.email] });
       setInformacoesVenda("");
       setComprovanteUrl("");
+      setUnidadeSelecionada("");
     },
     onError: (error) => {
       alert(`❌ Erro ao registrar venda: ${error.message}`);
@@ -149,12 +151,21 @@ export default function LancarVendasPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
 
+    if (!unidadeSelecionada) {
+      alert("⚠️ Selecione a unidade!");
+      return;
+    }
+
     if (!informacoesVenda.trim()) {
       alert("⚠️ Preencha as informações da venda!");
       return;
     }
 
+    const unidade = unidades.find(u => u.id === unidadeSelecionada);
+
     criarRegistroMutation.mutate({
+      unidade_id: unidadeSelecionada,
+      unidade_nome: unidade?.nome || "",
       informacoes: informacoesVenda,
       data_pagamento: format(new Date(), "yyyy-MM-dd"),
       comprovante_url: comprovanteUrl,
@@ -287,6 +298,26 @@ export default function LancarVendasPage() {
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Selecionar Unidade */}
+              <div className="border-2 border-red-200 bg-red-50 rounded-lg p-4 space-y-4">
+                <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                  🏢 Selecione a Unidade: <span className="text-red-600">*</span>
+                </h3>
+                
+                <Select value={unidadeSelecionada} onValueChange={setUnidadeSelecionada}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Escolha a unidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {unidades.map((unidade) => (
+                      <SelectItem key={unidade.id} value={unidade.id}>
+                        {unidade.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Informações da Venda */}
               <div className="border-2 border-gray-200 rounded-lg p-4 space-y-4">
                 <h3 className="font-semibold text-gray-900 flex items-center gap-2">

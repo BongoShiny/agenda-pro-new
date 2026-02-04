@@ -157,6 +157,7 @@ export default function GerenciarClientesVendasPage() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Data Registro</TableHead>
+                  <TableHead>Unidade</TableHead>
                   <TableHead>Criado Por</TableHead>
                   <TableHead className="text-center">Ações</TableHead>
                 </TableRow>
@@ -164,7 +165,7 @@ export default function GerenciarClientesVendasPage() {
               <TableBody>
                 {registrosFiltrados.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={3} className="text-center text-gray-500 py-8">
+                    <TableCell colSpan={4} className="text-center text-gray-500 py-8">
                       {busca ? "Nenhum registro encontrado com esses filtros" : "Nenhum registro cadastrado ainda"}
                     </TableCell>
                   </TableRow>
@@ -174,6 +175,7 @@ export default function GerenciarClientesVendasPage() {
                       <TableCell>
                         {registro.data_registro ? format(new Date(registro.data_registro), "dd/MM/yyyy", { locale: ptBR }) : "-"}
                       </TableCell>
+                      <TableCell>{registro.unidade_nome || "-"}</TableCell>
                       <TableCell>{registro.criado_por || "-"}</TableCell>
                       <TableCell className="text-center">
                         <Button
@@ -204,6 +206,11 @@ export default function GerenciarClientesVendasPage() {
               
               {registroSelecionado && (
                 <div className="space-y-4">
+                  <div className="border rounded-lg p-4 bg-blue-50">
+                    <h3 className="font-semibold mb-2">Unidade:</h3>
+                    <p className="text-sm">{registroSelecionado.unidade_nome || "-"}</p>
+                  </div>
+
                   <div className="border rounded-lg p-4 bg-gray-50">
                     <h3 className="font-semibold mb-2">Informações:</h3>
                     <p className="whitespace-pre-wrap text-sm">{registroSelecionado.informacoes}</p>
