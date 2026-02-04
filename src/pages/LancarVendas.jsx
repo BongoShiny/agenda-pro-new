@@ -110,6 +110,52 @@ export default function LancarVendasPage() {
     }
   };
 
+  const handleUploadComprovanteEdicao = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingComprovante(true);
+    try {
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      setEditandoComprovanteUrl(file_url);
+      alert("✅ Comprovante atualizado com sucesso!");
+    } catch (error) {
+      alert(`❌ Erro ao atualizar comprovante: ${error.message}`);
+    } finally {
+      setUploadingComprovante(false);
+    }
+  };
+
+  const abrirParaEdicao = (venda) => {
+    setRegistroSelecionado(venda);
+    setEditandoInformacoes(venda.informacoes);
+    setEditandoDataPagamento(venda.data_pagamento || "");
+    setEditandoComprovanteUrl(venda.comprovante_url || "");
+    setModoEdicao(true);
+    setDialogAberto(true);
+  };
+
+  const salvarEdicao = () => {
+    if (!editandoInformacoes.trim()) {
+      alert("⚠️ Preencha as informações da venda!");
+      return;
+    }
+
+    if (!editandoDataPagamento) {
+      alert("⚠️ Preencha a data do pagamento!");
+      return;
+    }
+
+    atualizarRegistroMutation.mutate({
+      id: registroSelecionado.id,
+      dados: {
+        informacoes: editandoInformacoes,
+        data_pagamento: editandoDataPagamento,
+        comprovante_url: editandoComprovanteUrl,
+      }
+    });
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
