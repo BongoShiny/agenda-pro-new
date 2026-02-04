@@ -381,23 +381,32 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                 <p className="text-sm text-orange-700 mt-1">
                   Caso queira editar, clique no lápis ao lado e edite o registro.
                 </p>
-                <p className="text-xs text-orange-600 mt-2">
-                  {`Motivo: ${agendamento.conversao_motivo_nao_converteu}`}
-                  {agendamento.nao_conversao_valor_pago > 0 && (
-                    <>
-                      <span className="ml-2 font-semibold">| Valor Pago: R$ {agendamento.nao_conversao_valor_pago.toFixed(2)}</span>
-                      {agendamento.nao_conversao_forma_pagamento && (
-                        <span className="ml-2">
-                          ({agendamento.nao_conversao_forma_pagamento === "pix" && "PIX"}
-                          {agendamento.nao_conversao_forma_pagamento === "dinheiro" && "Dinheiro"}
-                          {agendamento.nao_conversao_forma_pagamento === "boleto" && `Boleto ${agendamento.nao_conversao_parcelas || 1}x`}
-                          {agendamento.nao_conversao_forma_pagamento === "cartao_credito" && `Crédito ${agendamento.nao_conversao_parcelas || 1}x`}
-                          {agendamento.nao_conversao_forma_pagamento === "cartao_debito" && "Débito"})
-                        </span>
-                      )}
-                    </>
-                  )}
-                </p>
+                <div className="text-xs text-orange-600 mt-2 space-y-1">
+                 <p>{`Motivo: ${agendamento.conversao_motivo_nao_converteu}`}</p>
+                 {agendamento.nao_conversao_valor_pago > 0 && (
+                   <>
+                     <p className="font-semibold">Valor Pago: R$ {agendamento.nao_conversao_valor_pago.toFixed(2)}</p>
+                     {agendamento.nao_conversao_forma_pagamento && (
+                       <p>
+                         1ª Forma: {agendamento.nao_conversao_forma_pagamento === "pix" && "PIX"}
+                         {agendamento.nao_conversao_forma_pagamento === "dinheiro" && "Dinheiro"}
+                         {agendamento.nao_conversao_forma_pagamento === "boleto" && `Boleto ${agendamento.nao_conversao_parcelas || 1}x`}
+                         {agendamento.nao_conversao_forma_pagamento === "cartao_credito" && `Crédito ${agendamento.nao_conversao_parcelas || 1}x`}
+                         {agendamento.nao_conversao_forma_pagamento === "cartao_debito" && "Débito"}
+                       </p>
+                     )}
+                     {agendamento.nao_conversao_forma_pagamento_2 && (
+                       <p>
+                         2ª Forma: {agendamento.nao_conversao_forma_pagamento_2 === "pix" && "PIX"}
+                         {agendamento.nao_conversao_forma_pagamento_2 === "dinheiro" && "Dinheiro"}
+                         {agendamento.nao_conversao_forma_pagamento_2 === "boleto" && `Boleto ${agendamento.nao_conversao_parcelas_2 || 1}x`}
+                         {agendamento.nao_conversao_forma_pagamento_2 === "cartao_credito" && `Crédito ${agendamento.nao_conversao_parcelas_2 || 1}x`}
+                         {agendamento.nao_conversao_forma_pagamento_2 === "Débito"}
+                       </p>
+                     )}
+                   </>
+                 )}
+                </div>
               </div>
             </div>
             <div className="flex gap-2">
@@ -756,10 +765,12 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                 <Label className="font-semibold text-green-900 mb-2 block">💰 Valor Pago na Clínica *</Label>
                 <p className="text-xs text-green-700 mb-3">Valor do restante pago na clínica após a avaliação. Este valor abate do "Falta Quanto" do Valor Combinado dos Detalhes (para abater nos relatórios Terapeuta x Recepção)</p>
                 <Input
-                  type="text"
-                  value={`R$ ${parseFloat(formData.nao_conversao_valor_pago || 0).toFixed(2)}`}
-                  disabled
-                  className="mb-3 bg-gray-100 font-semibold text-lg"
+                  type="number"
+                  step="0.01"
+                  value={formData.nao_conversao_valor_pago}
+                  onChange={(e) => setFormData(prev => ({ ...prev, nao_conversao_valor_pago: e.target.value }))}
+                  placeholder="R$ 0,00"
+                  className="mb-3 font-semibold text-lg"
                 />
 
                 <div className="space-y-3 pt-3 border-t border-green-300">
