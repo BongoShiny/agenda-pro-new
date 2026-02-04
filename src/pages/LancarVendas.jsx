@@ -34,6 +34,8 @@ export default function LancarVendasPage() {
   const [dataPagamento, setDataPagamento] = useState(format(new Date(), "yyyy-MM-dd"));
   const [comprovanteUrl, setComprovanteUrl] = useState("");
   const [mostrarVendasLancadas, setMostrarVendasLancadas] = useState(false);
+  const [registroSelecionado, setRegistroSelecionado] = useState(null);
+  const [dialogAberto, setDialogAberto] = useState(false);
 
   useEffect(() => {
     const loadUser = async () => {
@@ -140,9 +142,6 @@ export default function LancarVendasPage() {
       </div>
     );
   }
-
-  const [registroSelecionado, setRegistroSelecionado] = useState(null);
-  const [dialogAberto, setDialogAberto] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-4">
