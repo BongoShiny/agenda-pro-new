@@ -6,6 +6,13 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, DollarSign, Save, X, Upload, Eye, ExternalLink, List } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -56,6 +63,13 @@ export default function LancarVendasPage() {
       return vendas.sort((a, b) => new Date(b.data_registro) - new Date(a.data_registro));
     },
     enabled: !!user?.email,
+    initialData: [],
+  });
+
+  // Buscar unidades
+  const { data: unidades = [] } = useQuery({
+    queryKey: ['unidades'],
+    queryFn: () => base44.entities.Unidade.filter({ ativa: true }),
     initialData: [],
   });
 
