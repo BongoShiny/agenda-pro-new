@@ -37,7 +37,6 @@ export default function LancarVendasPage() {
   const [dialogAberto, setDialogAberto] = useState(false);
   const [modoEdicao, setModoEdicao] = useState(false);
   const [editandoInformacoes, setEditandoInformacoes] = useState("");
-  const [editandoDataPagamento, setEditandoDataPagamento] = useState("");
   const [editandoComprovanteUrl, setEditandoComprovanteUrl] = useState("");
 
   useEffect(() => {
@@ -127,7 +126,6 @@ export default function LancarVendasPage() {
   const abrirParaEdicao = (venda) => {
     setRegistroSelecionado(venda);
     setEditandoInformacoes(venda.informacoes);
-    setEditandoDataPagamento(venda.data_pagamento || "");
     setEditandoComprovanteUrl(venda.comprovante_url || "");
     setModoEdicao(true);
     setDialogAberto(true);
@@ -139,21 +137,10 @@ export default function LancarVendasPage() {
       return;
     }
 
-    if (!editandoDataPagamento) {
-      alert("⚠️ Preencha a data do pagamento!");
-      return;
-    }
-
-    // Garantir que a data está no formato YYYY-MM-DD
-    const dataFormatada = editandoDataPagamento.includes('/') 
-      ? editandoDataPagamento.split('/').reverse().join('-')
-      : editandoDataPagamento;
-
     atualizarRegistroMutation.mutate({
       id: registroSelecionado.id,
       dados: {
         informacoes: editandoInformacoes,
-        data_pagamento: dataFormatada,
         comprovante_url: editandoComprovanteUrl,
       }
     });
@@ -251,14 +238,13 @@ export default function LancarVendasPage() {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Data Registro</TableHead>
-                      <TableHead>Data Pagamento</TableHead>
                       <TableHead className="text-center">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {minhasVendas.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={3} className="text-center text-gray-500 py-8">
+                        <TableCell colSpan={2} className="text-center text-gray-500 py-8">
                           Você ainda não lançou nenhuma venda
                         </TableCell>
                       </TableRow>
@@ -267,9 +253,6 @@ export default function LancarVendasPage() {
                         <TableRow key={venda.id}>
                           <TableCell>
                             {venda.data_registro ? format(new Date(venda.data_registro), "dd/MM/yyyy", { locale: ptBR }) : "-"}
-                          </TableCell>
-                          <TableCell>
-                            {venda.data_pagamento ? format(new Date(venda.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : "-"}
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex gap-2 justify-center">
@@ -403,16 +386,6 @@ export default function LancarVendasPage() {
                     </div>
 
                     <div className="border rounded-lg p-4 space-y-3">
-                      <h3 className="font-semibold">Data do Pagamento:</h3>
-                      <Input
-                        type="date"
-                        value={editandoDataPagamento}
-                        onChange={(e) => setEditandoDataPagamento(e.target.value)}
-                        className="w-full"
-                      />
-                    </div>
-
-                    <div className="border rounded-lg p-4 space-y-3">
                       <h3 className="font-semibold">Comprovante:</h3>
                       {editandoComprovanteUrl && (
                         <img 
@@ -466,13 +439,6 @@ export default function LancarVendasPage() {
                     <div className="border rounded-lg p-4 bg-gray-50">
                       <h3 className="font-semibold mb-2">Informações:</h3>
                       <p className="whitespace-pre-wrap text-sm">{registroSelecionado.informacoes}</p>
-                    </div>
-
-                    <div className="border rounded-lg p-4 bg-blue-50">
-                      <h3 className="font-semibold mb-2">Data do Pagamento:</h3>
-                      <p className="text-sm">
-                        {registroSelecionado.data_pagamento ? format(new Date(registroSelecionado.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : "-"}
-                      </p>
                     </div>
 
                     {registroSelecionado.comprovante_url && (
