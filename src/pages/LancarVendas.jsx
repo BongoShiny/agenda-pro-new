@@ -146,11 +146,16 @@ export default function LancarVendasPage() {
       return;
     }
 
+    // Garantir que a data está no formato YYYY-MM-DD
+    const dataFormatada = editandoDataPagamento.includes('/') 
+      ? editandoDataPagamento.split('/').reverse().join('-')
+      : editandoDataPagamento;
+
     atualizarRegistroMutation.mutate({
       id: registroSelecionado.id,
       dados: {
         informacoes: editandoInformacoes,
-        data_pagamento: editandoDataPagamento,
+        data_pagamento: dataFormatada,
         comprovante_url: editandoComprovanteUrl,
       }
     });
