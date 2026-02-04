@@ -4,6 +4,13 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Users, Search, FileText, Eye, ExternalLink } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format } from "date-fns";
@@ -26,6 +33,7 @@ import {
 export default function GerenciarClientesVendasPage() {
   const navigate = useNavigate();
   const [busca, setBusca] = useState("");
+  const [unidadeFiltro, setUnidadeFiltro] = useState("todas");
   const [user, setUser] = useState(null);
   const [registroSelecionado, setRegistroSelecionado] = useState(null);
   const [dialogAberto, setDialogAberto] = useState(false);
@@ -42,6 +50,13 @@ export default function GerenciarClientesVendasPage() {
   const { data: registros = [] } = useQuery({
     queryKey: ['registros-vendas'],
     queryFn: () => base44.entities.RegistroManualVendas.list("-created_date"),
+    initialData: [],
+  });
+
+  // Buscar unidades
+  const { data: unidades = [] } = useQuery({
+    queryKey: ['unidades'],
+    queryFn: () => base44.entities.Unidade.filter({ ativa: true }),
     initialData: [],
   });
 
@@ -73,13 +88,15 @@ export default function GerenciarClientesVendasPage() {
     );
   }
 
-  // Filtrar por busca
+  // Filtrar por busca e unidade
   const registrosFiltrados = registros.filter(r => {
     const termo = busca.toLowerCase();
-    return (
+    const buscaMatch = (
       r.informacoes?.toLowerCase().includes(termo) ||
       r.criado_por?.toLowerCase().includes(termo)
     );
+    const unidadeMatch = unidadeFiltro === "todas" || r.unidade_id === unidadeFiltro;
+    return buscaMatch && unidadeMatch;
   });
 
   return (
@@ -105,17 +122,31 @@ export default function GerenciarClientesVendasPage() {
 
           {/* Busca e Filtros */}
           <div className="mb-6 space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
-              <Input
-                placeholder="Buscar por informações ou usuário..."
-                value={busca}
-                onChange={(e) => setBusca(e.target.value)}
-                className="pl-10"
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+                <Input
+                  placeholder="Buscar por informações ou usuário..."
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+
+              <Select value={unidadeFiltro} onValueChange={setUnidadeFiltro}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filtrar por unidade" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todas">Todas as unidades</SelectItem>
+                  {unidades.map((unidade) => (
+                    <SelectItem key={unidade.id} value={unidade.id}>
+                      {unidade.nome}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-
-
           </div>
 
           {/* Estatísticas */}
