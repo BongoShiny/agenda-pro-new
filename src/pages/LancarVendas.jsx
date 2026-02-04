@@ -36,6 +36,10 @@ export default function LancarVendasPage() {
   const [mostrarVendasLancadas, setMostrarVendasLancadas] = useState(false);
   const [registroSelecionado, setRegistroSelecionado] = useState(null);
   const [dialogAberto, setDialogAberto] = useState(false);
+  const [modoEdicao, setModoEdicao] = useState(false);
+  const [editandoInformacoes, setEditandoInformacoes] = useState("");
+  const [editandoDataPagamento, setEditandoDataPagamento] = useState("");
+  const [editandoComprovanteUrl, setEditandoComprovanteUrl] = useState("");
 
   useEffect(() => {
     const loadUser = async () => {
@@ -70,6 +74,23 @@ export default function LancarVendasPage() {
     },
     onError: (error) => {
       alert(`❌ Erro ao registrar venda: ${error.message}`);
+    },
+  });
+
+  const atualizarRegistroMutation = useMutation({
+    mutationFn: async ({ id, dados }) => {
+      return await base44.entities.RegistroManualVendas.update(id, dados);
+    },
+    onSuccess: () => {
+      alert("✅ Venda atualizada com sucesso!");
+      queryClient.invalidateQueries({ queryKey: ['registros-vendas'] });
+      queryClient.invalidateQueries({ queryKey: ['minhas-vendas', user?.email] });
+      setDialogAberto(false);
+      setModoEdicao(false);
+      setRegistroSelecionado(null);
+    },
+    onError: (error) => {
+      alert(`❌ Erro ao atualizar venda: ${error.message}`);
     },
   });
 
@@ -173,7 +194,14 @@ export default function LancarVendasPage() {
 
           {mostrarVendasLancadas ? (
             <div className="space-y-4">
-              <h2 className="text-xl font-bold text-gray-900">Minhas Vendas Lançadas</h2>
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-bold text-gray-900">Minhas Vendas Lançadas</h2>
+                <div className="bg-green-100 border border-green-300 rounded-lg px-4 py-2">
+                  <p className="text-sm text-green-700 font-medium">
+                    Total de vendas: <span className="text-lg font-bold">{minhasVendas.length}</span>
+                  </p>
+                </div>
+              </div>
               <div className="border rounded-lg overflow-auto">
                 <Table>
                   <TableHeader>
@@ -200,17 +228,28 @@ export default function LancarVendasPage() {
                             {venda.data_pagamento ? format(new Date(venda.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : "-"}
                           </TableCell>
                           <TableCell className="text-center">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => {
-                                setRegistroSelecionado(venda);
-                                setDialogAberto(true);
-                              }}
-                            >
-                              <Eye className="w-4 h-4 mr-2" />
-                              Ver detalhes
-                            </Button>
+                            <div className="flex gap-2 justify-center">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setRegistroSelecionado(venda);
+                                  setModoEdicao(false);
+                                  setDialogAberto(true);
+                                }}
+                              >
+                                <Eye className="w-4 h-4 mr-2" />
+                                Ver detalhes
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                className="bg-blue-50 border-blue-300 hover:bg-blue-100"
+                                onClick={() => abrirParaEdicao(venda)}
+                              >
+                                Editar
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))
@@ -306,55 +345,135 @@ export default function LancarVendasPage() {
             </form>
           )}
 
-          {/* Dialog com Detalhes */}
-          <Dialog open={dialogAberto} onOpenChange={setDialogAberto}>
+          {/* Dialog com Detalhes ou Edição */}
+          <Dialog open={dialogAberto} onOpenChange={(open) => {
+            setDialogAberto(open);
+            if (!open) {
+              setModoEdicao(false);
+              setRegistroSelecionado(null);
+            }
+          }}>
             <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>Detalhes da Venda</DialogTitle>
+                <DialogTitle>{modoEdicao ? "Editar Venda" : "Detalhes da Venda"}</DialogTitle>
               </DialogHeader>
               
               {registroSelecionado && (
-                <div className="space-y-4">
-                  <div className="border rounded-lg p-4 bg-gray-50">
-                    <h3 className="font-semibold mb-2">Informações:</h3>
-                    <p className="whitespace-pre-wrap text-sm">{registroSelecionado.informacoes}</p>
-                  </div>
-
-                  <div className="border rounded-lg p-4 bg-blue-50">
-                    <h3 className="font-semibold mb-2">Data do Pagamento:</h3>
-                    <p className="text-sm">
-                      {registroSelecionado.data_pagamento ? format(new Date(registroSelecionado.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : "-"}
-                    </p>
-                  </div>
-
-                  {registroSelecionado.comprovante_url && (
-                    <div className="border rounded-lg p-4">
-                      <h3 className="font-semibold mb-3">Comprovante:</h3>
-                      <div className="space-y-3">
-                        <img 
-                          src={registroSelecionado.comprovante_url} 
-                          alt="Comprovante" 
-                          className="w-full max-w-md rounded-lg border"
-                        />
-                        <a 
-                          href={registroSelecionado.comprovante_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="inline-block"
-                        >
-                          <Button variant="outline" size="sm">
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            Abrir em nova guia
-                          </Button>
-                        </a>
-                      </div>
+                modoEdicao ? (
+                  <div className="space-y-4">
+                    <div className="border rounded-lg p-4 space-y-3">
+                      <h3 className="font-semibold">Informações:</h3>
+                      <Textarea
+                        value={editandoInformacoes}
+                        onChange={(e) => setEditandoInformacoes(e.target.value)}
+                        placeholder="Digite as informações da venda..."
+                        rows={8}
+                        className="w-full"
+                      />
                     </div>
-                  )}
 
-                  <div className="text-sm text-gray-500">
-                    <p><strong>Registrado em:</strong> {registroSelecionado.data_registro ? format(new Date(registroSelecionado.data_registro), "dd/MM/yyyy", { locale: ptBR }) : "-"}</p>
+                    <div className="border rounded-lg p-4 space-y-3">
+                      <h3 className="font-semibold">Data do Pagamento:</h3>
+                      <Input
+                        type="date"
+                        value={editandoDataPagamento}
+                        onChange={(e) => setEditandoDataPagamento(e.target.value)}
+                        className="w-full"
+                      />
+                    </div>
+
+                    <div className="border rounded-lg p-4 space-y-3">
+                      <h3 className="font-semibold">Comprovante:</h3>
+                      {editandoComprovanteUrl && (
+                        <img 
+                          src={editandoComprovanteUrl} 
+                          alt="Comprovante" 
+                          className="w-full max-w-md rounded-lg border mb-3"
+                        />
+                      )}
+                      <label className="cursor-pointer">
+                        <div className="flex items-center justify-center gap-3 border-2 border-dashed border-gray-300 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                          <Upload className="w-5 h-5 text-gray-500" />
+                          <span className="text-sm text-gray-600">
+                            {editandoComprovanteUrl ? "Trocar comprovante" : "Adicionar comprovante"}
+                          </span>
+                        </div>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleUploadComprovanteEdicao}
+                          className="hidden"
+                          disabled={uploadingComprovante}
+                        />
+                      </label>
+                      {uploadingComprovante && (
+                        <p className="text-sm text-blue-600">Enviando comprovante...</p>
+                      )}
+                    </div>
+
+                    <div className="flex justify-end gap-3 pt-4">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setModoEdicao(false);
+                          setDialogAberto(false);
+                        }}
+                      >
+                        Cancelar
+                      </Button>
+                      <Button 
+                        onClick={salvarEdicao}
+                        className="bg-green-600 hover:bg-green-700"
+                        disabled={atualizarRegistroMutation.isPending}
+                      >
+                        <Save className="w-4 h-4 mr-2" />
+                        {atualizarRegistroMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="border rounded-lg p-4 bg-gray-50">
+                      <h3 className="font-semibold mb-2">Informações:</h3>
+                      <p className="whitespace-pre-wrap text-sm">{registroSelecionado.informacoes}</p>
+                    </div>
+
+                    <div className="border rounded-lg p-4 bg-blue-50">
+                      <h3 className="font-semibold mb-2">Data do Pagamento:</h3>
+                      <p className="text-sm">
+                        {registroSelecionado.data_pagamento ? format(new Date(registroSelecionado.data_pagamento), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                      </p>
+                    </div>
+
+                    {registroSelecionado.comprovante_url && (
+                      <div className="border rounded-lg p-4">
+                        <h3 className="font-semibold mb-3">Comprovante:</h3>
+                        <div className="space-y-3">
+                          <img 
+                            src={registroSelecionado.comprovante_url} 
+                            alt="Comprovante" 
+                            className="w-full max-w-md rounded-lg border"
+                          />
+                          <a 
+                            href={registroSelecionado.comprovante_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="inline-block"
+                          >
+                            <Button variant="outline" size="sm">
+                              <ExternalLink className="w-4 h-4 mr-2" />
+                              Abrir em nova guia
+                            </Button>
+                          </a>
+                        </div>
+                      </div>
+                    )}
+
+                    <div className="text-sm text-gray-500">
+                      <p><strong>Registrado em:</strong> {registroSelecionado.data_registro ? format(new Date(registroSelecionado.data_registro), "dd/MM/yyyy", { locale: ptBR }) : "-"}</p>
+                    </div>
+                  </div>
+                )
               )}
             </DialogContent>
           </Dialog>
