@@ -615,38 +615,41 @@ export default function AgendaPage() {
     setDialogNovoAberto(true);
   };
 
-  const handleNovoAgendamentoSlot = (unidadeId, profissionalId, horario) => {
+  const handleNovoAgendamentoSlot = (unidadeId, profissionalId, horario, tipo = null) => {
     const dataFormatada = formatarDataPura(dataAtual);
     
-    // Verificar se há bloqueio neste horário
-    const horarioBloqueado = agendamentos.find(ag => 
-      ag.data === dataFormatada &&
-      ag.profissional_id === profissionalId &&
-      ag.unidade_id === unidadeId &&
-      ag.hora_inicio === horario &&
-      (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO")
-    );
+    // Se for coluna de avaliação, não verificar profissional
+    if (tipo !== "avaliacao") {
+      // Verificar se há bloqueio neste horário
+      const horarioBloqueado = agendamentos.find(ag => 
+        ag.data === dataFormatada &&
+        ag.profissional_id === profissionalId &&
+        ag.unidade_id === unidadeId &&
+        ag.hora_inicio === horario &&
+        (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO")
+      );
 
-    if (horarioBloqueado) {
-      alert("⚠️ HORÁRIO JÁ OCUPADO!\n\n⏰ Este horário está bloqueado e não pode ser agendado.");
-      return;
-    }
+      if (horarioBloqueado) {
+        alert("⚠️ HORÁRIO JÁ OCUPADO!\n\n⏰ Este horário está bloqueado e não pode ser agendado.");
+        return;
+      }
 
-    // Verificar se já há cliente no horário
-    const horarioOcupado = agendamentos.find(ag => 
-      ag.data === dataFormatada &&
-      ag.profissional_id === profissionalId &&
-      ag.unidade_id === unidadeId &&
-      ag.hora_inicio === horario &&
-      ag.status !== "cancelado" &&
-      ag.status !== "bloqueio" &&
-      ag.tipo !== "bloqueio" &&
-      ag.cliente_nome !== "FECHADO"
-    );
+      // Verificar se já há cliente no horário
+      const horarioOcupado = agendamentos.find(ag => 
+        ag.data === dataFormatada &&
+        ag.profissional_id === profissionalId &&
+        ag.unidade_id === unidadeId &&
+        ag.hora_inicio === horario &&
+        ag.status !== "cancelado" &&
+        ag.status !== "bloqueio" &&
+        ag.tipo !== "bloqueio" &&
+        ag.cliente_nome !== "FECHADO"
+      );
 
-    if (horarioOcupado) {
-      alert(`⚠️ HORÁRIO JÁ OCUPADO!\n\n👤 ${horarioOcupado.cliente_nome}\n⏰ ${horarioOcupado.hora_inicio} - ${horarioOcupado.hora_fim}\n\nEscolha outro horário ou profissional`);
-      return;
+      if (horarioOcupado) {
+        alert(`⚠️ HORÁRIO JÁ OCUPADO!\n\n👤 ${horarioOcupado.cliente_nome}\n⏰ ${horarioOcupado.hora_inicio} - ${horarioOcupado.hora_fim}\n\nEscolha outro horário ou profissional`);
+        return;
+      }
     }
     
     const unidade = unidades.find(u => u.id === unidadeId);
@@ -657,15 +660,23 @@ export default function AgendaPage() {
     
     console.log("🆕 NOVO AGENDAMENTO SLOT:", dataFormatada, horario);
     
-    setAgendamentoInicial({
+    const dadosIniciais = {
       unidade_id: unidadeId,
       unidade_nome: unidade?.nome || "",
-      profissional_id: profissionalId,
-      profissional_nome: profissional?.nome || "",
       data: dataFormatada,
       hora_inicio: horario,
       hora_fim: horaFim
-    });
+    };
+
+    // Se for avaliação, não incluir profissional
+    if (tipo === "avaliacao") {
+      dadosIniciais.tipo = "avaliacao";
+    } else {
+      dadosIniciais.profissional_id = profissionalId;
+      dadosIniciais.profissional_nome = profissional?.nome || "";
+    }
+    
+    setAgendamentoInicial(dadosIniciais);
     setDialogNovoAberto(true);
   };
 

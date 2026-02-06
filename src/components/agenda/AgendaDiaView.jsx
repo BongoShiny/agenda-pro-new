@@ -230,6 +230,11 @@ export default function AgendaDiaView({
     .map(config => profissionais.find(p => p.id === config.profissional_id))
     .filter(Boolean);
 
+  // Verificar se deve mostrar coluna de avaliação (vendedor ou recepção)
+  const isVendedor = usuarioAtual?.cargo === "vendedor";
+  const isRecepcao = usuarioAtual?.cargo === "recepcao";
+  const mostrarColunaAvaliacao = isVendedor || isRecepcao || isAdmin;
+
   const getAgendamentosParaSlot = (profissionalId, horario) => {
     // Retornar apenas agendamentos que INICIAM neste horário
     // EXCLUIR apenas "cancelado" para liberar o horário (manter "ausencia")
@@ -414,6 +419,14 @@ export default function AgendaDiaView({
                     </div>
                   );
                 })}
+                {mostrarColunaAvaliacao && (
+                  <div className="w-[160px] md:w-[280px] flex-shrink-0 p-2 md:p-3 border-r border-gray-200 bg-purple-50">
+                    <div className="flex items-center justify-center gap-1 md:gap-2">
+                      <div className="text-xs md:text-sm font-bold text-purple-900 truncate text-center">AVALIAÇÃO</div>
+                    </div>
+                    <div className="text-[10px] md:text-xs text-purple-600 truncate text-center mt-1">Agendamentos de avaliação</div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
@@ -440,7 +453,7 @@ export default function AgendaDiaView({
             >
           <div className="flex min-w-max">
             {terapeutasAtivos.map(terapeuta => (
-              <div key={terapeuta.id} className="w-[160px] md:w-[280px] flex-shrink-0 border-r border-gray-200 last:border-r-0">
+              <div key={terapeuta.id} className="w-[160px] md:w-[280px] flex-shrink-0 border-r border-gray-200">
                 {todosHorarios.map((horario, idx) => {
                   const dentroDoHorario = horarioDentroDoPeriodo(horario, terapeuta);
                   const horarioTerapeuta = getHorarioProfissional(terapeuta);
@@ -687,6 +700,95 @@ export default function AgendaDiaView({
                 })}
               </div>
             ))}
+            
+            {/* Coluna de Avaliação */}
+            {mostrarColunaAvaliacao && (
+              <div className="w-[160px] md:w-[280px] flex-shrink-0 border-r border-gray-200 bg-purple-50/30">
+                {todosHorarios.map((horario, idx) => {
+                  const horarioPassou = horarioJaPassou(horario);
+                  
+                  // Buscar agendamentos de avaliação neste horário
+                  const avaliacoesSlot = agendamentos.filter(ag => 
+                    ag.unidade_id === unidadeSelecionada.id &&
+                    ag.tipo === "avaliacao" &&
+                    ag.hora_inicio === horario &&
+                    ag.status !== "cancelado"
+                  );
+                  
+                  const isOcupado = avaliacoesSlot.length > 0;
+                  const isMenuAberto = slotMenuAberto?.unidadeId === unidadeSelecionada.id && 
+                                    slotMenuAberto?.profissionalId === "avaliacao" && 
+                                    slotMenuAberto?.horario === horario;
+
+                  return (
+                    <div
+                      key={horario}
+                      className={`h-16 md:h-20 border-b border-gray-200 p-0.5 md:p-1 relative ${
+                        idx % 2 === 0 ? 'bg-purple-50/50' : 'bg-purple-100/30'
+                      }`}
+                    >
+                      {horarioPassou && !isOcupado ? (
+                        <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center">
+                          <div className="text-[8px] md:text-[10px] text-gray-500">FECHADO</div>
+                        </div>
+                      ) : !isOcupado ? (
+                        isVendedor ? (
+                          <SlotMenu
+                            open={isMenuAberto}
+                            onOpenChange={(open) => {
+                              if (!open) setSlotMenuAberto(null);
+                            }}
+                            onNovoAgendamento={() => {
+                              // Criar agendamento de avaliação sem profissional específico
+                              onNovoAgendamento(unidadeSelecionada.id, null, horario, "avaliacao");
+                            }}
+                            onBloquearHorario={null}
+                            isAdmin={false}
+                            textoAgendar="Agendar Avaliação"
+                          >
+                            <button
+                              className="w-full h-full hover:bg-purple-100 cursor-pointer transition-colors rounded"
+                              onClick={() => handleSlotClick(unidadeSelecionada.id, "avaliacao", horario)}
+                            />
+                          </SlotMenu>
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <div className="text-[8px] md:text-[10px] text-purple-300">-</div>
+                          </div>
+                        )
+                      ) : (
+                        avaliacoesSlot.map(agendamento => {
+                          const duracaoHoras = calcularDuracaoSlots(agendamento.hora_inicio, agendamento.hora_fim);
+                          const alturaStyle = {
+                            '--duracao-horas': duracaoHoras,
+                            height: `calc(${duracaoHoras} * 4rem)`,
+                          };
+
+                          return (
+                            <div
+                              key={agendamento.id}
+                              style={alturaStyle}
+                              className="absolute inset-x-0.5 md:inset-x-1 z-10 top-0 md:!h-[calc(var(--duracao-horas)*5rem)]"
+                            >
+                              <AgendamentoCard
+                                agendamento={agendamento}
+                                onClick={onAgendamentoClick}
+                                onStatusChange={onStatusChange}
+                                onStatusPacienteChange={onStatusPacienteChange}
+                                prontuarios={prontuarios}
+                                registrosWhatsApp={registrosWhatsApp}
+                                usuarioAtual={usuarioAtual}
+                                readOnly={isRecepcao}
+                              />
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
           </div>
         </div>
       </div>
