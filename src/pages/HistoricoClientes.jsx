@@ -182,23 +182,14 @@ export default function HistoricoClientes() {
     return (
       <div className="min-h-screen bg-gray-50 p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
-          <div className="flex items-center justify-between mb-6">
-            <Button
-              variant="outline"
-              onClick={handleVoltar}
-            >
-              <ArrowLeft className="w-4 h-4 mr-2" />
-              Voltar
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => handleAbrirEdicao(clienteSelecionado)}
-              className="border-blue-300 text-blue-700 hover:bg-blue-50"
-            >
-              <Edit2 className="w-4 h-4 mr-2" />
-              Editar Cliente
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            onClick={handleVoltar}
+            className="mb-6"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Voltar
+          </Button>
 
           <div className="grid md:grid-cols-3 gap-6">
             {/* Card do Cliente */}
@@ -274,6 +265,16 @@ export default function HistoricoClientes() {
 
             {/* Histórico de Agendamentos */}
             <div className="md:col-span-2">
+              <div className="flex justify-end mb-4">
+                <Button
+                  variant="outline"
+                  onClick={() => handleAbrirEdicao(clienteSelecionado)}
+                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                >
+                  <Edit2 className="w-4 h-4 mr-2" />
+                  Editar Cliente
+                </Button>
+              </div>
               <Card>
                 <CardHeader>
                   <CardTitle>Histórico de Agendamentos ({agendamentosCliente.length})</CardTitle>
