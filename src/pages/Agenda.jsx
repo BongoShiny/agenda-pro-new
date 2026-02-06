@@ -295,7 +295,7 @@ export default function AgendaPage() {
     queryFn: async () => {
       console.log("📥📥📥 CARREGANDO AGENDAMENTOS DO BANCO 📥📥📥");
       
-      const lista = await base44.entities.Agendamento.list("-data", 10000);
+      const lista = await base44.entities.Agendamento.list("-data", 999999);
       
       console.log("📊 Total bruto do banco:", lista.length);
       
