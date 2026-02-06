@@ -240,7 +240,8 @@ export default function AgendaDiaView({
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
   const isVendedor = usuarioAtual?.cargo === "vendedor";
   const isRecepcao = usuarioAtual?.cargo === "recepcao";
-  const mostrarColunaAvaliacao = isVendedor || isRecepcao;
+  const isSuperior = usuarioAtual?.cargo === "superior";
+  const mostrarColunaAvaliacao = isVendedor || isRecepcao || isSuperior;
 
   const terapeutasAtivos = configuracoes
     .filter(config => config.unidade_id === unidadeSelecionada.id && config.ativo)
@@ -804,7 +805,7 @@ export default function AgendaDiaView({
                           <div className="text-[8px] md:text-[10px] text-gray-500">FECHADO</div>
                         </div>
                       ) : !isOcupado ? (
-                        (isVendedor || isRecepcao) ? (
+                        (isVendedor || isRecepcao || isSuperior) ? (
                           <SlotMenu
                             open={isMenuAberto}
                             onOpenChange={(open) => {
