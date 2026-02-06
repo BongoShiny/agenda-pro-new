@@ -237,10 +237,10 @@ export default function AgendaDiaView({
     return horarioSlot < horarioAgora;
   };
 
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.cargo === "Superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
   const isVendedor = usuarioAtual?.cargo === "vendedor";
   const isRecepcao = usuarioAtual?.cargo === "recepcao";
-  const isSuperior = usuarioAtual?.cargo === "superior";
+  const isSuperior = usuarioAtual?.cargo === "superior" || usuarioAtual?.cargo === "Superior";
   const mostrarColunaAvaliacao = isVendedor || isRecepcao || isSuperior;
 
   const terapeutasAtivos = configuracoes
