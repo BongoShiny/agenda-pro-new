@@ -133,24 +133,6 @@ export default function NovoAgendamentoDialog({
      enabled: !!formData.unidade_id,
    });
 
-   // Filtrar profissionais pela unidade selecionada
-   const profissionaisFiltrados = React.useMemo(() => {
-     // Se for avaliação, mostrar recepcionistas
-     if (isAvaliacao) {
-       return recepcionistas.filter(r => 
-         r.unidade_id === formData.unidade_id && r.ativo
-       );
-     }
-
-     // Para terapeutas normais
-     if (!formData.unidade_id) return profissionais.filter(p => p.ativo !== false);
-
-     const idsConfiguracao = configuracoesTerapeutas.map(ct => ct.profissional_id);
-     return profissionais.filter(p => 
-       idsConfiguracao.includes(p.id) && p.ativo !== false
-     );
-   }, [profissionais, formData.unidade_id, configuracoesTerapeutas, isAvaliacao, recepcionistas]);
-
   // Buscar pacote ativo do cliente selecionado
   const { data: pacoteCliente } = useQuery({
     queryKey: ['pacote-cliente', formData.cliente_id],
@@ -182,6 +164,24 @@ export default function NovoAgendamentoDialog({
   });
 
   const isAvaliacao = agendamentoInicial?.tipo === "avaliacao";
+
+   // Filtrar profissionais pela unidade selecionada
+   const profissionaisFiltrados = React.useMemo(() => {
+     // Se for avaliação, mostrar recepcionistas
+     if (isAvaliacao) {
+       return recepcionistas.filter(r => 
+         r.unidade_id === formData.unidade_id && r.ativo
+       );
+     }
+
+     // Para terapeutas normais
+     if (!formData.unidade_id) return profissionais.filter(p => p.ativo !== false);
+
+     const idsConfiguracao = configuracoesTerapeutas.map(ct => ct.profissional_id);
+     return profissionais.filter(p => 
+       idsConfiguracao.includes(p.id) && p.ativo !== false
+     );
+   }, [profissionais, formData.unidade_id, configuracoesTerapeutas, isAvaliacao, recepcionistas]);
 
   useEffect(() => {
     if (open) {
