@@ -1,15 +1,17 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Search, Phone, MapPin, Calendar, Clock, User, Package, DollarSign } from "lucide-react";
+import { ArrowLeft, Search, Phone, MapPin, Calendar, Clock, User, Package, DollarSign, Edit2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 const criarDataPura = (dataString) => {
   if (!dataString) return new Date();
@@ -27,8 +29,12 @@ const statusLabels = {
 
 export default function HistoricoClientes() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [busca, setBusca] = useState("");
   const [clienteSelecionado, setClienteSelecionado] = useState(null);
+  const [dialogEditarAberto, setDialogEditarAberto] = useState(false);
+  const [clienteEditando, setClienteEditando] = useState(null);
+  const [dadosEdicao, setDadosEdicao] = useState({ nome: "", telefone: "" });
 
   const { data: usuarioAtual } = useQuery({
     queryKey: ['usuario-atual'],
@@ -79,6 +85,69 @@ export default function HistoricoClientes() {
     setClienteSelecionado(cliente);
   };
 
+  const atualizarClienteMutation = useMutation({
+    mutationFn: async ({ clienteId, nomeAntigo, telefoneAntigo, novoNome, novoTelefone }) => {
+      // Atualizar entidade Cliente
+      await base44.entities.Cliente.update(clienteId, {
+        nome: novoNome,
+        telefone: novoTelefone
+      });
+
+      // Buscar todos os agendamentos deste cliente
+      const todosAgendamentos = await base44.entities.Agendamento.list("-data", 999999);
+      const agendamentosCliente = todosAgendamentos.filter(ag => 
+        ag.cliente_id === clienteId || 
+        (ag.cliente_nome === nomeAntigo && ag.cliente_telefone === telefoneAntigo)
+      );
+
+      // Atualizar todos os agendamentos com o novo nome e telefone
+      for (const ag of agendamentosCliente) {
+        await base44.entities.Agendamento.update(ag.id, {
+          cliente_nome: novoNome,
+          cliente_telefone: novoTelefone
+        });
+      }
+
+      return { clienteId, novoNome, novoTelefone };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['clientes'] });
+      queryClient.invalidateQueries({ queryKey: ['agendamentos-historico'] });
+      queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+      setDialogEditarAberto(false);
+      setClienteEditando(null);
+      alert("✅ Cliente atualizado com sucesso! Todos os agendamentos foram atualizados.");
+    },
+    onError: (error) => {
+      console.error("Erro ao atualizar cliente:", error);
+      alert("❌ Erro ao atualizar cliente: " + error.message);
+    }
+  });
+
+  const handleAbrirEdicao = (cliente) => {
+    setClienteEditando(cliente);
+    setDadosEdicao({
+      nome: cliente.nome || "",
+      telefone: cliente.telefone || ""
+    });
+    setDialogEditarAberto(true);
+  };
+
+  const handleSalvarEdicao = () => {
+    if (!dadosEdicao.nome.trim()) {
+      alert("⚠️ O nome não pode estar vazio!");
+      return;
+    }
+
+    atualizarClienteMutation.mutate({
+      clienteId: clienteEditando.id,
+      nomeAntigo: clienteEditando.nome,
+      telefoneAntigo: clienteEditando.telefone,
+      novoNome: dadosEdicao.nome,
+      novoTelefone: dadosEdicao.telefone
+    });
+  };
+
   const handleVoltar = () => {
     if (clienteSelecionado) {
       setClienteSelecionado(null);
@@ -113,14 +182,23 @@ export default function HistoricoClientes() {
     return (
       <div className="min-h-screen bg-gray-50 p-4 md:p-8">
         <div className="max-w-6xl mx-auto">
-          <Button
-            variant="outline"
-            onClick={handleVoltar}
-            className="mb-6"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Voltar
-          </Button>
+          <div className="flex items-center justify-between mb-6">
+            <Button
+              variant="outline"
+              onClick={handleVoltar}
+            >
+              <ArrowLeft className="w-4 h-4 mr-2" />
+              Voltar
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleAbrirEdicao(clienteSelecionado)}
+              className="border-blue-300 text-blue-700 hover:bg-blue-50"
+            >
+              <Edit2 className="w-4 h-4 mr-2" />
+              Editar Cliente
+            </Button>
+          </div>
 
           <div className="grid md:grid-cols-3 gap-6">
             {/* Card do Cliente */}
@@ -406,6 +484,53 @@ export default function HistoricoClientes() {
           </div>
         )}
       </div>
+
+      {/* Dialog para editar cliente */}
+      <Dialog open={dialogEditarAberto} onOpenChange={setDialogEditarAberto}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Cliente</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nome Completo</Label>
+              <Input
+                value={dadosEdicao.nome}
+                onChange={(e) => setDadosEdicao({ ...dadosEdicao, nome: e.target.value })}
+                placeholder="Nome do cliente"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Telefone</Label>
+              <Input
+                value={dadosEdicao.telefone}
+                onChange={(e) => setDadosEdicao({ ...dadosEdicao, telefone: e.target.value })}
+                placeholder="(00) 00000-0000"
+              />
+            </div>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+              <p className="text-sm text-blue-800">
+                ⚠️ Ao alterar os dados do cliente, <strong>todos os agendamentos</strong> serão atualizados automaticamente.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDialogEditarAberto(false)}
+            >
+              Cancelar
+            </Button>
+            <Button
+              onClick={handleSalvarEdicao}
+              disabled={atualizarClienteMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {atualizarClienteMutation.isPending ? "Salvando..." : "Salvar Alterações"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
