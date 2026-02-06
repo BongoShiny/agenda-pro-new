@@ -758,12 +758,24 @@ export default function AgendaDiaView({
                   const horarioPassou = horarioJaPassou(horario);
                   
                   // Buscar agendamentos de avaliação neste horário
-                  const avaliacoesSlot = agendamentos.filter(ag => 
-                    ag.unidade_id === unidadeSelecionada.id &&
-                    ag.tipo === "avaliacao" &&
-                    ag.hora_inicio === horario &&
-                    ag.status !== "cancelado"
-                  );
+                  // Para avaliações, verificar se o horário está dentro do período do agendamento
+                  const avaliacoesSlot = agendamentos.filter(ag => {
+                    if (ag.unidade_id !== unidadeSelecionada.id) return false;
+                    if (ag.tipo !== "avaliacao") return false;
+                    if (ag.status === "cancelado") return false;
+                    
+                    // Verificar se este slot está dentro do período da avaliação
+                    const [hSlot, mSlot] = horario.split(':').map(Number);
+                    const minutosSlot = hSlot * 60 + mSlot;
+                    
+                    const [hInicio, mInicio] = ag.hora_inicio.split(':').map(Number);
+                    const [hFim, mFim] = ag.hora_fim.split(':').map(Number);
+                    const minutosInicio = hInicio * 60 + mInicio;
+                    const minutosFim = hFim * 60 + mFim;
+                    
+                    // Mostrar apenas no slot de início
+                    return ag.hora_inicio === horario;
+                  });
                   
                   const isOcupado = avaliacoesSlot.length > 0;
                   const isMenuAberto = slotMenuAberto?.unidadeId === unidadeSelecionada.id && 
