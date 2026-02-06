@@ -475,6 +475,7 @@ export default function NovoAgendamentoDialog({
       }
 
       // ✅ Verificar se JÁ HÁ OUTRO AGENDAMENTO neste horário/profissional/unidade (qualquer cliente)
+      // Se for avaliação, só verificar conflito com outras avaliações
       const horarioOcupado = agendamentos.find(ag => {
         if (ag.data !== dataToSave.data) return false;
         if (ag.profissional_id !== dataToSave.profissional_id) return false;
@@ -482,6 +483,11 @@ export default function NovoAgendamentoDialog({
         if (ag.id === dataToSave.id) return false;
         if (ag.status === "cancelado") return false;
         if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
+
+        // Se for avaliação, só verificar conflito com outras avaliações
+        if (isAvaliacao && ag.tipo !== "avaliacao") return false;
+        // Se não for avaliação, não verificar conflito com avaliações
+        if (!isAvaliacao && ag.tipo === "avaliacao") return false;
 
         const [agHoraInicio, agMinInicio] = ag.hora_inicio.split(':').map(Number);
         const [agHoraFim, agMinFim] = ag.hora_fim.split(':').map(Number);
