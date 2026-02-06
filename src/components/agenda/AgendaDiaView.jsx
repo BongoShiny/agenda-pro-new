@@ -804,7 +804,7 @@ export default function AgendaDiaView({
                           <div className="text-[8px] md:text-[10px] text-gray-500">FECHADO</div>
                         </div>
                       ) : !isOcupado ? (
-                        (isVendedor || isAdmin) ? (
+                        (isVendedor || isAdmin || isRecepcao) ? (
                           <SlotMenu
                             open={isMenuAberto}
                             onOpenChange={(open) => {
