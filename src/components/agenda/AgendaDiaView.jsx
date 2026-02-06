@@ -86,6 +86,19 @@ export default function AgendaDiaView({
     return horarios;
   };
 
+  // Gerar horários de 15 em 15 minutos para a coluna de avaliação (08:00 até 18:00)
+  const gerarHorariosAvaliacao = () => {
+    const horarios = [];
+    for (let h = 8; h <= 17; h++) {
+      horarios.push(`${h.toString().padStart(2, '0')}:00`);
+      horarios.push(`${h.toString().padStart(2, '0')}:15`);
+      horarios.push(`${h.toString().padStart(2, '0')}:30`);
+      horarios.push(`${h.toString().padStart(2, '0')}:45`);
+    }
+    horarios.push('18:00'); // Último horário
+    return horarios;
+  };
+
   // Obter horário do profissional para a data selecionada (considerando exceções)
    const getHorarioProfissional = (profissional) => {
      const dataFormatada = dataAtual.toISOString().split('T')[0];
@@ -203,6 +216,7 @@ export default function AgendaDiaView({
   };
 
   const todosHorarios = gerarTodosHorarios();
+  const horariosAvaliacao = gerarHorariosAvaliacao();
 
   // Verificar se um horário já passou (horário de Brasília)
   const horarioJaPassou = (horario) => {
@@ -702,7 +716,7 @@ export default function AgendaDiaView({
             {/* Coluna de Avaliação */}
             {mostrarColunaAvaliacao && (
               <div className="w-[160px] md:w-[280px] flex-shrink-0 border-r border-gray-200 bg-purple-50/30">
-                {todosHorarios.map((horario, idx) => {
+                {horariosAvaliacao.map((horario, idx) => {
                   const horarioPassou = horarioJaPassou(horario);
                   
                   // Buscar agendamentos de avaliação neste horário
@@ -730,7 +744,7 @@ export default function AgendaDiaView({
                           <div className="text-[8px] md:text-[10px] text-gray-500">FECHADO</div>
                         </div>
                       ) : !isOcupado ? (
-                        isVendedor ? (
+                        (isVendedor || isAdmin) ? (
                           <SlotMenu
                             open={isMenuAberto}
                             onOpenChange={(open) => {
@@ -738,7 +752,13 @@ export default function AgendaDiaView({
                             }}
                             onNovoAgendamento={() => {
                               // Criar agendamento de avaliação sem profissional específico
-                              onNovoAgendamento(unidadeSelecionada.id, null, horario, "avaliacao");
+                              // Calcular hora_fim (15 minutos depois)
+                              const [h, m] = horario.split(':').map(Number);
+                              const totalMinutos = h * 60 + m + 15;
+                              const horaFimH = Math.floor(totalMinutos / 60);
+                              const horaFimM = totalMinutos % 60;
+                              const horaFim = `${horaFimH.toString().padStart(2, '0')}:${horaFimM.toString().padStart(2, '0')}`;
+                              onNovoAgendamento(unidadeSelecionada.id, null, horario, "avaliacao", horaFim);
                             }}
                             onBloquearHorario={null}
                             isAdmin={false}

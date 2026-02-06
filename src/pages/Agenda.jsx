@@ -615,7 +615,7 @@ export default function AgendaPage() {
     setDialogNovoAberto(true);
   };
 
-  const handleNovoAgendamentoSlot = (unidadeId, profissionalId, horario, tipo = null) => {
+  const handleNovoAgendamentoSlot = (unidadeId, profissionalId, horario, tipo = null, horaFim = null) => {
     const dataFormatada = formatarDataPura(dataAtual);
     
     // Se for coluna de avaliação, não verificar profissional
@@ -655,8 +655,14 @@ export default function AgendaPage() {
     const unidade = unidades.find(u => u.id === unidadeId);
     const profissional = profissionais.find(p => p.id === profissionalId);
     
-    const [hora, minuto] = horario.split(':').map(Number);
-    const horaFim = `${(hora + 1).toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
+    // Se horaFim não foi passada, calcular 1 hora depois
+    let horaFimCalculada;
+    if (horaFim) {
+      horaFimCalculada = horaFim;
+    } else {
+      const [hora, minuto] = horario.split(':').map(Number);
+      horaFimCalculada = `${(hora + 1).toString().padStart(2, '0')}:${minuto.toString().padStart(2, '0')}`;
+    }
     
     console.log("🆕 NOVO AGENDAMENTO SLOT:", dataFormatada, horario);
     
@@ -665,7 +671,7 @@ export default function AgendaPage() {
       unidade_nome: unidade?.nome || "",
       data: dataFormatada,
       hora_inicio: horario,
-      hora_fim: horaFim
+      hora_fim: horaFimCalculada
     };
 
     // Se for avaliação, não incluir profissional
