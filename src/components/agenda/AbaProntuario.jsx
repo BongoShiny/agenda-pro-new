@@ -476,6 +476,155 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
             <p className="text-sm text-green-800 font-medium">✅ Prontuário já preenchido para este agendamento</p>
           </div>
 
+          {prontuariosAnteriores.length > 0 && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <Button
+                onClick={() => setMostrarAnteriores(!mostrarAnteriores)}
+                variant="outline"
+                className="w-full border-blue-300 text-blue-700 hover:bg-blue-100"
+              >
+                <History className="w-4 h-4 mr-2" />
+                {mostrarAnteriores ? 'Ocultar' : 'Ver'} Prontuários Anteriores ({prontuariosAnteriores.length})
+              </Button>
+
+              {mostrarAnteriores && (
+                <div className="mt-4 space-y-4">
+                  {prontuariosAnteriores.map((prontuarioAntigo, idx) => (
+                    <div key={prontuarioAntigo.id} className="border border-blue-300 rounded-lg p-4 bg-white">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">
+                            #{idx + 1}
+                          </span>
+                          <span className="text-sm font-semibold text-blue-900">
+                            📅 {format(criarDataPura(prontuarioAntigo.data_sessao), "dd/MM/yyyy", { locale: ptBR })}
+                          </span>
+                        </div>
+                        <span className="text-xs text-gray-500">
+                          Profissional: {prontuarioAntigo.profissional_nome}
+                        </span>
+                      </div>
+
+                      <div className="space-y-3 text-sm">
+                        {prontuarioAntigo.terapia_realizada && (
+                          <div className="bg-gray-50 p-2 rounded">
+                            <strong className="text-gray-700">Terapia:</strong>
+                            <p className="text-gray-600 mt-1">{prontuarioAntigo.terapia_realizada}</p>
+                          </div>
+                        )}
+
+                        {prontuarioAntigo.tecnicas_utilizadas && (
+                          <div className="bg-gray-50 p-2 rounded">
+                            <strong className="text-gray-700">Técnicas:</strong>
+                            <p className="text-gray-600 mt-1">{prontuarioAntigo.tecnicas_utilizadas}</p>
+                          </div>
+                        )}
+
+                        {prontuarioAntigo.musculos_cabeca_pescoco && (
+                          <div className="bg-gray-50 p-2 rounded">
+                            <strong className="text-gray-700">Cabeça e Pescoço:</strong>
+                            <p className="text-gray-600 mt-1">{prontuarioAntigo.musculos_cabeca_pescoco}</p>
+                          </div>
+                        )}
+
+                        {prontuarioAntigo.musculos_face_temporomandibular && (
+                          <div className="bg-gray-50 p-2 rounded">
+                            <strong className="text-gray-700">Face e ATM:</strong>
+                            <p className="text-gray-600 mt-1">{prontuarioAntigo.musculos_face_temporomandibular}</p>
+                          </div>
+                        )}
+
+                        {prontuarioAntigo.musculos_face_costas_superior && (
+                          <div className="bg-gray-50 p-2 rounded">
+                            <strong className="text-gray-700">Face e Costas Superior:</strong>
+                            <p className="text-gray-600 mt-1">{prontuarioAntigo.musculos_face_costas_superior}</p>
+                          </div>
+                        )}
+
+                        {prontuarioAntigo.musculos_ombros_bracos && (
+                          <div className="bg-gray-50 p-2 rounded">
+                            <strong className="text-gray-700">Ombros e Braços:</strong>
+                            <p className="text-gray-600 mt-1">{prontuarioAntigo.musculos_ombros_bracos}</p>
+                          </div>
+                        )}
+
+                        {prontuarioAntigo.musculos_toracica_lombar && (
+                          <div className="bg-gray-50 p-2 rounded">
+                            <strong className="text-gray-700">Torácica e Lombar:</strong>
+                            <p className="text-gray-600 mt-1">{prontuarioAntigo.musculos_toracica_lombar}</p>
+                          </div>
+                        )}
+
+                        {prontuarioAntigo.musculos_quadris_coxas && (
+                          <div className="bg-gray-50 p-2 rounded">
+                            <strong className="text-gray-700">Quadris e Coxas:</strong>
+                            <p className="text-gray-600 mt-1">{prontuarioAntigo.musculos_quadris_coxas}</p>
+                          </div>
+                        )}
+
+                        {prontuarioAntigo.musculos_panturrilhas && (
+                          <div className="bg-gray-50 p-2 rounded">
+                            <strong className="text-gray-700">Panturrilhas:</strong>
+                            <p className="text-gray-600 mt-1">{prontuarioAntigo.musculos_panturrilhas}</p>
+                          </div>
+                        )}
+
+                        {prontuarioAntigo.musculos_pes && (
+                          <div className="bg-gray-50 p-2 rounded">
+                            <strong className="text-gray-700">Pés:</strong>
+                            <p className="text-gray-600 mt-1">{prontuarioAntigo.musculos_pes}</p>
+                          </div>
+                        )}
+
+                        {prontuarioAntigo.musculos_abdomen && (
+                          <div className="bg-gray-50 p-2 rounded">
+                            <strong className="text-gray-700">Abdômen:</strong>
+                            <p className="text-gray-600 mt-1">{prontuarioAntigo.musculos_abdomen}</p>
+                          </div>
+                        )}
+
+                        {prontuarioAntigo.feedback_pre_sessao && (
+                          <div className="bg-gray-50 p-2 rounded">
+                            <strong className="text-gray-700">Feedback Pré-Sessão:</strong>
+                            <p className="text-gray-600 mt-1">{prontuarioAntigo.feedback_pre_sessao}</p>
+                          </div>
+                        )}
+
+                        {prontuarioAntigo.feedback_pos_sessao && (
+                          <div className="bg-gray-50 p-2 rounded">
+                            <strong className="text-gray-700">Feedback Pós-Sessão:</strong>
+                            <p className="text-gray-600 mt-1">{prontuarioAntigo.feedback_pos_sessao}</p>
+                          </div>
+                        )}
+
+                        {prontuarioAntigo.relato_terapeuta && (
+                          <div className="bg-gray-50 p-2 rounded">
+                            <strong className="text-gray-700">Relato do Terapeuta:</strong>
+                            <p className="text-gray-600 mt-1">{prontuarioAntigo.relato_terapeuta}</p>
+                          </div>
+                        )}
+
+                        {prontuarioAntigo.observacoes_proxima_sessao && (
+                          <div className="bg-gray-50 p-2 rounded">
+                            <strong className="text-gray-700">Observações para Próxima Sessão:</strong>
+                            <p className="text-gray-600 mt-1">{prontuarioAntigo.observacoes_proxima_sessao}</p>
+                          </div>
+                        )}
+
+                        {prontuarioAntigo.sessao_plano_terapeutico && (
+                          <div className="bg-gray-50 p-2 rounded">
+                            <strong className="text-gray-700">Sessão do Plano:</strong>
+                            <p className="text-gray-600 mt-1">{prontuarioAntigo.sessao_plano_terapeutico}</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           <div className="space-y-4">
             <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
               <Label className="text-sm font-semibold text-gray-700">TERAPIA REALIZADA:</Label>
