@@ -87,16 +87,14 @@ export default function AgendaDiaView({
     return horarios;
   };
 
-  // Gerar horários de 15 em 15 minutos para a coluna de avaliação (08:00 até 18:00)
+  // Gerar horários de 15 em 15 minutos para a coluna de avaliação (apenas :15, :30, :45)
   const gerarHorariosAvaliacao = () => {
     const horarios = [];
     for (let h = 8; h <= 17; h++) {
-      horarios.push(`${h.toString().padStart(2, '0')}:00`);
       horarios.push(`${h.toString().padStart(2, '0')}:15`);
       horarios.push(`${h.toString().padStart(2, '0')}:30`);
       horarios.push(`${h.toString().padStart(2, '0')}:45`);
     }
-    horarios.push('18:00'); // Último horário
     return horarios;
   };
 
