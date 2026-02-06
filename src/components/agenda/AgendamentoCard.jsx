@@ -52,7 +52,7 @@ const statusPacienteColors = {
   "voucher": "#000000"
 };
 
-export default function AgendamentoCard({ agendamento, onClick, onStatusChange, onStatusPacienteChange, prontuarios = [], registrosWhatsApp = [], usuarioAtual }) {
+export default function AgendamentoCard({ agendamento, onClick, onStatusChange, onStatusPacienteChange, prontuarios = [], registrosWhatsApp = [], usuarioAtual, readOnly = false }) {
   const isBloqueio = agendamento.status === "bloqueio" || agendamento.tipo === "bloqueio" || agendamento.cliente_nome === "FECHADO";
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownPacienteOpen, setDropdownPacienteOpen] = useState(false);
@@ -221,19 +221,24 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
         {/* Status dropdowns - sempre no final */}
         <div className="mt-auto pt-0.5 flex justify-between gap-1" onClick={(e) => e.stopPropagation()}>
           {/* Status do agendamento */}
-          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
-            <DropdownMenuTrigger asChild>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDropdownOpen(!dropdownOpen);
-                }}
-                className="bg-white/20 text-white border-0 text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 cursor-pointer hover:bg-white/30 transition-all flex items-center gap-0.5 rounded"
-              >
-                {statusLabels[agendamento.status] || agendamento.status}
-                <ChevronDown className="w-2.5 h-2.5" />
-              </button>
-            </DropdownMenuTrigger>
+          {readOnly ? (
+            <div className="bg-white/20 text-white border-0 text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 rounded">
+              {statusLabels[agendamento.status] || agendamento.status}
+            </div>
+          ) : (
+            <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDropdownOpen(!dropdownOpen);
+                  }}
+                  className="bg-white/20 text-white border-0 text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 cursor-pointer hover:bg-white/30 transition-all flex items-center gap-0.5 rounded"
+                >
+                  {statusLabels[agendamento.status] || agendamento.status}
+                  <ChevronDown className="w-2.5 h-2.5" />
+                </button>
+              </DropdownMenuTrigger>
             <DropdownMenuContent align="start" onClick={(e) => e.stopPropagation()} className="z-50">
               <DropdownMenuItem 
                 onClick={(e) => {
@@ -287,22 +292,31 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          )}
 
           {/* Status do paciente */}
-          <DropdownMenu open={dropdownPacienteOpen} onOpenChange={setDropdownPacienteOpen}>
-            <DropdownMenuTrigger asChild>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setDropdownPacienteOpen(!dropdownPacienteOpen);
-                }}
-                className="text-white border-0 text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 cursor-pointer hover:opacity-80 transition-all flex items-center gap-0.5 rounded"
-                style={{ backgroundColor: bgColorPaciente || 'rgba(255,255,255,0.2)' }}
-              >
-                {statusPacienteLabels[agendamento.status_paciente] || "-"}
-                <ChevronDown className="w-2.5 h-2.5" />
-              </button>
-            </DropdownMenuTrigger>
+          {readOnly ? (
+            <div 
+              className="text-white border-0 text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 rounded"
+              style={{ backgroundColor: bgColorPaciente || 'rgba(255,255,255,0.2)' }}
+            >
+              {statusPacienteLabels[agendamento.status_paciente] || "-"}
+            </div>
+          ) : (
+            <DropdownMenu open={dropdownPacienteOpen} onOpenChange={setDropdownPacienteOpen}>
+              <DropdownMenuTrigger asChild>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setDropdownPacienteOpen(!dropdownPacienteOpen);
+                  }}
+                  className="text-white border-0 text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 cursor-pointer hover:opacity-80 transition-all flex items-center gap-0.5 rounded"
+                  style={{ backgroundColor: bgColorPaciente || 'rgba(255,255,255,0.2)' }}
+                >
+                  {statusPacienteLabels[agendamento.status_paciente] || "-"}
+                  <ChevronDown className="w-2.5 h-2.5" />
+                </button>
+              </DropdownMenuTrigger>
             <DropdownMenuContent align="end" onClick={(e) => e.stopPropagation()} className="z-50">
               <DropdownMenuItem 
                 onClick={(e) => {
@@ -348,6 +362,7 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          )}
         </div>
         </div>
       </Card>
