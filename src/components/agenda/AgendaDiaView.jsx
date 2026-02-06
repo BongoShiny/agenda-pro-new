@@ -826,7 +826,14 @@ export default function AgendaDiaView({
                         )
                       ) : (
                         avaliacoesSlot.map(agendamento => {
-                          const duracaoHoras = calcularDuracaoSlots(agendamento.hora_inicio, agendamento.hora_fim);
+                          // Calcular duração em horas (15 minutos = 0.25 horas)
+                          const [hInicio, mInicio] = agendamento.hora_inicio.split(':').map(Number);
+                          const [hFim, mFim] = agendamento.hora_fim.split(':').map(Number);
+                          const minutosInicio = hInicio * 60 + mInicio;
+                          const minutosFim = hFim * 60 + mFim;
+                          const diferencaMinutos = minutosFim - minutosInicio;
+                          const duracaoHoras = diferencaMinutos / 60;
+                          
                           const alturaStyle = {
                             '--duracao-horas': duracaoHoras,
                             height: `calc(${duracaoHoras} * 4rem)`,
