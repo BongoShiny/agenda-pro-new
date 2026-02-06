@@ -970,84 +970,82 @@ export default function NovoAgendamentoDialog({
           </div>
 
           {!isAvaliacao && (
-            <div className="space-y-2">
-              <Label>Valor Combinado</Label>
-            <Input
-              type="number"
-              step="0.01"
-              placeholder="R$ 0,00"
-              value={formData.valor_combinado || ""}
-              onChange={(e) => setFormData(prev => ({ 
-                ...prev, 
-                valor_combinado: e.target.value ? parseFloat(e.target.value) : null 
-              }))}
-            />
-          </div>
+            <>
+              <div className="space-y-2">
+                <Label>Valor Combinado</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="R$ 0,00"
+                  value={formData.valor_combinado || ""}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    valor_combinado: e.target.value ? parseFloat(e.target.value) : null 
+                  }))}
+                />
+              </div>
 
-          <div className="space-y-2">
-            <Label>Sinal</Label>
-            <Input
-              type="number"
-              step="0.01"
-              placeholder="R$ 0,00"
-              value={formData.sinal || ""}
-              onChange={(e) => setFormData(prev => ({ 
-                ...prev, 
-                sinal: e.target.value ? parseFloat(e.target.value) : null 
-              }))}
-            />
-            </div>
-          )}
+              <div className="space-y-2">
+                <Label>Sinal</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="R$ 0,00"
+                  value={formData.sinal || ""}
+                  onChange={(e) => setFormData(prev => ({ 
+                    ...prev, 
+                    sinal: e.target.value ? parseFloat(e.target.value) : null 
+                  }))}
+                />
+              </div>
 
-          {!isAvaliacao && (
-            <div className="space-y-2">
-              <Label>Falta Quanto</Label>
-            <Input
-              type="text"
-              placeholder="R$ 0,00"
-              value={
-                formData.falta_quanto > 0 
-                  ? `R$ ${formData.falta_quanto.toFixed(2)}` 
-                  : formData.falta_quanto < 0 
-                    ? `PAGO A MAIS R$${Math.abs(formData.falta_quanto).toFixed(2)}`
-                    : "R$ 0,00"
-              }
-              readOnly
-              className="bg-gray-100"
-            />
-            </div>
-          )}
+              <div className="space-y-2">
+                <Label>Falta Quanto</Label>
+                <Input
+                  type="text"
+                  placeholder="R$ 0,00"
+                  value={
+                    formData.falta_quanto > 0 
+                      ? `R$ ${formData.falta_quanto.toFixed(2)}` 
+                      : formData.falta_quanto < 0 
+                        ? `PAGO A MAIS R$${Math.abs(formData.falta_quanto).toFixed(2)}`
+                        : "R$ 0,00"
+                  }
+                  readOnly
+                  className="bg-gray-100"
+                />
+              </div>
 
-          {!isAvaliacao && (
-            <div className="col-span-2 space-y-3">
-              <Label>Anexar Comprovantes (até 5)</Label>
-            <div className="grid grid-cols-5 gap-3">
-              {[1, 2, 3, 4, 5].map(num => (
-                <div key={num}>
-                  <Label className="text-xs text-gray-500">Comprovante {num}</Label>
-                  <Input
-                    type="file"
-                    accept="image/*,application/pdf"
-                    onChange={(e) => handleFileUpload(e, num)}
-                    disabled={uploadingFile === num}
-                  />
-                  {uploadingFile === num && (
-                    <p className="text-xs text-blue-600 mt-1">Enviando...</p>
-                  )}
-                  {formData[`comprovante_${num}`] && (
-                    <Button
-                      type="button"
-                      variant="link"
-                      className="text-xs p-0 h-auto mt-1"
-                      onClick={() => window.open(formData[`comprovante_${num}`], '_blank')}
-                    >
-                      Ver comprovante {num}
-                    </Button>
-                  )}
+              <div className="col-span-2 space-y-3">
+                <Label>Anexar Comprovantes (até 5)</Label>
+                <div className="grid grid-cols-5 gap-3">
+                  {[1, 2, 3, 4, 5].map(num => (
+                    <div key={num}>
+                      <Label className="text-xs text-gray-500">Comprovante {num}</Label>
+                      <Input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        onChange={(e) => handleFileUpload(e, num)}
+                        disabled={uploadingFile === num}
+                      />
+                      {uploadingFile === num && (
+                        <p className="text-xs text-blue-600 mt-1">Enviando...</p>
+                      )}
+                      {formData[`comprovante_${num}`] && (
+                        <Button
+                          type="button"
+                          variant="link"
+                          className="text-xs p-0 h-auto mt-1"
+                          onClick={() => window.open(formData[`comprovante_${num}`], '_blank')}
+                        >
+                          Ver comprovante {num}
+                        </Button>
+                      )}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-            </div>
+              </div>
+            </>
           )}
 
           <div className="col-span-2 space-y-2">
