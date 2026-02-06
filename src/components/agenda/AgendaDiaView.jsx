@@ -31,6 +31,7 @@ export default function AgendaDiaView({
   prontuarios = [],
   registrosWhatsApp = []
 }) {
+  const [visualizacao, setVisualizacao] = React.useState("terapeutas"); // "terapeutas" ou "avaliacoes"
 
   // Buscar configurações de sábado
    const { data: configuracoesSabado = [] } = useQuery({
@@ -392,6 +393,35 @@ export default function AgendaDiaView({
 
   return (
         <div className="flex-1 bg-gray-50 relative flex flex-col overflow-hidden">
+          {/* Toggle de Visualização */}
+          {mostrarColunaAvaliacao && (
+            <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-2">
+              <span className="text-sm font-medium text-gray-700">Visualizar:</span>
+              <div className="flex bg-gray-100 rounded-lg p-1">
+                <button
+                  onClick={() => setVisualizacao("terapeutas")}
+                  className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                    visualizacao === "terapeutas"
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  👨‍⚕️ Terapeutas
+                </button>
+                <button
+                  onClick={() => setVisualizacao("avaliacoes")}
+                  className={`px-4 py-1.5 text-sm font-medium rounded-md transition-colors ${
+                    visualizacao === "avaliacoes"
+                      ? "bg-purple-600 text-white"
+                      : "text-gray-600 hover:text-gray-900"
+                  }`}
+                >
+                  📋 Avaliações
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="border-b border-gray-200 bg-white sticky top-0 z-10 flex">
             <div className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200 bg-white"></div>
             <div 
@@ -399,7 +429,7 @@ export default function AgendaDiaView({
               className="flex-1 overflow-x-hidden"
             >
               <div className="flex min-w-max">
-                {terapeutasAtivos.map(terapeuta => {
+                {visualizacao === "terapeutas" && terapeutasAtivos.map(terapeuta => {
                   const horarioTerapeuta = getHorarioProfissional(terapeuta);
                   return (
                     <div key={terapeuta.id} className="w-[160px] md:w-[280px] flex-shrink-0 p-2 md:p-3 border-r border-gray-200 last:border-r-0">
@@ -431,7 +461,7 @@ export default function AgendaDiaView({
                     </div>
                   );
                 })}
-                {mostrarColunaAvaliacao && (
+                {visualizacao === "avaliacoes" && mostrarColunaAvaliacao && (
                   <div className="w-[160px] md:w-[280px] flex-shrink-0 p-2 md:p-3 border-r border-gray-200 bg-purple-50">
                     <div className="flex items-center justify-center gap-1 md:gap-2">
                       <div className="text-xs md:text-sm font-bold text-purple-900 truncate text-center">AVALIAÇÃO</div>
@@ -448,10 +478,18 @@ export default function AgendaDiaView({
               ref={horariosScrollRef}
               className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200 bg-gray-50 overflow-hidden"
             >
-              {todosHorarios.map((horario) => (
+              {visualizacao === "terapeutas" && todosHorarios.map((horario) => (
                 <div
                   key={horario}
                   className="h-16 md:h-20 flex items-start justify-center pt-1 text-[10px] md:text-xs text-gray-600 font-semibold border-b border-gray-200 bg-gray-50"
+                >
+                  {horario}
+                </div>
+              ))}
+              {visualizacao === "avaliacoes" && horariosAvaliacao.map((horario) => (
+                <div
+                  key={horario}
+                  className="h-16 md:h-20 flex items-start justify-center pt-1 text-[10px] md:text-xs text-gray-600 font-semibold border-b border-gray-200 bg-purple-50"
                 >
                   {horario}
                 </div>
@@ -464,7 +502,7 @@ export default function AgendaDiaView({
               className="flex-1 overflow-x-auto overflow-y-auto"
             >
           <div className="flex min-w-max">
-            {terapeutasAtivos.map(terapeuta => (
+            {visualizacao === "terapeutas" && terapeutasAtivos.map(terapeuta => (
               <div key={terapeuta.id} className="w-[160px] md:w-[280px] flex-shrink-0 border-r border-gray-200">
                 {todosHorarios.map((horario, idx) => {
                   const dentroDoHorario = horarioDentroDoPeriodo(horario, terapeuta);
@@ -714,7 +752,7 @@ export default function AgendaDiaView({
             ))}
             
             {/* Coluna de Avaliação */}
-            {mostrarColunaAvaliacao && (
+            {visualizacao === "avaliacoes" && mostrarColunaAvaliacao && (
               <div className="w-[160px] md:w-[280px] flex-shrink-0 border-r border-gray-200 bg-purple-50/30">
                 {horariosAvaliacao.map((horario, idx) => {
                   const horarioPassou = horarioJaPassou(horario);
