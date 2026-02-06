@@ -224,16 +224,16 @@ export default function AgendaDiaView({
     return horarioSlot < horarioAgora;
   };
 
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
+  const isVendedor = usuarioAtual?.cargo === "vendedor";
+  const isRecepcao = usuarioAtual?.cargo === "recepcao";
+  const mostrarColunaAvaliacao = isVendedor || isRecepcao || isAdmin;
+
   const terapeutasAtivos = configuracoes
     .filter(config => config.unidade_id === unidadeSelecionada.id && config.ativo)
     .sort((a, b) => (a.ordem || 0) - (b.ordem || 0))
     .map(config => profissionais.find(p => p.id === config.profissional_id))
     .filter(Boolean);
-
-  // Verificar se deve mostrar coluna de avaliação (vendedor ou recepção)
-  const isVendedor = usuarioAtual?.cargo === "vendedor";
-  const isRecepcao = usuarioAtual?.cargo === "recepcao";
-  const mostrarColunaAvaliacao = isVendedor || isRecepcao || isAdmin;
 
   const getAgendamentosParaSlot = (profissionalId, horario) => {
     // Retornar apenas agendamentos que INICIAM neste horário
@@ -364,8 +364,6 @@ export default function AgendaDiaView({
   const handleSlotClick = (unidadeId, profissionalId, horario) => {
     setSlotMenuAberto({ unidadeId, profissionalId, horario });
   };
-
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
 
   if (terapeutasAtivos.length === 0) {
     return (
