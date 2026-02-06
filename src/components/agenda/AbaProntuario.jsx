@@ -58,6 +58,24 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
      enabled: !!agendamento?.id
    });
 
+  // Buscar prontuários anteriores do mesmo cliente
+  const { data: prontuariosAnteriores = [] } = useQuery({
+    queryKey: ['prontuarios-anteriores', agendamento.cliente_id],
+    queryFn: async () => {
+      if (!agendamento.cliente_id) return [];
+      const prontuarios = await base44.entities.Prontuario.filter({
+        cliente_id: agendamento.cliente_id
+      });
+      // Filtrar prontuários anteriores (excluir o atual e ordenar por data)
+      return prontuarios
+        .filter(p => p.agendamento_id !== agendamento.id)
+        .sort((a, b) => new Date(b.data_sessao) - new Date(a.data_sessao));
+    },
+    enabled: !!agendamento?.cliente_id
+  });
+
+  const [mostrarAnteriores, setMostrarAnteriores] = useState(false);
+
   // Atualizar estado quando prontuario existente mudar
   React.useEffect(() => {
     if (prontuarioExistente) {
