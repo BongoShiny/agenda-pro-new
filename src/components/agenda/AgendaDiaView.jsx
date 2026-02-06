@@ -838,24 +838,28 @@ export default function AgendaDiaView({
                         )
                       ) : (
                         avaliacoesSlot.map(agendamento => {
-                          // Calcular duração em horas (15 minutos = 0.25 horas)
+                          // Calcular duração em slots de 15 minutos
                           const [hInicio, mInicio] = agendamento.hora_inicio.split(':').map(Number);
                           const [hFim, mFim] = agendamento.hora_fim.split(':').map(Number);
                           const minutosInicio = hInicio * 60 + mInicio;
                           const minutosFim = hFim * 60 + mFim;
                           const diferencaMinutos = minutosFim - minutosInicio;
-                          const duracaoHoras = diferencaMinutos / 60;
+                          const numeroSlots = diferencaMinutos / 15; // Quantos slots de 15 minutos
                           
+                          // Altura base de cada slot: 4rem mobile, 5rem desktop
                           const alturaStyle = {
-                            '--duracao-horas': duracaoHoras,
-                            height: `calc(${duracaoHoras} * 4rem)`,
+                            height: `calc(${numeroSlots} * 4rem)`, // Mobile
                           };
 
                           return (
                             <div
                               key={agendamento.id}
                               style={alturaStyle}
-                              className="absolute inset-x-0.5 md:inset-x-1 z-10 top-0 md:!h-[calc(var(--duracao-horas)*5rem)]"
+                              className="absolute inset-x-0.5 md:inset-x-1 z-10 top-0 md:!h-[calc(var(--numero-slots)*5rem)]"
+                              style={{
+                                '--numero-slots': numeroSlots,
+                                height: `calc(${numeroSlots} * 4rem)`,
+                              }}
                             >
                               <AgendamentoCard
                                 agendamento={agendamento}
