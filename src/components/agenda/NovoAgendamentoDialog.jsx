@@ -996,10 +996,12 @@ export default function NovoAgendamentoDialog({
                 sinal: e.target.value ? parseFloat(e.target.value) : null 
               }))}
             />
-          </div>
+            </div>
+          )}
 
-          <div className="space-y-2">
-            <Label>Falta Quanto</Label>
+          {!isAvaliacao && (
+            <div className="space-y-2">
+              <Label>Falta Quanto</Label>
             <Input
               type="text"
               placeholder="R$ 0,00"
@@ -1013,10 +1015,12 @@ export default function NovoAgendamentoDialog({
               readOnly
               className="bg-gray-100"
             />
-          </div>
+            </div>
+          )}
 
-          <div className="col-span-2 space-y-3">
-            <Label>Anexar Comprovantes (até 5)</Label>
+          {!isAvaliacao && (
+            <div className="col-span-2 space-y-3">
+              <Label>Anexar Comprovantes (até 5)</Label>
             <div className="grid grid-cols-5 gap-3">
               {[1, 2, 3, 4, 5].map(num => (
                 <div key={num}>
@@ -1043,7 +1047,8 @@ export default function NovoAgendamentoDialog({
                 </div>
               ))}
             </div>
-          </div>
+            </div>
+          )}
 
           <div className="col-span-2 space-y-2">
             <Label>Observações</Label>
