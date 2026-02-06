@@ -681,10 +681,10 @@ export default function NovoAgendamentoDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>{isAvaliacao ? "Recepção *" : "Profissional *"}</Label>
+            <Label>Profissional *</Label>
             <Select value={formData.profissional_id} onValueChange={handleProfissionalChange} disabled={!formData.unidade_id}>
               <SelectTrigger>
-                <SelectValue placeholder={formData.unidade_id ? (isAvaliacao ? "Selecione a recepção" : "Selecione o profissional") : "Selecione uma unidade primeiro"} />
+                <SelectValue placeholder={formData.unidade_id ? "Selecione o profissional" : "Selecione uma unidade primeiro"} />
               </SelectTrigger>
               <SelectContent>
                 {profissionaisFiltrados.map(prof => (
