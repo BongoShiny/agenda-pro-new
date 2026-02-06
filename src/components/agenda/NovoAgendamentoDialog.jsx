@@ -166,6 +166,8 @@ export default function NovoAgendamentoDialog({
     retry: false,
   });
 
+  const isAvaliacao = agendamentoInicial?.tipo === "avaliacao";
+
   useEffect(() => {
     if (open) {
       try {
@@ -416,6 +418,18 @@ export default function NovoAgendamentoDialog({
          servico_nome: formData.servicos_selecionados.join(" + ")
        };
 
+       // Se for avaliação, forçar valores específicos
+       if (isAvaliacao) {
+         dataToSave.tipo = "avaliacao";
+         dataToSave.status_paciente = "paciente_novo";
+         dataToSave.valor_combinado = 0;
+         dataToSave.sinal = 0;
+         dataToSave.falta_quanto = 0;
+         dataToSave.forma_pagamento = "-";
+         dataToSave.servico_id = "";
+         dataToSave.servico_nome = "Avaliação";
+       }
+
        // Garantir que o telefone está presente
        if (!dataToSave.cliente_telefone && formData.cliente_id) {
          const cliente = clientes.find(c => c.id === formData.cliente_id);
@@ -559,7 +573,9 @@ export default function NovoAgendamentoDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{modoEdicao ? "Editar Agendamento" : "Novo Agendamento"}</DialogTitle>
+          <DialogTitle>
+            {modoEdicao ? "Editar Agendamento" : (isAvaliacao ? "Nova Avaliação" : "Novo Agendamento")}
+          </DialogTitle>
         </DialogHeader>
 
         <div className="grid grid-cols-2 gap-4 py-4">
@@ -644,10 +660,10 @@ export default function NovoAgendamentoDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Profissional *</Label>
+            <Label>{isAvaliacao ? "Recepção *" : "Profissional *"}</Label>
             <Select value={formData.profissional_id} onValueChange={handleProfissionalChange} disabled={!formData.unidade_id}>
               <SelectTrigger>
-                <SelectValue placeholder={formData.unidade_id ? "Selecione o profissional" : "Selecione uma unidade primeiro"} />
+                <SelectValue placeholder={formData.unidade_id ? (isAvaliacao ? "Selecione a recepção" : "Selecione o profissional") : "Selecione uma unidade primeiro"} />
               </SelectTrigger>
               <SelectContent>
                 {profissionaisFiltrados.map(prof => (
@@ -657,8 +673,9 @@ export default function NovoAgendamentoDialog({
             </Select>
           </div>
 
-          <div className="space-y-2 col-span-2">
-            <Label>Serviço(s) *</Label>
+          {!isAvaliacao && (
+            <div className="space-y-2 col-span-2">
+              <Label>Serviço(s) *</Label>
             <Select onValueChange={handleServicoChange} value="">
               <SelectTrigger>
                 <SelectValue placeholder="Clique para adicionar serviço" />
@@ -693,9 +710,8 @@ export default function NovoAgendamentoDialog({
                 </div>
               </div>
             )}
-          </div>
-
-
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label>Data *</Label>
@@ -750,36 +766,38 @@ export default function NovoAgendamentoDialog({
             </Select>
           </div>
 
-          <div className="space-y-2">
-             <Label>Tipo *</Label>
-             <Select 
-               value={formData.tipo} 
-               onValueChange={(value) => {
-                 setFormData(prev => ({ 
-                   ...prev, 
-                   tipo: value,
-                   cliente_pacote: value === "plano_terapeutico" ? "Sim" : prev.cliente_pacote
-                 }));
-               }}
-             >
-               <SelectTrigger>
-                 <SelectValue placeholder="Selecione o tipo..." />
-               </SelectTrigger>
-               <SelectContent>
-                 <SelectItem value="consulta">Consulta</SelectItem>
-                 <SelectItem value="plano_terapeutico">Plano Terapêutico</SelectItem>
-                 <SelectItem value="avaliacao">Avaliação</SelectItem>
-                 <SelectItem value="avulso">Avulso</SelectItem>
-                 <SelectItem value="funcionario">Funcionário</SelectItem>
-                 <SelectItem value="pacote_outro_cliente">Plano Terapêutico de Outro Cliente</SelectItem>
-                 <SelectItem value="primeira_sessao_pacote">Primeira Sessão do Plano</SelectItem>
-                 <SelectItem value="ultima_sessao_pacote">Última Sessão do Plano</SelectItem>
-                 <SelectItem value="voucher">Voucher</SelectItem>
-               </SelectContent>
-             </Select>
-           </div>
+          {!isAvaliacao && (
+            <div className="space-y-2">
+              <Label>Tipo *</Label>
+              <Select 
+                value={formData.tipo} 
+                onValueChange={(value) => {
+                  setFormData(prev => ({ 
+                    ...prev, 
+                    tipo: value,
+                    cliente_pacote: value === "plano_terapeutico" ? "Sim" : prev.cliente_pacote
+                  }));
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione o tipo..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="consulta">Consulta</SelectItem>
+                  <SelectItem value="plano_terapeutico">Plano Terapêutico</SelectItem>
+                  <SelectItem value="avaliacao">Avaliação</SelectItem>
+                  <SelectItem value="avulso">Avulso</SelectItem>
+                  <SelectItem value="funcionario">Funcionário</SelectItem>
+                  <SelectItem value="pacote_outro_cliente">Plano Terapêutico de Outro Cliente</SelectItem>
+                  <SelectItem value="primeira_sessao_pacote">Primeira Sessão do Plano</SelectItem>
+                  <SelectItem value="ultima_sessao_pacote">Última Sessão do Plano</SelectItem>
+                  <SelectItem value="voucher">Voucher</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-           {formData.tipo === "plano_terapeutico" && (
+           {!isAvaliacao && formData.tipo === "plano_terapeutico" && (
              <>
                <div className="space-y-2">
                  <Label>Cliente tem Plano Terapêutico?</Label>
@@ -799,7 +817,7 @@ export default function NovoAgendamentoDialog({
              </>
            )}
 
-           {formData.tipo === "plano_terapeutico" && formData.cliente_pacote === "Sim" && (
+           {!isAvaliacao && formData.tipo === "plano_terapeutico" && formData.cliente_pacote === "Sim" && (
             <>
               <div className="space-y-2">
                 <Label>Quantas Sessões (total do plano)</Label>
@@ -844,24 +862,27 @@ export default function NovoAgendamentoDialog({
             </>
           )}
 
-          <div className="space-y-2">
-            <Label>Status do Paciente</Label>
-            <Select value={formData.status_paciente || ""} onValueChange={(value) => setFormData(prev => ({ ...prev, status_paciente: value }))}>
-              <SelectTrigger>
-                <SelectValue placeholder="Selecione..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={null}>-</SelectItem>
-                <SelectItem value="paciente_novo">Paciente Novo</SelectItem>
-                <SelectItem value="primeira_sessao">Primeira Sessão</SelectItem>
-                <SelectItem value="ultima_sessao">Última Sessão</SelectItem>
-                <SelectItem value="voucher" className="bg-black text-white font-semibold">Voucher</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {!isAvaliacao && (
+            <div className="space-y-2">
+              <Label>Status do Paciente</Label>
+              <Select value={formData.status_paciente || ""} onValueChange={(value) => setFormData(prev => ({ ...prev, status_paciente: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={null}>-</SelectItem>
+                  <SelectItem value="paciente_novo">Paciente Novo</SelectItem>
+                  <SelectItem value="primeira_sessao">Primeira Sessão</SelectItem>
+                  <SelectItem value="ultima_sessao">Última Sessão</SelectItem>
+                  <SelectItem value="voucher" className="bg-black text-white font-semibold">Voucher</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-          <div className="space-y-2">
-            <Label>Forma de Pagamento</Label>
+          {!isAvaliacao && (
+            <div className="space-y-2">
+              <Label>Forma de Pagamento</Label>
             <Select value={formData.forma_pagamento || "-"} onValueChange={(value) => setFormData(prev => ({ ...prev, forma_pagamento: value, parcelas: null }))}>
               <SelectTrigger>
                 <SelectValue />
@@ -877,9 +898,10 @@ export default function NovoAgendamentoDialog({
                 <SelectItem value="boleto">📄 Boleto</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+            </div>
+          )}
 
-          {(formData.forma_pagamento === "cartao_credito" || formData.forma_pagamento === "boleto" || formData.forma_pagamento === "link_pagamento") && (
+          {!isAvaliacao && (formData.forma_pagamento === "cartao_credito" || formData.forma_pagamento === "boleto" || formData.forma_pagamento === "link_pagamento") && (
             <div className="space-y-2">
               <Label>Em quantas vezes?</Label>
               <Input
@@ -918,7 +940,7 @@ export default function NovoAgendamentoDialog({
           </div>
 
           <div className="space-y-2">
-            <Label>Data do Pagamento {formData.vendedor_id && <span className="text-red-600">*</span>}</Label>
+            <Label>{isAvaliacao ? "Data Confirmada" : "Data do Pagamento"} {formData.vendedor_id && <span className="text-red-600">*</span>}</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button variant="outline" className="w-full justify-start">
@@ -947,8 +969,9 @@ export default function NovoAgendamentoDialog({
             )}
           </div>
 
-          <div className="space-y-2">
-            <Label>Valor Combinado</Label>
+          {!isAvaliacao && (
+            <div className="space-y-2">
+              <Label>Valor Combinado</Label>
             <Input
               type="number"
               step="0.01"
@@ -1032,48 +1055,57 @@ export default function NovoAgendamentoDialog({
             />
           </div>
 
-          <div className="col-span-2 space-y-2">
-            <Label>Observações Vendedores</Label>
+          {!isAvaliacao && (
+            <div className="col-span-2 space-y-2">
+              <Label>Observações Vendedores</Label>
             <Textarea
               value={formData.observacoes_vendedores || ""}
               onChange={(e) => setFormData(prev => ({ ...prev, observacoes_vendedores: e.target.value }))}
               placeholder="Observações exclusivas dos vendedores"
               rows={2}
             />
-          </div>
+            </div>
+          )}
 
-          <div className="col-span-2 space-y-2">
-            <Label>Observações Terapeuta</Label>
+          {!isAvaliacao && (
+            <div className="col-span-2 space-y-2">
+              <Label>Observações Terapeuta</Label>
             <Textarea
               value={formData.observacoes_terapeuta || ""}
               onChange={(e) => setFormData(prev => ({ ...prev, observacoes_terapeuta: e.target.value }))}
               placeholder="Observações exclusivas do terapeuta"
               rows={2}
             />
-          </div>
+            </div>
+          )}
 
-          <div className="col-span-2 space-y-2">
-            <Label>Observações Recepcionista</Label>
+          {!isAvaliacao && (
+            <div className="col-span-2 space-y-2">
+              <Label>Observações Recepcionista</Label>
             <Textarea
               value={formData.observacoes_recepcionista || ""}
               onChange={(e) => setFormData(prev => ({ ...prev, observacoes_recepcionista: e.target.value }))}
               placeholder="Observações exclusivas da recepcionista"
               rows={2}
             />
-          </div>
+            </div>
+          )}
 
-          <div className="col-span-2 space-y-2">
-            <Label>Observações Pós Venda</Label>
+          {!isAvaliacao && (
+            <div className="col-span-2 space-y-2">
+              <Label>Observações Pós Venda</Label>
             <Textarea
               value={formData.observacoes_pos_venda || ""}
               onChange={(e) => setFormData(prev => ({ ...prev, observacoes_pos_venda: e.target.value }))}
               placeholder="Observações exclusivas do pós venda"
               rows={2}
             />
-          </div>
+            </div>
+          )}
 
-          <div className="col-span-2 space-y-2">
-            <Label>Health Score do Cliente</Label>
+          {!isAvaliacao && (
+            <div className="col-span-2 space-y-2">
+              <Label>Health Score do Cliente</Label>
             <Select value={formData.health_score || ""} onValueChange={(value) => setFormData(prev => ({ ...prev, health_score: value }))}>
               <SelectTrigger>
                 <SelectValue placeholder="Selecione..." />
@@ -1086,7 +1118,8 @@ export default function NovoAgendamentoDialog({
                 <SelectItem value="satisfeito">😁 SATISFEITO</SelectItem>
               </SelectContent>
             </Select>
-          </div>
+            </div>
+          )}
         </div>
 
         {erroHorarioFechado && (
@@ -1176,7 +1209,14 @@ export default function NovoAgendamentoDialog({
           </Button>
           <Button 
             onClick={handleSubmit}
-            disabled={!formData.cliente_nome || !formData.profissional_id || !formData.unidade_id || formData.servicos_selecionados.length === 0 || !formData.tipo || (formData.vendedor_id && !formData.data_pagamento)}
+            disabled={
+              !formData.cliente_nome || 
+              !formData.profissional_id || 
+              !formData.unidade_id || 
+              (!isAvaliacao && formData.servicos_selecionados.length === 0) || 
+              (!isAvaliacao && !formData.tipo) || 
+              (formData.vendedor_id && !formData.data_pagamento)
+            }
             className="bg-blue-600 hover:bg-blue-700"
           >
             {modoEdicao ? "Salvar Alterações" : "Salvar Agendamento"}

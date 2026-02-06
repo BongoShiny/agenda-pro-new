@@ -7,7 +7,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Plus, Ban } from "lucide-react";
 
-export default function SlotMenu({ open, onOpenChange, onNovoAgendamento, onBloquearHorario, children, isAdmin }) {
+export default function SlotMenu({ open, onOpenChange, onNovoAgendamento, onBloquearHorario, children, isAdmin, textoAgendar = "Novo Agendamento" }) {
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverTrigger asChild>
@@ -24,7 +24,7 @@ export default function SlotMenu({ open, onOpenChange, onNovoAgendamento, onBloq
             }}
           >
             <Plus className="w-4 h-4 mr-2 text-blue-600" />
-            Novo Agendamento
+            {textoAgendar}
           </Button>
           
           {isAdmin && (
