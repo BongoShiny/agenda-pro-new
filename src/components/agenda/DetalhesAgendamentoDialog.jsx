@@ -345,6 +345,47 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               </div>
             )}
 
+            {usuarioAtual?.cargo !== "funcionario" && (
+              <div className="bg-purple-50 border border-purple-200 rounded-lg p-4 mt-4">
+                <div className="flex items-center gap-2 mb-3">
+                  <Package className="w-5 h-5 text-purple-600" />
+                  <h4 className="font-semibold text-purple-900">Informações do Pacote</h4>
+                </div>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm text-purple-700">Cliente tem pacote:</span>
+                    <span className="font-medium text-purple-900">
+                      {agendamento.cliente_pacote === "Sim" ? "Sim" : "Não"}
+                    </span>
+                  </div>
+                  {agendamento.cliente_pacote === "Sim" && (
+                    <>
+                      {agendamento.quantas_sessoes && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-purple-700">Total de sessões:</span>
+                          <span className="font-medium text-purple-900">{agendamento.quantas_sessoes}</span>
+                        </div>
+                      )}
+                      {agendamento.sessoes_feitas !== null && agendamento.sessoes_feitas !== undefined && (
+                        <div className="flex justify-between">
+                          <span className="text-sm text-purple-700">Sessões realizadas:</span>
+                          <span className="font-medium text-purple-900">{agendamento.sessoes_feitas}</span>
+                        </div>
+                      )}
+                      {agendamento.quantas_sessoes && (agendamento.sessoes_feitas !== null && agendamento.sessoes_feitas !== undefined) && (
+                        <div className="flex justify-between border-t border-purple-300 pt-2">
+                          <span className="text-sm text-purple-700">Sessões restantes:</span>
+                          <span className="font-bold text-purple-900">
+                            {agendamento.quantas_sessoes - agendamento.sessoes_feitas}
+                          </span>
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
             <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mt-4">
               <div className="space-y-2">
                 <div className="flex items-start gap-3">
