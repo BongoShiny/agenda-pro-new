@@ -757,14 +757,20 @@ export default function AgendaDiaView({
                 {horariosAvaliacao.map((horario, idx) => {
                   const horarioPassou = horarioJaPassou(horario);
                   
-                  // Buscar agendamentos de avaliação neste horário
-                  // Para avaliações, verificar se o horário está dentro do período do agendamento
+                  // Buscar agendamentos de avaliação que INICIAM neste horário
                   const avaliacoesSlot = agendamentos.filter(ag => {
                     if (ag.unidade_id !== unidadeSelecionada.id) return false;
                     if (ag.tipo !== "avaliacao") return false;
                     if (ag.status === "cancelado") return false;
+                    return ag.hora_inicio === horario;
+                  });
+                  
+                  // Verificar se este horário está coberto por uma avaliação que começou antes
+                  const avaliacaoCobreSlot = agendamentos.find(ag => {
+                    if (ag.unidade_id !== unidadeSelecionada.id) return false;
+                    if (ag.tipo !== "avaliacao") return false;
+                    if (ag.status === "cancelado") return false;
                     
-                    // Verificar se este slot está dentro do período da avaliação
                     const [hSlot, mSlot] = horario.split(':').map(Number);
                     const minutosSlot = hSlot * 60 + mSlot;
                     
@@ -773,11 +779,11 @@ export default function AgendaDiaView({
                     const minutosInicio = hInicio * 60 + mInicio;
                     const minutosFim = hFim * 60 + mFim;
                     
-                    // Mostrar apenas no slot de início
-                    return ag.hora_inicio === horario;
+                    // Slot está coberto se está entre início (exclusive) e fim
+                    return minutosSlot > minutosInicio && minutosSlot < minutosFim;
                   });
                   
-                  const isOcupado = avaliacoesSlot.length > 0;
+                  const isOcupado = avaliacoesSlot.length > 0 || avaliacaoCobreSlot;
                   const isMenuAberto = slotMenuAberto?.unidadeId === unidadeSelecionada.id && 
                                     slotMenuAberto?.profissionalId === "avaliacao" && 
                                     slotMenuAberto?.horario === horario;
@@ -789,7 +795,13 @@ export default function AgendaDiaView({
                         idx % 2 === 0 ? 'bg-purple-50/50' : 'bg-purple-100/30'
                       }`}
                     >
-                      {horarioPassou && !isOcupado ? (
+                      {/* Se está coberto por avaliação, mostrar como ocupado */}
+                      {avaliacaoCobreSlot ? (
+                        <button
+                          className="w-full h-full cursor-pointer"
+                          onClick={() => onAgendamentoClick(avaliacaoCobreSlot)}
+                        />
+                      ) : horarioPassou && !isOcupado ? (
                         <div className="w-full h-full bg-gray-200 rounded flex items-center justify-center">
                           <div className="text-[8px] md:text-[10px] text-gray-500">FECHADO</div>
                         </div>

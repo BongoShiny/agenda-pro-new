@@ -109,6 +109,13 @@ export default function NovoAgendamentoDialog({
      initialData: [],
    });
 
+   // Buscar recepcionistas para avaliações
+   const { data: recepcionistas = [] } = useQuery({
+     queryKey: ['recepcionistas'],
+     queryFn: () => base44.entities.Recepcionista.list("nome"),
+     initialData: [],
+   });
+
    const { data: configuracoesTerapeutas = [] } = useQuery({
      queryKey: ['configuracoes-terapeutas', formData.unidade_id],
      queryFn: async () => {
@@ -128,13 +135,21 @@ export default function NovoAgendamentoDialog({
 
    // Filtrar profissionais pela unidade selecionada
    const profissionaisFiltrados = React.useMemo(() => {
+     // Se for avaliação, mostrar recepcionistas
+     if (isAvaliacao) {
+       return recepcionistas.filter(r => 
+         r.unidade_id === formData.unidade_id && r.ativo
+       );
+     }
+
+     // Para terapeutas normais
      if (!formData.unidade_id) return profissionais.filter(p => p.ativo !== false);
 
      const idsConfiguracao = configuracoesTerapeutas.map(ct => ct.profissional_id);
      return profissionais.filter(p => 
        idsConfiguracao.includes(p.id) && p.ativo !== false
      );
-   }, [profissionais, formData.unidade_id, configuracoesTerapeutas]);
+   }, [profissionais, formData.unidade_id, configuracoesTerapeutas, isAvaliacao, recepcionistas]);
 
   // Buscar pacote ativo do cliente selecionado
   const { data: pacoteCliente } = useQuery({
