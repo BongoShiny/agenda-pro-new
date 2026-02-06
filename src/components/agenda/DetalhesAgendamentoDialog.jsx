@@ -247,7 +247,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               </div>
             )}
 
-            {!isTerapia && agendamento.observacoes && (
+            {agendamento.observacoes && (
               <div className="flex items-start gap-3">
                 <FileText className="w-5 h-5 text-gray-500 mt-0.5" />
                 <div>
@@ -257,7 +257,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               </div>
             )}
 
-            {!isTerapia && agendamento.observacoes_vendedores && (
+            {agendamento.observacoes_vendedores && (
               <div className="flex items-start gap-3">
                 <FileText className="w-5 h-5 text-gray-500 mt-0.5" />
                 <div>
@@ -267,7 +267,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               </div>
             )}
 
-            {!isTerapia && agendamento.observacoes_terapeuta && (
+            {agendamento.observacoes_terapeuta && (
               <div className="flex items-start gap-3">
                 <FileText className="w-5 h-5 text-gray-500 mt-0.5" />
                 <div>
@@ -277,7 +277,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               </div>
             )}
 
-            {!isTerapia && agendamento.observacoes_recepcionista && (
+            {agendamento.observacoes_recepcionista && (
               <div className="flex items-start gap-3">
                 <FileText className="w-5 h-5 text-gray-500 mt-0.5" />
                 <div>
@@ -287,7 +287,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
               </div>
             )}
 
-            {!isTerapia && agendamento.observacoes_pos_venda && (
+            {agendamento.observacoes_pos_venda && (
               <div className="flex items-start gap-3">
                 <FileText className="w-5 h-5 text-gray-500 mt-0.5" />
                 <div>
