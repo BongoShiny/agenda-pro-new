@@ -489,7 +489,7 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <span className="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">
-                        #{idx + 1}
+                        #{prontuariosAnteriores.length - idx}
                       </span>
                       <span className="text-sm font-semibold text-blue-900">
                         📅 {format(criarDataPura(prontuarioAntigo.data_sessao), "dd/MM/yyyy", { locale: ptBR })}
