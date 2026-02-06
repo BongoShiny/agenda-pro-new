@@ -59,32 +59,6 @@ export default function HistoricoClientes() {
     initialData: [],
   });
 
-  // Verificar se usuário é superior/admin
-  const isAdmin = usuarioAtual?.cargo === "administrador" || 
-                  usuarioAtual?.cargo === "superior" || 
-                  usuarioAtual?.role === "admin" ||
-                  usuarioAtual?.cargo === "gerencia_unidades";
-
-  if (!isAdmin) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-600 text-lg font-bold mb-2">⚠️ Acesso Negado</div>
-          <p className="text-gray-600">Apenas superiores podem acessar esta página.</p>
-        </div>
-      </div>
-    );
-  }
-
-  const clientesFiltrados = clientes.filter(c => 
-    c.nome?.toLowerCase().includes(busca.toLowerCase()) ||
-    c.telefone?.includes(busca)
-  );
-
-  const handleSelecionarCliente = (cliente) => {
-    setClienteSelecionado(cliente);
-  };
-
   const atualizarClienteMutation = useMutation({
     mutationFn: async ({ clienteId, nomeAntigo, telefoneAntigo, novoNome, novoTelefone }) => {
       // Atualizar entidade Cliente
@@ -155,6 +129,32 @@ export default function HistoricoClientes() {
       navigate(createPageUrl("Administrador"));
     }
   };
+
+  // Verificar se usuário é superior/admin
+  const isAdmin = usuarioAtual?.cargo === "administrador" || 
+                  usuarioAtual?.cargo === "superior" || 
+                  usuarioAtual?.role === "admin" ||
+                  usuarioAtual?.cargo === "gerencia_unidades";
+
+  const clientesFiltrados = clientes.filter(c => 
+    c.nome?.toLowerCase().includes(busca.toLowerCase()) ||
+    c.telefone?.includes(busca)
+  );
+
+  const handleSelecionarCliente = (cliente) => {
+    setClienteSelecionado(cliente);
+  };
+
+  if (!isAdmin) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-red-600 text-lg font-bold mb-2">⚠️ Acesso Negado</div>
+          <p className="text-gray-600">Apenas superiores podem acessar esta página.</p>
+        </div>
+      </div>
+    );
+  }
 
   // Se um cliente está selecionado, mostrar histórico detalhado
   if (clienteSelecionado) {
