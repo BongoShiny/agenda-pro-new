@@ -373,7 +373,7 @@ export default function LancarVendasPage() {
                     </div>
                     <input
                       type="file"
-                      accept="image/*"
+                      accept="image/*,application/pdf"
                       onChange={handleUploadComprovante}
                       className="hidden"
                       disabled={uploadingComprovante}
@@ -477,7 +477,7 @@ export default function LancarVendasPage() {
                         </div>
                         <input
                           type="file"
-                          accept="image/*"
+                          accept="image/*,application/pdf"
                           onChange={handleUploadComprovanteEdicao}
                           className="hidden"
                           disabled={uploadingComprovante}
