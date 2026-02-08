@@ -200,7 +200,7 @@ export default function AnaliseCruzadaPage() {
         {/* Filtros */}
         <Card>
           <CardContent className="pt-6">
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label>Clínica</Label>
                 <Select value={unidadeAnalise} onValueChange={setUnidadeAnalise}>
@@ -250,59 +250,51 @@ export default function AnaliseCruzadaPage() {
         </Card>
 
         {/* KPIs */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
           <Card className="border-2 border-blue-200 bg-blue-50">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                  <Target className="w-6 h-6 text-blue-600" />
+            <CardContent className="pt-4 pb-4">
+              <div className="text-center">
+                <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-2">
+                  <Target className="w-5 h-5 text-blue-600" />
                 </div>
-                <div>
-                  <p className="text-sm text-blue-600 mb-1">TAXA MÉDIA</p>
-                  <p className="text-3xl font-bold text-blue-900">{taxaMediaGeral}%</p>
-                </div>
+                <p className="text-xs text-blue-600 mb-1">TAXA MÉDIA</p>
+                <p className="text-2xl font-bold text-blue-900">{taxaMediaGeral}%</p>
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-2 border-green-200 bg-green-50">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                  <BarChart3 className="w-6 h-6 text-green-600" />
+            <CardContent className="pt-4 pb-4">
+              <div className="text-center">
+                <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center mx-auto mb-2">
+                  <BarChart3 className="w-5 h-5 text-green-600" />
                 </div>
-                <div>
-                  <p className="text-sm text-green-600 mb-1">TOTAL ANÁLISES</p>
-                  <p className="text-3xl font-bold text-green-900">{totalAnalises}</p>
-                </div>
+                <p className="text-xs text-green-600 mb-1">TOTAL ANÁLISES</p>
+                <p className="text-2xl font-bold text-green-900">{totalAnalises}</p>
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-2 border-purple-200 bg-purple-50">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                  <TrendingUp className="w-6 h-6 text-purple-600" />
+            <CardContent className="pt-4 pb-4">
+              <div className="text-center">
+                <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center mx-auto mb-2">
+                  <TrendingUp className="w-5 h-5 text-purple-600" />
                 </div>
-                <div>
-                  <p className="text-sm text-purple-600 mb-1">CONVERSÕES</p>
-                  <p className="text-3xl font-bold text-purple-900">{totalConversoes}</p>
-                </div>
+                <p className="text-xs text-purple-600 mb-1">CONVERSÕES</p>
+                <p className="text-2xl font-bold text-purple-900">{totalConversoes}</p>
               </div>
             </CardContent>
           </Card>
 
           <Card className="border-2 border-orange-200 bg-orange-50">
-            <CardContent className="pt-6">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-                  <TrendingDown className="w-6 h-6 text-orange-600" />
+            <CardContent className="pt-4 pb-4">
+              <div className="text-center">
+                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-2">
+                  <TrendingDown className="w-5 h-5 text-orange-600" />
                 </div>
-                <div>
-                  <p className="text-sm text-orange-600 mb-1">GAPS IDENTIFICADOS</p>
-                  <p className="text-3xl font-bold text-orange-900">{todosGaps.length}</p>
-                </div>
+                <p className="text-xs text-orange-600 mb-1">GAPS</p>
+                <p className="text-2xl font-bold text-orange-900">{todosGaps.length}</p>
               </div>
             </CardContent>
           </Card>
@@ -371,8 +363,8 @@ export default function AnaliseCruzadaPage() {
         {/* Matriz Cruzada */}
         <Card>
           <CardHeader>
-            <CardTitle>Matriz Cruzada - Recepção x Terapeuta</CardTitle>
-            <div className="flex items-center gap-4 mt-2 text-xs">
+            <CardTitle className="text-base md:text-lg">Matriz Cruzada - Recepção x Terapeuta</CardTitle>
+            <div className="flex flex-wrap items-center gap-3 mt-2 text-xs">
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded bg-green-500"></div>
                 <span>Acima da média</span>
@@ -388,19 +380,19 @@ export default function AnaliseCruzadaPage() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse text-sm">
+            <div className="overflow-x-auto -mx-6 px-6">
+              <table className="w-full border-collapse text-xs md:text-sm">
                 <thead>
                   <tr>
-                    <th className="border border-gray-300 bg-gray-100 px-4 py-3 text-left font-semibold sticky left-0 z-10">
+                    <th className="border border-gray-300 bg-gray-100 px-2 py-2 md:px-4 md:py-3 text-left font-semibold sticky left-0 z-10 text-xs">
                       Recepção \ Terapeuta
                     </th>
                     {terapeutas.map(ter => (
-                      <th key={ter} className="border border-gray-300 bg-gray-100 px-4 py-3 text-center font-semibold min-w-[100px]">
-                        {ter}
+                      <th key={ter} className="border border-gray-300 bg-gray-100 px-2 py-2 md:px-4 md:py-3 text-center font-semibold min-w-[80px] md:min-w-[100px] text-xs">
+                        <div className="max-w-[80px] md:max-w-none truncate">{ter}</div>
                       </th>
                     ))}
-                    <th className="border border-gray-300 bg-green-100 px-4 py-3 text-center font-bold min-w-[100px]">
+                    <th className="border border-gray-300 bg-green-100 px-2 py-2 md:px-4 md:py-3 text-center font-bold min-w-[80px] md:min-w-[100px] text-xs">
                       TOTAL
                     </th>
                   </tr>
@@ -408,14 +400,14 @@ export default function AnaliseCruzadaPage() {
                 <tbody>
                   {recepcionistas.map(rec => (
                     <tr key={rec}>
-                      <td className="border border-gray-300 bg-gray-50 px-4 py-3 font-semibold sticky left-0 z-10">
-                        {rec}
+                      <td className="border border-gray-300 bg-gray-50 px-2 py-2 md:px-4 md:py-3 font-semibold sticky left-0 z-10 text-xs">
+                        <div className="max-w-[80px] md:max-w-none truncate">{rec}</div>
                       </td>
                       {terapeutas.map(ter => {
                         const dados = matrizDados[`${rec}|${ter}`];
                         if (!dados || dados.total === 0) {
                           return (
-                            <td key={ter} className="border border-gray-300 px-4 py-3 text-center text-gray-400">
+                            <td key={ter} className="border border-gray-300 px-2 py-2 md:px-4 md:py-3 text-center text-gray-400">
                               -
                             </td>
                           );
@@ -429,24 +421,24 @@ export default function AnaliseCruzadaPage() {
                           : 'bg-red-500';
 
                         return (
-                          <td key={ter} className="border border-gray-300 px-4 py-3">
-                            <div className="flex flex-col items-center gap-1">
-                              <div className={`${corFundo} text-white font-bold px-3 py-1 rounded text-base`}>
+                          <td key={ter} className="border border-gray-300 px-2 py-2 md:px-4 md:py-3">
+                            <div className="flex flex-col items-center gap-0.5">
+                              <div className={`${corFundo} text-white font-bold px-2 py-0.5 md:px-3 md:py-1 rounded text-sm md:text-base`}>
                                 {taxa.toFixed(0)}%
                               </div>
-                              <div className="text-xs text-gray-600">
+                              <div className="text-[10px] md:text-xs text-gray-600">
                                 {dados.convertidos}/{dados.total}
                               </div>
                             </div>
                           </td>
                         );
                       })}
-                      <td className="border border-gray-300 bg-green-50 px-4 py-3">
-                        <div className="flex flex-col items-center gap-1">
-                          <div className="text-green-900 font-bold text-base">
+                      <td className="border border-gray-300 bg-green-50 px-2 py-2 md:px-4 md:py-3">
+                        <div className="flex flex-col items-center gap-0.5">
+                          <div className="text-green-900 font-bold text-sm md:text-base">
                             {totaisPorRecepcao[rec].taxa.toFixed(0)}%
                           </div>
-                          <div className="text-xs text-gray-600">
+                          <div className="text-[10px] md:text-xs text-gray-600">
                             {totaisPorRecepcao[rec].convertidos}/{totaisPorRecepcao[rec].total}
                           </div>
                         </div>
@@ -460,7 +452,7 @@ export default function AnaliseCruzadaPage() {
         </Card>
 
         {/* Rankings */}
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Ranking Recepção */}
           <Card>
             <CardHeader className="bg-purple-50">
