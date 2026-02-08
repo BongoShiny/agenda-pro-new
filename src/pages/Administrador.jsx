@@ -89,6 +89,18 @@ export default function AdministradorPage() {
           )}
 
           {(isAdmin || isGerencia || isMetricas) && (
+          <Link to={createPageUrl("AnaliseCruzada")} className="block">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-purple-300 transition-all cursor-pointer h-full">
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
+                <BarChart3 className="w-6 h-6 text-purple-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Análise Cruzada</h3>
+              <p className="text-sm text-gray-500">Terapeuta x Recepção - Taxa de conversão e gaps identificados</p>
+            </div>
+          </Link>
+          )}
+
+          {(isAdmin || isGerencia || isMetricas) && (
             <Link to={createPageUrl("RelatoriosAvancados")} className="block">
               <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-purple-300 transition-all cursor-pointer h-full">
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
@@ -250,18 +262,6 @@ export default function AdministradorPage() {
               </div>
               <h3 className="text-lg font-semibold text-gray-900 mb-2">Ver Histórico dos Clientes</h3>
               <p className="text-sm text-gray-500">Visualize o histórico completo de atendimentos de cada cliente</p>
-            </div>
-          </Link>
-          )}
-
-          {(isAdmin || isGerencia || isMetricas) && (
-          <Link to={createPageUrl("AnaliseCruzada")} className="block">
-            <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-purple-300 transition-all cursor-pointer h-full">
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
-                <BarChart3 className="w-6 h-6 text-purple-600" />
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Análise Cruzada</h3>
-              <p className="text-sm text-gray-500">Terapeuta x Recepção - Taxa de conversão e gaps identificados</p>
             </div>
           </Link>
           )}
