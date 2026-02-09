@@ -45,8 +45,8 @@ export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgen
 
   const removerContratoMutation = useMutation({
     mutationFn: async () => {
-      const agendamentoAtualizado = await base44.entities.Agendamento.update(agendamento.id, {
-        contrato_termo_url: ""
+      await base44.entities.Agendamento.update(agendamento.id, {
+        contrato_termo_url: null
       });
 
       // Registrar no log
@@ -57,15 +57,15 @@ export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgen
         entidade_tipo: "Agendamento",
         entidade_id: agendamento.id
       });
-
-      return agendamentoAtualizado;
     },
-    onSuccess: async (agendamentoAtualizado) => {
+    onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
       await queryClient.refetchQueries({ queryKey: ['agendamentos'] });
-      queryClient.invalidateQueries({ queryKey: ['logs-acoes'] });
       alert("✅ Contrato removido com sucesso!");
       if (onAtualizarAgendamento) onAtualizarAgendamento();
+    },
+    onError: (error) => {
+      alert("❌ Erro ao remover contrato: " + error.message);
     }
   });
 
@@ -89,8 +89,8 @@ export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgen
     uploadContratoMutation.mutate(file);
   };
 
-  const handleRemover = () => {
-    if (confirm("Tem certeza que deseja remover este contrato?")) {
+  const handleRemover = async () => {
+    if (window.confirm("Tem certeza que deseja remover este contrato?")) {
       removerContratoMutation.mutate();
     }
   };
