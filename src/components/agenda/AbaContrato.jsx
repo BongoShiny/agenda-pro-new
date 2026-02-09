@@ -14,7 +14,7 @@ export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgen
       setUploading(true);
       const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
-      await base44.entities.Agendamento.update(agendamento.id, {
+      const agendamentoAtualizado = await base44.entities.Agendamento.update(agendamento.id, {
         contrato_termo_url: file_url
       });
 
@@ -27,10 +27,11 @@ export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgen
         entidade_id: agendamento.id
       });
 
-      return file_url;
+      return agendamentoAtualizado;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+    onSuccess: async (agendamentoAtualizado) => {
+      await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+      await queryClient.refetchQueries({ queryKey: ['agendamentos'] });
       queryClient.invalidateQueries({ queryKey: ['logs-acoes'] });
       setUploading(false);
       alert("✅ Contrato anexado com sucesso!");
@@ -44,8 +45,8 @@ export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgen
 
   const removerContratoMutation = useMutation({
     mutationFn: async () => {
-      await base44.entities.Agendamento.update(agendamento.id, {
-        contrato_termo_url: null
+      const agendamentoAtualizado = await base44.entities.Agendamento.update(agendamento.id, {
+        contrato_termo_url: ""
       });
 
       // Registrar no log
@@ -56,9 +57,12 @@ export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgen
         entidade_tipo: "Agendamento",
         entidade_id: agendamento.id
       });
+
+      return agendamentoAtualizado;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+    onSuccess: async (agendamentoAtualizado) => {
+      await queryClient.invalidateQueries({ queryKey: ['agendamentos'] });
+      await queryClient.refetchQueries({ queryKey: ['agendamentos'] });
       queryClient.invalidateQueries({ queryKey: ['logs-acoes'] });
       alert("✅ Contrato removido com sucesso!");
       if (onAtualizarAgendamento) onAtualizarAgendamento();
