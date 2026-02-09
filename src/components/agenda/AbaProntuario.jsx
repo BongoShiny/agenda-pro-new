@@ -60,16 +60,33 @@ export default function AbaProntuario({ agendamento, usuarioAtual }) {
 
   // Buscar prontuários anteriores do mesmo cliente
   const { data: prontuariosAnteriores = [] } = useQuery({
-    queryKey: ['prontuarios-anteriores', agendamento.cliente_id],
+    queryKey: ['prontuarios-anteriores', agendamento.cliente_id, agendamento.id],
     queryFn: async () => {
       if (!agendamento.cliente_id) return [];
       const prontuarios = await base44.entities.Prontuario.filter({
         cliente_id: agendamento.cliente_id
       });
       // Filtrar prontuários anteriores (excluir o atual e ordenar por data)
-      return prontuarios
-        .filter(p => p.agendamento_id !== agendamento.id)
-        .sort((a, b) => new Date(b.data_sessao) - new Date(a.data_sessao));
+      const prontuariosFiltrados = prontuarios
+        .filter(p => p.agendamento_id !== agendamento.id && p.data_sessao)
+        .sort((a, b) => {
+          const dataA = criarDataPura(a.data_sessao);
+          const dataB = criarDataPura(b.data_sessao);
+          return dataB - dataA;
+        });
+      
+      // Remover duplicatas baseado na data_sessao
+      const prontuariosUnicos = [];
+      const datasVistas = new Set();
+      
+      for (const pront of prontuariosFiltrados) {
+        if (!datasVistas.has(pront.data_sessao)) {
+          datasVistas.add(pront.data_sessao);
+          prontuariosUnicos.push(pront);
+        }
+      }
+      
+      return prontuariosUnicos;
     },
     enabled: !!agendamento?.cliente_id
   });
