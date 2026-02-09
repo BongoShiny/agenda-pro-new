@@ -166,29 +166,27 @@ export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgen
               accept="image/*,.pdf"
               onChange={handleFileSelect}
               disabled={uploading}
-              className="hidden"
+              style={{ display: 'none' }}
               id="upload-contrato"
             />
-            <label htmlFor="upload-contrato">
-              <Button 
-                type="button" 
-                className="bg-orange-600 hover:bg-orange-700"
-                disabled={uploading}
-                onClick={() => document.getElementById('upload-contrato').click()}
-              >
-                {uploading ? (
-                  <>
-                    <Upload className="w-4 h-4 mr-2 animate-spin" />
-                    Enviando...
-                  </>
-                ) : (
-                  <>
-                    <Upload className="w-4 h-4 mr-2" />
-                    Selecionar Arquivo
-                  </>
-                )}
-              </Button>
-            </label>
+            <Button 
+              type="button" 
+              className="bg-orange-600 hover:bg-orange-700"
+              disabled={uploading}
+              onClick={() => document.getElementById('upload-contrato').click()}
+            >
+              {uploading ? (
+                <>
+                  <Upload className="w-4 h-4 mr-2 animate-spin" />
+                  Enviando...
+                </>
+              ) : (
+                <>
+                  <Upload className="w-4 h-4 mr-2" />
+                  Selecionar Arquivo
+                </>
+              )}
+            </Button>
           </div>
 
           <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
