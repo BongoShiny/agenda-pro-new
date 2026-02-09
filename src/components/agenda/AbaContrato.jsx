@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { FileText, Upload, Eye, Trash2 } from "lucide-react";
 
-export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgendamento }) {
+export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgendamento, setAbaAtiva }) {
   const [uploading, setUploading] = useState(false);
   const queryClient = useQueryClient();
 
@@ -36,6 +36,8 @@ export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgen
       setUploading(false);
       alert("✅ Contrato anexado com sucesso!");
       if (onAtualizarAgendamento) onAtualizarAgendamento();
+      // Manter na aba de contrato após anexar
+      if (setAbaAtiva) setAbaAtiva("contrato");
     },
     onError: (error) => {
       setUploading(false);

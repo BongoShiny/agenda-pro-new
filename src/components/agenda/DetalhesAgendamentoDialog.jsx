@@ -428,7 +428,7 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
         </TabsContent>
 
         <TabsContent value="contrato" className="flex-1 overflow-y-auto">
-          <AbaContrato agendamento={agendamento} usuarioAtual={usuarioAtual} />
+          <AbaContrato agendamento={agendamento} usuarioAtual={usuarioAtual} setAbaAtiva={setAbaAtiva} />
         </TabsContent>
 
         <TabsContent value="avaliacao-termal" className="flex-1 overflow-y-auto">
