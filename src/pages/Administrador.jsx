@@ -94,7 +94,7 @@ export default function AdministradorPage() {
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
                 <BarChart3 className="w-6 h-6 text-purple-600" />
               </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">Análise Cruzada</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Conversão Recepção</h3>
               <p className="text-sm text-gray-500">Terapeuta x Recepção - Taxa de conversão e gaps identificados</p>
             </div>
           </Link>
@@ -106,7 +106,7 @@ export default function AdministradorPage() {
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
                   <BarChart3 className="w-6 h-6 text-purple-600" />
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">Relatórios Avançados</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Índice de Comparecimento</h3>
                 <p className="text-sm text-gray-500">Relatórios com filtros avançados, gráficos e exportação em Excel/PDF</p>
               </div>
             </Link>
