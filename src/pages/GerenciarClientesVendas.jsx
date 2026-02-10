@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { base44 } from "@/api/base44Client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Users, Search, FileText, Eye, ExternalLink } from "lucide-react";
+import { ArrowLeft, Users, Search, FileText, Eye, ExternalLink, Trash2 } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -32,6 +32,7 @@ import {
 
 export default function GerenciarClientesVendasPage() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [busca, setBusca] = useState("");
   const [unidadeFiltro, setUnidadeFiltro] = useState("todas");
   const [user, setUser] = useState(null);
@@ -59,6 +60,39 @@ export default function GerenciarClientesVendasPage() {
     queryFn: () => base44.entities.Unidade.filter({ ativa: true }),
     initialData: [],
   });
+
+  // Mutation para excluir venda
+  const excluirVendaMutation = useMutation({
+    mutationFn: async (registroId) => {
+      await base44.entities.RegistroManualVendas.delete(registroId);
+      
+      // Criar log
+      await base44.entities.LogAcao.create({
+        tipo: "excluiu_agendamento",
+        usuario_email: user?.email || "sistema",
+        descricao: `Excluiu registro de venda manual`,
+        entidade_tipo: "RegistroManualVendas",
+        entidade_id: registroId
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['registros-vendas'] });
+      setDialogAberto(false);
+      setRegistroSelecionado(null);
+      alert("✅ Venda excluída com sucesso!");
+    },
+    onError: (error) => {
+      alert("❌ Erro ao excluir venda: " + error.message);
+    }
+  });
+
+  const handleExcluirVenda = async () => {
+    if (!window.confirm("⚠️ Tem certeza que deseja excluir esta venda?\n\nEsta ação não pode ser desfeita!")) {
+      return;
+    }
+    
+    excluirVendaMutation.mutate(registroSelecionado.id);
+  };
 
   const isAdmin = user?.role === "admin" || user?.cargo === "administrador" || user?.cargo === "superior" || user?.cargo === "gerencia_unidades";
 
@@ -274,6 +308,23 @@ export default function GerenciarClientesVendasPage() {
                   <div className="text-sm text-gray-500">
                     <p><strong>Registrado em:</strong> {registroSelecionado.data_registro ? format(new Date(registroSelecionado.data_registro), "dd/MM/yyyy", { locale: ptBR }) : "-"}</p>
                     <p><strong>Por:</strong> {registroSelecionado.criado_por}</p>
+                  </div>
+
+                  <div className="flex justify-end gap-2 pt-4 border-t">
+                    <Button
+                      variant="outline"
+                      onClick={() => setDialogAberto(false)}
+                    >
+                      Fechar
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      onClick={handleExcluirVenda}
+                      disabled={excluirVendaMutation.isPending}
+                    >
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      {excluirVendaMutation.isPending ? "Excluindo..." : "Excluir Venda"}
+                    </Button>
                   </div>
                 </div>
               )}
