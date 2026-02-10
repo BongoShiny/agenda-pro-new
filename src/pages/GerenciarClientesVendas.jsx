@@ -286,14 +286,13 @@ export default function GerenciarClientesVendasPage() {
                   <TableHead>Data Registro</TableHead>
                   <TableHead>Unidade</TableHead>
                   <TableHead>Criado Por</TableHead>
-                  <TableHead className="text-center">Anotações</TableHead>
                   <TableHead className="text-center">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {registrosFiltrados.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center text-gray-500 py-8">
+                    <TableCell colSpan={4} className="text-center text-gray-500 py-8">
                       {busca ? "Nenhum registro encontrado com esses filtros" : "Nenhum registro cadastrado ainda"}
                     </TableCell>
                   </TableRow>
@@ -306,27 +305,27 @@ export default function GerenciarClientesVendasPage() {
                       <TableCell>{registro.unidade_nome || "-"}</TableCell>
                       <TableCell>{registro.criado_por || "-"}</TableCell>
                       <TableCell className="text-center">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setRegistroParaAnotacoes(registro);
-                            setDialogAnotacoesAberto(true);
-                          }}
-                        >
-                          <StickyNote className="w-4 h-4 mr-2" />
-                          {registro.anotacoes ? "Editar" : "Adicionar"}
-                        </Button>
-                      </TableCell>
-                      <TableCell className="text-center">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleAbrirDialog(registro)}
-                        >
-                          <Eye className="w-4 h-4 mr-2" />
-                          Informações da venda
-                        </Button>
+                        <div className="flex gap-2 justify-center">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setRegistroParaAnotacoes(registro);
+                              setDialogAnotacoesAberto(true);
+                            }}
+                          >
+                            <StickyNote className="w-4 h-4 mr-2" />
+                            Anotações
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleAbrirDialog(registro)}
+                          >
+                            <Eye className="w-4 h-4 mr-2" />
+                            Informações
+                          </Button>
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))
@@ -355,78 +354,28 @@ export default function GerenciarClientesVendasPage() {
                   </div>
 
                   {registroSelecionado.comprovante_url && (
-                    <div className="border rounded-lg p-4">
-                      <h3 className="font-semibold mb-3">Comprovante:</h3>
-                      <div className="space-y-3">
-                        <img 
-                          src={registroSelecionado.comprovante_url} 
-                          alt="Comprovante" 
-                          className="w-full max-w-md rounded-lg border"
-                        />
-                        <a 
-                          href={registroSelecionado.comprovante_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="inline-block"
-                        >
-                          <Button variant="outline" size="sm">
-                            <ExternalLink className="w-4 h-4 mr-2" />
-                            Abrir em nova guia
-                          </Button>
-                        </a>
-                      </div>
-                    </div>
+                   <div className="border rounded-lg p-4">
+                     <h3 className="font-semibold mb-3">Comprovante:</h3>
+                     <div className="space-y-3">
+                       <img 
+                         src={registroSelecionado.comprovante_url} 
+                         alt="Comprovante" 
+                         className="w-full max-w-md rounded-lg border"
+                       />
+                       <a 
+                         href={registroSelecionado.comprovante_url} 
+                         target="_blank" 
+                         rel="noopener noreferrer"
+                         className="inline-block"
+                       >
+                         <Button variant="outline" size="sm">
+                           <ExternalLink className="w-4 h-4 mr-2" />
+                           Abrir em nova guia
+                         </Button>
+                       </a>
+                     </div>
+                   </div>
                   )}
-
-                  <div className="border rounded-lg p-4 bg-yellow-50">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold">Anotações:</h3>
-                      {!editandoAnotacoes && (
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setEditandoAnotacoes(true)}
-                        >
-                          <Edit className="w-4 h-4 mr-2" />
-                          Editar
-                        </Button>
-                      )}
-                    </div>
-                    
-                    {editandoAnotacoes ? (
-                      <div className="space-y-2">
-                        <Textarea
-                          value={anotacoes}
-                          onChange={(e) => setAnotacoes(e.target.value)}
-                          placeholder="Adicione anotações internas sobre esta venda..."
-                          className="min-h-[100px]"
-                        />
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            onClick={handleSalvarAnotacoes}
-                            disabled={salvarAnotacoesMutation.isPending}
-                          >
-                            {salvarAnotacoesMutation.isPending ? "Salvando..." : "Salvar"}
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setAnotacoes(registroSelecionado.anotacoes || "");
-                              setEditandoAnotacoes(false);
-                            }}
-                          >
-                            Cancelar
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="text-sm whitespace-pre-wrap">
-                        {anotacoes || "Nenhuma anotação adicionada"}
-                      </p>
-                    )}
-                  </div>
 
                   <div className="text-sm text-gray-500">
                     <p><strong>Registrado em:</strong> {registroSelecionado.data_registro ? format(new Date(registroSelecionado.data_registro), "dd/MM/yyyy", { locale: ptBR }) : "-"}</p>
