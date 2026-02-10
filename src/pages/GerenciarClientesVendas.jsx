@@ -122,6 +122,17 @@ export default function GerenciarClientesVendasPage() {
     );
   }
 
+  // Função para extrair data do pagamento das informações
+  const extrairDataPagamento = (informacoes) => {
+    if (!informacoes) return "Data do pagamento não foi adicionada";
+    
+    const match = informacoes.match(/Data do pagamento:\s*(\d{2}\/\d{2}\/\d{4})/i);
+    if (match) {
+      return match[1];
+    }
+    return "Data do pagamento não foi adicionada";
+  };
+
   // Filtrar por busca e unidade
   const registrosFiltrados = registros.filter(r => {
     const termo = busca.toLowerCase();
@@ -238,7 +249,7 @@ export default function GerenciarClientesVendasPage() {
                   registrosFiltrados.map((registro) => (
                     <TableRow key={registro.id}>
                       <TableCell>
-                        {registro.data_registro ? format(new Date(registro.data_registro), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                        {extrairDataPagamento(registro.informacoes)}
                       </TableCell>
                       <TableCell>{registro.unidade_nome || "-"}</TableCell>
                       <TableCell>{registro.criado_por || "-"}</TableCell>
