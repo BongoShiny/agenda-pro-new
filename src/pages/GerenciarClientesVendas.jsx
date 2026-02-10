@@ -283,7 +283,7 @@ export default function GerenciarClientesVendasPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Data Registro</TableHead>
+                  <TableHead>Data do Pagamento</TableHead>
                   <TableHead>Unidade</TableHead>
                   <TableHead>Criado Por</TableHead>
                   <TableHead className="text-center">Ações</TableHead>
