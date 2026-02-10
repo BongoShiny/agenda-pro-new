@@ -316,7 +316,7 @@ export default function GerenciarClientesVendasPage() {
                               className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors text-left w-full"
                             >
                               <FileText className="w-4 h-4 text-gray-500 flex-shrink-0" />
-                              <span className="truncate">Anotações</span>
+                              <span className="truncate">{registro.anotacoes}</span>
                             </button>
                           ) : (
                             <button
