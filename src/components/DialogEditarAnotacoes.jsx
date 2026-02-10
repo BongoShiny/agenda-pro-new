@@ -25,13 +25,19 @@ const formatarMoeda = (valor) => {
 
 export default function DialogEditarAnotacoes({
   aberto,
+  setAberto,
   agendamento,
   vendedores,
   onClose,
   onSalvar,
   tipoEdicao = "completo", // "completo" ou "apenas_anotacoes"
-  usuarioAtual
+  usuarioAtual,
+  anotacoesIniciais = "",
+  titulo = "Anotações"
 }) {
+  // Se tiver anotacoesIniciais (modo simples), usar apenas isso
+  const [anotacoes, setAnotacoes] = React.useState(anotacoesIniciais);
+  
   const [valores, setValores] = React.useState({
     data_pagamento: agendamento?.data_pagamento,
     anotacao_venda: agendamento?.anotacao_venda,
@@ -39,6 +45,12 @@ export default function DialogEditarAnotacoes({
   });
 
   const isSuperior = usuarioAtual?.cargo === "superior" || usuarioAtual?.cargo === "administrador" || usuarioAtual?.role === "admin";
+
+  React.useEffect(() => {
+    if (anotacoesIniciais !== undefined) {
+      setAnotacoes(anotacoesIniciais);
+    }
+  }, [anotacoesIniciais, aberto]);
 
   React.useEffect(() => {
     if (agendamento) {
@@ -51,6 +63,13 @@ export default function DialogEditarAnotacoes({
   }, [agendamento, aberto]);
 
   const handleSalvar = () => {
+    // Se for modo simples (apenas anotações)
+    if (anotacoesIniciais !== undefined) {
+      onSalvar(anotacoes);
+      return;
+    }
+    
+    // Modo completo
     onSalvar({
       data_pagamento: valores.data_pagamento,
       anotacao_venda: valores.anotacao_venda,
@@ -58,8 +77,51 @@ export default function DialogEditarAnotacoes({
     });
   };
 
+  const handleClose = () => {
+    if (setAberto) {
+      setAberto(false);
+    }
+    if (onClose) {
+      onClose();
+    }
+  };
+
+  // Se for modo simples (apenas anotações)
+  if (anotacoesIniciais !== undefined) {
+    return (
+      <Dialog open={aberto} onOpenChange={handleClose}>
+        <DialogContent className="max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{titulo}</DialogTitle>
+          </DialogHeader>
+
+          <div className="py-4">
+            <Textarea
+              value={anotacoes}
+              onChange={(e) => setAnotacoes(e.target.value)}
+              placeholder="Adicionar anotação..."
+              rows={6}
+              className="resize-none"
+            />
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={handleClose}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSalvar} className="bg-green-600 hover:bg-green-700">
+              <Save className="w-4 h-4 mr-2" />
+              Salvar Anotações
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Modo completo
   return (
-    <Dialog open={aberto} onOpenChange={onClose}>
+    <Dialog open={aberto} onOpenChange={handleClose}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
           <DialogTitle>Editar Dados - {agendamento?.cliente_nome}</DialogTitle>
@@ -106,7 +168,7 @@ export default function DialogEditarAnotacoes({
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>
+          <Button variant="outline" onClick={handleClose}>
             Cancelar
           </Button>
           <Button onClick={handleSalvar} className="bg-blue-600 hover:bg-blue-700">
