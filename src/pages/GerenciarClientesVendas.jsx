@@ -184,6 +184,18 @@ export default function GerenciarClientesVendasPage() {
     return "Data do pagamento não foi adicionada";
   };
 
+  // Função para extrair vendedor das informações
+  const extrairVendedor = (informacoes) => {
+    if (!informacoes) return "Nenhum vendedor cadastrado";
+    
+    // Tenta capturar "Vendedor: (nome)" ou "Vendedor: nome"
+    const match = informacoes.match(/Vendedor:\s*\(?\s*([^)\n]+)\)?/i);
+    if (match && match[1].trim()) {
+      return match[1].trim();
+    }
+    return "Nenhum vendedor cadastrado";
+  };
+
   // Filtrar por busca e unidade
   const registrosFiltrados = registros.filter(r => {
     const termo = busca.toLowerCase();
@@ -285,7 +297,7 @@ export default function GerenciarClientesVendasPage() {
                 <TableRow>
                   <TableHead>Data do Pagamento</TableHead>
                   <TableHead>Unidade</TableHead>
-                  <TableHead>Criado Por</TableHead>
+                  <TableHead>Vendedor</TableHead>
                   <TableHead className="text-center">Ações</TableHead>
                 </TableRow>
               </TableHeader>
@@ -303,7 +315,7 @@ export default function GerenciarClientesVendasPage() {
                         {extrairDataPagamento(registro.informacoes)}
                       </TableCell>
                       <TableCell>{registro.unidade_nome || "-"}</TableCell>
-                      <TableCell>{registro.criado_por || "-"}</TableCell>
+                      <TableCell>{extrairVendedor(registro.informacoes)}</TableCell>
                       <TableCell>
                         <div className="space-y-2">
                           {/* Anotações */}
