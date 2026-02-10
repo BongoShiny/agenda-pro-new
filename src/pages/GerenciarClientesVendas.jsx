@@ -4,7 +4,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Users, Search, FileText, Eye, ExternalLink, Trash2, Edit } from "lucide-react";
+import { ArrowLeft, Users, Search, FileText, Eye, ExternalLink, Trash2, Edit, StickyNote } from "lucide-react";
+import DialogEditarAnotacoes from "@/components/DialogEditarAnotacoes";
 import {
   Select,
   SelectContent,
@@ -41,6 +42,8 @@ export default function GerenciarClientesVendasPage() {
   const [dialogAberto, setDialogAberto] = useState(false);
   const [editandoAnotacoes, setEditandoAnotacoes] = useState(false);
   const [anotacoes, setAnotacoes] = useState("");
+  const [dialogAnotacoesAberto, setDialogAnotacoesAberto] = useState(false);
+  const [registroParaAnotacoes, setRegistroParaAnotacoes] = useState(null);
 
   React.useEffect(() => {
     const loadUser = async () => {
@@ -126,6 +129,19 @@ export default function GerenciarClientesVendasPage() {
       registroId: registroSelecionado.id,
       novasAnotacoes: anotacoes
     });
+  };
+
+  const handleSalvarAnotacoesTabela = async (novasAnotacoes) => {
+    try {
+      await base44.entities.RegistroManualVendas.update(registroParaAnotacoes.id, {
+        anotacoes: novasAnotacoes
+      });
+      queryClient.invalidateQueries({ queryKey: ['registros-vendas'] });
+      setDialogAnotacoesAberto(false);
+      setRegistroParaAnotacoes(null);
+    } catch (error) {
+      alert("Erro ao salvar anotações: " + error.message);
+    }
   };
 
   const isAdmin = user?.role === "admin" || user?.cargo === "administrador" || user?.cargo === "superior" || user?.cargo === "gerencia_unidades";
@@ -270,13 +286,14 @@ export default function GerenciarClientesVendasPage() {
                   <TableHead>Data Registro</TableHead>
                   <TableHead>Unidade</TableHead>
                   <TableHead>Criado Por</TableHead>
+                  <TableHead className="text-center">Anotações</TableHead>
                   <TableHead className="text-center">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {registrosFiltrados.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center text-gray-500 py-8">
+                    <TableCell colSpan={5} className="text-center text-gray-500 py-8">
                       {busca ? "Nenhum registro encontrado com esses filtros" : "Nenhum registro cadastrado ainda"}
                     </TableCell>
                   </TableRow>
@@ -288,6 +305,19 @@ export default function GerenciarClientesVendasPage() {
                       </TableCell>
                       <TableCell>{registro.unidade_nome || "-"}</TableCell>
                       <TableCell>{registro.criado_por || "-"}</TableCell>
+                      <TableCell className="text-center">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setRegistroParaAnotacoes(registro);
+                            setDialogAnotacoesAberto(true);
+                          }}
+                        >
+                          <StickyNote className="w-4 h-4 mr-2" />
+                          {registro.anotacoes ? "Editar" : "Adicionar"}
+                        </Button>
+                      </TableCell>
                       <TableCell className="text-center">
                         <Button
                           variant="outline"
@@ -423,6 +453,17 @@ export default function GerenciarClientesVendasPage() {
               )}
             </DialogContent>
           </Dialog>
+
+          {/* Dialog para editar anotações da tabela */}
+          {registroParaAnotacoes && (
+            <DialogEditarAnotacoes
+              aberto={dialogAnotacoesAberto}
+              setAberto={setDialogAnotacoesAberto}
+              anotacoesIniciais={registroParaAnotacoes.anotacoes || ""}
+              onSalvar={handleSalvarAnotacoesTabela}
+              titulo="Anotações da Venda"
+            />
+          )}
         </div>
       </div>
     </div>
