@@ -51,6 +51,7 @@ export default function ConfiguracaoTerapeutasPage() {
     especialidade: "",
     horario_inicio: "",
     horario_fim: "",
+    tem_horario_almoco: false,
     horario_almoco_inicio: "",
     horario_almoco_fim: ""
   });
@@ -417,6 +418,7 @@ export default function ConfiguracaoTerapeutasPage() {
       especialidade: profissional.especialidade || "",
       horario_inicio: profissional.horario_inicio || "08:00",
       horario_fim: profissional.horario_fim || "18:00",
+      tem_horario_almoco: !!(profissional.horario_almoco_inicio && profissional.horario_almoco_fim),
       horario_almoco_inicio: profissional.horario_almoco_inicio || "",
       horario_almoco_fim: profissional.horario_almoco_fim || ""
     });
@@ -450,7 +452,7 @@ export default function ConfiguracaoTerapeutasPage() {
 
   const handleCancelarEdicao = () => {
     setEditandoProfissional(null);
-    setDadosEditados({ nome: "", email: "", especialidade: "", horario_inicio: "", horario_fim: "", horario_almoco_inicio: "", horario_almoco_fim: "" });
+    setDadosEditados({ nome: "", email: "", especialidade: "", horario_inicio: "", horario_fim: "", tem_horario_almoco: false, horario_almoco_inicio: "", horario_almoco_fim: "" });
   };
 
   const handleAbrirDialogExcecao = (profissional) => {
@@ -648,7 +650,49 @@ export default function ConfiguracaoTerapeutasPage() {
                                                     className="flex-1"
                                                   />
                                                 </div>
-                                              </div>
+
+                                                <div className="mt-3">
+                                                  <Label className="text-sm mb-2 block">Terapeuta tem horário de almoço?</Label>
+                                                  <Select 
+                                                    value={dadosEditados.tem_horario_almoco ? "sim" : "nao"} 
+                                                    onValueChange={(value) => setDadosEditados(prev => ({ 
+                                                      ...prev, 
+                                                      tem_horario_almoco: value === "sim",
+                                                      horario_almoco_inicio: value === "sim" ? prev.horario_almoco_inicio : "",
+                                                      horario_almoco_fim: value === "sim" ? prev.horario_almoco_fim : ""
+                                                    }))}
+                                                  >
+                                                    <SelectTrigger>
+                                                      <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                      <SelectItem value="nao">Não</SelectItem>
+                                                      <SelectItem value="sim">Sim</SelectItem>
+                                                    </SelectContent>
+                                                  </Select>
+                                                </div>
+
+                                                {dadosEditados.tem_horario_almoco && (
+                                                  <div className="mt-2">
+                                                    <Label className="text-sm mb-2 block">Horário Fixo de Almoço (todos os dias)</Label>
+                                                    <div className="flex gap-2 items-center">
+                                                      <Input
+                                                        type="time"
+                                                        value={dadosEditados.horario_almoco_inicio}
+                                                        onChange={(e) => setDadosEditados(prev => ({ ...prev, horario_almoco_inicio: e.target.value }))}
+                                                        className="flex-1"
+                                                      />
+                                                      <span className="text-gray-500 text-sm">até</span>
+                                                      <Input
+                                                        type="time"
+                                                        value={dadosEditados.horario_almoco_fim}
+                                                        onChange={(e) => setDadosEditados(prev => ({ ...prev, horario_almoco_fim: e.target.value }))}
+                                                        className="flex-1"
+                                                      />
+                                                    </div>
+                                                  </div>
+                                                )}
+                                                </div>
                                               <div className="flex flex-col gap-1">
                                                 <Button size="icon" variant="ghost" onClick={() => handleSalvarProfissional(profissional.id)}>
                                                   <Check className="w-4 h-4 text-green-600" />
