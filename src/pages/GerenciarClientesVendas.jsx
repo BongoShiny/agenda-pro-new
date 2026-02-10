@@ -304,23 +304,39 @@ export default function GerenciarClientesVendasPage() {
                       </TableCell>
                       <TableCell>{registro.unidade_nome || "-"}</TableCell>
                       <TableCell>{registro.criado_por || "-"}</TableCell>
-                      <TableCell className="text-center">
-                        <div className="flex gap-2 justify-center">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setRegistroParaAnotacoes(registro);
-                              setDialogAnotacoesAberto(true);
-                            }}
-                          >
-                            <StickyNote className="w-4 h-4 mr-2" />
-                            Anotações
-                          </Button>
+                      <TableCell>
+                        <div className="space-y-2">
+                          {/* Anotações */}
+                          {registro.anotacoes ? (
+                            <button
+                              onClick={() => {
+                                setRegistroParaAnotacoes(registro);
+                                setDialogAnotacoesAberto(true);
+                              }}
+                              className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 hover:border-gray-300 transition-colors text-left w-full"
+                            >
+                              <FileText className="w-4 h-4 text-gray-500 flex-shrink-0" />
+                              <span className="truncate">Anotações</span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => {
+                                setRegistroParaAnotacoes(registro);
+                                setDialogAnotacoesAberto(true);
+                              }}
+                              className="flex items-center gap-2 px-3 py-2 text-sm text-gray-500 bg-white border border-dashed border-gray-300 rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-colors w-full"
+                            >
+                              <FileText className="w-4 h-4 flex-shrink-0" />
+                              <span>Anotações</span>
+                            </button>
+                          )}
+                          
+                          {/* Informações */}
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => handleAbrirDialog(registro)}
+                            className="w-full"
                           >
                             <Eye className="w-4 h-4 mr-2" />
                             Informações
