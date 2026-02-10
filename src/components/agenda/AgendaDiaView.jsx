@@ -166,27 +166,42 @@ export default function AgendaDiaView({
   const estaNoHorarioAlmoco = (horario, profissional) => {
     const dataFormatada = dataAtual.toISOString().split('T')[0];
     
-    // Procurar exceção de horário de almoço para esta data
+    // Verificar primeiro se há exceção de horário de almoço para esta data específica
     const almocoExcecao = excecoesHorario.find(e => 
       e.profissional_id === profissional.id && 
       e.data === dataFormatada &&
       e.motivo === "Horário de Almoço"
     );
 
-    if (!almocoExcecao) {
-      return false;
+    // Se tem exceção para este dia, usar ela
+    if (almocoExcecao) {
+      const [h, m] = horario.split(':').map(Number);
+      const minutos = h * 60 + m;
+
+      const [hAlmocoInicio, mAlmocoInicio] = almocoExcecao.horario_inicio.split(':').map(Number);
+      const minutosAlmocoInicio = hAlmocoInicio * 60 + mAlmocoInicio;
+
+      const [hAlmocoFim, mAlmocoFim] = almocoExcecao.horario_fim.split(':').map(Number);
+      const minutosAlmocoFim = hAlmocoFim * 60 + mAlmocoFim;
+
+      return minutos >= minutosAlmocoInicio && minutos < minutosAlmocoFim;
     }
 
-    const [h, m] = horario.split(':').map(Number);
-    const minutos = h * 60 + m;
+    // Se não tem exceção, usar o horário de almoço fixo do profissional
+    if (profissional.horario_almoco_inicio && profissional.horario_almoco_fim) {
+      const [h, m] = horario.split(':').map(Number);
+      const minutos = h * 60 + m;
 
-    const [hAlmocoInicio, mAlmocoInicio] = almocoExcecao.horario_inicio.split(':').map(Number);
-    const minutosAlmocoInicio = hAlmocoInicio * 60 + mAlmocoInicio;
+      const [hAlmocoInicio, mAlmocoInicio] = profissional.horario_almoco_inicio.split(':').map(Number);
+      const minutosAlmocoInicio = hAlmocoInicio * 60 + mAlmocoInicio;
 
-    const [hAlmocoFim, mAlmocoFim] = almocoExcecao.horario_fim.split(':').map(Number);
-    const minutosAlmocoFim = hAlmocoFim * 60 + mAlmocoFim;
+      const [hAlmocoFim, mAlmocoFim] = profissional.horario_almoco_fim.split(':').map(Number);
+      const minutosAlmocoFim = hAlmocoFim * 60 + mAlmocoFim;
 
-    return minutos >= minutosAlmocoInicio && minutos < minutosAlmocoFim;
+      return minutos >= minutosAlmocoInicio && minutos < minutosAlmocoFim;
+    }
+
+    return false;
   };
 
   // Verificar se horário está dentro do expediente do profissional
