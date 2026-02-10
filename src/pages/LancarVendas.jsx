@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, DollarSign, Save, X, Upload, Eye, ExternalLink, List } from "lucide-react";
+import { ArrowLeft, DollarSign, Save, X, Upload, Eye, ExternalLink, List, Search } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -47,6 +47,9 @@ export default function LancarVendasPage() {
   const [editandoInformacoes, setEditandoInformacoes] = useState("");
   const [editandoComprovanteUrl, setEditandoComprovanteUrl] = useState("");
   const [editandoUnidadeId, setEditandoUnidadeId] = useState("");
+  const [buscaGeral, setBuscaGeral] = useState("");
+  const [filtroDataPagamento, setFiltroDataPagamento] = useState("");
+  const [filtroVendedor, setFiltroVendedor] = useState("");
 
   useEffect(() => {
     const loadUser = async () => {
@@ -199,6 +202,58 @@ export default function LancarVendasPage() {
     });
   };
 
+  // Função para extrair data do pagamento das informações
+  const extrairDataPagamento = (informacoes) => {
+    if (!informacoes) return "Data do pagamento não foi adicionada";
+    
+    const match = informacoes.match(/Data do pagamento:\s*(\d{2}\/\d{2}(?:\/\d{4})?)/i);
+    if (match) {
+      return match[1];
+    }
+    return "Data do pagamento não foi adicionada";
+  };
+
+  // Função para extrair vendedor das informações
+  const extrairVendedor = (informacoes) => {
+    if (!informacoes) return "Nenhum vendedor cadastrado";
+    
+    const match = informacoes.match(/Vendedor:\s*\(?\s*([^)\n]+)\)?/i);
+    if (match && match[1].trim()) {
+      return match[1].trim();
+    }
+    return "Nenhum vendedor cadastrado";
+  };
+
+  // Filtrar vendas
+  const vendasFiltradas = minhasVendas.filter((venda) => {
+    const dataPagamento = extrairDataPagamento(venda.informacoes);
+    const vendedor = extrairVendedor(venda.informacoes);
+    
+    // Filtro de busca geral
+    if (buscaGeral) {
+      const termo = buscaGeral.toLowerCase();
+      const contemNaBusca = 
+        dataPagamento.toLowerCase().includes(termo) ||
+        vendedor.toLowerCase().includes(termo) ||
+        (venda.informacoes || "").toLowerCase().includes(termo) ||
+        (venda.unidade_nome || "").toLowerCase().includes(termo);
+      
+      if (!contemNaBusca) return false;
+    }
+    
+    // Filtro por data de pagamento
+    if (filtroDataPagamento && !dataPagamento.includes(filtroDataPagamento)) {
+      return false;
+    }
+    
+    // Filtro por vendedor
+    if (filtroVendedor && !vendedor.toLowerCase().includes(filtroVendedor.toLowerCase())) {
+      return false;
+    }
+    
+    return true;
+  });
+
   const isVendedor = user?.cargo === "vendedor";
   const isAdmin = user?.role === "admin" || user?.cargo === "administrador" || user?.cargo === "superior";
 
@@ -265,30 +320,92 @@ export default function LancarVendasPage() {
                 <h2 className="text-xl font-bold text-gray-900">Minhas Vendas Lançadas</h2>
                 <div className="bg-green-100 border border-green-300 rounded-lg px-4 py-2">
                   <p className="text-sm text-green-700 font-medium">
-                    Total de vendas: <span className="text-lg font-bold">{minhasVendas.length}</span>
+                    Total de vendas: <span className="text-lg font-bold">{vendasFiltradas.length}</span>
                   </p>
                 </div>
               </div>
+
+              {/* Filtros */}
+              <div className="border rounded-lg p-4 bg-gray-50 space-y-3">
+                <h3 className="font-semibold text-gray-900 mb-3">Filtros de Pesquisa</h3>
+                
+                {/* Busca Geral */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                  <Input
+                    placeholder="🔍 Buscar em todos os campos..."
+                    value={buscaGeral}
+                    onChange={(e) => setBuscaGeral(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {/* Filtro por Data de Pagamento */}
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">Data de Pagamento</Label>
+                    <Input
+                      placeholder="Ex: 10/02 ou 10/02/2026"
+                      value={filtroDataPagamento}
+                      onChange={(e) => setFiltroDataPagamento(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Filtro por Vendedor */}
+                  <div>
+                    <Label className="text-sm font-medium mb-2 block">Vendedor</Label>
+                    <Input
+                      placeholder="Digite o nome do vendedor"
+                      value={filtroVendedor}
+                      onChange={(e) => setFiltroVendedor(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* Botão para limpar filtros */}
+                {(buscaGeral || filtroDataPagamento || filtroVendedor) && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setBuscaGeral("");
+                      setFiltroDataPagamento("");
+                      setFiltroVendedor("");
+                    }}
+                    className="w-full mt-2"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Limpar Filtros
+                  </Button>
+                )}
+              </div>
+
               <div className="border rounded-lg overflow-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Data Registro</TableHead>
+                      <TableHead>Data de Pagamento</TableHead>
+                      <TableHead>Vendedor</TableHead>
                       <TableHead className="text-center">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {minhasVendas.length === 0 ? (
+                    {vendasFiltradas.length === 0 ? (
                       <TableRow>
-                        <TableCell colSpan={2} className="text-center text-gray-500 py-8">
-                          Você ainda não lançou nenhuma venda
+                        <TableCell colSpan={3} className="text-center text-gray-500 py-8">
+                          {minhasVendas.length === 0 
+                            ? "Você ainda não lançou nenhuma venda"
+                            : "Nenhuma venda encontrada com os filtros aplicados"}
                         </TableCell>
                       </TableRow>
                     ) : (
-                      minhasVendas.map((venda) => (
+                      vendasFiltradas.map((venda) => (
                         <TableRow key={venda.id}>
                           <TableCell>
-                            {venda.data_registro ? format(new Date(venda.data_registro), "dd/MM/yyyy", { locale: ptBR }) : "-"}
+                            {extrairDataPagamento(venda.informacoes)}
+                          </TableCell>
+                          <TableCell>
+                            {extrairVendedor(venda.informacoes)}
                           </TableCell>
                           <TableCell className="text-center">
                             <div className="flex gap-2 justify-center">
