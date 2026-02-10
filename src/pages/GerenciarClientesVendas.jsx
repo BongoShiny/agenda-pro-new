@@ -126,7 +126,8 @@ export default function GerenciarClientesVendasPage() {
   const extrairDataPagamento = (informacoes) => {
     if (!informacoes) return "Data do pagamento não foi adicionada";
     
-    const match = informacoes.match(/Data do pagamento:\s*(\d{2}\/\d{2}\/\d{4})/i);
+    // Tenta capturar dd/MM/yyyy ou dd/MM
+    const match = informacoes.match(/Data do pagamento:\s*(\d{2}\/\d{2}(?:\/\d{4})?)/i);
     if (match) {
       return match[1];
     }
