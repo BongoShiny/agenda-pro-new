@@ -3,7 +3,8 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Users, Search, FileText, Eye, ExternalLink, Trash2 } from "lucide-react";
+import { Textarea } from "@/components/ui/textarea";
+import { ArrowLeft, Users, Search, FileText, Eye, ExternalLink, Trash2, Edit } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -38,6 +39,8 @@ export default function GerenciarClientesVendasPage() {
   const [user, setUser] = useState(null);
   const [registroSelecionado, setRegistroSelecionado] = useState(null);
   const [dialogAberto, setDialogAberto] = useState(false);
+  const [editandoAnotacoes, setEditandoAnotacoes] = useState(false);
+  const [anotacoes, setAnotacoes] = useState("");
 
   React.useEffect(() => {
     const loadUser = async () => {
@@ -86,12 +89,43 @@ export default function GerenciarClientesVendasPage() {
     }
   });
 
+  // Mutation para salvar anotações
+  const salvarAnotacoesMutation = useMutation({
+    mutationFn: async ({ registroId, novasAnotacoes }) => {
+      await base44.entities.RegistroManualVendas.update(registroId, {
+        anotacoes: novasAnotacoes
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['registros-vendas'] });
+      setEditandoAnotacoes(false);
+      alert("✅ Anotações salvas com sucesso!");
+    },
+    onError: (error) => {
+      alert("❌ Erro ao salvar anotações: " + error.message);
+    }
+  });
+
   const handleExcluirVenda = async () => {
     if (!window.confirm("⚠️ Tem certeza que deseja excluir esta venda?\n\nEsta ação não pode ser desfeita!")) {
       return;
     }
     
     excluirVendaMutation.mutate(registroSelecionado.id);
+  };
+
+  const handleAbrirDialog = (registro) => {
+    setRegistroSelecionado(registro);
+    setAnotacoes(registro.anotacoes || "");
+    setEditandoAnotacoes(false);
+    setDialogAberto(true);
+  };
+
+  const handleSalvarAnotacoes = () => {
+    salvarAnotacoesMutation.mutate({
+      registroId: registroSelecionado.id,
+      novasAnotacoes: anotacoes
+    });
   };
 
   const isAdmin = user?.role === "admin" || user?.cargo === "administrador" || user?.cargo === "superior" || user?.cargo === "gerencia_unidades";
@@ -258,10 +292,7 @@ export default function GerenciarClientesVendasPage() {
                         <Button
                           variant="outline"
                           size="sm"
-                          onClick={() => {
-                            setRegistroSelecionado(registro);
-                            setDialogAberto(true);
-                          }}
+                          onClick={() => handleAbrirDialog(registro)}
                         >
                           <Eye className="w-4 h-4 mr-2" />
                           Informações da venda
@@ -316,6 +347,56 @@ export default function GerenciarClientesVendasPage() {
                       </div>
                     </div>
                   )}
+
+                  <div className="border rounded-lg p-4 bg-yellow-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold">Anotações:</h3>
+                      {!editandoAnotacoes && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setEditandoAnotacoes(true)}
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Editar
+                        </Button>
+                      )}
+                    </div>
+                    
+                    {editandoAnotacoes ? (
+                      <div className="space-y-2">
+                        <Textarea
+                          value={anotacoes}
+                          onChange={(e) => setAnotacoes(e.target.value)}
+                          placeholder="Adicione anotações internas sobre esta venda..."
+                          className="min-h-[100px]"
+                        />
+                        <div className="flex gap-2">
+                          <Button
+                            size="sm"
+                            onClick={handleSalvarAnotacoes}
+                            disabled={salvarAnotacoesMutation.isPending}
+                          >
+                            {salvarAnotacoesMutation.isPending ? "Salvando..." : "Salvar"}
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setAnotacoes(registroSelecionado.anotacoes || "");
+                              setEditandoAnotacoes(false);
+                            }}
+                          >
+                            Cancelar
+                          </Button>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className="text-sm whitespace-pre-wrap">
+                        {anotacoes || "Nenhuma anotação adicionada"}
+                      </p>
+                    )}
+                  </div>
 
                   <div className="text-sm text-gray-500">
                     <p><strong>Registrado em:</strong> {registroSelecionado.data_registro ? format(new Date(registroSelecionado.data_registro), "dd/MM/yyyy", { locale: ptBR }) : "-"}</p>
