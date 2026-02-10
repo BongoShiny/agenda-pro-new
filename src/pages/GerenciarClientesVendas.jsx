@@ -3,8 +3,9 @@ import { base44 } from "@/api/base44Client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Users, Search, FileText, Eye, ExternalLink, Trash2, Edit, StickyNote } from "lucide-react";
+import { ArrowLeft, Users, Search, FileText, Eye, ExternalLink, Trash2, Edit, StickyNote, X } from "lucide-react";
 import DialogEditarAnotacoes from "@/components/DialogEditarAnotacoes";
 import {
   Select,
@@ -35,7 +36,9 @@ import {
 export default function GerenciarClientesVendasPage() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
-  const [busca, setBusca] = useState("");
+  const [buscaGeral, setBuscaGeral] = useState("");
+  const [filtroDataPagamento, setFiltroDataPagamento] = useState("");
+  const [filtroVendedor, setFiltroVendedor] = useState("");
   const [unidadeFiltro, setUnidadeFiltro] = useState("todas");
   const [user, setUser] = useState(null);
   const [registroSelecionado, setRegistroSelecionado] = useState(null);
@@ -196,15 +199,39 @@ export default function GerenciarClientesVendasPage() {
     return "Nenhum vendedor cadastrado";
   };
 
-  // Filtrar por busca e unidade
-  const registrosFiltrados = registros.filter(r => {
-    const termo = busca.toLowerCase();
-    const buscaMatch = (
-      r.informacoes?.toLowerCase().includes(termo) ||
-      r.criado_por?.toLowerCase().includes(termo)
-    );
-    const unidadeMatch = unidadeFiltro === "todas" || r.unidade_id === unidadeFiltro;
-    return buscaMatch && unidadeMatch;
+  // Filtrar vendas
+  const registrosFiltrados = registros.filter((registro) => {
+    const dataPagamento = extrairDataPagamento(registro.informacoes);
+    const vendedor = extrairVendedor(registro.informacoes);
+    
+    // Filtro de busca geral
+    if (buscaGeral) {
+      const termo = buscaGeral.toLowerCase();
+      const contemNaBusca = 
+        dataPagamento.toLowerCase().includes(termo) ||
+        vendedor.toLowerCase().includes(termo) ||
+        (registro.informacoes || "").toLowerCase().includes(termo) ||
+        (registro.unidade_nome || "").toLowerCase().includes(termo) ||
+        (registro.criado_por || "").toLowerCase().includes(termo);
+      
+      if (!contemNaBusca) return false;
+    }
+    
+    // Filtro por data de pagamento
+    if (filtroDataPagamento && !dataPagamento.includes(filtroDataPagamento)) {
+      return false;
+    }
+    
+    // Filtro por vendedor
+    if (filtroVendedor && !vendedor.toLowerCase().includes(filtroVendedor.toLowerCase())) {
+      return false;
+    }
+
+    // Filtro por unidade
+    const unidadeMatch = unidadeFiltro === "todas" || registro.unidade_id === unidadeFiltro;
+    if (!unidadeMatch) return false;
+    
+    return true;
   });
 
   return (
@@ -229,32 +256,77 @@ export default function GerenciarClientesVendasPage() {
           </div>
 
           {/* Busca e Filtros */}
-          <div className="mb-6 space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <div className="mb-6 border rounded-lg p-4 bg-gray-50 space-y-3">
+            <h3 className="font-semibold text-gray-900 mb-3">Filtros de Pesquisa</h3>
+            
+            {/* Busca Geral */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Input
+                placeholder="🔍 Buscar em todos os campos..."
+                value={buscaGeral}
+                onChange={(e) => setBuscaGeral(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              {/* Filtro por Data de Pagamento */}
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Data de Pagamento</Label>
                 <Input
-                  placeholder="Buscar por informações ou usuário..."
-                  value={busca}
-                  onChange={(e) => setBusca(e.target.value)}
-                  className="pl-10"
+                  placeholder="Ex: 10/02 ou 10/02/2026"
+                  value={filtroDataPagamento}
+                  onChange={(e) => setFiltroDataPagamento(e.target.value)}
                 />
               </div>
 
-              <Select value={unidadeFiltro} onValueChange={setUnidadeFiltro}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filtrar por unidade" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todas">Todas as unidades</SelectItem>
-                  {unidades.map((unidade) => (
-                    <SelectItem key={unidade.id} value={unidade.id}>
-                      {unidade.nome}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              {/* Filtro por Vendedor */}
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Vendedor</Label>
+                <Input
+                  placeholder="Digite o nome do vendedor"
+                  value={filtroVendedor}
+                  onChange={(e) => setFiltroVendedor(e.target.value)}
+                />
+              </div>
+
+              {/* Filtro por Unidade */}
+              <div>
+                <Label className="text-sm font-medium mb-2 block">Unidade</Label>
+                <Select value={unidadeFiltro} onValueChange={setUnidadeFiltro}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Filtrar por unidade" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todas">Todas as unidades</SelectItem>
+                    {unidades.map((unidade) => (
+                      <SelectItem key={unidade.id} value={unidade.id}>
+                        {unidade.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
+
+            {/* Botão para limpar filtros */}
+            {(buscaGeral || filtroDataPagamento || filtroVendedor || unidadeFiltro !== "todas") && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setBuscaGeral("");
+                  setFiltroDataPagamento("");
+                  setFiltroVendedor("");
+                  setUnidadeFiltro("todas");
+                }}
+                className="w-full mt-2"
+              >
+                <X className="w-4 h-4 mr-2" />
+                Limpar Filtros
+              </Button>
+            )}
           </div>
 
           {/* Estatísticas */}
@@ -305,7 +377,9 @@ export default function GerenciarClientesVendasPage() {
                 {registrosFiltrados.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={4} className="text-center text-gray-500 py-8">
-                      {busca ? "Nenhum registro encontrado com esses filtros" : "Nenhum registro cadastrado ainda"}
+                      {registros.length === 0 
+                        ? "Nenhum registro cadastrado ainda"
+                        : "Nenhum registro encontrado com os filtros aplicados"}
                     </TableCell>
                   </TableRow>
                 ) : (
