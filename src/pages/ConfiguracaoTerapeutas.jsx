@@ -433,9 +433,17 @@ export default function ConfiguracaoTerapeutasPage() {
       horario_fim: profissional.horario_fim
     };
     
+    // Se não tem horário de almoço, limpar os campos
+    const dadosParaSalvar = {
+      ...profissional,
+      ...dadosEditados,
+      horario_almoco_inicio: dadosEditados.tem_horario_almoco ? dadosEditados.horario_almoco_inicio : "",
+      horario_almoco_fim: dadosEditados.tem_horario_almoco ? dadosEditados.horario_almoco_fim : ""
+    };
+    
     await atualizarProfissionalMutation.mutateAsync({
       id: profissionalId,
-      dados: { ...profissional, ...dadosEditados }
+      dados: dadosParaSalvar
     });
 
     // Registrar log
