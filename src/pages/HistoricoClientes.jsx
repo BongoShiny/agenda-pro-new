@@ -265,16 +265,6 @@ export default function HistoricoClientes() {
 
             {/* Histórico de Agendamentos */}
             <div className="md:col-span-2">
-              <div className="flex justify-end mb-4">
-                <Button
-                  variant="outline"
-                  onClick={() => handleAbrirEdicao(clienteSelecionado)}
-                  className="border-blue-300 text-blue-700 hover:bg-blue-50"
-                >
-                  <Edit2 className="w-4 h-4 mr-2" />
-                  Editar Cliente
-                </Button>
-              </div>
               <Card>
                 <CardHeader>
                   <CardTitle>Histórico de Agendamentos ({agendamentosCliente.length})</CardTitle>
