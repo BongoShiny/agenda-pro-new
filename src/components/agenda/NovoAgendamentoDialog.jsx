@@ -102,6 +102,7 @@ export default function NovoAgendamentoDialog({
   const [erroHorarioOcupado, setErroHorarioOcupado] = useState(false);
   const [erroHorarioFechado, setErroHorarioFechado] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(null);
+  const [googlePickerLoaded, setGooglePickerLoaded] = useState(false);
 
 
   const { data: vendedores = [] } = useQuery({
@@ -183,6 +184,27 @@ export default function NovoAgendamentoDialog({
        idsConfiguracao.includes(p.id) && p.ativo !== false
      );
    }, [profissionais, formData.unidade_id, configuracoesTerapeutas, isAvaliacao, recepcionistas]);
+
+  // Carregar Google Picker API
+  useEffect(() => {
+    const loadGooglePicker = () => {
+      if (window.google && window.google.picker) {
+        setGooglePickerLoaded(true);
+        return;
+      }
+
+      const script = document.createElement('script');
+      script.src = 'https://apis.google.com/js/api.js';
+      script.onload = () => {
+        window.gapi.load('picker', () => {
+          setGooglePickerLoaded(true);
+        });
+      };
+      document.body.appendChild(script);
+    };
+
+    loadGooglePicker();
+  }, []);
 
   useEffect(() => {
     if (open) {
@@ -413,6 +435,37 @@ export default function NovoAgendamentoDialog({
       alert("❌ Erro ao enviar comprovante: " + error.message);
     } finally {
       setUploadingFile(null);
+    }
+  };
+
+  const handleGoogleDrivePicker = async (numeroComprovante) => {
+    try {
+      // Buscar o access token
+      const { data: tokenData } = await base44.functions.invoke('createGoogleDrivePicker', {});
+      const accessToken = tokenData.access_token;
+
+      // Criar o picker
+      const picker = new window.google.picker.PickerBuilder()
+        .addView(window.google.picker.ViewId.DOCS)
+        .addView(new window.google.picker.DocsView()
+          .setIncludeFolders(true)
+          .setMimeTypes('image/png,image/jpeg,image/jpg,application/pdf'))
+        .setOAuthToken(accessToken)
+        .setCallback((data) => {
+          if (data.action === window.google.picker.Action.PICKED) {
+            const file = data.docs[0];
+            const fileUrl = `https://drive.google.com/uc?export=view&id=${file.id}`;
+            
+            const campoComprovante = `comprovante_${numeroComprovante}`;
+            setFormData(prev => ({ ...prev, [campoComprovante]: fileUrl }));
+            alert("✅ Arquivo do Google Drive selecionado!");
+          }
+        })
+        .build();
+
+      picker.setVisible(true);
+    } catch (error) {
+      alert("❌ Erro ao abrir Google Drive: " + error.message);
     }
   };
 
@@ -1049,25 +1102,40 @@ export default function NovoAgendamentoDialog({
                 <Label>Anexar Comprovantes (até 5)</Label>
                 <div className="grid grid-cols-5 gap-3">
                   {[1, 2, 3, 4, 5].map(num => (
-                    <div key={num}>
+                    <div key={num} className="space-y-2">
                       <Label className="text-xs text-gray-500">Comprovante {num}</Label>
-                      <Input
-                        type="file"
-                        accept="image/*,application/pdf"
-                        onChange={(e) => handleFileUpload(e, num)}
-                        disabled={uploadingFile === num}
-                      />
+                      
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="w-full text-xs h-9"
+                        onClick={() => handleGoogleDrivePicker(num)}
+                        disabled={!googlePickerLoaded}
+                      >
+                        📁 Google Drive
+                      </Button>
+
+                      <div className="relative">
+                        <Input
+                          type="file"
+                          accept="image/*,application/pdf"
+                          onChange={(e) => handleFileUpload(e, num)}
+                          disabled={uploadingFile === num}
+                          className="text-xs"
+                        />
+                      </div>
+
                       {uploadingFile === num && (
-                        <p className="text-xs text-blue-600 mt-1">Enviando...</p>
+                        <p className="text-xs text-blue-600">Enviando...</p>
                       )}
                       {formData[`comprovante_${num}`] && (
                         <Button
                           type="button"
                           variant="link"
-                          className="text-xs p-0 h-auto mt-1"
+                          className="text-xs p-0 h-auto"
                           onClick={() => window.open(formData[`comprovante_${num}`], '_blank')}
                         >
-                          Ver comprovante {num}
+                          👁️ Ver comprovante
                         </Button>
                       )}
                     </div>
