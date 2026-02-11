@@ -164,6 +164,16 @@ export default function AgendaPage() {
         }
         
         setUsuarioAtual(user);
+        cleanup = await gerenciarSessaoUnica(user);
+
+        console.log("👤👤👤 USUÁRIO CARREGADO 👤👤👤");
+        console.log("Email:", user.email);
+        console.log("Cargo:", user.cargo);
+        console.log("Role:", user.role);
+        console.log("É Admin?:", user.cargo === "administrador" || user.role === "admin");
+        console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+        console.log("Data atual:", dataAtual.toString());
+        console.log("Data formatada:", formatarDataPura(dataAtual));
       } catch (error) {
         // Se não conseguir carregar usuário, redirecionar para registro
         console.error("Erro ao carregar usuário:", error);
@@ -180,26 +190,11 @@ export default function AgendaPage() {
 
     carregarUsuario();
 
-      console.log("👤👤👤 USUÁRIO CARREGADO 👤👤👤");
-      console.log("Email:", user.email);
-      console.log("Cargo:", user.cargo);
-      console.log("Role:", user.role);
-      console.log("É Admin?:", user.cargo === "administrador" || user.role === "admin");
-      console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-      console.log("Data atual:", dataAtual.toString());
-      console.log("Data formatada:", formatarDataPura(dataAtual));
-
-      // Gerenciar sessão única
-      cleanup = await gerenciarSessaoUnica(user);
-    };
-
-    carregarUsuario();
-
     return () => {
       if (cleanup) cleanup();
       if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [navigate]);
+  }, [navigate, dataAtual]);
 
   // Função para gerenciar sessão única
   const gerenciarSessaoUnica = async (user) => {
