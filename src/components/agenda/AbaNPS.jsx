@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Link2, Copy, Check } from "lucide-react";
+import { Link2, Copy, Check, Maximize2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
@@ -144,12 +144,21 @@ export default function AbaNPS({ agendamento }) {
           <div className="bg-white w-screen h-screen flex flex-col">
             <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
               <h2 className="text-lg font-semibold">Formulário NPS</h2>
-              <button
-                onClick={() => setMostraFormulario(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
-              >
-                ×
-              </button>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => window.open(linkNPS, '_blank')}
+                  className="text-gray-500 hover:text-gray-700 p-1"
+                  title="Abrir em tela cheia"
+                >
+                  <Maximize2 className="w-5 h-5" />
+                </button>
+                <button
+                  onClick={() => setMostraFormulario(false)}
+                  className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+                >
+                  ×
+                </button>
+              </div>
             </div>
             <iframe
               src={linkNPS}
