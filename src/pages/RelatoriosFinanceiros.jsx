@@ -39,6 +39,7 @@ import {
 import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import MobileReportCard from "@/components/reports/MobileReportCard";
 
 const formatarMoeda = (valor) => {
   if (!valor && valor !== 0) return "R$ 0,00";
@@ -54,6 +55,14 @@ const criarDataPura = (dataString) => {
 export default function RelatoriosFinanceirosPage() {
   const [usuarioAtual, setUsuarioAtual] = useState(null);
   const [carregando, setCarregando] = useState(true);
+  const [isMobile, setIsMobile] = React.useState(false);
+
+  React.useEffect(() => {
+    const checkMobile = () => setIsMobile(window.innerWidth < 768);
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
   const [periodo, setPeriodo] = useState("mes");
   const [dataPersonalizada, setDataPersonalizada] = useState(null);
   const [unidadeFiltro, setUnidadeFiltro] = useState("todas");
@@ -934,8 +943,8 @@ export default function RelatoriosFinanceirosPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={{ paddingBottom: '70px' }}>
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}>
         <div className="max-w-7xl mx-auto flex items-center gap-4">
           <Link to={createPageUrl("Administrador")}>
             <Button variant="outline" size="icon">
@@ -2319,6 +2328,18 @@ export default function RelatoriosFinanceirosPage() {
                       {/* Tabela detalhada de vendas */}
                       <div>
                         <h3 className="font-semibold text-lg mb-4">Vendas Detalhadas</h3>
+                        {isMobile ? (
+                          <div className="space-y-3">
+                            {agendamentosMesAnalise.map((venda) => (
+                              <MobileReportCard 
+                                key={venda.id} 
+                                agendamento={venda}
+                                statusLabels={{}}
+                                type="financial"
+                              />
+                            ))}
+                          </div>
+                        ) : (
                         <div className="overflow-x-auto">
                           <Table>
                             <TableHeader>
@@ -2442,9 +2463,10 @@ export default function RelatoriosFinanceirosPage() {
                                   );
                                 })}
                             </TableBody>
-                          </Table>
-                        </div>
-                      </div>
+                            </Table>
+                            </div>
+                            )}
+                            </div>
 
                       <div className="bg-gray-50 p-4 rounded-lg">
                         <h3 className="font-semibold text-lg mb-2">Resumo do Mês</h3>
