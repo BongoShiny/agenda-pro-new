@@ -247,20 +247,10 @@ export default function GerenciarUsuariosPage() {
   };
 
   const handleAprovarUsuario = async (usuario) => {
-    await atualizarUsuarioMutation.mutateAsync({
-      id: usuario.id,
-      dados: { aprovado: true }
-    });
-    
-    await base44.entities.LogAcao.create({
-      tipo: "editou_usuario",
-      usuario_email: usuarioAtual?.email,
-      descricao: `Aprovou novo usuário ${usuario.full_name} (${usuario.email})`,
-      entidade_tipo: "Usuario",
-      entidade_id: usuario.id,
-      dados_antigos: JSON.stringify({ aprovado: false }),
-      dados_novos: JSON.stringify({ aprovado: true })
-    });
+    // Abrir modal para definir cargo
+    setUsuarioParaConfigCargo(usuario);
+    setCargoSelecionado(usuario.cargo || "");
+    setUnidadesSelecionadas(usuario.unidades_acesso || []);
   };
 
   const [usuarioParaConfigCargo, setUsuarioParaConfigCargo] = useState(null);
