@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Trophy, Users, TrendingUp, Target, Edit2, Save, X, Plus, ChevronLeft, ChevronRight, Calendar, Home } from "lucide-react";
+import { ArrowLeft, Trophy, Users, TrendingUp, Target, Edit2, Save, X, Plus, ChevronLeft, ChevronRight, Calendar, Home, Pencil } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -38,6 +38,20 @@ export default function RankingVendedoresPage() {
     pacote_24: 0,
     pacote_48: 0,
     observacoes: ""
+  });
+  const [editarConfigVendedorOpen, setEditarConfigVendedorOpen] = useState(false);
+  const [vendedorSelecionado, setVendedorSelecionado] = useState(null);
+  const [configVendedorDia, setConfigVendedorDia] = useState({
+    data: new Date().toISOString().split('T')[0],
+    vendedor_id: "",
+    unidade_id: "",
+    leads: 0,
+    vendas_avulso: 0,
+    vendas_pacote: 0,
+    pacote_8: 0,
+    pacote_16: 0,
+    pacote_24: 0,
+    pacote_48: 0
   });
   
   const queryClient = useQueryClient();
@@ -93,6 +107,13 @@ export default function RankingVendedoresPage() {
   const { data: registrosManuais = [] } = useQuery({
     queryKey: ['registros-manuais'],
     queryFn: () => base44.entities.RegistroManualVendas.list(),
+    initialData: [],
+    refetchInterval: 30000,
+  });
+
+  const { data: configsVendedorDia = [] } = useQuery({
+    queryKey: ['config-vendedor-dia'],
+    queryFn: () => base44.entities.ConfiguracaoVendedorDia.list(),
     initialData: [],
     refetchInterval: 30000,
   });
@@ -153,6 +174,25 @@ export default function RankingVendedoresPage() {
     mutationFn: (id) => base44.entities.RegistroManualVendas.delete(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['registros-manuais'] });
+    },
+  });
+
+  // Mutation para salvar/atualizar config vendedor dia
+  const saveConfigVendedorDiaMutation = useMutation({
+    mutationFn: (data) => {
+      const existente = configsVendedorDia.find(
+        c => c.vendedor_id === data.vendedor_id && c.data === data.data && c.unidade_id === data.unidade_id
+      );
+      
+      if (existente) {
+        return base44.entities.ConfiguracaoVendedorDia.update(existente.id, data);
+      } else {
+        return base44.entities.ConfiguracaoVendedorDia.create(data);
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['config-vendedor-dia'] });
+      setEditarConfigVendedorOpen(false);
     },
   });
 
@@ -318,6 +358,39 @@ export default function RankingVendedoresPage() {
       ...registroManual,
       vendedor_nome: vendedor.nome,
       unidade_nome: unidade?.nome || "",
+    });
+  };
+
+  const abrirConfigVendedor = (vendedor) => {
+    const vendedorData = vendedores.find(v => v.id === vendedor.id);
+    setVendedorSelecionado(vendedorData);
+    setConfigVendedorDia({
+      data: new Date().toISOString().split('T')[0],
+      vendedor_id: vendedor.id,
+      unidade_id: "",
+      leads: 0,
+      vendas_avulso: 0,
+      vendas_pacote: 0,
+      pacote_8: 0,
+      pacote_16: 0,
+      pacote_24: 0,
+      pacote_48: 0
+    });
+    setEditarConfigVendedorOpen(true);
+  };
+
+  const salvarConfigVendedor = () => {
+    const unidade = unidades.find(u => u.id === configVendedorDia.unidade_id);
+    
+    if (!configVendedorDia.unidade_id) {
+      alert("Selecione uma clínica");
+      return;
+    }
+
+    saveConfigVendedorDiaMutation.mutate({
+      ...configVendedorDia,
+      vendedor_nome: vendedorSelecionado?.nome || "",
+      unidade_nome: unidade?.nome || ""
     });
   };
 
@@ -751,7 +824,17 @@ export default function RankingVendedoresPage() {
                         )}
                         {vendedor.nome}
                       </span>
-                      <span className="text-sm text-gray-500">#{index + 1}</span>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => abrirConfigVendedor(vendedor)}
+                          className="text-gray-600 hover:text-blue-600"
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </Button>
+                        <span className="text-sm text-gray-500">#{index + 1}</span>
+                      </div>
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
