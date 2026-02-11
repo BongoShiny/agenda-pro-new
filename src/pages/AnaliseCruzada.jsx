@@ -109,7 +109,16 @@ export default function AnaliseCruzadaPage() {
   };
 
   agendamentosAnalise.forEach(ag => {
-    let terapeuta = normalizarNome(ag.conversao_profissional_nome || ag.profissional_nome || "Sem Terapeuta");
+    // Buscar nome oficial do terapeuta pela entidade Profissional
+    let terapeuta = "Sem Terapeuta";
+    if (ag.conversao_profissional_id) {
+      const profissional = profissionais.find(p => p.id === ag.conversao_profissional_id);
+      terapeuta = profissional ? profissional.nome : (ag.conversao_profissional_nome || ag.profissional_nome || "Sem Terapeuta");
+    } else {
+      terapeuta = ag.conversao_profissional_nome || ag.profissional_nome || "Sem Terapeuta";
+    }
+    terapeuta = normalizarNome(terapeuta);
+    
     let recepcao = normalizarNome(ag.conversao_recepcionista || ag.conversao_recepcionista_nao_converteu || "Sem Recepção");
     
     // Flávia é SEMPRE recepcionista, nunca terapeuta
