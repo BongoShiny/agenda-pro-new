@@ -151,17 +151,34 @@ export default function AgendaPage() {
 
   useEffect(() => {
     let cleanup = null;
+    let timeoutId = null;
 
     const carregarUsuario = async () => {
-      const user = await base44.auth.me();
-      
-      // Se usuário não foi aprovado, redirecionar para acesso negado
-      if (user.aprovado === false) {
-        navigate(createPageUrl("AcessoNegado"));
-        return;
+      try {
+        const user = await base44.auth.me();
+        
+        // Se usuário não foi aprovado, redirecionar para acesso negado
+        if (user.aprovado === false) {
+          navigate(createPageUrl("AcessoNegado"));
+          return;
+        }
+        
+        setUsuarioAtual(user);
+      } catch (error) {
+        // Se não conseguir carregar usuário, redirecionar para registro
+        console.error("Erro ao carregar usuário:", error);
+        navigate(createPageUrl("Registro"));
       }
-      
-      setUsuarioAtual(user);
+    };
+
+    // Se não carregar em 3 segundos, redirecionar
+    timeoutId = setTimeout(() => {
+      if (!usuarioAtual) {
+        navigate(createPageUrl("Registro"));
+      }
+    }, 3000);
+
+    carregarUsuario();
 
       console.log("👤👤👤 USUÁRIO CARREGADO 👤👤👤");
       console.log("Email:", user.email);
