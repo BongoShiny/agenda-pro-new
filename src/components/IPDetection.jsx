@@ -45,6 +45,7 @@ export function IPRedirectComponent({ children }) {
   const { isFirstTime, loaded } = useIPDetection();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [checkingAuth, setCheckingAuth] = useState(true);
+  const [ip, setIp] = useState(null);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -60,10 +61,30 @@ export function IPRedirectComponent({ children }) {
   }, []);
 
   useEffect(() => {
-    if (loaded && !checkingAuth && isFirstTime && !isAuthenticated) {
-      navigate(createPageUrl('Registro'));
+    const getIP = async () => {
+      try {
+        const response = await fetch('https://api.ipify.org?format=json');
+        const data = await response.json();
+        setIp(data.ip);
+      } catch (error) {
+        console.error('Erro ao capturar IP:', error);
+      }
+    };
+    getIP();
+  }, []);
+
+  useEffect(() => {
+    // Só redireciona se: IP é novo E usuário não está autenticado E página não é Registro
+    if (loaded && !checkingAuth && isFirstTime && !isAuthenticated && ip) {
+      // Se IP é novo, já marcar que visitou registro
+      localStorage.setItem(`registro_visitado_${ip}`, 'true');
+      
+      // Só redirecionar se não está na página de registro
+      if (!window.location.pathname.includes('Registro')) {
+        navigate(createPageUrl('Registro'));
+      }
     }
-  }, [loaded, checkingAuth, isFirstTime, isAuthenticated, navigate]);
+  }, [loaded, checkingAuth, isFirstTime, isAuthenticated, ip, navigate]);
 
   if (!loaded || checkingAuth) {
     return (
