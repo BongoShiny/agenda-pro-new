@@ -1054,26 +1054,49 @@ export default function NovoAgendamentoDialog({
                     <div key={num} className="space-y-2">
                       <Label className="text-xs text-gray-500">Comprovante {num}</Label>
                       
-                      <Input
-                        type="file"
-                        accept="image/*,application/pdf"
-                        onChange={(e) => handleFileUpload(e, num)}
-                        disabled={uploadingFile === num}
-                        className="text-xs"
-                      />
-
-                      {uploadingFile === num && (
-                        <p className="text-xs text-blue-600">Enviando...</p>
-                      )}
-                      {formData[`comprovante_${num}`] && (
-                        <Button
-                          type="button"
-                          variant="link"
-                          className="text-xs p-0 h-auto"
-                          onClick={() => window.open(formData[`comprovante_${num}`], '_blank')}
-                        >
-                          👁️ Ver comprovante
-                        </Button>
+                      {!formData[`comprovante_${num}`] ? (
+                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 transition-colors">
+                          <Input
+                            type="file"
+                            accept="image/*,application/pdf"
+                            onChange={(e) => handleFileUpload(e, num)}
+                            disabled={uploadingFile === num}
+                            className="text-xs hidden"
+                            id={`file-${num}`}
+                          />
+                          <label htmlFor={`file-${num}`} className="cursor-pointer">
+                            {uploadingFile === num ? (
+                              <div className="text-xs text-blue-600">📤 Enviando...</div>
+                            ) : (
+                              <div className="text-xs text-gray-500">
+                                <div className="mb-1">📁</div>
+                                Arraste ou clique
+                              </div>
+                            )}
+                          </label>
+                        </div>
+                      ) : (
+                        <div className="border-2 border-green-500 rounded-lg p-4 text-center bg-green-50">
+                          <div className="text-xs text-green-700 mb-2">✅ Anexado</div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="text-xs h-7"
+                            onClick={() => window.open(formData[`comprovante_${num}`], '_blank')}
+                          >
+                            👁️ Visualizar
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="text-xs h-7 ml-1 text-red-600"
+                            onClick={() => setFormData(prev => ({ ...prev, [`comprovante_${num}`]: '' }))}
+                          >
+                            🗑️
+                          </Button>
+                        </div>
                       )}
                     </div>
                   ))}
