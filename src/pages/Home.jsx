@@ -55,11 +55,8 @@ export default function HomePage() {
         const user = await base44.auth.me();
         setUsuarioAtual(user);
         
-        // Verificar se é superior/admin/métricas
-        const isSuperior = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin" || user?.cargo === "gerencia_unidades" || user?.cargo === "metricas";
-        if (!isSuperior) {
-          navigate(createPageUrl("Agenda"));
-        }
+        // Redirecionar para Agenda após login
+        navigate(createPageUrl("Agenda"));
       } catch (error) {
         console.error("Erro ao carregar usuário:", error);
         navigate(createPageUrl("Agenda"));
