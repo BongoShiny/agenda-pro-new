@@ -14,6 +14,9 @@ export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgen
       setUploading(true);
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('unidade_nome', agendamento.unidade_nome || 'UNIDADE');
+      formData.append('cliente_nome', agendamento.cliente_nome || 'Cliente');
+      formData.append('tipo_arquivo', 'Contrato 30%');
       const { data } = await base44.functions.invoke('uploadToGoogleDrive', formData);
       
       const agendamentoAtualizado = await base44.entities.Agendamento.update(agendamento.id, {

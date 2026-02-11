@@ -26,6 +26,9 @@ export default function AbaAvaliacaoTermal({ agendamento, usuarioAtual }) {
     mutationFn: async (file) => {
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('unidade_nome', agendamento.unidade_nome || 'UNIDADE');
+      formData.append('cliente_nome', agendamento.cliente_nome || 'Cliente');
+      formData.append('tipo_arquivo', 'Avaliação Termal');
       const { data } = await base44.functions.invoke('uploadToGoogleDrive', formData);
       
       // Encontrar próximo slot disponível (1 a 20)
