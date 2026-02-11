@@ -101,7 +101,7 @@ export default function NovoAgendamentoDialog({
   const [erroHorarioBloqueado, setErroHorarioBloqueado] = useState(false);
   const [erroHorarioOcupado, setErroHorarioOcupado] = useState(false);
   const [erroHorarioFechado, setErroHorarioFechado] = useState(false);
-  const [uploadingFile, setUploadingFile] = useState(null);
+
 
   const { data: vendedores = [] } = useQuery({
      queryKey: ['vendedores'],
@@ -393,24 +393,7 @@ export default function NovoAgendamentoDialog({
     }
   };
 
-  const handleFileUpload = async (e, numeroComprovante) => {
-    const file = e.target.files[0];
-    if (!file) return;
 
-    setUploadingFile(numeroComprovante);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      
-      const campoComprovante = `comprovante_${numeroComprovante}`;
-      setFormData(prev => ({ ...prev, [campoComprovante]: file_url }));
-      
-      alert("✅ Comprovante enviado com sucesso!");
-    } catch (error) {
-      alert("❌ Erro ao enviar comprovante: " + error.message);
-    } finally {
-      setUploadingFile(null);
-    }
-  };
 
   const handleSubmit = () => {
      try {
@@ -1040,30 +1023,30 @@ export default function NovoAgendamentoDialog({
               </div>
 
               <div className="col-span-2 space-y-3">
-                <Label>Anexar Comprovantes (até 5)</Label>
-                <div className="grid grid-cols-5 gap-3">
+                <Label>URL dos Comprovantes (até 5)</Label>
+                <p className="text-xs text-gray-500">Cole as URLs dos comprovantes (Google Drive, Dropbox, etc.)</p>
+                <div className="grid grid-cols-1 gap-3">
                   {[1, 2, 3, 4, 5].map(num => (
-                    <div key={num}>
+                    <div key={num} className="space-y-1">
                       <Label className="text-xs text-gray-500">Comprovante {num}</Label>
-                      <Input
-                        type="file"
-                        accept="image/*,application/pdf"
-                        onChange={(e) => handleFileUpload(e, num)}
-                        disabled={uploadingFile === num}
-                      />
-                      {uploadingFile === num && (
-                        <p className="text-xs text-blue-600 mt-1">Enviando...</p>
-                      )}
-                      {formData[`comprovante_${num}`] && (
-                        <Button
-                          type="button"
-                          variant="link"
-                          className="text-xs p-0 h-auto mt-1"
-                          onClick={() => window.open(formData[`comprovante_${num}`], '_blank')}
-                        >
-                          Ver comprovante {num}
-                        </Button>
-                      )}
+                      <div className="flex gap-2">
+                        <Input
+                          type="url"
+                          placeholder="Cole a URL do comprovante aqui..."
+                          value={formData[`comprovante_${num}`] || ""}
+                          onChange={(e) => setFormData(prev => ({ ...prev, [`comprovante_${num}`]: e.target.value }))}
+                        />
+                        {formData[`comprovante_${num}`] && (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => window.open(formData[`comprovante_${num}`], '_blank')}
+                          >
+                            Abrir
+                          </Button>
+                        )}
+                      </div>
                     </div>
                   ))}
                 </div>
