@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { IPRedirectComponent } from "@/components/IPDetection";
 import { format } from "date-fns";
 import { 
   LayoutDashboard, 
@@ -127,14 +126,12 @@ export default function HomePage() {
 
   if (carregando) {
     return (
-      <IPRedirectComponent>
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-600">Carregando dashboard...</p>
-          </div>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Carregando dashboard...</p>
         </div>
-      </IPRedirectComponent>
+      </div>
     );
   }
 
@@ -146,9 +143,8 @@ export default function HomePage() {
   ];
 
   return (
-    <IPRedirectComponent>
-      <div className="min-h-screen bg-gray-50">
-        {/* Header */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -282,21 +278,20 @@ export default function HomePage() {
               </div>
             </div>
           </CardContent>
-        </Card>
+          </Card>
 
-        {/* Dialog Editar Anotações */}
-        <DialogEditarAnotacoes
-          aberto={!!modoEditarAnotacoes}
-          agendamento={agendamentos.find(a => a.id === modoEditarAnotacoes)}
-          vendedores={vendedores}
-          onClose={() => setModoEditarAnotacoes(null)}
-          onSalvar={(dados) => {
-            handleSalvarAnotacoes(modoEditarAnotacoes, dados);
-          }}
-          usuarioAtual={usuarioAtual}
-        />
-      </div>
-      </div>
-    </IPRedirectComponent>
-  );
-}
+          {/* Dialog Editar Anotações */}
+           <DialogEditarAnotacoes
+           aberto={!!modoEditarAnotacoes}
+           agendamento={agendamentos.find(a => a.id === modoEditarAnotacoes)}
+           vendedores={vendedores}
+           onClose={() => setModoEditarAnotacoes(null)}
+           onSalvar={(dados) => {
+             handleSalvarAnotacoes(modoEditarAnotacoes, dados);
+           }}
+           usuarioAtual={usuarioAtual}
+           />
+          </div>
+          </div>
+          );
+          }

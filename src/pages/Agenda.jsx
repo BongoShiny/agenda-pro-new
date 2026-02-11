@@ -151,50 +151,30 @@ export default function AgendaPage() {
 
   useEffect(() => {
     let cleanup = null;
-    let timeoutId = null;
 
     const carregarUsuario = async () => {
-      try {
-        const user = await base44.auth.me();
-        
-        // Se usuário não foi aprovado, redirecionar para acesso negado
-        if (user.aprovado === false) {
-          navigate(createPageUrl("AcessoNegado"));
-          return;
-        }
-        
-        setUsuarioAtual(user);
-        cleanup = await gerenciarSessaoUnica(user);
+      const user = await base44.auth.me();
+      setUsuarioAtual(user);
 
-        console.log("👤👤👤 USUÁRIO CARREGADO 👤👤👤");
-        console.log("Email:", user.email);
-        console.log("Cargo:", user.cargo);
-        console.log("Role:", user.role);
-        console.log("É Admin?:", user.cargo === "administrador" || user.role === "admin");
-        console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
-        console.log("Data atual:", dataAtual.toString());
-        console.log("Data formatada:", formatarDataPura(dataAtual));
-      } catch (error) {
-        // Se não conseguir carregar usuário, redirecionar para registro
-        console.error("Erro ao carregar usuário:", error);
-        navigate(createPageUrl("Registro"));
-      }
+      console.log("👤👤👤 USUÁRIO CARREGADO 👤👤👤");
+      console.log("Email:", user.email);
+      console.log("Cargo:", user.cargo);
+      console.log("Role:", user.role);
+      console.log("É Admin?:", user.cargo === "administrador" || user.role === "admin");
+      console.log("Timezone:", Intl.DateTimeFormat().resolvedOptions().timeZone);
+      console.log("Data atual:", dataAtual.toString());
+      console.log("Data formatada:", formatarDataPura(dataAtual));
+
+      // Gerenciar sessão única
+      cleanup = await gerenciarSessaoUnica(user);
     };
-
-    // Se não carregar em 3 segundos, redirecionar
-    timeoutId = setTimeout(() => {
-      if (!usuarioAtual) {
-        navigate(createPageUrl("Registro"));
-      }
-    }, 3000);
 
     carregarUsuario();
 
     return () => {
       if (cleanup) cleanup();
-      if (timeoutId) clearTimeout(timeoutId);
     };
-  }, [navigate, dataAtual]);
+  }, []);
 
   // Função para gerenciar sessão única
   const gerenciarSessaoUnica = async (user) => {

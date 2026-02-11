@@ -29,7 +29,6 @@ export default function GerenciarUsuariosPage() {
   const [novoNome, setNovoNome] = useState("");
   const [busca, setBusca] = useState("");
   const [filtroCargo, setFiltroCargo] = useState("");
-  const [abaSelecionada, setAbaSelecionada] = useState("aprovados");
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -78,10 +77,6 @@ export default function GerenciarUsuariosPage() {
     initialData: [],
     enabled: !!usuarioAtual,
   });
-
-  const usuariosAprovados = usuarios.filter(u => u.aprovado !== false);
-  const usuariosPendentes = usuarios.filter(u => u.aprovado === false);
-  const usuariosFiltrados = abaSelecionada === "aprovados" ? usuariosAprovados : usuariosPendentes;
 
   const { data: unidades = [] } = useQuery({
     queryKey: ['unidades'],
@@ -246,78 +241,6 @@ export default function GerenciarUsuariosPage() {
     setNovoNome("");
   };
 
-  const handleAprovarUsuario = async (usuario) => {
-    // Abrir modal para definir cargo
-    setUsuarioParaConfigCargo(usuario);
-    setCargoSelecionado(usuario.cargo || "");
-    setUnidadesSelecionadas(usuario.unidades_acesso || []);
-  };
-
-  const [usuarioParaConfigCargo, setUsuarioParaConfigCargo] = useState(null);
-  const [cargoSelecionado, setCargoSelecionado] = useState("");
-  const [unidadesSelecionadas, setUnidadesSelecionadas] = useState([]);
-
-  const handleRejeitar = async (usuario) => {
-    const confirmar = window.confirm(`Deseja rejeitar o registro de ${usuario.full_name}? O usuário não poderá acessar o sistema.`);
-    if (!confirmar) return;
-
-    await base44.entities.User.delete(usuario.id);
-    await queryClient.invalidateQueries({ queryKey: ['usuarios'] });
-    
-    await base44.entities.LogAcao.create({
-      tipo: "editou_usuario",
-      usuario_email: usuarioAtual?.email,
-      descricao: `Rejeitou novo usuário ${usuario.full_name} (${usuario.email})`,
-      entidade_tipo: "Usuario",
-      entidade_id: usuario.id,
-      dados_antigos: JSON.stringify({ aprovado: false }),
-      dados_novos: JSON.stringify({ rejeitado: true })
-    });
-  };
-
-  const handleConfirmarCargo = async (usuario) => {
-    if (!cargoSelecionado) {
-      alert("Por favor, selecione um cargo!");
-      return;
-    }
-
-    try {
-      // Atualizar usuário com cargo e unidades
-      await atualizarUsuarioMutation.mutateAsync({
-        id: usuario.id,
-        dados: {
-          aprovado: true,
-          cargo: cargoSelecionado,
-          unidades_acesso: unidadesSelecionadas.length > 0 ? unidadesSelecionadas : []
-        }
-      });
-
-      // Se for vendedor, criar registro automaticamente
-      if (cargoSelecionado === "vendedor") {
-        await base44.entities.Vendedor.create({
-          nome: usuario.full_name,
-          email: usuario.email
-        });
-      }
-
-      await base44.entities.LogAcao.create({
-        tipo: "editou_usuario",
-        usuario_email: usuarioAtual?.email,
-        descricao: `Aprovou usuário ${usuario.full_name} e definiu cargo como "${cargoSelecionado}"`,
-        entidade_tipo: "Usuario",
-        entidade_id: usuario.id
-      });
-
-      // Fechar modal e limpar
-      setUsuarioParaConfigCargo(null);
-      setCargoSelecionado("");
-      setUnidadesSelecionadas([]);
-      alert(`✅ Usuário ${usuario.full_name} aprovado com sucesso!`);
-    } catch (error) {
-      alert("Erro ao aprovar usuário: " + error.message);
-    }
-  };
-
   if (!usuarioAtual) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -349,41 +272,16 @@ export default function GerenciarUsuariosPage() {
         <Alert className="mb-6 bg-blue-50 border-blue-200">
           <AlertCircle className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-800">
-            <strong>Novos usuários:</strong> Usuários que se registram aparecem na aba "Pendentes de Aprovação" e precisam ser aprovados para acessar o sistema.
+            <strong>Como convidar novos usuários:</strong> Vá até o Dashboard → clique em "Convidar usuário" no menu lateral. 
+            Após o convite, você poderá configurar o cargo e permissões do novo usuário aqui.
           </AlertDescription>
         </Alert>
-
-        {/* Abas */}
-        <div className="flex gap-2 mb-6 border-b">
-          <button
-            onClick={() => setAbaSelecionada("aprovados")}
-            className={`px-4 py-2 font-medium border-b-2 transition-colors ${
-              abaSelecionada === "aprovados"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Usuários Aprovados ({usuariosAprovados.length})
-          </button>
-          <button
-            onClick={() => setAbaSelecionada("pendentes")}
-            className={`px-4 py-2 font-medium border-b-2 transition-colors ${
-              abaSelecionada === "pendentes"
-                ? "border-blue-600 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Pendentes de Aprovação ({usuariosPendentes.length})
-          </button>
-        </div>
 
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between mb-4">
-              <CardTitle>{abaSelecionada === "aprovados" ? "Usuários Aprovados" : "Pendentes de Aprovação"}</CardTitle>
-              <Badge variant="secondary">
-                {abaSelecionada === "aprovados" ? usuariosAprovados.length : usuariosPendentes.length} usuários
-              </Badge>
+              <CardTitle>Usuários do Sistema</CardTitle>
+              <Badge variant="secondary">{usuarios.length} usuários</Badge>
             </div>
             <div className="flex gap-3">
               <Input
@@ -423,7 +321,7 @@ export default function GerenciarUsuariosPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {usuariosFiltrados
+                {usuarios
                   .filter(usuario => {
                     // Filtro de busca
                     if (busca) {
@@ -740,47 +638,25 @@ export default function GerenciarUsuariosPage() {
                       </TableCell>
 
                       <TableCell>
-                        {abaSelecionada === "pendentes" ? (
-                          <div className="flex gap-2">
-                            <Button
-                              size="sm"
-                              className="bg-green-600 hover:bg-green-700"
-                              onClick={() => handleAprovarUsuario(usuario)}
-                            >
-                              <Check className="w-4 h-4 mr-1" />
-                              Aprovar
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              className="text-red-600 border-red-200 hover:bg-red-50"
-                              onClick={() => handleRejeitar(usuario)}
-                            >
-                              <X className="w-4 h-4 mr-1" />
-                              Rejeitar
-                            </Button>
-                          </div>
-                        ) : (
-                          <Badge 
-                            variant={cargo === "administrador" || cargo === "superior" || cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" || cargo === "terapeuta" || cargo === "pos_venda" ? "default" : "secondary"} 
-                            className={
-                              cargo === "gerencia_unidades" ? "bg-purple-600" : 
-                              cargo === "financeiro" ? "bg-green-600" : 
-                              cargo === "vendedor" ? "bg-orange-600" :
-                              cargo === "terapeuta" ? "bg-teal-600" :
-                              cargo === "pos_venda" ? "bg-pink-600" :
-                              cargo === "superior" ? "bg-blue-500" : ""
-                            }
-                          >
-                            {cargo === "administrador" || cargo === "superior" ? "Superior" : 
-                            cargo === "gerencia_unidades" ? "Gerência" : 
-                            cargo === "financeiro" ? "Financeiro" : 
-                            cargo === "vendedor" ? "Vendedor" :
-                            cargo === "terapeuta" ? "Terapeuta" :
-                            cargo === "pos_venda" ? "Pós Venda" :
-                            "Funcionário"}
-                          </Badge>
-                        )}
+                        <Badge 
+                          variant={cargo === "administrador" || cargo === "superior" || cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" || cargo === "terapeuta" || cargo === "pos_venda" ? "default" : "secondary"} 
+                          className={
+                            cargo === "gerencia_unidades" ? "bg-purple-600" : 
+                            cargo === "financeiro" ? "bg-green-600" : 
+                            cargo === "vendedor" ? "bg-orange-600" :
+                            cargo === "terapeuta" ? "bg-teal-600" :
+                            cargo === "pos_venda" ? "bg-pink-600" :
+                            cargo === "superior" ? "bg-blue-500" : ""
+                          }
+                        >
+                          {cargo === "administrador" || cargo === "superior" ? "Superior" : 
+                          cargo === "gerencia_unidades" ? "Gerência" : 
+                          cargo === "financeiro" ? "Financeiro" : 
+                          cargo === "vendedor" ? "Vendedor" :
+                          cargo === "terapeuta" ? "Terapeuta" :
+                          cargo === "pos_venda" ? "Pós Venda" :
+                          "Funcionário"}
+                        </Badge>
                       </TableCell>
                     </TableRow>
                   );
@@ -788,96 +664,15 @@ export default function GerenciarUsuariosPage() {
               </TableBody>
             </Table>
 
-            {usuariosFiltrados.length === 0 && (
+            {usuarios.length === 0 && (
               <div className="text-center py-12 text-gray-500">
                 <UserPlus className="w-12 h-12 mx-auto mb-4 text-gray-400" />
-                <p className="font-medium">
-                  {abaSelecionada === "pendentes" ? "Nenhum usuário pendente" : "Nenhum usuário aprovado"}
-                </p>
-                <p className="text-sm mt-2">
-                  {abaSelecionada === "pendentes" 
-                    ? "Todos os usuários foram aprovados" 
-                    : "Não há usuários cadastrados"}
-                </p>
+                <p className="font-medium">Nenhum usuário cadastrado</p>
+                <p className="text-sm mt-2">Convide usuários através do Dashboard</p>
               </div>
             )}
-            </CardContent>
-            </Card>
-
-            {/* Modal de Aprovação com Configuração de Cargo */}
-        {usuarioParaConfigCargo && (
-          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-            <Card className="w-full max-w-md">
-              <CardHeader>
-                <CardTitle>Aprovar e Configurar Cargo</CardTitle>
-                <p className="text-sm text-gray-600 mt-2">{usuarioParaConfigCargo.full_name}</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="cargo">Cargo</Label>
-                  <Select value={cargoSelecionado} onValueChange={setCargoSelecionado}>
-                    <SelectTrigger id="cargo">
-                      <SelectValue placeholder="Selecione um cargo" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="recepcao">Recepção</SelectItem>
-                      <SelectItem value="terapeuta">Terapeuta</SelectItem>
-                      <SelectItem value="vendedor">Vendedor</SelectItem>
-                      <SelectItem value="financeiro">Financeiro</SelectItem>
-                      <SelectItem value="pos_venda">Pós Venda</SelectItem>
-                      <SelectItem value="gerencia_unidades">Gerência</SelectItem>
-                      <SelectItem value="superior">Administrador</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Unidades de Acesso</Label>
-                  <div className="border rounded-lg p-3 space-y-2 max-h-40 overflow-y-auto">
-                    {unidades.map(unidade => (
-                      <div key={unidade.id} className="flex items-center gap-2">
-                        <input
-                          type="checkbox"
-                          id={`unidade-${unidade.id}`}
-                          checked={unidadesSelecionadas.includes(unidade.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setUnidadesSelecionadas([...unidadesSelecionadas, unidade.id]);
-                            } else {
-                              setUnidadesSelecionadas(unidadesSelecionadas.filter(id => id !== unidade.id));
-                            }
-                          }}
-                          className="rounded"
-                        />
-                        <Label htmlFor={`unidade-${unidade.id}`} className="cursor-pointer">
-                          {unidade.nome}
-                        </Label>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </CardContent>
-              <div className="p-6 flex gap-2 justify-end border-t">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setUsuarioParaConfigCargo(null);
-                    setCargoSelecionado("");
-                    setUnidadesSelecionadas([]);
-                  }}
-                >
-                  Cancelar
-                </Button>
-                <Button
-                  className="bg-green-600 hover:bg-green-700"
-                  onClick={() => handleConfirmarCargo(usuarioParaConfigCargo)}
-                >
-                  Aprovar Usuário
-                </Button>
-              </div>
-            </Card>
-          </div>
-        )}
+          </CardContent>
+        </Card>
 
         <Card className="mt-6">
           <CardHeader>

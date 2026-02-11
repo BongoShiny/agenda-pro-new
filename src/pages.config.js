@@ -47,7 +47,6 @@
  *
  * The mainPage value must match a key in the PAGES object exactly.
  */
-import AcessoNegado from './pages/AcessoNegado';
 import Administrador from './pages/Administrador';
 import Agenda from './pages/Agenda';
 import AnaliseCruzada from './pages/AnaliseCruzada';
@@ -66,7 +65,6 @@ import HistoricoClientes from './pages/HistoricoClientes';
 import Home from './pages/Home';
 import LancarVendas from './pages/LancarVendas';
 import RankingVendedores from './pages/RankingVendedores';
-import Registro from './pages/Registro';
 import RelatorioErrosImportacao from './pages/RelatorioErrosImportacao';
 import RelatoriosAvancados from './pages/RelatoriosAvancados';
 import RelatoriosCRM from './pages/RelatoriosCRM';
@@ -77,7 +75,6 @@ import __Layout from './Layout.jsx';
 
 
 export const PAGES = {
-    "AcessoNegado": AcessoNegado,
     "Administrador": Administrador,
     "Agenda": Agenda,
     "AnaliseCruzada": AnaliseCruzada,
@@ -96,7 +93,6 @@ export const PAGES = {
     "Home": Home,
     "LancarVendas": LancarVendas,
     "RankingVendedores": RankingVendedores,
-    "Registro": Registro,
     "RelatorioErrosImportacao": RelatorioErrosImportacao,
     "RelatoriosAvancados": RelatoriosAvancados,
     "RelatoriosCRM": RelatoriosCRM,
