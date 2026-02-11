@@ -54,8 +54,8 @@ export default function HomePage() {
       try {
         const user = await base44.auth.me();
         
-        // Verificar se o cargo é "funcionario" - sem acesso
-        if (user?.cargo === "funcionario") {
+        // Verificar se o cargo é "sem_acesso" - sem acesso ao sistema
+        if (user?.cargo === "sem_acesso") {
           setUsuarioAtual(user);
           setCarregando(false);
           return; // Não redirecionar, renderizar página de sem acesso
@@ -140,8 +140,8 @@ export default function HomePage() {
     );
   }
 
-  // Se o cargo é "funcionario", mostrar página de sem acesso
-  if (usuarioAtual?.cargo === "funcionario") {
+  // Se o cargo é "sem_acesso", mostrar página de sem acesso
+  if (usuarioAtual?.cargo === "sem_acesso") {
     const UserNotRegisteredError = require("../components/UserNotRegisteredError").default;
     return <UserNotRegisteredError />;
   }

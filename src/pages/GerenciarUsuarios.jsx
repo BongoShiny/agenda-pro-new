@@ -99,7 +99,7 @@ export default function GerenciarUsuariosPage() {
   });
 
   const handleAtualizarCargo = async (usuario, novoCargo) => {
-    const cargoAntigo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "funcionario");
+    const cargoAntigo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "sem_acesso");
     
     // Se mudou para "vendedor", criar registro automaticamente
     if (novoCargo === "vendedor" && cargoAntigo !== "vendedor") {
@@ -303,7 +303,7 @@ export default function GerenciarUsuariosPage() {
                   <SelectItem value="pos_venda">Pós Venda</SelectItem>
                   <SelectItem value="terapeuta">Terapeuta</SelectItem>
                   <SelectItem value="recepcao">Recepção</SelectItem>
-                  <SelectItem value="funcionario">Sem Acesso</SelectItem>
+                  <SelectItem value="sem_acesso">Sem Acesso</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -341,7 +341,7 @@ export default function GerenciarUsuariosPage() {
                   })
                   .map(usuario => {
                   const isCurrentUser = usuario.id === usuarioAtual.id;
-                  const cargo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "funcionario");
+                  const cargo = usuario.cargo || (usuario.role === "admin" ? "administrador" : "sem_acesso");
                   
                   return (
                     <TableRow key={usuario.id}>
@@ -488,7 +488,7 @@ export default function GerenciarUsuariosPage() {
                                     Pós Venda
                                   </div>
                                 </SelectItem>
-                                <SelectItem value="funcionario">
+                                <SelectItem value="sem_acesso">
                                   <div className="flex items-center gap-2">
                                     <User className="w-3 h-3" />
                                     Sem Acesso
