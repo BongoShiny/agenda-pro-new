@@ -111,11 +111,23 @@ export default function AnaliseCruzadaPage() {
   agendamentosAnalise.forEach(ag => {
     // Buscar nome oficial do terapeuta pela entidade Profissional
     let terapeuta = "Sem Terapeuta";
+    
+    // Tentar buscar pelo ID primeiro
     if (ag.conversao_profissional_id) {
       const profissional = profissionais.find(p => p.id === ag.conversao_profissional_id);
       terapeuta = profissional ? profissional.nome : (ag.conversao_profissional_nome || ag.profissional_nome || "Sem Terapeuta");
+    } else if (ag.profissional_id) {
+      const profissional = profissionais.find(p => p.id === ag.profissional_id);
+      terapeuta = profissional ? profissional.nome : (ag.conversao_profissional_nome || ag.profissional_nome || "Sem Terapeuta");
     } else {
-      terapeuta = ag.conversao_profissional_nome || ag.profissional_nome || "Sem Terapeuta";
+      // Tentar buscar pelo nome (normalizado) se não tiver ID
+      const nomeParaBuscar = ag.conversao_profissional_nome || ag.profissional_nome;
+      if (nomeParaBuscar) {
+        const profissional = profissionais.find(p => 
+          p.nome.toLowerCase().trim() === nomeParaBuscar.toLowerCase().trim()
+        );
+        terapeuta = profissional ? profissional.nome : nomeParaBuscar;
+      }
     }
     terapeuta = normalizarNome(terapeuta);
     
