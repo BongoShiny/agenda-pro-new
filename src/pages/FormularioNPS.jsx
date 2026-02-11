@@ -227,7 +227,7 @@ export default function FormularioNPSPage() {
 
               {/* 5. Nota para o terapeuta */}
               <div className="space-y-2">
-                <Label className="text-base">
+                <Label className="text-sm sm:text-base">
                   5. Que nota você daria para o terapeuta que te atendeu?
                 </Label>
                 <div className="grid grid-cols-5 sm:grid-cols-10 gap-1 sm:gap-2">
