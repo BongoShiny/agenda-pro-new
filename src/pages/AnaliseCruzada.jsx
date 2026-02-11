@@ -82,19 +82,23 @@ export default function AnaliseCruzadaPage() {
   const normalizarNome = (nome) => {
     if (!nome) return "Sem informação";
     
-    // Remove espaços extras e converte para lowercase para comparação
-    const nomeNormalizado = nome.trim().toLowerCase();
+    const nomeOriginal = nome.trim();
+    const nomeNormalizado = nomeOriginal.toLowerCase();
     
-    // Mapeamento de duplicados conhecidos
+    // Mapeamento de duplicados conhecidos (apenas casos específicos)
     const mapeamentos = {
       'fabiane': 'Fabiane',
       'flavia': 'Flávia',
       'flávia': 'Flávia',
-      // Adicione outros mapeamentos conforme necessário
     };
     
-    // Retorna o nome mapeado ou o original com capitalize
-    return mapeamentos[nomeNormalizado] || nome.trim();
+    // Se o nome está no mapeamento, retorna o valor mapeado
+    if (mapeamentos[nomeNormalizado]) {
+      return mapeamentos[nomeNormalizado];
+    }
+    
+    // Caso contrário, mantém o nome original (preserva "ROGER LONDRINA" e "ROGER PAULISTA" como distintos)
+    return nomeOriginal;
   };
 
   agendamentosAnalise.forEach(ag => {
