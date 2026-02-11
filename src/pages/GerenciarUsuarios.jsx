@@ -802,10 +802,10 @@ export default function GerenciarUsuariosPage() {
               </div>
             )}
             </Table>
-          </CardContent>
-        </Card>
+            </CardContent>
+            </Card>
 
-        {/* Modal de Aprovação com Configuração de Cargo */}
+            {/* Modal de Aprovação com Configuração de Cargo */}
         {usuarioParaConfigCargo && (
           <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
             <Card className="w-full max-w-md">
