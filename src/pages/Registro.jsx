@@ -125,87 +125,163 @@ export default function RegistroPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-4">
       <Card className="max-w-md w-full">
         <CardHeader>
-          <CardTitle className="text-center text-2xl">Criar Conta</CardTitle>
-          <p className="text-center text-sm text-gray-600 mt-2">
-            Preencha os dados para solicitar acesso ao sistema
-          </p>
+          <CardTitle className="text-center text-2xl">
+            {aba === "login" ? "Fazer Login" : "Criar Conta"}
+          </CardTitle>
+          {/* Abas */}
+          <div className="flex gap-2 mt-4">
+            <button
+              onClick={() => {
+                setAba("login");
+                setError("");
+                setEmail("");
+                setPassword("");
+                setConfirmPassword("");
+                setNome("");
+              }}
+              className={`flex-1 py-2 px-3 rounded text-sm font-semibold transition-colors ${
+                aba === "login"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              Login
+            </button>
+            <button
+              onClick={() => {
+                setAba("criar");
+                setError("");
+                setEmail("");
+                setPassword("");
+                setConfirmPassword("");
+                setNome("");
+              }}
+              className={`flex-1 py-2 px-3 rounded text-sm font-semibold transition-colors ${
+                aba === "criar"
+                  ? "bg-blue-600 text-white"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+              }`}
+            >
+              Criar Conta
+            </button>
+          </div>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {error && (
-              <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex gap-2">
-                <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-                <p className="text-sm text-red-700">{error}</p>
+          {/* ABA LOGIN */}
+          {aba === "login" && (
+            <form onSubmit={handleLogin} className="space-y-4">
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="loginEmail">Email</Label>
+                <Input
+                  id="loginEmail"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  disabled={loading}
+                />
               </div>
-            )}
 
-            <div className="space-y-2">
-              <Label htmlFor="nome">Nome Completo</Label>
-              <Input
-                id="nome"
-                type="text"
-                value={nome}
-                onChange={(e) => setNome(e.target.value)}
-                placeholder="Seu nome completo"
+              <div className="space-y-2">
+                <Label htmlFor="loginPassword">Senha</Label>
+                <Input
+                  id="loginPassword"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Sua senha"
+                  disabled={loading}
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700"
                 disabled={loading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="seu@email.com"
-                disabled={loading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="password">Senha</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
-                disabled={loading}
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="confirmPassword">Confirmar Senha</Label>
-              <Input
-                id="confirmPassword"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirme sua senha"
-                disabled={loading}
-              />
-            </div>
-
-            <Button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700"
-              disabled={loading}
-            >
-              {loading ? "Cadastrando..." : "Criar Conta"}
-            </Button>
-
-            <p className="text-center text-sm text-gray-600">
-              Já possui conta?{" "}
-              <button
-                type="button"
-                onClick={() => window.location.href = "/"}
-                className="text-blue-600 hover:underline font-semibold"
               >
-                Voltar ao login
-              </button>
-            </p>
-          </form>
+                {loading ? "Entrando..." : "Entrar"}
+              </Button>
+            </form>
+          )}
+
+          {/* ABA CRIAR CONTA */}
+          {aba === "criar" && (
+            <form onSubmit={handleCriarConta} className="space-y-4">
+              {error && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-lg flex gap-2">
+                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              )}
+
+              <div className="space-y-2">
+                <Label htmlFor="nome">Nome Completo</Label>
+                <Input
+                  id="nome"
+                  type="text"
+                  value={nome}
+                  onChange={(e) => setNome(e.target.value)}
+                  placeholder="Seu nome completo"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="criarEmail">Email</Label>
+                <Input
+                  id="criarEmail"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="seu@email.com"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="criarPassword">Senha</Label>
+                <Input
+                  id="criarPassword"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Mínimo 6 caracteres"
+                  disabled={loading}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="confirmPassword">Confirmar Senha</Label>
+                <Input
+                  id="confirmPassword"
+                  type="password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirme sua senha"
+                  disabled={loading}
+                />
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700"
+                disabled={loading}
+              >
+                {loading ? "Cadastrando..." : "Criar Conta"}
+              </Button>
+
+              <p className="text-center text-xs text-gray-600 mt-4">
+                Ao criar uma conta, você solicitará acesso ao sistema. Um administrador irá revisar seu cadastro.
+              </p>
+            </form>
+          )}
         </CardContent>
       </Card>
     </div>
