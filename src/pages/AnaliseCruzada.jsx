@@ -85,11 +85,12 @@ export default function AnaliseCruzadaPage() {
     const nomeOriginal = nome.trim();
     const nomeNormalizado = nomeOriginal.toLowerCase();
     
-    // Mapeamento de duplicados conhecidos (apenas casos específicos)
+    // Mapeamento de duplicados conhecidos
     const mapeamentos = {
       'fabiane': 'Fabiane',
       'flavia': 'Flávia',
       'flávia': 'Flávia',
+      'roger': 'ROGER LONDRINA', // Mapeia ROGER genérico para ROGER LONDRINA
     };
     
     // Se o nome está no mapeamento, retorna o valor mapeado
