@@ -303,7 +303,7 @@ export default function GerenciarUsuariosPage() {
                   <SelectItem value="pos_venda">Pós Venda</SelectItem>
                   <SelectItem value="terapeuta">Terapeuta</SelectItem>
                   <SelectItem value="recepcao">Recepção</SelectItem>
-                  <SelectItem value="funcionario">Funcionário</SelectItem>
+                  <SelectItem value="funcionario">Sem Acesso</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -491,7 +491,7 @@ export default function GerenciarUsuariosPage() {
                                 <SelectItem value="funcionario">
                                   <div className="flex items-center gap-2">
                                     <User className="w-3 h-3" />
-                                    Funcionário
+                                    Sem Acesso
                                   </div>
                                 </SelectItem>
                               </>
@@ -781,14 +781,14 @@ export default function GerenciarUsuariosPage() {
               <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
                 <div className="flex items-center gap-2 mb-3">
                   <User className="w-5 h-5 text-gray-600" />
-                  <h3 className="font-semibold text-gray-900">Funcionário</h3>
+                  <h3 className="font-semibold text-gray-900">Sem Acesso</h3>
                 </div>
                 <ul className="space-y-2 text-sm text-gray-700">
-                  <li>• Pode criar e editar agendamentos</li>
-                  <li>• Não pode bloquear a agenda</li>
-                  <li>• Não pode editar quando bloqueada</li>
-                  <li>• Não pode gerenciar usuários</li>
-                  <li>• Acesso limitado às unidades permitidas</li>
+                  <li>• Usuário bloqueado do sistema</li>
+                  <li>• Não pode acessar nenhuma funcionalidade</li>
+                  <li>• Redirecionado para página de acesso restrito</li>
+                  <li>• Aguardando liberação do administrador</li>
+                  <li>• Pode fazer logout e tentar novamente com outra conta</li>
                 </ul>
               </div>
             </div>
