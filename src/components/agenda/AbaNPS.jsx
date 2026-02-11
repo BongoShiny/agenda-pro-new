@@ -162,9 +162,10 @@ export default function AbaNPS({ agendamento }) {
             </div>
             <iframe
               src={linkNPS}
-              className="w-full flex-1"
+              className="w-full flex-1 h-full"
               frameBorder="0"
               title="Formulário NPS"
+              style={{minHeight: '100vh', maxHeight: '100vh'}}
             />
           </div>
         </div>
