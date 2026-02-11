@@ -272,8 +272,7 @@ export default function GerenciarUsuariosPage() {
         <Alert className="mb-6 bg-blue-50 border-blue-200">
           <AlertCircle className="h-4 w-4 text-blue-600" />
           <AlertDescription className="text-blue-800">
-            <strong>Como convidar novos usuários:</strong> Vá até o Dashboard → clique em "Convidar usuário" no menu lateral. 
-            Após o convite, você poderá configurar o cargo e permissões do novo usuário aqui.
+            <strong>Novos usuários:</strong> Usuários que se registram aparecem na aba "Pendentes de Aprovação" e precisam ser aprovados para acessar o sistema.
           </AlertDescription>
         </Alert>
 
