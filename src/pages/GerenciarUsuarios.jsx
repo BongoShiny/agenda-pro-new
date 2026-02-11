@@ -263,6 +263,16 @@ export default function GerenciarUsuariosPage() {
     });
   };
 
+  const [usuarioParaConfigCargo, setUsuarioParaConfigCargo] = useState(null);
+  const [cargoSelecionado, setCargoSelecionado] = useState("");
+  const [unidadesSelecionadas, setUnidadesSelecionadas] = useState([]);
+
+  const { data: unidades = [] } = useQuery({
+    queryKey: ['unidades'],
+    queryFn: () => base44.entities.Unidade.list("nome"),
+    initialData: [],
+  });
+
   const handleRejeitar = async (usuario) => {
     const confirmar = window.confirm(`Deseja rejeitar o registro de ${usuario.full_name}? O usuário não poderá acessar o sistema.`);
     if (!confirmar) return;
@@ -279,6 +289,49 @@ export default function GerenciarUsuariosPage() {
       dados_antigos: JSON.stringify({ aprovado: false }),
       dados_novos: JSON.stringify({ rejeitado: true })
     });
+  };
+
+  const handleConfirmarCargo = async (usuario) => {
+    if (!cargoSelecionado) {
+      alert("Por favor, selecione um cargo!");
+      return;
+    }
+
+    try {
+      // Atualizar usuário com cargo e unidades
+      await atualizarUsuarioMutation.mutateAsync({
+        id: usuario.id,
+        dados: {
+          aprovado: true,
+          cargo: cargoSelecionado,
+          unidades_acesso: unidadesSelecionadas.length > 0 ? unidadesSelecionadas : []
+        }
+      });
+
+      // Se for vendedor, criar registro automaticamente
+      if (cargoSelecionado === "vendedor") {
+        await base44.entities.Vendedor.create({
+          nome: usuario.full_name,
+          email: usuario.email
+        });
+      }
+
+      await base44.entities.LogAcao.create({
+        tipo: "editou_usuario",
+        usuario_email: usuarioAtual?.email,
+        descricao: `Aprovou usuário ${usuario.full_name} e definiu cargo como "${cargoSelecionado}"`,
+        entidade_tipo: "Usuario",
+        entidade_id: usuario.id
+      });
+
+      // Fechar modal e limpar
+      setUsuarioParaConfigCargo(null);
+      setCargoSelecionado("");
+      setUnidadesSelecionadas([]);
+      alert(`✅ Usuário ${usuario.full_name} aprovado com sucesso!`);
+    } catch (error) {
+      alert("Erro ao aprovar usuário: " + error.message);
+    }
   };
 
   if (!usuarioAtual) {
