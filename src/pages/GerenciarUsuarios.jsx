@@ -801,7 +801,6 @@ export default function GerenciarUsuariosPage() {
                 </p>
               </div>
             )}
-            </Table>
             </CardContent>
             </Card>
 
