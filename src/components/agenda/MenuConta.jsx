@@ -5,12 +5,22 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, LogOut, Monitor, Shield, Building2, FileSpreadsheet, DollarSign, X, Trash2 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { User, LogOut, Monitor, Shield, Building2, FileSpreadsheet, DollarSign, X, Trash2, AlertCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function MenuConta({ usuarioAtual, onClose }) {
   const [showDispositivos, setShowDispositivos] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const queryClient = useQueryClient();
 
   const { data: dispositivos = [] } = useQuery({
@@ -97,6 +107,36 @@ export default function MenuConta({ usuarioAtual, onClose }) {
 
     // Fazer logout
     base44.auth.logout();
+  };
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmation !== usuarioAtual?.email) {
+      alert("❌ Email não corresponde. Operação cancelada.");
+      return;
+    }
+
+    try {
+      // Registrar exclusão
+      await base44.entities.LogAcao.create({
+        tipo: "logout",
+        usuario_email: usuarioAtual?.email,
+        descricao: `Conta excluída pelo usuário`,
+        entidade_tipo: "Usuario"
+      });
+
+      // Limpar localStorage
+      localStorage.clear();
+
+      alert("✅ Conta excluída com sucesso. Redirecionando...");
+      
+      // Redirecionar para login
+      setTimeout(() => {
+        base44.auth.logout("/");
+      }, 1000);
+    } catch (error) {
+      console.error("Erro ao excluir conta:", error);
+      alert("❌ Erro ao excluir conta: " + error.message);
+    }
   };
 
   const cargoLabels = {
@@ -261,10 +301,76 @@ export default function MenuConta({ usuarioAtual, onClose }) {
           Sair da Conta
         </Button>
 
+        <Button 
+          variant="outline" 
+          className="w-full text-red-600 border-red-200 hover:bg-red-50"
+          onClick={() => setShowDeleteDialog(true)}
+        >
+          <AlertCircle className="w-4 h-4 mr-2" />
+          Excluir Conta
+        </Button>
+
         <div className="text-xs text-gray-500 text-center pt-2 border-t border-gray-200">
           Todos os dispositivos e IPs são registrados
         </div>
       </div>
+
+      {/* Delete Account Dialog */}
+      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-red-600">
+              <AlertCircle className="w-5 h-5" />
+              Excluir Conta
+            </DialogTitle>
+            <DialogDescription>
+              Esta ação é permanente e não pode ser desfeita. Todos os seus dados serão excluídos.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+              <p className="text-sm text-red-800 font-semibold">⚠️ Aviso: Exclusão Permanente</p>
+              <p className="text-xs text-red-700 mt-2">
+                Para confirmar a exclusão da sua conta, digite seu email abaixo:
+              </p>
+            </div>
+
+            <div className="space-y-2">
+              <Label>Confirme seu email</Label>
+              <Input
+                type="email"
+                placeholder={usuarioAtual?.email}
+                value={deleteConfirmation}
+                onChange={(e) => setDeleteConfirmation(e.target.value)}
+                className="border-red-200 focus:border-red-500"
+              />
+              <p className="text-xs text-gray-500">
+                Você digitará: <strong>{usuarioAtual?.email}</strong>
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowDeleteDialog(false);
+                setDeleteConfirmation("");
+              }}
+            >
+              Cancelar
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={handleDeleteAccount}
+              disabled={deleteConfirmation !== usuarioAtual?.email}
+            >
+              Excluir Minha Conta
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
