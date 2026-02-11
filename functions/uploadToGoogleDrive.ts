@@ -9,14 +9,9 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const contentType = req.headers.get('content-type') || '';
-    
-    if (!contentType.includes('multipart/form-data')) {
-      return Response.json({ error: 'Content-Type must be multipart/form-data' }, { status: 400 });
-    }
-
     const formData = await req.formData();
     const file = formData.get('file');
+    const unidadeNome = formData.get('unidade_nome') || 'Comprovantes';
 
     if (!file) {
       return Response.json({ error: 'No file provided' }, { status: 400 });
@@ -25,6 +20,36 @@ Deno.serve(async (req) => {
     // Obter o access token do Google Drive
     const accessToken = await base44.asServiceRole.connectors.getAccessToken("googledrive");
 
+    // Buscar ou criar pasta da unidade
+    const searchResponse = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=name='${encodeURIComponent(unidadeNome)}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
+      {
+        headers: { 'Authorization': `Bearer ${accessToken}` }
+      }
+    );
+
+    const searchData = await searchResponse.json();
+    let folderId;
+
+    if (searchData.files && searchData.files.length > 0) {
+      folderId = searchData.files[0].id;
+    } else {
+      // Criar pasta
+      const createFolderResponse = await fetch('https://www.googleapis.com/drive/v3/files', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: unidadeNome,
+          mimeType: 'application/vnd.google-apps.folder'
+        })
+      });
+      const folderData = await createFolderResponse.json();
+      folderId = folderData.id;
+    }
+
     // Ler o arquivo como bytes
     const fileBytes = await file.arrayBuffer();
     const fileName = file.name || 'arquivo_' + Date.now();
@@ -32,7 +57,7 @@ Deno.serve(async (req) => {
     // Upload usando resumable upload (mais confiável)
     const metadata = {
       name: fileName,
-      parents: []
+      parents: [folderId]
     };
 
     // Iniciar upload

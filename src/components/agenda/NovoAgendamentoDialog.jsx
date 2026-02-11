@@ -401,10 +401,11 @@ export default function NovoAgendamentoDialog({
 
     setUploadingFile(numeroComprovante);
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+      formDataUpload.append('unidade_nome', formData.unidade_nome || 'Comprovantes');
 
-      const { data } = await base44.functions.invoke('uploadToGoogleDrive', formData);
+      const { data } = await base44.functions.invoke('uploadToGoogleDrive', formDataUpload);
       
       const campoComprovante = `comprovante_${numeroComprovante}`;
       setFormData(prev => ({ ...prev, [campoComprovante]: data.file_url }));
@@ -433,9 +434,11 @@ export default function NovoAgendamentoDialog({
     setUploadingFile(numeroComprovante);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-      const { data } = await base44.functions.invoke('uploadToGoogleDrive', formData);
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+      formDataUpload.append('unidade_nome', formData.unidade_nome || 'Comprovantes');
+      
+      const { data } = await base44.functions.invoke('uploadToGoogleDrive', formDataUpload);
       
       const campoComprovante = `comprovante_${numeroComprovante}`;
       setFormData(prev => ({ ...prev, [campoComprovante]: data.file_url }));
