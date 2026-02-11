@@ -102,7 +102,6 @@ export default function NovoAgendamentoDialog({
   const [erroHorarioOcupado, setErroHorarioOcupado] = useState(false);
   const [erroHorarioFechado, setErroHorarioFechado] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(null);
-  const [googlePickerLoaded, setGooglePickerLoaded] = useState(false);
 
 
   const { data: vendedores = [] } = useQuery({
@@ -184,27 +183,6 @@ export default function NovoAgendamentoDialog({
        idsConfiguracao.includes(p.id) && p.ativo !== false
      );
    }, [profissionais, formData.unidade_id, configuracoesTerapeutas, isAvaliacao, recepcionistas]);
-
-  // Carregar Google Picker API
-  useEffect(() => {
-    const loadGooglePicker = () => {
-      if (window.google && window.google.picker) {
-        setGooglePickerLoaded(true);
-        return;
-      }
-
-      const script = document.createElement('script');
-      script.src = 'https://apis.google.com/js/api.js';
-      script.onload = () => {
-        window.gapi.load('picker', () => {
-          setGooglePickerLoaded(true);
-        });
-      };
-      document.body.appendChild(script);
-    };
-
-    loadGooglePicker();
-  }, []);
 
   useEffect(() => {
     if (open) {
@@ -439,14 +417,25 @@ export default function NovoAgendamentoDialog({
   };
 
   const handleGoogleDrivePicker = async (numeroComprovante) => {
+    alert("🔄 Abrindo Google Drive...");
     try {
-      // Buscar o access token
       const { data: tokenData } = await base44.functions.invoke('createGoogleDrivePicker', {});
       const accessToken = tokenData.access_token;
 
-      // Criar o picker
+      // Carregar Google Picker API se ainda não estiver carregada
+      if (!window.google || !window.google.picker) {
+        await new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://apis.google.com/js/api.js';
+          script.onload = () => {
+            window.gapi.load('picker', { callback: resolve, onerror: reject });
+          };
+          script.onerror = reject;
+          document.head.appendChild(script);
+        });
+      }
+
       const picker = new window.google.picker.PickerBuilder()
-        .addView(window.google.picker.ViewId.DOCS)
         .addView(new window.google.picker.DocsView()
           .setIncludeFolders(true)
           .setMimeTypes('image/png,image/jpeg,image/jpg,application/pdf'))
@@ -465,6 +454,7 @@ export default function NovoAgendamentoDialog({
 
       picker.setVisible(true);
     } catch (error) {
+      console.error('Erro Google Drive Picker:', error);
       alert("❌ Erro ao abrir Google Drive: " + error.message);
     }
   };
@@ -1110,7 +1100,6 @@ export default function NovoAgendamentoDialog({
                         variant="outline"
                         className="w-full text-xs h-9"
                         onClick={() => handleGoogleDrivePicker(num)}
-                        disabled={!googlePickerLoaded}
                       >
                         📁 Google Drive
                       </Button>
