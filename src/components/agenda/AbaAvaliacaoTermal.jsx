@@ -24,7 +24,9 @@ export default function AbaAvaliacaoTermal({ agendamento, usuarioAtual }) {
 
   const uploadFotoMutation = useMutation({
     mutationFn: async (file) => {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await base44.functions.invoke('uploadToGoogleDrive', formData);
       
       // Encontrar próximo slot disponível (1 a 20)
       let proximoSlot = 1;
@@ -37,7 +39,7 @@ export default function AbaAvaliacaoTermal({ agendamento, usuarioAtual }) {
 
       // Atualizar agendamento com nova foto
       const updateData = {
-        [`avaliacao_termal_${proximoSlot}`]: file_url
+        [`avaliacao_termal_${proximoSlot}`]: data.file_url
       };
 
       const agendamentoAtualizado = await base44.entities.Agendamento.update(ag.id, updateData);
@@ -54,10 +56,10 @@ export default function AbaAvaliacaoTermal({ agendamento, usuarioAtual }) {
       // Atualizar estado local imediatamente
       setAgendamentoAtualizado(prev => ({
         ...prev,
-        [`avaliacao_termal_${proximoSlot}`]: file_url
+        [`avaliacao_termal_${proximoSlot}`]: data.file_url
       }));
 
-      return file_url;
+      return data.file_url;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['agendamentos'] });

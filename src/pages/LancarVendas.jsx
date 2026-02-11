@@ -117,9 +117,11 @@ export default function LancarVendasPage() {
 
     setUploadingComprovante(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setComprovanteUrl(file_url);
-      alert("✅ Comprovante anexado com sucesso!");
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await base44.functions.invoke('uploadToGoogleDrive', formData);
+      setComprovanteUrl(data.file_url);
+      alert("✅ Comprovante enviado para o Google Drive!");
     } catch (error) {
       alert(`❌ Erro ao anexar comprovante: ${error.message}`);
     } finally {
@@ -133,9 +135,11 @@ export default function LancarVendasPage() {
 
     setUploadingComprovante(true);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
-      setEditandoComprovanteUrl(file_url);
-      alert("✅ Comprovante atualizado com sucesso!");
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await base44.functions.invoke('uploadToGoogleDrive', formData);
+      setEditandoComprovanteUrl(data.file_url);
+      alert("✅ Comprovante enviado para o Google Drive!");
     } catch (error) {
       alert(`❌ Erro ao atualizar comprovante: ${error.message}`);
     } finally {

@@ -12,10 +12,12 @@ export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgen
   const uploadContratoMutation = useMutation({
     mutationFn: async (file) => {
       setUploading(true);
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await base44.functions.invoke('uploadToGoogleDrive', formData);
       
       const agendamentoAtualizado = await base44.entities.Agendamento.update(agendamento.id, {
-        contrato_termo_url: file_url
+        contrato_termo_url: data.file_url
       });
 
       // Registrar no log
