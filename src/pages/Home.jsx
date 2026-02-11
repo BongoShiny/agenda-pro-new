@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { IPRedirectComponent } from "@/components/IPDetection";
 import { format } from "date-fns";
 import { 
   LayoutDashboard, 
