@@ -1042,81 +1042,38 @@ export default function RelatoriosClientesPage() {
               </tbody>
             </table>
             </div>
-
-            {/* Paginação */}
-            {totalPaginas > 1 && (
-             <div className="flex items-center justify-between p-4 border-t bg-gray-50">
-               <div className="text-sm text-gray-600">
-                 Mostrando {indexInicio + 1}-{Math.min(indexFim, agendamentosFiltrados.length)} de {agendamentosFiltrados.length} registros
-               </div>
-               <div className="flex gap-2">
-                 <Button
-                   variant="outline"
-                   size="sm"
-                   onClick={() => setPaginaAtual(p => Math.max(1, p - 1))}
-                   disabled={paginaAtual === 1}
-                 >
-                   Anterior
-                 </Button>
-                 <div className="flex items-center gap-1">
-                   {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
-                     const page = i + 1;
-                     return (
-                       <Button
-                         key={page}
-                         variant={paginaAtual === page ? "default" : "outline"}
-                         size="sm"
-                         onClick={() => setPaginaAtual(page)}
-                         className="w-8 h-8 p-0"
-                       >
-                         {page}
-                       </Button>
-                     );
-                   })}
-                   {totalPaginas > 5 && <span className="text-gray-500">...</span>}
-                 </div>
-                 <Button
-                   variant="outline"
-                   size="sm"
-                   onClick={() => setPaginaAtual(p => Math.min(totalPaginas, p + 1))}
-                   disabled={paginaAtual === totalPaginas}
-                 >
-                   Próxima
-                 </Button>
-               </div>
-             </div>
-            )}
-            </div>
+          </div>
         )}
             
-            {/* Paginação */}
-            {totalPaginas > 1 && (
-             <div className="flex items-center justify-between p-4 border-t bg-gray-50 dark:bg-gray-800 mt-4">
-               <div className="text-sm text-gray-600 dark:text-gray-400">
-                 Mostrando {indexInicio + 1}-{Math.min(indexFim, agendamentosFiltrados.length)} de {agendamentosFiltrados.length}
-               </div>
-               <div className="flex gap-2">
-                 <Button
-                   variant="outline"
-                   size="sm"
-                   onClick={() => setPaginaAtual(p => Math.max(1, p - 1))}
-                   disabled={paginaAtual === 1}
-                   style={{ minHeight: '44px' }}
-                 >
-                   Anterior
-                 </Button>
-                 <Button
-                   variant="outline"
-                   size="sm"
-                   onClick={() => setPaginaAtual(p => Math.min(totalPaginas, p + 1))}
-                   disabled={paginaAtual === totalPaginas}
-                   style={{ minHeight: '44px' }}
-                 >
-                   Próxima
-                 </Button>
-               </div>
-             </div>
-            )}
-            </div>
-            );
-            }
+        {/* Paginação */}
+        {totalPaginas > 1 && (
+         <div className="flex items-center justify-between p-4 border-t bg-gray-50 dark:bg-gray-800 mt-4 rounded-b-lg">
+           <div className="text-sm text-gray-600 dark:text-gray-400">
+             Mostrando {indexInicio + 1}-{Math.min(indexFim, agendamentosFiltrados.length)} de {agendamentosFiltrados.length}
+           </div>
+           <div className="flex gap-2">
+             <Button
+               variant="outline"
+               size="sm"
+               onClick={() => setPaginaAtual(p => Math.max(1, p - 1))}
+               disabled={paginaAtual === 1}
+               style={{ minHeight: '44px' }}
+             >
+               Anterior
+             </Button>
+             <Button
+               variant="outline"
+               size="sm"
+               onClick={() => setPaginaAtual(p => Math.min(totalPaginas, p + 1))}
+               disabled={paginaAtual === totalPaginas}
+               style={{ minHeight: '44px' }}
+             >
+               Próxima
+             </Button>
+           </div>
+         </div>
+        )}
+      </div>
+    </div>
+  );
+}
