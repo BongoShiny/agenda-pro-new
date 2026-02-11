@@ -54,6 +54,7 @@ import ConfiguracaoSabado from './pages/ConfiguracaoSabado';
 import ConfiguracaoTerapeutas from './pages/ConfiguracaoTerapeutas';
 import ConfigurarRecepcionistas from './pages/ConfigurarRecepcionistas';
 import ConfigurarUnidades from './pages/ConfigurarUnidades';
+import FormularioNPS from './pages/FormularioNPS';
 import GerenciarClientesVendas from './pages/GerenciarClientesVendas';
 import GerenciarContratos from './pages/GerenciarContratos';
 import GerenciarProntuarios from './pages/GerenciarProntuarios';
@@ -70,7 +71,6 @@ import RelatoriosCRM from './pages/RelatoriosCRM';
 import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
 import WhatsAppCompleto from './pages/WhatsAppCompleto';
-import FormularioNPS from './pages/FormularioNPS';
 import __Layout from './Layout.jsx';
 
 
@@ -82,6 +82,7 @@ export const PAGES = {
     "ConfiguracaoTerapeutas": ConfiguracaoTerapeutas,
     "ConfigurarRecepcionistas": ConfigurarRecepcionistas,
     "ConfigurarUnidades": ConfigurarUnidades,
+    "FormularioNPS": FormularioNPS,
     "GerenciarClientesVendas": GerenciarClientesVendas,
     "GerenciarContratos": GerenciarContratos,
     "GerenciarProntuarios": GerenciarProntuarios,
@@ -98,7 +99,6 @@ export const PAGES = {
     "RelatoriosClientes": RelatoriosClientes,
     "RelatoriosFinanceiros": RelatoriosFinanceiros,
     "WhatsAppCompleto": WhatsAppCompleto,
-    "FormularioNPS": FormularioNPS,
 }
 
 export const pagesConfig = {

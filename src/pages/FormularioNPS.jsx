@@ -19,8 +19,18 @@ export default function FormularioNPSPage() {
     queryKey: ['agendamento-nps', agendamentoId],
     queryFn: async () => {
       if (!agendamentoId) return null;
-      const agendamentos = await base44.asServiceRole.entities.Agendamento.filter({ id: agendamentoId });
-      return agendamentos.length > 0 ? agendamentos[0] : null;
+      try {
+        const response = await fetch(`https://api.base44.com/v1/entities/Agendamento?id=${agendamentoId}`, {
+          headers: {
+            'X-App-Id': 'vibe-terapias-1034'
+          }
+        });
+        const data = await response.json();
+        return data.length > 0 ? data[0] : null;
+      } catch (error) {
+        console.error('Erro ao buscar agendamento:', error);
+        return null;
+      }
     },
     enabled: !!agendamentoId,
   });
@@ -29,8 +39,18 @@ export default function FormularioNPSPage() {
     queryKey: ['resposta-existente', agendamentoId],
     queryFn: async () => {
       if (!agendamentoId) return null;
-      const respostas = await base44.asServiceRole.entities.RespostaNPS.filter({ agendamento_id: agendamentoId });
-      return respostas.length > 0 ? respostas[0] : null;
+      try {
+        const response = await fetch(`https://api.base44.com/v1/entities/RespostaNPS?agendamento_id=${agendamentoId}`, {
+          headers: {
+            'X-App-Id': 'vibe-terapias-1034'
+          }
+        });
+        const data = await response.json();
+        return data.length > 0 ? data[0] : null;
+      } catch (error) {
+        console.error('Erro ao buscar resposta:', error);
+        return null;
+      }
     },
     enabled: !!agendamentoId,
   });
@@ -65,7 +85,20 @@ export default function FormularioNPSPage() {
 
   const salvarNPSMutation = useMutation({
     mutationFn: async (dados) => {
-      return await base44.asServiceRole.entities.RespostaNPS.create(dados);
+      try {
+        const response = await fetch('https://api.base44.com/v1/entities/RespostaNPS', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-App-Id': 'vibe-terapias-1034'
+          },
+          body: JSON.stringify(dados)
+        });
+        return await response.json();
+      } catch (error) {
+        console.error('Erro ao salvar NPS:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       setEnviado(true);
