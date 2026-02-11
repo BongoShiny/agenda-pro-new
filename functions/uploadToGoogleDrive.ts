@@ -33,14 +33,34 @@ Deno.serve(async (req) => {
     const delimiter = "\r\n--" + boundary + "\r\n";
     const closeDelimiter = "\r\n--" + boundary + "--";
 
-    const multipartRequestBody =
+    // Construir multipart body corretamente com dados binários
+    const metadataPart = 
       delimiter +
       'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
-      JSON.stringify(metadata) +
+      JSON.stringify(metadata);
+
+    const filePart = 
       delimiter +
-      'Content-Type: ' + (file.type || 'application/octet-stream') + '\r\n\r\n' +
-      new TextDecoder().decode(fileBytes) +
-      closeDelimiter;
+      'Content-Type: ' + (file.type || 'application/octet-stream') + '\r\n\r\n';
+
+    // Converter strings para bytes
+    const encoder = new TextEncoder();
+    const metadataBytes = encoder.encode(metadataPart);
+    const filePartBytes = encoder.encode(filePart);
+    const closeDelimiterBytes = encoder.encode(closeDelimiter);
+
+    // Concatenar tudo em um único array
+    const totalLength = metadataBytes.length + filePartBytes.length + fileBytes.byteLength + closeDelimiterBytes.length;
+    const body = new Uint8Array(totalLength);
+    
+    let offset = 0;
+    body.set(metadataBytes, offset);
+    offset += metadataBytes.length;
+    body.set(filePartBytes, offset);
+    offset += filePartBytes.length;
+    body.set(new Uint8Array(fileBytes), offset);
+    offset += fileBytes.byteLength;
+    body.set(closeDelimiterBytes, offset);
 
     const uploadResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
       method: 'POST',
@@ -48,7 +68,7 @@ Deno.serve(async (req) => {
         'Authorization': `Bearer ${accessToken}`,
         'Content-Type': `multipart/related; boundary=${boundary}`
       },
-      body: multipartRequestBody
+      body: body
     });
 
     if (!uploadResponse.ok) {
