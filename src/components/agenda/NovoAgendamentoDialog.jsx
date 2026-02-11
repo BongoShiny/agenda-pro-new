@@ -400,12 +400,15 @@ export default function NovoAgendamentoDialog({
 
     setUploadingFile(numeroComprovante);
     try {
-      const { file_url } = await base44.integrations.Core.UploadFile({ file });
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const { data } = await base44.functions.invoke('uploadToGoogleDrive', formData);
       
       const campoComprovante = `comprovante_${numeroComprovante}`;
-      setFormData(prev => ({ ...prev, [campoComprovante]: file_url }));
+      setFormData(prev => ({ ...prev, [campoComprovante]: data.file_url }));
       
-      alert("✅ Comprovante enviado com sucesso!");
+      alert("✅ Comprovante enviado para o Google Drive!");
     } catch (error) {
       alert("❌ Erro ao enviar comprovante: " + error.message);
     } finally {
