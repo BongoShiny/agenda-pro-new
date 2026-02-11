@@ -29,6 +29,7 @@ export default function GerenciarUsuariosPage() {
   const [novoNome, setNovoNome] = useState("");
   const [busca, setBusca] = useState("");
   const [filtroCargo, setFiltroCargo] = useState("");
+  const [abaSelecionada, setAbaSelecionada] = useState("aprovados");
   const queryClient = useQueryClient();
 
   useEffect(() => {
