@@ -58,23 +58,18 @@ export default function HomePage() {
         if (user?.cargo === "sem_acesso") {
           setUsuarioAtual(user);
           setCarregando(false);
-          // Não permitir acesso a nenhuma página
           return;
         }
         
         setUsuarioAtual(user);
-        
-        // Redirecionar para Agenda após login
-        navigate(createPageUrl("Agenda"));
+        setCarregando(false);
       } catch (error) {
         console.error("Erro ao carregar usuário:", error);
-        navigate(createPageUrl("Agenda"));
-      } finally {
         setCarregando(false);
       }
     };
     carregarUsuario();
-  }, [navigate]);
+  }, []);
 
   // Salvar preferências de widgets
   const toggleWidget = (widget) => {
