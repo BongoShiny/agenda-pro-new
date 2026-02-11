@@ -417,6 +417,47 @@ export default function NovoAgendamentoDialog({
     }
   };
 
+  const handleDrop = async (e, numeroComprovante) => {
+    e.preventDefault();
+    setDragOverFile(null);
+    
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+
+    // Validar tipo de arquivo
+    if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+      alert("❌ Apenas imagens e PDFs são permitidos!");
+      return;
+    }
+
+    setUploadingFile(numeroComprovante);
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+      const { data } = await base44.functions.invoke('uploadToGoogleDrive', formData);
+      
+      const campoComprovante = `comprovante_${numeroComprovante}`;
+      setFormData(prev => ({ ...prev, [campoComprovante]: data.file_url }));
+      
+      alert("✅ Comprovante anexado com sucesso!");
+    } catch (error) {
+      alert("❌ Erro ao enviar comprovante: " + error.message);
+    } finally {
+      setUploadingFile(null);
+    }
+  };
+
+  const handleDragOver = (e, numeroComprovante) => {
+    e.preventDefault();
+    setDragOverFile(numeroComprovante);
+  };
+
+  const handleDragLeave = (e) => {
+    e.preventDefault();
+    setDragOverFile(null);
+  };
+
 
 
 
