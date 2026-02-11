@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { ThemeProvider } from "@/components/ThemeContext";
 import BottomTabNavigation from "@/components/BottomTabNavigation";
+import PageTransition from "@/components/PageTransition";
 
 export default function Layout({ children, currentPageName }) {
   const [usuarioAtual, setUsuarioAtual] = useState(null);
@@ -90,10 +91,10 @@ export default function Layout({ children, currentPageName }) {
         className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-50 min-h-screen transition-colors"
         style={{ overscrollBehaviorY: 'none' }}
       >
-        {/* Padding para safe-area no topo */}
-        <div style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+        {/* Padding para safe-area no topo + transitions */}
+        <PageTransition>
           {children}
-        </div>
+        </PageTransition>
         
         {/* Bottom navigation com safe-area */}
         {usuarioAtual && <BottomTabNavigation currentPageName={currentPageName} usuarioAtual={usuarioAtual} />}
