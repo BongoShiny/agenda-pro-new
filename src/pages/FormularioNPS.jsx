@@ -167,7 +167,7 @@ export default function FormularioNPSPage() {
 
         <Card>
           <CardContent className="pt-6">
-            <h2 className="text-2xl font-bold text-amber-900 mb-6 text-center">
+            <h2 className="text-xl sm:text-2xl font-bold text-amber-900 mb-6 text-center">
               Formulário de NPS - Vibe Terapias
             </h2>
 
