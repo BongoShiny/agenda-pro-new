@@ -246,6 +246,41 @@ export default function GerenciarUsuariosPage() {
     setNovoNome("");
   };
 
+  const handleAprovarUsuario = async (usuario) => {
+    await atualizarUsuarioMutation.mutateAsync({
+      id: usuario.id,
+      dados: { aprovado: true }
+    });
+    
+    await base44.entities.LogAcao.create({
+      tipo: "editou_usuario",
+      usuario_email: usuarioAtual?.email,
+      descricao: `Aprovou novo usuário ${usuario.full_name} (${usuario.email})`,
+      entidade_tipo: "Usuario",
+      entidade_id: usuario.id,
+      dados_antigos: JSON.stringify({ aprovado: false }),
+      dados_novos: JSON.stringify({ aprovado: true })
+    });
+  };
+
+  const handleRejeitar = async (usuario) => {
+    const confirmar = window.confirm(`Deseja rejeitar o registro de ${usuario.full_name}? O usuário não poderá acessar o sistema.`);
+    if (!confirmar) return;
+
+    await base44.entities.User.delete(usuario.id);
+    await queryClient.invalidateQueries({ queryKey: ['usuarios'] });
+    
+    await base44.entities.LogAcao.create({
+      tipo: "editou_usuario",
+      usuario_email: usuarioAtual?.email,
+      descricao: `Rejeitou novo usuário ${usuario.full_name} (${usuario.email})`,
+      entidade_tipo: "Usuario",
+      entidade_id: usuario.id,
+      dados_antigos: JSON.stringify({ aprovado: false }),
+      dados_novos: JSON.stringify({ rejeitado: true })
+    });
+  };
+
   if (!usuarioAtual) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
