@@ -386,7 +386,7 @@ export default function GerenciarUsuariosPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {usuarios
+                {usuariosFiltrados
                   .filter(usuario => {
                     // Filtro de busca
                     if (busca) {
