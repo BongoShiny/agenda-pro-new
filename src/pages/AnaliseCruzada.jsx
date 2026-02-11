@@ -22,6 +22,7 @@ export default function AnaliseCruzadaPage() {
   const [dataInicioAnalise, setDataInicioAnalise] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"));
   const [dataFimAnalise, setDataFimAnalise] = useState(format(endOfMonth(new Date()), "yyyy-MM-dd"));
   const [unidadeAnalise, setUnidadeAnalise] = useState("todas");
+  const [filtroPerformance, setFiltroPerformance] = useState("todos");
   const [gapExpandido, setGapExpandido] = useState(null);
 
   const { data: usuarioAtual } = useQuery({
@@ -213,7 +214,18 @@ export default function AnaliseCruzadaPage() {
     }))
     .filter(g => g.total > 0);
 
-  const todosGaps = [...gapsRecepcao, ...gapsTerapeuta].sort((a, b) => a.taxa - b.taxa);
+  let todosGaps = [...gapsRecepcao, ...gapsTerapeuta].sort((a, b) => a.taxa - b.taxa);
+  
+  // Filtrar por performance
+  if (filtroPerformance !== "todos") {
+    todosGaps = todosGaps.filter(gap => {
+      if (filtroPerformance === "critico") return gap.taxa <= 34.9;
+      if (filtroPerformance === "atencao") return gap.taxa >= 35 && gap.taxa <= 49.9;
+      if (filtroPerformance === "otimo") return gap.taxa >= 50 && gap.taxa <= 99.9;
+      if (filtroPerformance === "excelente") return gap.taxa === 100;
+      return true;
+    });
+  }
 
   // Rankings
   const rankingRecepcao = recepcionistas
@@ -257,7 +269,7 @@ export default function AnaliseCruzadaPage() {
         {/* Filtros */}
         <Card>
           <CardContent className="pt-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
               <div className="space-y-2">
                 <Label>Clínica</Label>
                 <Select value={unidadeAnalise} onValueChange={setUnidadeAnalise}>
@@ -269,6 +281,21 @@ export default function AnaliseCruzadaPage() {
                     {unidadesFiltradas.map(u => (
                       <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
                     ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Performance</Label>
+                <Select value={filtroPerformance} onValueChange={setFiltroPerformance}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="todos">Todas</SelectItem>
+                    <SelectItem value="critico">Crítico (0-34,9%)</SelectItem>
+                    <SelectItem value="atencao">Atenção (35-49,9%)</SelectItem>
+                    <SelectItem value="otimo">Ótimo (50-99,9%)</SelectItem>
+                    <SelectItem value="excelente">Excelente (100%)</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -297,6 +324,7 @@ export default function AnaliseCruzadaPage() {
                     setDataInicioAnalise(format(startOfMonth(new Date()), "yyyy-MM-dd"));
                     setDataFimAnalise(format(endOfMonth(new Date()), "yyyy-MM-dd"));
                     setUnidadeAnalise("todas");
+                    setFiltroPerformance("todos");
                   }}
                 >
                   Limpar Filtros
