@@ -59,6 +59,12 @@ export default function HistoricoClientes() {
     initialData: [],
   });
 
+  const { data: respostasNPS = [] } = useQuery({
+    queryKey: ['respostas-nps'],
+    queryFn: () => base44.entities.RespostaNPS.list("-created_date"),
+    initialData: [],
+  });
+
   const atualizarClienteMutation = useMutation({
     mutationFn: async ({ clienteId, nomeAntigo, telefoneAntigo, novoNome, novoTelefone }) => {
       // Atualizar entidade Cliente
@@ -367,26 +373,71 @@ export default function HistoricoClientes() {
                               )}
 
                               {ag.observacoes && (
-                                <div className="bg-gray-50 rounded p-2 mt-2">
-                                  <div className="text-xs text-gray-600">
-                                    <strong>Observações:</strong> {ag.observacoes}
-                                  </div>
-                                </div>
+                               <div className="bg-gray-50 rounded p-2 mt-2">
+                                 <div className="text-xs text-gray-600">
+                                   <strong>Observações:</strong> {ag.observacoes}
+                                 </div>
+                               </div>
                               )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </div>
-          </div>
-        </div>
-      </div>
-    );
-  }
+                              </div>
+
+                              {/* Resposta NPS */}
+                              {(() => {
+                              const npsResposta = respostasNPS.find(nps => nps.agendamento_id === ag.id);
+                              if (npsResposta) {
+                               return (
+                                 <div className="bg-purple-50 border border-purple-200 rounded p-3 mt-3">
+                                   <div className="flex items-center gap-2 text-purple-700 mb-2">
+                                     <span className="font-semibold">📋 NPS Respondido</span>
+                                   </div>
+                                   <div className="grid grid-cols-2 gap-3 text-xs">
+                                     <div>
+                                       <span className="text-purple-600">Nota Terapeuta:</span>
+                                       <span className="font-bold ml-1 text-purple-900">{npsResposta.nota_terapeuta}/10</span>
+                                     </div>
+                                     <div>
+                                       <span className="text-purple-600">Recomendação:</span>
+                                       <span className="font-bold ml-1 text-purple-900">{npsResposta.nota_recomendacao}/10</span>
+                                     </div>
+                                     <div>
+                                       <span className="text-purple-600">Atenção:</span>
+                                       <span className="font-medium ml-1">{npsResposta.avaliacao_atencao_terapeuta}</span>
+                                     </div>
+                                     <div>
+                                       <span className="text-purple-600">Sessão:</span>
+                                       <span className="font-medium ml-1">{npsResposta.avaliacao_sessao}</span>
+                                     </div>
+                                     {npsResposta.o_que_mais_gostou && (
+                                       <div className="col-span-2 pt-2 border-t border-purple-200">
+                                         <span className="text-purple-600">O que mais gostou:</span>
+                                         <p className="font-medium text-purple-900 mt-1">{npsResposta.o_que_mais_gostou}</p>
+                                       </div>
+                                     )}
+                                     {npsResposta.o_que_melhorar && (
+                                       <div className="col-span-2 pt-2 border-t border-purple-200">
+                                         <span className="text-purple-600">O que melhorar:</span>
+                                         <p className="font-medium text-purple-900 mt-1">{npsResposta.o_que_melhorar}</p>
+                                       </div>
+                                     )}
+                                   </div>
+                                 </div>
+                               );
+                              }
+                              return null;
+                              })()}
+                              </div>
+                              );
+                              })}
+                              </div>
+                              )}
+                              </CardContent>
+                              </Card>
+                              </div>
+                              </div>
+                              </div>
+                              </div>
+                              );
+                              }
 
   // Lista de clientes
   return (
