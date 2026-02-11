@@ -164,14 +164,14 @@ export default function AnaliseCruzadaPage() {
     };
   });
 
-  // Identificar gaps (taxa até 49%)
+  // Identificar todos os gaps (todas as taxas)
   const gapsRecepcao = recepcionistas
     .map(rec => ({
       tipo: "Recepção",
       nome: rec,
       ...totaisPorRecepcao[rec]
     }))
-    .filter(g => g.taxa < 50 && g.total > 0);
+    .filter(g => g.total > 0);
 
   const gapsTerapeuta = terapeutas
     .map(ter => ({
@@ -179,7 +179,7 @@ export default function AnaliseCruzadaPage() {
       nome: ter,
       ...totaisPorTerapeuta[ter]
     }))
-    .filter(g => g.taxa < 50 && g.total > 0);
+    .filter(g => g.total > 0);
 
   const todosGaps = [...gapsRecepcao, ...gapsTerapeuta].sort((a, b) => a.taxa - b.taxa);
 
@@ -327,32 +327,40 @@ export default function AnaliseCruzadaPage() {
 
         {/* Gaps Identificados */}
         {todosGaps.length > 0 && (
-          <Card className="border-orange-200">
-            <CardHeader className="bg-orange-50">
-              <CardTitle className="flex items-center gap-2 text-orange-900">
-                <TrendingDown className="w-5 h-5" />
-                Gaps Identificados - Atenção Necessária
+          <Card className="border-blue-200">
+            <CardHeader className="bg-blue-50">
+              <CardTitle className="flex items-center gap-2 text-blue-900">
+                <BarChart3 className="w-5 h-5" />
+                Análise de Performance - Todos os Colaboradores
               </CardTitle>
             </CardHeader>
             <CardContent className="pt-6">
               <div className="space-y-3">
                 {todosGaps.map((gap, idx) => {
-                  const isCritico = gap.taxa <= 34;
-                  const isAtencao = gap.taxa >= 35 && gap.taxa <= 49;
                   const isExpandido = gapExpandido === `${gap.tipo}-${gap.nome}`;
                   
                   // Definir cores e texto baseado na taxa
                   let corBorda, corFundo, corBadge, textoBadge;
-                  if (isCritico) {
+                  if (gap.taxa <= 34.9) {
                     corBorda = 'border-red-300';
                     corFundo = 'bg-red-50';
                     corBadge = 'bg-red-600 text-white';
                     textoBadge = 'CRÍTICO';
-                  } else if (isAtencao) {
+                  } else if (gap.taxa >= 35 && gap.taxa <= 49.9) {
                     corBorda = 'border-orange-300';
                     corFundo = 'bg-orange-50';
                     corBadge = 'bg-orange-600 text-white';
                     textoBadge = 'ATENÇÃO';
+                  } else if (gap.taxa >= 50 && gap.taxa <= 99.9) {
+                    corBorda = 'border-green-300';
+                    corFundo = 'bg-green-50';
+                    corBadge = 'bg-green-600 text-white';
+                    textoBadge = 'ÓTIMO';
+                  } else if (gap.taxa === 100) {
+                    corBorda = 'border-green-400';
+                    corFundo = 'bg-green-100';
+                    corBadge = 'bg-green-700 text-white';
+                    textoBadge = 'EXCELENTE';
                   }
                   
                   return (
@@ -383,9 +391,11 @@ export default function AnaliseCruzadaPage() {
                           <p className="text-sm text-gray-700">
                             <strong>Conversões:</strong> {gap.convertidos} de {gap.total} tentativas
                           </p>
-                          <p className="text-sm text-gray-600 mt-2">
-                            Recomendação: Avaliar processos e oferecer treinamento para melhorar a taxa de conversão.
-                          </p>
+                          {gap.taxa < 50 && (
+                            <p className="text-sm text-gray-600 mt-2">
+                              Recomendação: Avaliar processos e oferecer treinamento para melhorar a taxa de conversão.
+                            </p>
+                          )}
                         </div>
                       )}
                     </div>
