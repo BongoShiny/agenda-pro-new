@@ -154,6 +154,13 @@ export default function AgendaPage() {
 
     const carregarUsuario = async () => {
       const user = await base44.auth.me();
+      
+      // Se usuário não foi aprovado, redirecionar para acesso negado
+      if (user.aprovado === false) {
+        navigate(createPageUrl("AcessoNegado"));
+        return;
+      }
+      
       setUsuarioAtual(user);
 
       console.log("👤👤👤 USUÁRIO CARREGADO 👤👤👤");
