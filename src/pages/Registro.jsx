@@ -5,8 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, CheckCircle2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { base44 } from "@/api/base44Client";
 
 export default function RegistroPage() {
+  const [aba, setAba] = useState("login"); // login ou criar
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
