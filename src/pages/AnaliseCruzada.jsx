@@ -78,9 +78,34 @@ export default function AnaliseCruzadaPage() {
   const terapeutasSet = new Set();
   const recepcionistasSet = new Set();
 
+  // Função para normalizar nomes e remover duplicados
+  const normalizarNome = (nome) => {
+    if (!nome) return "Sem informação";
+    
+    // Remove espaços extras e converte para lowercase para comparação
+    const nomeNormalizado = nome.trim().toLowerCase();
+    
+    // Mapeamento de duplicados conhecidos
+    const mapeamentos = {
+      'fabiane': 'Fabiane',
+      'flavia': 'Flávia',
+      'flávia': 'Flávia',
+      // Adicione outros mapeamentos conforme necessário
+    };
+    
+    // Retorna o nome mapeado ou o original com capitalize
+    return mapeamentos[nomeNormalizado] || nome.trim();
+  };
+
   agendamentosAnalise.forEach(ag => {
-    const terapeuta = ag.conversao_profissional_nome || ag.profissional_nome || "Sem Terapeuta";
-    const recepcao = ag.conversao_recepcionista || ag.conversao_recepcionista_nao_converteu || "Sem Recepção";
+    const terapeuta = normalizarNome(ag.conversao_profissional_nome || ag.profissional_nome || "Sem Terapeuta");
+    let recepcao = normalizarNome(ag.conversao_recepcionista || ag.conversao_recepcionista_nao_converteu || "Sem Recepção");
+    
+    // Se Flávia aparecer como terapeuta, corrigir para recepção
+    if (recepcao === "Flávia" && terapeuta === "Flávia") {
+      // Flávia é sempre recepção, então o terapeuta não deveria ser ela
+      return; // Pula este registro para evitar confusão
+    }
     
     terapeutasSet.add(terapeuta);
     recepcionistasSet.add(recepcao);
