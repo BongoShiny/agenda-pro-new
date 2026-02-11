@@ -12,16 +12,10 @@ export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgen
   const uploadContratoMutation = useMutation({
     mutationFn: async (file) => {
       setUploading(true);
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('unidade_nome', agendamento.unidade_nome || 'UNIDADE');
-      formData.append('cliente_nome', agendamento.cliente_nome || 'Cliente');
-      formData.append('tipo_arquivo', 'Contrato30%');
-      
-      const { data } = await base44.functions.invoke('uploadToGoogleDrive', formData);
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
       const agendamentoAtualizado = await base44.entities.Agendamento.update(agendamento.id, {
-        contrato_termo_url: data.file_url
+        contrato_termo_url: file_url
       });
 
       // Registrar no log
@@ -116,13 +110,13 @@ export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgen
 
       {temContrato ? (
         <div className="space-y-4">
-          <div className="bg-green-50 border-2 border-green-500 rounded-lg p-4">
-            <p className="text-sm text-green-800 font-medium">✅ Contrato anexado no Google Drive com sucesso!</p>
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+            <p className="text-sm text-green-800 font-medium">✅ Contrato anexado com sucesso!</p>
             <p className="text-xs text-green-700 mt-1">Cliente: {agendamento.cliente_nome}</p>
           </div>
 
           <div className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-            <Label className="text-sm font-semibold text-gray-700 mb-3 block">Documento Anexado no Google Drive:</Label>
+            <Label className="text-sm font-semibold text-gray-700 mb-3 block">Documento Anexado:</Label>
             <div className="flex items-center justify-between bg-white p-3 rounded border border-gray-200">
               <div className="flex items-center gap-2">
                 <FileText className="w-5 h-5 text-orange-600" />
@@ -136,7 +130,7 @@ export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgen
                 >
                   <Button size="sm" variant="outline" className="border-blue-600 text-blue-700 hover:bg-blue-50">
                     <Eye className="w-4 h-4 mr-2" />
-                    Visualizar no Google Drive
+                    Visualizar
                   </Button>
                 </a>
                 <Button 
@@ -162,17 +156,14 @@ export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgen
         <div className="space-y-4">
           <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
             <p className="text-sm text-yellow-800 font-medium">⚠️ Nenhum contrato anexado</p>
-            <p className="text-xs text-yellow-700 mt-1">Faça o upload do contrato - será enviado automaticamente para o Google Drive</p>
+            <p className="text-xs text-yellow-700 mt-1">Faça o upload do contrato assinado pelo cliente</p>
           </div>
 
-          <div className="bg-blue-50/50 p-6 rounded-lg border-2 border-dashed border-blue-300 hover:border-blue-500 transition-colors text-center">
-            <Upload className="w-12 h-12 mx-auto mb-3 text-blue-500" />
+          <div className="bg-gray-50 p-6 rounded-lg border-2 border-dashed border-gray-300 text-center">
+            <Upload className="w-12 h-12 mx-auto mb-3 text-gray-400" />
             <Label className="text-sm font-medium text-gray-700 mb-2 block">
-              📁 Anexar Contrato Termo 30% Multa
+              Anexar Contrato Termo 30% Multa
             </Label>
-            <p className="text-xs text-gray-600 mb-1">
-              Arquivo será enviado para o Google Drive automaticamente
-            </p>
             <p className="text-xs text-gray-500 mb-4">
               Formatos aceitos: JPG, PNG, GIF, PDF (máximo 10MB)
             </p>
@@ -186,19 +177,19 @@ export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgen
             />
             <Button 
               type="button" 
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-orange-600 hover:bg-orange-700"
               disabled={uploading}
               onClick={() => document.getElementById('upload-contrato').click()}
             >
               {uploading ? (
                 <>
                   <Upload className="w-4 h-4 mr-2 animate-spin" />
-                  📤 Enviando para Google Drive...
+                  Enviando...
                 </>
               ) : (
                 <>
                   <Upload className="w-4 h-4 mr-2" />
-                  Arrastar ou Clicar para Selecionar
+                  Selecionar Arquivo
                 </>
               )}
             </Button>

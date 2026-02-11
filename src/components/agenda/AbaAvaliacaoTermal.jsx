@@ -24,14 +24,7 @@ export default function AbaAvaliacaoTermal({ agendamento, usuarioAtual }) {
 
   const uploadFotoMutation = useMutation({
     mutationFn: async (file) => {
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('unidade_nome', agendamento.unidade_nome || 'UNIDADE');
-      formData.append('cliente_nome', agendamento.cliente_nome || 'Cliente');
-      formData.append('tipo_arquivo', 'AvaliacaoTermal');
-      
-      const { data } = await base44.functions.invoke('uploadToGoogleDrive', formData);
-      const file_url = data.file_url;
+      const { file_url } = await base44.integrations.Core.UploadFile({ file });
       
       // Encontrar próximo slot disponível (1 a 20)
       let proximoSlot = 1;
@@ -44,7 +37,7 @@ export default function AbaAvaliacaoTermal({ agendamento, usuarioAtual }) {
 
       // Atualizar agendamento com nova foto
       const updateData = {
-        [`avaliacao_termal_${proximoSlot}`]: data.file_url
+        [`avaliacao_termal_${proximoSlot}`]: file_url
       };
 
       const agendamentoAtualizado = await base44.entities.Agendamento.update(ag.id, updateData);
@@ -152,25 +145,22 @@ export default function AbaAvaliacaoTermal({ agendamento, usuarioAtual }) {
       </div>
 
       {/* Upload de Fotos */}
-      <div className="border-2 border-dashed border-purple-300 rounded-lg p-6 bg-purple-50 hover:border-purple-500 transition-colors">
+      <div className="border-2 border-dashed border-purple-300 rounded-lg p-6 bg-purple-50">
         <Label htmlFor="upload-termal" className="cursor-pointer">
           <div className="flex flex-col items-center justify-center gap-3">
             {uploading ? (
               <>
                 <Loader2 className="w-10 h-10 text-purple-600 animate-spin" />
-                <p className="text-sm text-purple-700 font-medium">📤 Enviando para Google Drive...</p>
+                <p className="text-sm text-purple-700 font-medium">Fazendo upload...</p>
               </>
             ) : (
               <>
                 <Upload className="w-10 h-10 text-purple-600" />
                 <p className="text-sm text-purple-700 font-medium">
-                  📁 Arraste ou clique para selecionar fotos
+                  Clique para selecionar fotos da avaliação termal
                 </p>
                 <p className="text-xs text-purple-600">
                   Até {20 - fotosExistentes.length} foto(s) restante(s) • PNG, JPG até 10MB cada
-                </p>
-                <p className="text-xs text-purple-500">
-                  Arquivos serão enviados para o Google Drive automaticamente
                 </p>
               </>
             )}
@@ -193,7 +183,7 @@ export default function AbaAvaliacaoTermal({ agendamento, usuarioAtual }) {
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
           {fotosExistentes.map(({ index, url }) => (
             <div key={index} className="relative group">
-              <div className="aspect-square rounded-lg overflow-hidden border-2 border-green-500 bg-gray-100">
+              <div className="aspect-square rounded-lg overflow-hidden border-2 border-purple-200 bg-gray-100">
                 <img
                   src={url}
                   alt={`Avaliação Termal ${index}`}
@@ -207,7 +197,7 @@ export default function AbaAvaliacaoTermal({ agendamento, usuarioAtual }) {
                   onClick={() => window.open(url, '_blank')}
                   className="bg-white hover:bg-gray-100"
                 >
-                  👁️ Visualizar no Drive
+                  👁️ Ver
                 </Button>
                 <Button
                   size="sm"
@@ -217,8 +207,8 @@ export default function AbaAvaliacaoTermal({ agendamento, usuarioAtual }) {
                   <X className="w-4 h-4" />
                 </Button>
               </div>
-              <div className="absolute top-2 left-2 bg-green-600 text-white text-xs px-2 py-1 rounded flex items-center gap-1">
-                ✅ Foto {index}
+              <div className="absolute top-2 left-2 bg-purple-600 text-white text-xs px-2 py-1 rounded">
+                Foto {index}
               </div>
             </div>
           ))}
