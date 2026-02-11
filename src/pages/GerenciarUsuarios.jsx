@@ -807,6 +807,83 @@ export default function GerenciarUsuariosPage() {
                 </p>
               </div>
             )}
+          </Table>
+        </div>
+
+        {/* Modal de Aprovação com Configuração de Cargo */}
+        {usuarioParaConfigCargo && (
+          <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+            <Card className="w-full max-w-md">
+              <CardHeader>
+                <CardTitle>Aprovar e Configurar Cargo</CardTitle>
+                <p className="text-sm text-gray-600 mt-2">{usuarioParaConfigCargo.full_name}</p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="cargo">Cargo</Label>
+                  <Select value={cargoSelecionado} onValueChange={setCargoSelecionado}>
+                    <SelectTrigger id="cargo">
+                      <SelectValue placeholder="Selecione um cargo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="recepcao">Recepção</SelectItem>
+                      <SelectItem value="terapeuta">Terapeuta</SelectItem>
+                      <SelectItem value="vendedor">Vendedor</SelectItem>
+                      <SelectItem value="financeiro">Financeiro</SelectItem>
+                      <SelectItem value="pos_venda">Pós Venda</SelectItem>
+                      <SelectItem value="gerencia_unidades">Gerência</SelectItem>
+                      <SelectItem value="superior">Administrador</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Unidades de Acesso</Label>
+                  <div className="border rounded-lg p-3 space-y-2 max-h-40 overflow-y-auto">
+                    {unidades.map(unidade => (
+                      <div key={unidade.id} className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id={`unidade-${unidade.id}`}
+                          checked={unidadesSelecionadas.includes(unidade.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setUnidadesSelecionadas([...unidadesSelecionadas, unidade.id]);
+                            } else {
+                              setUnidadesSelecionadas(unidadesSelecionadas.filter(id => id !== unidade.id));
+                            }
+                          }}
+                          className="rounded"
+                        />
+                        <Label htmlFor={`unidade-${unidade.id}`} className="cursor-pointer">
+                          {unidade.nome}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </CardContent>
+              <div className="p-6 flex gap-2 justify-end border-t">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setUsuarioParaConfigCargo(null);
+                    setCargoSelecionado("");
+                    setUnidadesSelecionadas([]);
+                  }}
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  className="bg-green-600 hover:bg-green-700"
+                  onClick={() => handleConfirmarCargo(usuarioParaConfigCargo)}
+                >
+                  Aprovar Usuário
+                </Button>
+              </div>
+            </Card>
+          </div>
+        )}
           </CardContent>
         </Card>
 
