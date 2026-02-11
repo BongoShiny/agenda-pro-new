@@ -159,9 +159,9 @@ export default function FormularioNPSPage() {
     <div className="min-h-screen w-screen bg-gradient-to-br from-amber-900 via-amber-800 to-amber-900 py-8 sm:py-12 px-4 overflow-x-hidden">
       <div className="max-w-2xl mx-auto w-full">
         {/* Logo */}
-        <div className="text-center mb-8">
-          <div className="bg-white rounded-lg p-6 inline-block">
-            <h1 className="text-3xl font-bold text-amber-900">Vibe Terapias</h1>
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="bg-white rounded-lg p-4 sm:p-6 inline-block">
+            <h1 className="text-2xl sm:text-3xl font-bold text-amber-900">Vibe Terapias</h1>
           </div>
         </div>
 
