@@ -164,14 +164,14 @@ export default function AnaliseCruzadaPage() {
     };
   });
 
-  // Identificar gaps (taxa abaixo de 15%)
+  // Identificar gaps (taxa até 49%)
   const gapsRecepcao = recepcionistas
     .map(rec => ({
       tipo: "Recepção",
       nome: rec,
       ...totaisPorRecepcao[rec]
     }))
-    .filter(g => g.taxa < 15 && g.total > 0);
+    .filter(g => g.taxa < 50 && g.total > 0);
 
   const gapsTerapeuta = terapeutas
     .map(ter => ({
@@ -179,7 +179,7 @@ export default function AnaliseCruzadaPage() {
       nome: ter,
       ...totaisPorTerapeuta[ter]
     }))
-    .filter(g => g.taxa < 15 && g.total > 0);
+    .filter(g => g.taxa < 50 && g.total > 0);
 
   const todosGaps = [...gapsRecepcao, ...gapsTerapeuta].sort((a, b) => a.taxa - b.taxa);
 
@@ -337,23 +337,34 @@ export default function AnaliseCruzadaPage() {
             <CardContent className="pt-6">
               <div className="space-y-3">
                 {todosGaps.map((gap, idx) => {
-                  const isCritico = gap.taxa < 10;
+                  const isCritico = gap.taxa <= 34;
+                  const isAtencao = gap.taxa >= 35 && gap.taxa <= 49;
                   const isExpandido = gapExpandido === `${gap.tipo}-${gap.nome}`;
+                  
+                  // Definir cores e texto baseado na taxa
+                  let corBorda, corFundo, corBadge, textoBadge;
+                  if (isCritico) {
+                    corBorda = 'border-red-300';
+                    corFundo = 'bg-red-50';
+                    corBadge = 'bg-red-600 text-white';
+                    textoBadge = 'CRÍTICO';
+                  } else if (isAtencao) {
+                    corBorda = 'border-orange-300';
+                    corFundo = 'bg-orange-50';
+                    corBadge = 'bg-orange-600 text-white';
+                    textoBadge = 'ATENÇÃO';
+                  }
                   
                   return (
                     <div
                       key={idx}
-                      className={`border rounded-lg p-4 cursor-pointer transition-all ${
-                        isCritico ? 'border-red-300 bg-red-50' : 'border-orange-300 bg-orange-50'
-                      }`}
+                      className={`border rounded-lg p-4 cursor-pointer transition-all ${corBorda} ${corFundo}`}
                       onClick={() => setGapExpandido(isExpandido ? null : `${gap.tipo}-${gap.nome}`)}
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <span className={`px-3 py-1 rounded text-xs font-bold ${
-                            isCritico ? 'bg-red-600 text-white' : 'bg-orange-600 text-white'
-                          }`}>
-                            {isCritico ? 'CRÍTICO' : 'ATENÇÃO'}
+                          <span className={`px-3 py-1 rounded text-xs font-bold ${corBadge}`}>
+                            {textoBadge}
                           </span>
                           <div>
                             <p className="font-semibold text-gray-900">
