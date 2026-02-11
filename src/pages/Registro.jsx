@@ -33,8 +33,16 @@ export default function RegistroPage() {
 
     setLoading(true);
     try {
-      const response = await base44.auth.login(email.toLowerCase().trim(), password);
-      navigate("/");
+      const response = await base44.functions.invoke('fazerLogin', {
+        email: email.toLowerCase().trim(),
+        password
+      });
+
+      if (response.data.success) {
+        navigate("/");
+      } else {
+        setError(response.data.error || "Email ou senha inválidos");
+      }
     } catch (err) {
       setError("Email ou senha inválidos");
     } finally {
