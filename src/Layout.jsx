@@ -1,6 +1,33 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
+import { base44 } from "@/api/base44Client";
 
 export default function Layout({ children, currentPageName }) {
+  const [usuarioAutorizado, setUsuarioAutorizado] = useState(null);
+  const [carregando, setCarregando] = useState(true);
+
+  useEffect(() => {
+    const verificarAcesso = async () => {
+      try {
+        const user = await base44.auth.me();
+
+        // Bloquear completamente se cargo é "sem_acesso"
+        if (user?.cargo === "sem_acesso") {
+          setUsuarioAutorizado(false);
+          setCarregando(false);
+          return;
+        }
+
+        setUsuarioAutorizado(true);
+        setCarregando(false);
+      } catch (error) {
+        console.error("Erro ao verificar acesso:", error);
+        setCarregando(false);
+      }
+    };
+
+    verificarAcesso();
+  }, []);
+
   useEffect(() => {
     // Adicionar meta tag para desabilitar Google Translate
     const metaTag = document.querySelector('meta[name="google"]');
@@ -68,9 +95,47 @@ export default function Layout({ children, currentPageName }) {
     }
   }, []);
 
+  if (carregando) {
   return (
-    <>
-      {children}
-    </>
+    <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
   );
-}
+  }
+
+  if (usuarioAutorizado === false) {
+  return (
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white">
+      <style>{`
+        @keyframes blink {
+          0%, 49% { opacity: 1; }
+          50%, 100% { opacity: 0; }
+        }
+        .blink-animation {
+          animation: blink 0.7s infinite;
+        }
+      `}</style>
+
+      <div className="text-center blink-animation">
+        <h1 className="text-5xl font-bold text-red-600 mb-4">VOCÊ NÃO TEM PERMISSÃO</h1>
+        <p className="text-xl text-gray-700 mb-8">Acesso bloqueado pelo administrador</p>
+
+        <button
+          onClick={async () => {
+            await base44.auth.logout('/');
+          }}
+          className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg text-lg"
+        >
+          Mudar de Login
+        </button>
+      </div>
+    </div>
+  );
+  }
+
+  return (
+  <>
+    {children}
+  </>
+  );
+  }
