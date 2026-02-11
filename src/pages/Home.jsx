@@ -53,6 +53,14 @@ export default function HomePage() {
     const carregarUsuario = async () => {
       try {
         const user = await base44.auth.me();
+        
+        // Verificar se o cargo é "funcionario" - sem acesso
+        if (user?.cargo === "funcionario") {
+          setUsuarioAtual(user);
+          setCarregando(false);
+          return; // Não redirecionar, renderizar página de sem acesso
+        }
+        
         setUsuarioAtual(user);
         
         // Redirecionar para Agenda após login
@@ -130,6 +138,12 @@ export default function HomePage() {
         </div>
       </div>
     );
+  }
+
+  // Se o cargo é "funcionario", mostrar página de sem acesso
+  if (usuarioAtual?.cargo === "funcionario") {
+    const UserNotRegisteredError = require("../components/UserNotRegisteredError").default;
+    return <UserNotRegisteredError />;
   }
 
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
