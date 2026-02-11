@@ -171,10 +171,10 @@ export default function FormularioNPSPage() {
               Formulário de NPS - Vibe Terapias
             </h2>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* 1. Nome */}
-              <div className="space-y-2">
-                <Label className="text-base">
+            <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
+               {/* 1. Nome */}
+               <div className="space-y-2">
+                 <Label className="text-sm sm:text-base">
                   * 1. Qual seu nome e sobrenome?
                 </Label>
                 <Input
