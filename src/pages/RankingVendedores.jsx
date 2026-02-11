@@ -78,19 +78,9 @@ export default function RankingVendedoresPage() {
     audioVictoryRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/1435/1435-preview.mp3');
   }, []);
 
-  const { data: agendamentos = [], refetch: refetchAgendamentos } = useQuery({
-    queryKey: ['agendamentos-ranking'],
-    queryFn: () => base44.entities.Agendamento.list(),
-    initialData: [],
-    refetchInterval: 30000,
-  });
-
-  const { data: leads = [], refetch: refetchLeads } = useQuery({
-    queryKey: ['leads-ranking'],
-    queryFn: () => base44.entities.Lead.list(),
-    initialData: [],
-    refetchInterval: 30000,
-  });
+  // Não buscar mais agendamentos e leads automáticos
+  const agendamentos = [];
+  const leads = [];
 
   const { data: vendedores = [] } = useQuery({
     queryKey: ['vendedores'],
@@ -118,34 +108,18 @@ export default function RankingVendedoresPage() {
     refetchInterval: 30000,
   });
 
-  // Subscrição em tempo real para agendamentos
+  // Subscrição em tempo real apenas para ConfiguracaoVendedorDia
   useEffect(() => {
-    const unsubscribe = base44.entities.Agendamento.subscribe((event) => {
-      if (event.type === 'create') {
-        // Nova venda - tocar som de dinheiro
-        if (audioMoneyRef.current) {
-          audioMoneyRef.current.play().catch(() => {});
-        }
-      } else if (event.type === 'delete') {
-        // Venda removida - tocar som de perda
-        if (audioLossRef.current) {
-          audioLossRef.current.play().catch(() => {});
-        }
+    const unsubscribe = base44.entities.ConfiguracaoVendedorDia.subscribe((event) => {
+      if (event.type === 'create' && audioMoneyRef.current) {
+        audioMoneyRef.current.play().catch(() => {});
+      } else if (event.type === 'delete' && audioLossRef.current) {
+        audioLossRef.current.play().catch(() => {});
       }
-      refetchAgendamentos();
     });
 
     return () => unsubscribe();
-  }, [refetchAgendamentos]);
-
-  // Subscrição em tempo real para leads
-  useEffect(() => {
-    const unsubscribe = base44.entities.Lead.subscribe((event) => {
-      refetchLeads();
-    });
-
-    return () => unsubscribe();
-  }, [refetchLeads]);
+  }, []);
 
   // Mutation para criar registro manual
   const createRegistroMutation = useMutation({
@@ -203,29 +177,17 @@ export default function RankingVendedoresPage() {
   const inicioMes = `${anoSelecionado}-${mesFormatado}-01`;
   const fimMes = new Date(anoSelecionado, mesSelecionado, 0).toISOString().split('T')[0];
 
-  const agendamentosFiltrados = agendamentos.filter(ag => {
-    // Mesma lógica das Métricas de Vendas
-    if (ag.status === "bloqueio" || ag.tipo === "bloqueio") return false;
-    if (!ag.vendedor_id && !ag.vendedor_nome) return false; // Apenas com vendedor
-    if (!ag.data_pagamento) return false; // Obrigatório ter data de pagamento
-    
+  // Filtrar APENAS os registros manuais por dia/período
+  const configsFiltrados = configsVendedorDia.filter(config => {
     if (viewMode === "dia") {
-      return ag.data_pagamento === inicioDia;
+      return config.data === inicioDia;
     } else {
-      return ag.data_pagamento >= inicioMes && ag.data_pagamento <= fimMes;
+      return config.data >= inicioMes && config.data <= fimMes;
     }
   });
 
-  const leadsFiltrados = leads.filter(lead => {
-    const dataLead = lead.created_date ? lead.created_date.split('T')[0] : null;
-    if (!dataLead) return false;
-    
-    if (viewMode === "dia") {
-      return dataLead === inicioDia;
-    } else {
-      return dataLead >= inicioMes && dataLead <= fimMes;
-    }
-  });
+  const agendamentosFiltrados = [];
+  const leadsFiltrados = [];
 
   const registrosManuaisFiltrados = registrosManuais.filter(reg => {
     if (viewMode === "dia") {
@@ -235,40 +197,19 @@ export default function RankingVendedoresPage() {
     }
   });
 
-  // Calcular métricas por vendedor (automático + manual)
+  // Calcular métricas APENAS de ConfiguracaoVendedorDia
   const metricsVendedores = vendedores.map(vendedor => {
-    const leadsVendedor = leadsFiltrados.filter(l => l.vendedor_id === vendedor.id);
-    const agendamentosVendedor = agendamentosFiltrados.filter(ag => ag.vendedor_id === vendedor.id);
-    const registrosVendedor = registrosManuaisFiltrados.filter(r => r.vendedor_id === vendedor.id);
+    const configsVendedor = configsFiltrados.filter(c => c.vendedor_id === vendedor.id);
     
-    // Dados automáticos da agenda
-    const vendasAvulsoAuto = agendamentosVendedor.filter(ag => 
-      ag.tipo === "avulsa" || ag.tipo === "consulta"
-    ).length;
-    
-    const vendasPacoteAuto = agendamentosVendedor.filter(ag => 
-      ag.tipo === "pacote" || ag.cliente_pacote === "Sim"
-    ).length;
-    
-    const pacote8Auto = agendamentosVendedor.filter(ag => ag.quantas_sessoes === 8).length;
-    const pacote16Auto = agendamentosVendedor.filter(ag => ag.quantas_sessoes === 16).length;
-    const pacote24Auto = agendamentosVendedor.filter(ag => ag.quantas_sessoes === 24).length;
-    const pacote48Auto = agendamentosVendedor.filter(ag => ag.quantas_sessoes === 48).length;
-    
-    // Dados manuais
-    const leadsManual = registrosVendedor.reduce((sum, r) => sum + (r.leads || 0), 0);
-    const vendasAvulsoManual = registrosVendedor.reduce((sum, r) => sum + (r.vendas_avulso || 0), 0);
-    const vendasPacoteManual = registrosVendedor.reduce((sum, r) => sum + (r.vendas_pacote || 0), 0);
-    const pacote8Manual = registrosVendedor.reduce((sum, r) => sum + (r.pacote_8 || 0), 0);
-    const pacote16Manual = registrosVendedor.reduce((sum, r) => sum + (r.pacote_16 || 0), 0);
-    const pacote24Manual = registrosVendedor.reduce((sum, r) => sum + (r.pacote_24 || 0), 0);
-    const pacote48Manual = registrosVendedor.reduce((sum, r) => sum + (r.pacote_48 || 0), 0);
-    
-    // Totais combinados
-    const totalLeads = leadsVendedor.length + leadsManual;
-    const vendasAvulso = vendasAvulsoAuto + vendasAvulsoManual;
-    const vendasPacote = vendasPacoteAuto + vendasPacoteManual;
+    // Somar dados de configuração diária
+    const totalLeads = configsVendedor.reduce((sum, c) => sum + (c.leads || 0), 0);
+    const vendasAvulso = configsVendedor.reduce((sum, c) => sum + (c.vendas_avulso || 0), 0);
+    const vendasPacote = configsVendedor.reduce((sum, c) => sum + (c.vendas_pacote || 0), 0);
     const totalVendas = vendasAvulso + vendasPacote;
+    const pacote8 = configsVendedor.reduce((sum, c) => sum + (c.pacote_8 || 0), 0);
+    const pacote16 = configsVendedor.reduce((sum, c) => sum + (c.pacote_16 || 0), 0);
+    const pacote24 = configsVendedor.reduce((sum, c) => sum + (c.pacote_24 || 0), 0);
+    const pacote48 = configsVendedor.reduce((sum, c) => sum + (c.pacote_48 || 0), 0);
     
     const convAvulso = totalLeads > 0 ? ((vendasAvulso / totalLeads) * 100).toFixed(1) : "0.0";
     const convPacote = totalLeads > 0 ? ((vendasPacote / totalLeads) * 100).toFixed(1) : "0.0";
@@ -282,10 +223,10 @@ export default function RankingVendedoresPage() {
       totalVendas,
       convAvulso: parseFloat(convAvulso),
       convPacote: parseFloat(convPacote),
-      pacote8: pacote8Auto + pacote8Manual,
-      pacote16: pacote16Auto + pacote16Manual,
-      pacote24: pacote24Auto + pacote24Manual,
-      pacote48: pacote48Auto + pacote48Manual,
+      pacote8,
+      pacote16,
+      pacote24,
+      pacote48,
       metaMensal: vendedor.meta_mensal || 100,
     };
   }).sort((a, b) => b.totalVendas - a.totalVendas);
@@ -317,27 +258,19 @@ export default function RankingVendedoresPage() {
     setRankingAnterior(metricsVendedores);
   }, [metricsVendedores, rankingAnterior, top1Anterior]);
 
-  // Métricas gerais - ZERAR PARA 0 SE NÃO HOUVER REGISTROS
-  const totalLeadsGeral = viewMode === "dia" && leadsFiltrados.length === 0 ? 0 : leadsFiltrados.length;
-  const totalVendasAvulso = viewMode === "dia" && agendamentosFiltrados.filter(ag => 
-    ag.tipo === "avulsa" || ag.tipo === "consulta"
-  ).length === 0 ? 0 : agendamentosFiltrados.filter(ag => 
-    ag.tipo === "avulsa" || ag.tipo === "consulta"
-  ).length;
-  const totalVendasPacote = viewMode === "dia" && agendamentosFiltrados.filter(ag => 
-    ag.tipo === "pacote" || ag.cliente_pacote === "Sim"
-  ).length === 0 ? 0 : agendamentosFiltrados.filter(ag => 
-    ag.tipo === "pacote" || ag.cliente_pacote === "Sim"
-  ).length;
+  // Métricas gerais APENAS de ConfiguracaoVendedorDia
+  const totalLeadsGeral = configsFiltrados.reduce((sum, c) => sum + (c.leads || 0), 0);
+  const totalVendasAvulso = configsFiltrados.reduce((sum, c) => sum + (c.vendas_avulso || 0), 0);
+  const totalVendasPacote = configsFiltrados.reduce((sum, c) => sum + (c.vendas_pacote || 0), 0);
   const totalVendasGeral = totalVendasAvulso + totalVendasPacote;
   const convAvulsoGeral = totalLeadsGeral > 0 ? ((totalVendasAvulso / totalLeadsGeral) * 100).toFixed(2) : "0.00";
   const convPacoteGeral = totalLeadsGeral > 0 ? ((totalVendasPacote / totalLeadsGeral) * 100).toFixed(2) : "0.00";
 
-  // Pacotes totais
-  const pacote8Total = agendamentosFiltrados.filter(ag => ag.quantas_sessoes === 8).length;
-  const pacote16Total = agendamentosFiltrados.filter(ag => ag.quantas_sessoes === 16).length;
-  const pacote24Total = agendamentosFiltrados.filter(ag => ag.quantas_sessoes === 24).length;
-  const pacote48Total = agendamentosFiltrados.filter(ag => ag.quantas_sessoes === 48).length;
+  // Pacotes totais APENAS de ConfiguracaoVendedorDia
+  const pacote8Total = configsFiltrados.reduce((sum, c) => sum + (c.pacote_8 || 0), 0);
+  const pacote16Total = configsFiltrados.reduce((sum, c) => sum + (c.pacote_16 || 0), 0);
+  const pacote24Total = configsFiltrados.reduce((sum, c) => sum + (c.pacote_24 || 0), 0);
+  const pacote48Total = configsFiltrados.reduce((sum, c) => sum + (c.pacote_48 || 0), 0);
 
   // Progresso das metas
   const progressoGrupo = (totalVendasGeral / metaGrupo) * 100;
