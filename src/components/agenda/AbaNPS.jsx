@@ -140,8 +140,8 @@ export default function AbaNPS({ agendamento }) {
 
       {/* Modal do Formulário */}
       {mostraFormulario && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50">
-          <div className="bg-white w-full h-full flex flex-col">
+        <div className="fixed inset-0 bg-black z-[9999] overflow-hidden" style={{top: 0, left: 0, right: 0, bottom: 0}}>
+          <div className="bg-white w-screen h-screen flex flex-col">
             <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
               <h2 className="text-lg font-semibold">Formulário NPS</h2>
               <button
