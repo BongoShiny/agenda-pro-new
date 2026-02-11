@@ -9,6 +9,12 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const contentType = req.headers.get('content-type') || '';
+    
+    if (!contentType.includes('multipart/form-data')) {
+      return Response.json({ error: 'Content-Type must be multipart/form-data' }, { status: 400 });
+    }
+
     const formData = await req.formData();
     const file = formData.get('file');
 
@@ -19,51 +25,50 @@ Deno.serve(async (req) => {
     // Obter o access token do Google Drive
     const accessToken = await base44.asServiceRole.connectors.getAccessToken("googledrive");
 
-    // Criar o FormData para upload multipart
-    const boundary = '----WebKitFormBoundary' + Math.random().toString(36);
-    const arrayBuffer = await file.arrayBuffer();
-    
+    // Ler o arquivo como bytes
+    const fileBytes = await file.arrayBuffer();
+    const fileName = file.name || 'arquivo_' + Date.now();
+
+    // Upload usando resumable upload (mais confiável)
     const metadata = {
-      name: file.name,
-      mimeType: file.type
+      name: fileName,
+      parents: []
     };
 
-    // Construir o body manualmente
-    const metadataPart = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`;
-    const filePart = `--${boundary}\r\nContent-Type: ${file.type}\r\n\r\n`;
-    const endBoundary = `\r\n--${boundary}--`;
-
-    // Combinar as partes
-    const metadataBuffer = new TextEncoder().encode(metadataPart);
-    const filePartBuffer = new TextEncoder().encode(filePart);
-    const endBoundaryBuffer = new TextEncoder().encode(endBoundary);
-    const fileBuffer = new Uint8Array(arrayBuffer);
-
-    const bodyBuffer = new Uint8Array(
-      metadataBuffer.length + 
-      filePartBuffer.length + 
-      fileBuffer.length + 
-      endBoundaryBuffer.length
-    );
-
-    bodyBuffer.set(metadataBuffer, 0);
-    bodyBuffer.set(filePartBuffer, metadataBuffer.length);
-    bodyBuffer.set(fileBuffer, metadataBuffer.length + filePartBuffer.length);
-    bodyBuffer.set(endBoundaryBuffer, metadataBuffer.length + filePartBuffer.length + fileBuffer.length);
-
-    // Upload do arquivo
-    const uploadResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+    // Iniciar upload
+    const initResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': `multipart/related; boundary=${boundary}`
+        'Content-Type': 'application/json',
+        'X-Upload-Content-Type': file.type || 'application/octet-stream'
       },
-      body: bodyBuffer
+      body: JSON.stringify(metadata)
+    });
+
+    if (!initResponse.ok) {
+      const error = await initResponse.text();
+      return Response.json({ error: `Failed to initialize upload: ${error}` }, { status: 500 });
+    }
+
+    const uploadUrl = initResponse.headers.get('Location');
+    
+    if (!uploadUrl) {
+      return Response.json({ error: 'No upload URL received' }, { status: 500 });
+    }
+
+    // Upload do arquivo
+    const uploadResponse = await fetch(uploadUrl, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': file.type || 'application/octet-stream'
+      },
+      body: fileBytes
     });
 
     if (!uploadResponse.ok) {
       const error = await uploadResponse.text();
-      throw new Error(`Google Drive upload failed: ${error}`);
+      return Response.json({ error: `Upload failed: ${error}` }, { status: 500 });
     }
 
     const uploadData = await uploadResponse.json();
@@ -83,9 +88,13 @@ Deno.serve(async (req) => {
     });
 
     // Retornar o link direto do arquivo
-    const fileUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
+    const fileUrl = `https://drive.google.com/file/d/${fileId}/view`;
 
-    return Response.json({ file_url: fileUrl });
+    return Response.json({ 
+      file_url: fileUrl,
+      file_id: fileId,
+      file_name: fileName
+    });
 
   } catch (error) {
     console.error('Upload error:', error);
