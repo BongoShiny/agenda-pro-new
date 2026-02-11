@@ -18,7 +18,31 @@ export default function RegistroPage() {
   const [sucesso, setSucesso] = useState(false);
   const navigate = useNavigate();
 
-  const handleSubmit = async (e) => {
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setError("");
+
+    if (!email.trim()) {
+      setError("Email é obrigatório");
+      return;
+    }
+    if (!password) {
+      setError("Senha é obrigatória");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const response = await base44.auth.login(email.toLowerCase().trim(), password);
+      navigate("/");
+    } catch (err) {
+      setError("Email ou senha inválidos");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCriarConta = async (e) => {
     e.preventDefault();
     setError("");
 
