@@ -317,12 +317,16 @@ export default function RankingVendedoresPage() {
     setRankingAnterior(metricsVendedores);
   }, [metricsVendedores, rankingAnterior, top1Anterior]);
 
-  // Métricas gerais
-  const totalLeadsGeral = leadsFiltrados.length;
-  const totalVendasAvulso = agendamentosFiltrados.filter(ag => 
+  // Métricas gerais - ZERAR PARA 0 SE NÃO HOUVER REGISTROS
+  const totalLeadsGeral = viewMode === "dia" && leadsFiltrados.length === 0 ? 0 : leadsFiltrados.length;
+  const totalVendasAvulso = viewMode === "dia" && agendamentosFiltrados.filter(ag => 
+    ag.tipo === "avulsa" || ag.tipo === "consulta"
+  ).length === 0 ? 0 : agendamentosFiltrados.filter(ag => 
     ag.tipo === "avulsa" || ag.tipo === "consulta"
   ).length;
-  const totalVendasPacote = agendamentosFiltrados.filter(ag => 
+  const totalVendasPacote = viewMode === "dia" && agendamentosFiltrados.filter(ag => 
+    ag.tipo === "pacote" || ag.cliente_pacote === "Sim"
+  ).length === 0 ? 0 : agendamentosFiltrados.filter(ag => 
     ag.tipo === "pacote" || ag.cliente_pacote === "Sim"
   ).length;
   const totalVendasGeral = totalVendasAvulso + totalVendasPacote;
@@ -994,6 +998,135 @@ export default function RankingVendedoresPage() {
               <Button onClick={salvarMetas}>
                 <Save className="w-4 h-4 mr-2" />
                 Salvar
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog de Configurar Vendedor por Dia */}
+      <Dialog open={editarConfigVendedorOpen} onOpenChange={setEditarConfigVendedorOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Configurar Vendedor - {vendedorSelecionado?.nome}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label>Data</Label>
+                <Input
+                  type="date"
+                  value={configVendedorDia.data}
+                  onChange={(e) => setConfigVendedorDia({ ...configVendedorDia, data: e.target.value })}
+                />
+              </div>
+              <div>
+                <Label>Clínica</Label>
+                <Select 
+                  value={configVendedorDia.unidade_id} 
+                  onValueChange={(value) => setConfigVendedorDia({ ...configVendedorDia, unidade_id: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione a clínica" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {unidades.map(u => (
+                      <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <h3 className="font-semibold mb-3">Métricas do Dia</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Leads</Label>
+                  <Input
+                    type="number"
+                    value={configVendedorDia.leads}
+                    onChange={(e) => setConfigVendedorDia({ ...configVendedorDia, leads: parseInt(e.target.value) || 0 })}
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <Label>Vendas Avulso</Label>
+                  <Input
+                    type="number"
+                    value={configVendedorDia.vendas_avulso}
+                    onChange={(e) => setConfigVendedorDia({ ...configVendedorDia, vendas_avulso: parseInt(e.target.value) || 0 })}
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <h3 className="font-semibold mb-3">Vendas com Pacote</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Total Vendas Pacote</Label>
+                  <Input
+                    type="number"
+                    value={configVendedorDia.vendas_pacote}
+                    onChange={(e) => setConfigVendedorDia({ ...configVendedorDia, vendas_pacote: parseInt(e.target.value) || 0 })}
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <h3 className="font-semibold mb-3">Tipos de Pacotes</Label>
+              <div className="grid grid-cols-4 gap-4">
+                <div>
+                  <Label className="text-xs">Pacote 8</Label>
+                  <Input
+                    type="number"
+                    value={configVendedorDia.pacote_8}
+                    onChange={(e) => setConfigVendedorDia({ ...configVendedorDia, pacote_8: parseInt(e.target.value) || 0 })}
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Pacote 16</Label>
+                  <Input
+                    type="number"
+                    value={configVendedorDia.pacote_16}
+                    onChange={(e) => setConfigVendedorDia({ ...configVendedorDia, pacote_16: parseInt(e.target.value) || 0 })}
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Pacote 24</Label>
+                  <Input
+                    type="number"
+                    value={configVendedorDia.pacote_24}
+                    onChange={(e) => setConfigVendedorDia({ ...configVendedorDia, pacote_24: parseInt(e.target.value) || 0 })}
+                    placeholder="0"
+                  />
+                </div>
+                <div>
+                  <Label className="text-xs">Pacote 48</Label>
+                  <Input
+                    type="number"
+                    value={configVendedorDia.pacote_48}
+                    onChange={(e) => setConfigVendedorDia({ ...configVendedorDia, pacote_48: parseInt(e.target.value) || 0 })}
+                    placeholder="0"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-4 border-t">
+              <Button variant="outline" onClick={() => setEditarConfigVendedorOpen(false)}>
+                <X className="w-4 h-4 mr-2" />
+                Cancelar
+              </Button>
+              <Button onClick={salvarConfigVendedor} className="bg-blue-600 hover:bg-blue-700">
+                <Save className="w-4 h-4 mr-2" />
+                Salvar Configuração
               </Button>
             </div>
           </div>
