@@ -253,10 +253,10 @@ export default function FormularioNPSPage() {
                 <Label className="text-base">
                   6. Qual é a probabilidade de você recomendar Vibe Terapias a um amigo ou colega?
                 </Label>
-                <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="bg-gray-50 p-3 sm:p-4 rounded-lg">
                   <div className="flex justify-between text-xs text-gray-600 mb-2">
-                    <span>Não é nada provável - 0</span>
-                    <span>Extremamente provável - 10</span>
+                    <span>0</span>
+                    <span>10</span>
                   </div>
                   <div className="grid grid-cols-11 gap-1">
                     {[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(nota => (
@@ -264,7 +264,7 @@ export default function FormularioNPSPage() {
                         key={nota}
                         type="button"
                         onClick={() => setFormData({ ...formData, nota_recomendacao: nota })}
-                        className={`h-10 rounded border-2 transition-all ${
+                        className={`h-8 sm:h-10 text-xs sm:text-base rounded border-2 transition-all ${
                           formData.nota_recomendacao === nota
                             ? 'bg-amber-600 text-white border-amber-600'
                             : 'bg-white text-gray-700 border-gray-300 hover:border-amber-400'
