@@ -17,8 +17,11 @@ export default function BottomTabNavigation({ currentPageName, usuarioAtual }) {
 
   return (
     <div 
-      className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-40 flex justify-around items-center"
-      style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      className="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700 z-40 flex justify-around items-center shadow-lg"
+      style={{ 
+        paddingBottom: 'max(env(safe-area-inset-bottom), 8px)',
+        minHeight: '60px'
+      }}
     >
       {tabs.map((tab) => {
         const Icon = tab.icon;
@@ -28,14 +31,19 @@ export default function BottomTabNavigation({ currentPageName, usuarioAtual }) {
           <Link
             key={tab.path}
             to={createPageUrl(tab.path)}
-            className={`flex-1 flex flex-col items-center justify-center py-3 px-2 transition-colors select-none active:bg-gray-100 dark:active:bg-gray-700 ${
+            className={`flex-1 flex flex-col items-center justify-center py-2 px-2 transition-all select-none active:scale-95 ${
               isActive
-                ? 'text-blue-600 dark:text-blue-400 border-t-2 border-blue-600 dark:border-blue-400'
+                ? 'text-blue-600 dark:text-blue-400'
                 : 'text-gray-600 dark:text-gray-400'
             }`}
+            style={{ 
+              minHeight: '56px',
+              touchAction: 'manipulation',
+              borderTop: isActive ? '3px solid currentColor' : '3px solid transparent'
+            }}
           >
             <Icon className="w-6 h-6 mb-1" />
-            <span className="text-xs font-medium truncate">{tab.name}</span>
+            <span className="text-xs font-medium truncate max-w-full">{tab.name}</span>
           </Link>
         );
       })}
