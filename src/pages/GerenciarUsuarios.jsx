@@ -276,11 +276,37 @@ export default function GerenciarUsuariosPage() {
           </AlertDescription>
         </Alert>
 
+        {/* Abas */}
+        <div className="flex gap-2 mb-6 border-b">
+          <button
+            onClick={() => setAbaSelecionada("aprovados")}
+            className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+              abaSelecionada === "aprovados"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Usuários Aprovados ({usuariosAprovados.length})
+          </button>
+          <button
+            onClick={() => setAbaSelecionada("pendentes")}
+            className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+              abaSelecionada === "pendentes"
+                ? "border-blue-600 text-blue-600"
+                : "border-transparent text-gray-500 hover:text-gray-700"
+            }`}
+          >
+            Pendentes de Aprovação ({usuariosPendentes.length})
+          </button>
+        </div>
+
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between mb-4">
-              <CardTitle>Usuários do Sistema</CardTitle>
-              <Badge variant="secondary">{usuarios.length} usuários</Badge>
+              <CardTitle>{abaSelecionada === "aprovados" ? "Usuários Aprovados" : "Pendentes de Aprovação"}</CardTitle>
+              <Badge variant="secondary">
+                {abaSelecionada === "aprovados" ? usuariosAprovados.length : usuariosPendentes.length} usuários
+              </Badge>
             </div>
             <div className="flex gap-3">
               <Input
