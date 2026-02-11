@@ -885,8 +885,6 @@ export default function GerenciarUsuariosPage() {
             </Card>
           </div>
         )}
-          </CardContent>
-        </Card>
 
         <Card className="mt-6">
           <CardHeader>
