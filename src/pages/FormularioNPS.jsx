@@ -187,7 +187,7 @@ export default function FormularioNPSPage() {
 
               {/* 2. Telefone */}
               <div className="space-y-2">
-                <Label className="text-base">
+                <Label className="text-sm sm:text-base">
                   * 2. Qual seu telefone?
                 </Label>
                 <Input
