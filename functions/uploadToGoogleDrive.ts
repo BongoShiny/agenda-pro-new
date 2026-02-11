@@ -19,35 +19,46 @@ Deno.serve(async (req) => {
     // Obter o access token do Google Drive
     const accessToken = await base44.asServiceRole.connectors.getAccessToken("googledrive");
 
-    // Converter o arquivo para buffer
+    // Criar o FormData para upload multipart
+    const boundary = '----WebKitFormBoundary' + Math.random().toString(36);
     const arrayBuffer = await file.arrayBuffer();
-    const buffer = new Uint8Array(arrayBuffer);
-
-    // Fazer upload para o Google Drive
+    
     const metadata = {
       name: file.name,
       mimeType: file.type
     };
+
+    // Construir o body manualmente
+    const metadataPart = `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n`;
+    const filePart = `--${boundary}\r\nContent-Type: ${file.type}\r\n\r\n`;
+    const endBoundary = `\r\n--${boundary}--`;
+
+    // Combinar as partes
+    const metadataBuffer = new TextEncoder().encode(metadataPart);
+    const filePartBuffer = new TextEncoder().encode(filePart);
+    const endBoundaryBuffer = new TextEncoder().encode(endBoundary);
+    const fileBuffer = new Uint8Array(arrayBuffer);
+
+    const bodyBuffer = new Uint8Array(
+      metadataBuffer.length + 
+      filePartBuffer.length + 
+      fileBuffer.length + 
+      endBoundaryBuffer.length
+    );
+
+    bodyBuffer.set(metadataBuffer, 0);
+    bodyBuffer.set(filePartBuffer, metadataBuffer.length);
+    bodyBuffer.set(fileBuffer, metadataBuffer.length + filePartBuffer.length);
+    bodyBuffer.set(endBoundaryBuffer, metadataBuffer.length + filePartBuffer.length + fileBuffer.length);
 
     // Upload do arquivo
     const uploadResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'multipart/related; boundary=foo_bar_baz'
+        'Content-Type': `multipart/related; boundary=${boundary}`
       },
-      body: [
-        '--foo_bar_baz',
-        'Content-Type: application/json; charset=UTF-8',
-        '',
-        JSON.stringify(metadata),
-        '',
-        '--foo_bar_baz',
-        `Content-Type: ${file.type}`,
-        '',
-        new TextDecoder().decode(buffer),
-        '--foo_bar_baz--'
-      ].join('\r\n')
+      body: bodyBuffer
     });
 
     if (!uploadResponse.ok) {
@@ -72,7 +83,7 @@ Deno.serve(async (req) => {
     });
 
     // Retornar o link direto do arquivo
-    const fileUrl = `https://drive.google.com/file/d/${fileId}/view`;
+    const fileUrl = `https://drive.google.com/uc?export=view&id=${fileId}`;
 
     return Response.json({ file_url: fileUrl });
 
