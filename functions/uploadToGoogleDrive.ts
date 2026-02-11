@@ -9,13 +9,19 @@ Deno.serve(async (req) => {
       return Response.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const formData = await req.formData();
+    let formData;
+    try {
+      formData = await req.formData();
+    } catch (e) {
+      return Response.json({ error: 'Failed to parse form data: ' + e.message }, { status: 400 });
+    }
+
     const file = formData.get('file');
     const unidadeNome = formData.get('unidade_nome') || 'UNIDADE';
     const clienteNome = formData.get('cliente_nome') || 'Cliente';
     const tipoArquivo = formData.get('tipo_arquivo') || 'Outros';
 
-    if (!file) {
+    if (!file || !file.name) {
       return Response.json({ error: 'No file provided' }, { status: 400 });
     }
 
