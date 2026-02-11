@@ -98,13 +98,13 @@ export default function AnaliseCruzadaPage() {
   };
 
   agendamentosAnalise.forEach(ag => {
-    const terapeuta = normalizarNome(ag.conversao_profissional_nome || ag.profissional_nome || "Sem Terapeuta");
+    let terapeuta = normalizarNome(ag.conversao_profissional_nome || ag.profissional_nome || "Sem Terapeuta");
     let recepcao = normalizarNome(ag.conversao_recepcionista || ag.conversao_recepcionista_nao_converteu || "Sem Recepção");
     
-    // Se Flávia aparecer como terapeuta, corrigir para recepção
-    if (recepcao === "Flávia" && terapeuta === "Flávia") {
-      // Flávia é sempre recepção, então o terapeuta não deveria ser ela
-      return; // Pula este registro para evitar confusão
+    // Flávia é SEMPRE recepcionista, nunca terapeuta
+    // Se ela aparecer como terapeuta, ignorar este registro
+    if (terapeuta.toLowerCase().includes('flavia') || terapeuta.toLowerCase().includes('flávia')) {
+      return; // Pula este registro
     }
     
     terapeutasSet.add(terapeuta);
