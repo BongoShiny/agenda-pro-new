@@ -197,8 +197,9 @@ export default function AgendaPage() {
 
     return () => {
       if (cleanup) cleanup();
+      if (timeoutId) clearTimeout(timeoutId);
     };
-  }, []);
+  }, [navigate]);
 
   // Função para gerenciar sessão única
   const gerenciarSessaoUnica = async (user) => {
