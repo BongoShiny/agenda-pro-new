@@ -79,10 +79,16 @@ export default function RegistroPage() {
           <CardContent className="pt-6 text-center">
             <CheckCircle2 className="w-16 h-16 text-green-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-gray-900 mb-2">Cadastro Realizado!</h2>
-            <p className="text-gray-600 mb-4">
-              Sua conta foi criada com sucesso. Aguarde a aprovação do administrador para acessar o sistema.
+            <p className="text-gray-600 mb-2">
+              Sua conta foi criada com sucesso.
             </p>
-            <p className="text-sm text-gray-500">Você será redirecionado...</p>
+            <p className="text-lg font-semibold text-blue-600 mb-2">
+              ⏳ Aguardando aprovação
+            </p>
+            <p className="text-sm text-gray-600 mb-4">
+              Um administrador irá revisar seu cadastro e definir seu cargo. Você receberá acesso em breve.
+            </p>
+            <p className="text-xs text-gray-500">Você será redirecionado para login...</p>
           </CardContent>
         </Card>
       </div>
