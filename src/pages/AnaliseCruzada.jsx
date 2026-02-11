@@ -41,6 +41,12 @@ export default function AnaliseCruzadaPage() {
     initialData: [],
   });
 
+  const { data: profissionais = [] } = useQuery({
+    queryKey: ['profissionais-analise'],
+    queryFn: () => base44.entities.Profissional.list("nome"),
+    initialData: [],
+  });
+
   // Verificar acesso
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
   const unidadesFiltradas = isAdmin ? unidades : unidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
