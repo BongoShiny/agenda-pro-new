@@ -416,48 +416,7 @@ export default function NovoAgendamentoDialog({
     }
   };
 
-  const handleGoogleDrivePicker = async (numeroComprovante) => {
-    alert("🔄 Abrindo Google Drive...");
-    try {
-      const { data: tokenData } = await base44.functions.invoke('createGoogleDrivePicker', {});
-      const accessToken = tokenData.access_token;
 
-      // Carregar Google Picker API se ainda não estiver carregada
-      if (!window.google || !window.google.picker) {
-        await new Promise((resolve, reject) => {
-          const script = document.createElement('script');
-          script.src = 'https://apis.google.com/js/api.js';
-          script.onload = () => {
-            window.gapi.load('picker', { callback: resolve, onerror: reject });
-          };
-          script.onerror = reject;
-          document.head.appendChild(script);
-        });
-      }
-
-      const picker = new window.google.picker.PickerBuilder()
-        .addView(new window.google.picker.DocsView()
-          .setIncludeFolders(true)
-          .setMimeTypes('image/png,image/jpeg,image/jpg,application/pdf'))
-        .setOAuthToken(accessToken)
-        .setCallback((data) => {
-          if (data.action === window.google.picker.Action.PICKED) {
-            const file = data.docs[0];
-            const fileUrl = `https://drive.google.com/uc?export=view&id=${file.id}`;
-            
-            const campoComprovante = `comprovante_${numeroComprovante}`;
-            setFormData(prev => ({ ...prev, [campoComprovante]: fileUrl }));
-            alert("✅ Arquivo do Google Drive selecionado!");
-          }
-        })
-        .build();
-
-      picker.setVisible(true);
-    } catch (error) {
-      console.error('Erro Google Drive Picker:', error);
-      alert("❌ Erro ao abrir Google Drive: " + error.message);
-    }
-  };
 
 
 
@@ -1095,24 +1054,13 @@ export default function NovoAgendamentoDialog({
                     <div key={num} className="space-y-2">
                       <Label className="text-xs text-gray-500">Comprovante {num}</Label>
                       
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="w-full text-xs h-9"
-                        onClick={() => handleGoogleDrivePicker(num)}
-                      >
-                        📁 Google Drive
-                      </Button>
-
-                      <div className="relative">
-                        <Input
-                          type="file"
-                          accept="image/*,application/pdf"
-                          onChange={(e) => handleFileUpload(e, num)}
-                          disabled={uploadingFile === num}
-                          className="text-xs"
-                        />
-                      </div>
+                      <Input
+                        type="file"
+                        accept="image/*,application/pdf"
+                        onChange={(e) => handleFileUpload(e, num)}
+                        disabled={uploadingFile === num}
+                        className="text-xs"
+                      />
 
                       {uploadingFile === num && (
                         <p className="text-xs text-blue-600">Enviando...</p>
