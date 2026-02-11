@@ -77,7 +77,7 @@ export default function AdministradorPage() {
       <div className="max-w-4xl mx-auto p-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {(isAdmin || isGerencia || isMetricas) && (
-            <Link to={createPageUrl("Home")} className="block">
+            <Link to={createPageUrl("RankingVendedores")} className="block">
               <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-indigo-300 transition-all cursor-pointer h-full">
                 <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center mb-4">
                   <BarChart3 className="w-6 h-6 text-indigo-600" />
