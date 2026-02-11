@@ -703,25 +703,47 @@ export default function GerenciarUsuariosPage() {
                       </TableCell>
 
                       <TableCell>
-                        <Badge 
-                          variant={cargo === "administrador" || cargo === "superior" || cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" || cargo === "terapeuta" || cargo === "pos_venda" ? "default" : "secondary"} 
-                          className={
-                            cargo === "gerencia_unidades" ? "bg-purple-600" : 
-                            cargo === "financeiro" ? "bg-green-600" : 
-                            cargo === "vendedor" ? "bg-orange-600" :
-                            cargo === "terapeuta" ? "bg-teal-600" :
-                            cargo === "pos_venda" ? "bg-pink-600" :
-                            cargo === "superior" ? "bg-blue-500" : ""
-                          }
-                        >
-                          {cargo === "administrador" || cargo === "superior" ? "Superior" : 
-                          cargo === "gerencia_unidades" ? "Gerência" : 
-                          cargo === "financeiro" ? "Financeiro" : 
-                          cargo === "vendedor" ? "Vendedor" :
-                          cargo === "terapeuta" ? "Terapeuta" :
-                          cargo === "pos_venda" ? "Pós Venda" :
-                          "Funcionário"}
-                        </Badge>
+                        {abaSelecionada === "pendentes" ? (
+                          <div className="flex gap-2">
+                            <Button
+                              size="sm"
+                              className="bg-green-600 hover:bg-green-700"
+                              onClick={() => handleAprovarUsuario(usuario)}
+                            >
+                              <Check className="w-4 h-4 mr-1" />
+                              Aprovar
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 border-red-200 hover:bg-red-50"
+                              onClick={() => handleRejeitar(usuario)}
+                            >
+                              <X className="w-4 h-4 mr-1" />
+                              Rejeitar
+                            </Button>
+                          </div>
+                        ) : (
+                          <Badge 
+                            variant={cargo === "administrador" || cargo === "superior" || cargo === "gerencia_unidades" || cargo === "financeiro" || cargo === "vendedor" || cargo === "terapeuta" || cargo === "pos_venda" ? "default" : "secondary"} 
+                            className={
+                              cargo === "gerencia_unidades" ? "bg-purple-600" : 
+                              cargo === "financeiro" ? "bg-green-600" : 
+                              cargo === "vendedor" ? "bg-orange-600" :
+                              cargo === "terapeuta" ? "bg-teal-600" :
+                              cargo === "pos_venda" ? "bg-pink-600" :
+                              cargo === "superior" ? "bg-blue-500" : ""
+                            }
+                          >
+                            {cargo === "administrador" || cargo === "superior" ? "Superior" : 
+                            cargo === "gerencia_unidades" ? "Gerência" : 
+                            cargo === "financeiro" ? "Financeiro" : 
+                            cargo === "vendedor" ? "Vendedor" :
+                            cargo === "terapeuta" ? "Terapeuta" :
+                            cargo === "pos_venda" ? "Pós Venda" :
+                            "Funcionário"}
+                          </Badge>
+                        )}
                       </TableCell>
                     </TableRow>
                   );
