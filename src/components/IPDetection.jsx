@@ -42,14 +42,29 @@ export function useIPDetection() {
 export function IPRedirectComponent({ children }) {
   const navigate = useNavigate();
   const { isFirstTime, loaded } = useIPDetection();
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [checkingAuth, setCheckingAuth] = useState(true);
 
   useEffect(() => {
-    if (loaded && isFirstTime) {
+    const checkAuth = async () => {
+      try {
+        await base44.auth.me();
+        setIsAuthenticated(true);
+      } catch (error) {
+        setIsAuthenticated(false);
+      }
+      setCheckingAuth(false);
+    };
+    checkAuth();
+  }, []);
+
+  useEffect(() => {
+    if (loaded && !checkingAuth && isFirstTime && !isAuthenticated) {
       navigate(createPageUrl('Registro'));
     }
-  }, [loaded, isFirstTime, navigate]);
+  }, [loaded, checkingAuth, isFirstTime, isAuthenticated, navigate]);
 
-  if (!loaded) {
+  if (!loaded || checkingAuth) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
