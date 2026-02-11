@@ -13,101 +13,42 @@ Deno.serve(async (req) => {
     const file = formData.get('file');
     const unidadeNome = formData.get('unidade_nome') || 'UNIDADE';
     const clienteNome = formData.get('cliente_nome') || 'Cliente';
-    const tipoArquivo = formData.get('tipo_arquivo') || 'Outros'; // comprovante, contrato, avaliacao_termal
+    const tipoArquivo = formData.get('tipo_arquivo') || 'Outros';
 
     if (!file) {
       return Response.json({ error: 'No file provided' }, { status: 400 });
     }
 
-    // Obter o access token do Google Drive
     const accessToken = await base44.asServiceRole.connectors.getAccessToken("googledrive");
-
-    // Função auxiliar para buscar ou criar pasta
-    const getOrCreateFolder = async (folderName, parentId = null) => {
-      let query = `name='${encodeURIComponent(folderName)}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
-      if (parentId) {
-        query += ` and '${parentId}' in parents`;
-      }
-
-      const searchResponse = await fetch(
-        `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}`,
-        { headers: { 'Authorization': `Bearer ${accessToken}` } }
-      );
-
-      const searchData = await searchResponse.json();
-
-      if (searchData.files && searchData.files.length > 0) {
-        return searchData.files[0].id;
-      }
-
-      // Criar pasta
-      const createBody = {
-        name: folderName,
-        mimeType: 'application/vnd.google-apps.folder'
-      };
-      if (parentId) {
-        createBody.parents = [parentId];
-      }
-
-      const createResponse = await fetch('https://www.googleapis.com/drive/v3/files', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(createBody)
-      });
-
-      const folderData = await createResponse.json();
-      return folderData.id;
-    };
-
-    // Estrutura: UNIDADE > Cliente > Tipo (comprovante/contrato/avaliacao_termal)
-    const unidadeFolderId = await getOrCreateFolder(unidadeNome);
-    const clienteFolderId = await getOrCreateFolder(clienteNome, unidadeFolderId);
-    const tipoFolderId = await getOrCreateFolder(tipoArquivo, clienteFolderId);
-    
-    const folderId = tipoFolderId;
-
-    // Ler o arquivo como bytes
     const fileBytes = await file.arrayBuffer();
-    const fileName = file.name || 'arquivo_' + Date.now();
+    const fileName = `${unidadeNome}_${clienteNome}_${tipoArquivo}_${file.name}`;
 
-    // Upload usando resumable upload (mais confiável)
+    // Upload direto sem criar pastas (limitação do escopo drive.file)
     const metadata = {
       name: fileName,
-      parents: [folderId]
+      mimeType: file.type || 'application/octet-stream'
     };
 
-    // Iniciar upload
-    const initResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable', {
+    const boundary = '-------314159265358979323846';
+    const delimiter = "\r\n--" + boundary + "\r\n";
+    const closeDelimiter = "\r\n--" + boundary + "--";
+
+    const multipartRequestBody =
+      delimiter +
+      'Content-Type: application/json; charset=UTF-8\r\n\r\n' +
+      JSON.stringify(metadata) +
+      delimiter +
+      'Content-Type: ' + (file.type || 'application/octet-stream') + '\r\n\r\n' +
+      new TextDecoder().decode(fileBytes) +
+      closeDelimiter;
+
+    const uploadResponse = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${accessToken}`,
-        'Content-Type': 'application/json',
-        'X-Upload-Content-Type': file.type || 'application/octet-stream'
+        'Content-Type': `multipart/related; boundary=${boundary}`
       },
-      body: JSON.stringify(metadata)
-    });
-
-    if (!initResponse.ok) {
-      const error = await initResponse.text();
-      return Response.json({ error: `Failed to initialize upload: ${error}` }, { status: 500 });
-    }
-
-    const uploadUrl = initResponse.headers.get('Location');
-    
-    if (!uploadUrl) {
-      return Response.json({ error: 'No upload URL received' }, { status: 500 });
-    }
-
-    // Upload do arquivo
-    const uploadResponse = await fetch(uploadUrl, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': file.type || 'application/octet-stream'
-      },
-      body: fileBytes
+      body: multipartRequestBody
     });
 
     if (!uploadResponse.ok) {
@@ -118,7 +59,7 @@ Deno.serve(async (req) => {
     const uploadData = await uploadResponse.json();
     const fileId = uploadData.id;
 
-    // Tornar o arquivo público
+    // Tornar público
     await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}/permissions`, {
       method: 'POST',
       headers: {
@@ -131,7 +72,6 @@ Deno.serve(async (req) => {
       })
     });
 
-    // Retornar o link direto do arquivo
     const fileUrl = `https://drive.google.com/file/d/${fileId}/view`;
 
     return Response.json({ 

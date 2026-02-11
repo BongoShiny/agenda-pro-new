@@ -401,15 +401,18 @@ export default function NovoAgendamentoDialog({
 
     setUploadingFile(numeroComprovante);
     try {
-      const nomeArquivo = `${formData.unidade_nome || 'UNIDADE'}_${formData.cliente_nome || 'Cliente'}_Comprovante_${numeroComprovante}_${file.name}`;
-      const renamedFile = new File([file], nomeArquivo, { type: file.type });
-      
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: renamedFile });
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+      formDataUpload.append('unidade_nome', formData.unidade_nome || 'UNIDADE');
+      formDataUpload.append('cliente_nome', formData.cliente_nome || 'Cliente');
+      formDataUpload.append('tipo_arquivo', 'Comprovante');
+
+      const { data } = await base44.functions.invoke('uploadToGoogleDrive', formDataUpload);
       
       const campoComprovante = `comprovante_${numeroComprovante}`;
-      setFormData(prev => ({ ...prev, [campoComprovante]: file_url }));
+      setFormData(prev => ({ ...prev, [campoComprovante]: data.file_url }));
       
-      alert("✅ Comprovante anexado com sucesso!");
+      alert("✅ Comprovante enviado para o Google Drive!");
     } catch (error) {
       alert("❌ Erro ao enviar comprovante: " + error.message);
     } finally {
@@ -433,13 +436,16 @@ export default function NovoAgendamentoDialog({
     setUploadingFile(numeroComprovante);
 
     try {
-      const nomeArquivo = `${formData.unidade_nome || 'UNIDADE'}_${formData.cliente_nome || 'Cliente'}_Comprovante_${numeroComprovante}_${file.name}`;
-      const renamedFile = new File([file], nomeArquivo, { type: file.type });
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+      formDataUpload.append('unidade_nome', formData.unidade_nome || 'UNIDADE');
+      formDataUpload.append('cliente_nome', formData.cliente_nome || 'Cliente');
+      formDataUpload.append('tipo_arquivo', 'Comprovante');
       
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: renamedFile });
+      const { data } = await base44.functions.invoke('uploadToGoogleDrive', formDataUpload);
       
       const campoComprovante = `comprovante_${numeroComprovante}`;
-      setFormData(prev => ({ ...prev, [campoComprovante]: file_url }));
+      setFormData(prev => ({ ...prev, [campoComprovante]: data.file_url }));
       
       alert("✅ Comprovante anexado com sucesso!");
     } catch (error) {

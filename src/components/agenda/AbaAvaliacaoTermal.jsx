@@ -24,10 +24,14 @@ export default function AbaAvaliacaoTermal({ agendamento, usuarioAtual }) {
 
   const uploadFotoMutation = useMutation({
     mutationFn: async (file) => {
-      const nomeArquivo = `${agendamento.unidade_nome || 'UNIDADE'}_${agendamento.cliente_nome || 'Cliente'}_AvaliacaoTermal_${file.name}`;
-      const renamedFile = new File([file], nomeArquivo, { type: file.type });
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('unidade_nome', agendamento.unidade_nome || 'UNIDADE');
+      formData.append('cliente_nome', agendamento.cliente_nome || 'Cliente');
+      formData.append('tipo_arquivo', 'AvaliacaoTermal');
       
-      const { file_url } = await base44.integrations.Core.UploadFile({ file: renamedFile });
+      const { data } = await base44.functions.invoke('uploadToGoogleDrive', formData);
+      const file_url = data.file_url;
       
       // Encontrar próximo slot disponível (1 a 20)
       let proximoSlot = 1;
