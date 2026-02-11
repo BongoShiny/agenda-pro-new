@@ -1,6 +1,13 @@
 import React from 'react';
+import { Button } from '@/components/ui/button';
+import { base44 } from '@/api/base44Client';
+import { LogOut } from 'lucide-react';
 
 const UserNotRegisteredError = () => {
+  const handleMudarLogin = async () => {
+    await base44.auth.logout('/');
+  };
+
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-white to-slate-50">
       <div className="max-w-md w-full p-8 bg-white rounded-lg shadow-lg border border-slate-100">
@@ -14,7 +21,7 @@ const UserNotRegisteredError = () => {
           <p className="text-slate-600 mb-8">
             Você não tem permissão para acessar este sistema no momento. Entre em contato com o administrador.
           </p>
-          <div className="p-4 bg-slate-50 rounded-md text-sm text-slate-600">
+          <div className="p-4 bg-slate-50 rounded-md text-sm text-slate-600 mb-6">
             <p>O que você pode fazer:</p>
             <ul className="list-disc list-inside mt-2 space-y-1">
               <li>Verifique se está conectado com a conta correta</li>
@@ -22,6 +29,13 @@ const UserNotRegisteredError = () => {
               <li>Faça logout e tente conectar novamente</li>
             </ul>
           </div>
+          <Button
+            onClick={handleMudarLogin}
+            className="w-full gap-2 bg-blue-600 hover:bg-blue-700"
+          >
+            <LogOut className="w-4 h-4" />
+            Mudar de Login
+          </Button>
         </div>
       </div>
     </div>
