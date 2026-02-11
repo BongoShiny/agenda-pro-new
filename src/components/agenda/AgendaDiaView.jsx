@@ -938,10 +938,11 @@ export default function AgendaDiaView({
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogBloquearAberto(false)}>
+            <Button variant="outline" onClick={() => setDialogBloquearAberto(false)} style={{ minHeight: '44px' }}>
               Cancelar
             </Button>
             <Button 
+              style={{ minHeight: '44px' }}
               onClick={() => {
                 if (profissionalBloquear) {
                   onBloquearHorario(

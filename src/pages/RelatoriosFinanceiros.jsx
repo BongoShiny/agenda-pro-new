@@ -3766,10 +3766,10 @@ export default function RelatoriosFinanceirosPage() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogExportarPDF(false)}>
+            <Button variant="outline" onClick={() => setDialogExportarPDF(false)} style={{ minHeight: '44px' }}>
               Cancelar
             </Button>
-            <Button onClick={exportarPDF} className="bg-red-600 hover:bg-red-700">
+            <Button onClick={exportarPDF} className="bg-red-600 hover:bg-red-700" style={{ minHeight: '44px' }}>
               <FileText className="w-4 h-4 mr-2" />
               Gerar PDF
             </Button>
@@ -3904,10 +3904,10 @@ export default function RelatoriosFinanceirosPage() {
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogVendedorAberto(false)}>
+            <Button variant="outline" onClick={() => setDialogVendedorAberto(false)} style={{ minHeight: '44px' }}>
               Cancelar
             </Button>
-            <Button onClick={handleCriarVendedor} className="bg-blue-600 hover:bg-blue-700">
+            <Button onClick={handleCriarVendedor} className="bg-blue-600 hover:bg-blue-700" style={{ minHeight: '44px' }}>
               <UserPlus className="w-4 h-4 mr-2" />
               Criar Vendedor
             </Button>
