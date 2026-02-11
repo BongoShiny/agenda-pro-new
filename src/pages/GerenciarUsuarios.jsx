@@ -807,8 +807,9 @@ export default function GerenciarUsuariosPage() {
                 </p>
               </div>
             )}
-          </Table>
-        </div>
+            </Table>
+          </CardContent>
+        </Card>
 
         {/* Modal de Aprovação com Configuração de Cargo */}
         {usuarioParaConfigCargo && (
