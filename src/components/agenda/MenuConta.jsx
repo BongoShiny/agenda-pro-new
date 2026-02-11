@@ -153,12 +153,12 @@ export default function MenuConta({ usuarioAtual, onClose }) {
   const CargoIcon = cargoInfo.icon;
 
   return (
-    <div className="fixed bottom-4 right-4 w-80 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-[80vh] overflow-y-auto">
-      <div className="p-4 border-b border-gray-200 bg-gray-50">
+    <div className="fixed bottom-20 right-4 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 z-50 max-h-[80vh] overflow-y-auto">
+      <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-gray-900">Minha Conta</h3>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6">
-            <X className="h-4 w-4" />
+          <h3 className="font-semibold text-gray-900 dark:text-white">Minha Conta</h3>
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-11 w-11" style={{ minHeight: '44px', minWidth: '44px' }}>
+            <X className="h-5 w-5" />
           </Button>
         </div>
         
@@ -167,8 +167,8 @@ export default function MenuConta({ usuarioAtual, onClose }) {
             <CargoIcon className={`w-6 h-6 ${cargoInfo.color.replace('bg-', 'text-')}`} />
           </div>
           <div className="flex-1">
-            <div className="font-medium text-gray-900">{usuarioAtual?.full_name}</div>
-            <div className="text-xs text-gray-500">{usuarioAtual?.email}</div>
+            <div className="font-medium text-gray-900 dark:text-white">{usuarioAtual?.full_name}</div>
+            <div className="text-xs text-gray-500 dark:text-gray-400">{usuarioAtual?.email}</div>
           </div>
         </div>
       </div>
@@ -296,17 +296,19 @@ export default function MenuConta({ usuarioAtual, onClose }) {
           variant="destructive" 
           className="w-full"
           onClick={handleLogout}
+          style={{ minHeight: '44px' }}
         >
-          <LogOut className="w-4 h-4 mr-2" />
+          <LogOut className="w-5 h-5 mr-2" />
           Sair da Conta
         </Button>
 
         <Button 
           variant="outline" 
-          className="w-full text-red-600 border-red-200 hover:bg-red-50"
+          className="w-full text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20"
           onClick={() => setShowDeleteDialog(true)}
+          style={{ minHeight: '44px' }}
         >
-          <AlertCircle className="w-4 h-4 mr-2" />
+          <AlertCircle className="w-5 h-5 mr-2" />
           Excluir Conta
         </Button>
 
