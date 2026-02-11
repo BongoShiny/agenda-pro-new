@@ -282,13 +282,13 @@ export default function FormularioNPSPage() {
                 <Label className="text-base">
                   7. Como você avalia a atenção e cuidado do terapeuta durante a sessão?
                 </Label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {["Ruim", "Regular", "Boa", "Excelente"].map(opcao => (
                     <button
                       key={opcao}
                       type="button"
                       onClick={() => setFormData({ ...formData, avaliacao_atencao_terapeuta: opcao })}
-                      className={`p-3 rounded-lg border-2 transition-all ${
+                      className={`p-2 sm:p-3 text-sm sm:text-base rounded-lg border-2 transition-all ${
                         formData.avaliacao_atencao_terapeuta === opcao
                           ? 'bg-amber-600 text-white border-amber-600'
                           : 'bg-white text-gray-700 border-gray-300 hover:border-amber-400'
