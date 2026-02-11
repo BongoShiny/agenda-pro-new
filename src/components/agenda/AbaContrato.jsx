@@ -12,15 +12,13 @@ export default function AbaContrato({ agendamento, usuarioAtual, onAtualizarAgen
   const uploadContratoMutation = useMutation({
     mutationFn: async (file) => {
       setUploading(true);
-      const formData = new FormData();
-      formData.append('file', file);
-      formData.append('unidade_nome', agendamento.unidade_nome || 'UNIDADE');
-      formData.append('cliente_nome', agendamento.cliente_nome || 'Cliente');
-      formData.append('tipo_arquivo', 'Contrato 30%');
-      const { data } = await base44.functions.invoke('uploadToGoogleDrive', formData);
+      const nomeArquivo = `${agendamento.unidade_nome || 'UNIDADE'}_${agendamento.cliente_nome || 'Cliente'}_Contrato30%_${file.name}`;
+      const renamedFile = new File([file], nomeArquivo, { type: file.type });
+      
+      const { file_url } = await base44.integrations.Core.UploadFile({ file: renamedFile });
       
       const agendamentoAtualizado = await base44.entities.Agendamento.update(agendamento.id, {
-        contrato_termo_url: data.file_url
+        contrato_termo_url: file_url
       });
 
       // Registrar no log
