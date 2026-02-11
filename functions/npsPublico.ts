@@ -10,8 +10,8 @@ Deno.serve(async (req) => {
 
       // Buscar agendamento
       if (action === 'get_agendamento') {
-        const agendamentos = await base44.asServiceRole.entities.Agendamento.filter({ id: body.agendamento_id });
-        return Response.json(agendamentos.length > 0 ? agendamentos[0] : null);
+        const agendamento = await base44.asServiceRole.entities.Agendamento.get(body.agendamento_id);
+        return Response.json(agendamento || null);
       }
 
       // Verificar resposta existente
