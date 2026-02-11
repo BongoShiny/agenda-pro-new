@@ -79,6 +79,10 @@ export default function GerenciarUsuariosPage() {
     enabled: !!usuarioAtual,
   });
 
+  const usuariosAprovados = usuarios.filter(u => u.aprovado !== false);
+  const usuariosPendentes = usuarios.filter(u => u.aprovado === false);
+  const usuariosFiltrados = abaSelecionada === "aprovados" ? usuariosAprovados : usuariosPendentes;
+
   const { data: unidades = [] } = useQuery({
     queryKey: ['unidades'],
     queryFn: () => base44.entities.Unidade.list("nome"),
