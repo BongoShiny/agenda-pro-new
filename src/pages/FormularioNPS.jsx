@@ -214,7 +214,7 @@ export default function FormularioNPSPage() {
 
               {/* 4. Terapeuta */}
               <div className="space-y-2">
-                <Label className="text-base">
+                <Label className="text-sm sm:text-base">
                   * 4. Qual terapeuta te atendeu?
                 </Label>
                 <Input
