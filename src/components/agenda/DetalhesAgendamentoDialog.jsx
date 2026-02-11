@@ -16,6 +16,7 @@ import AbaProntuario from "./AbaProntuario";
 import AbaContrato from "./AbaContrato";
 import AbaAvaliacaoTermal from "./AbaAvaliacaoTermal";
 import AbaConversaoAgendamento from "./AbaConversaoAgendamento";
+import AbaNPS from "./AbaNPS";
 
 const statusLabels = {
   confirmado: { label: "Confirmado", color: "bg-emerald-500" },
@@ -150,12 +151,13 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
           </div>
         ) : (
            <Tabs value={abaAtiva} onValueChange={setAbaAtiva} className="flex-1 flex flex-col overflow-hidden">
-             <TabsList className="grid w-full grid-cols-5">
+             <TabsList className="grid w-full grid-cols-6">
                <TabsTrigger value="detalhes">Detalhes</TabsTrigger>
                <TabsTrigger value="conversao">Conversão</TabsTrigger>
                <TabsTrigger value="prontuario">Prontuário</TabsTrigger>
                <TabsTrigger value="contrato">Contrato 30%</TabsTrigger>
                <TabsTrigger value="avaliacao-termal">Aval. Termal</TabsTrigger>
+               <TabsTrigger value="nps">NPS</TabsTrigger>
              </TabsList>
             
             <TabsContent value="detalhes" className="flex-1 overflow-y-auto">
@@ -433,6 +435,10 @@ export default function DetalhesAgendamentoDialog({ open, onOpenChange, agendame
 
         <TabsContent value="avaliacao-termal" className="flex-1 overflow-y-auto">
           <AbaAvaliacaoTermal agendamento={agendamento} usuarioAtual={usuarioAtual} />
+        </TabsContent>
+
+        <TabsContent value="nps" className="flex-1 overflow-y-auto">
+          <AbaNPS agendamento={agendamento} />
         </TabsContent>
         </Tabs>
     )}
