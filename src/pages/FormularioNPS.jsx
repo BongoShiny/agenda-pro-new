@@ -156,8 +156,8 @@ export default function FormularioNPSPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-900 via-amber-800 to-amber-900 py-12 px-4">
-      <div className="max-w-2xl mx-auto">
+    <div className="min-h-screen w-screen bg-gradient-to-br from-amber-900 via-amber-800 to-amber-900 py-8 sm:py-12 px-4 overflow-x-hidden">
+      <div className="max-w-2xl mx-auto w-full">
         {/* Logo */}
         <div className="text-center mb-8">
           <div className="bg-white rounded-lg p-6 inline-block">
