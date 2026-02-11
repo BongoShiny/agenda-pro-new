@@ -317,17 +317,11 @@ export default function RankingVendedoresPage() {
   };
 
   const salvarConfigVendedor = () => {
-    const unidade = unidades.find(u => u.id === configVendedorDia.unidade_id);
-    
-    if (!configVendedorDia.unidade_id) {
-      alert("Selecione uma clínica");
-      return;
-    }
-
     saveConfigVendedorDiaMutation.mutate({
       ...configVendedorDia,
       vendedor_nome: vendedorSelecionado?.nome || "",
-      unidade_nome: unidade?.nome || ""
+      unidade_nome: "",
+      unidade_id: ""
     });
   };
 
@@ -944,31 +938,13 @@ export default function RankingVendedoresPage() {
             <DialogTitle>Configurar Vendedor - {vendedorSelecionado?.nome}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Data</Label>
-                <Input
-                  type="date"
-                  value={configVendedorDia.data}
-                  onChange={(e) => setConfigVendedorDia({ ...configVendedorDia, data: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Clínica</Label>
-                <Select 
-                  value={configVendedorDia.unidade_id} 
-                  onValueChange={(value) => setConfigVendedorDia({ ...configVendedorDia, unidade_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Selecione a clínica" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {unidades.map(u => (
-                      <SelectItem key={u.id} value={u.id}>{u.nome}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div>
+              <Label>Data</Label>
+              <Input
+                type="date"
+                value={configVendedorDia.data}
+                onChange={(e) => setConfigVendedorDia({ ...configVendedorDia, data: e.target.value })}
+              />
             </div>
 
             <div className="border-t pt-4">
