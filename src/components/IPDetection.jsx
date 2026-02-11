@@ -74,13 +74,14 @@ export function IPRedirectComponent({ children }) {
   }, []);
 
   useEffect(() => {
-    // Só redireciona se: IP é novo E usuário não está autenticado E página não é Registro
+    // Só redireciona se: IP é novo E usuário não está autenticado
     if (loaded && !checkingAuth && isFirstTime && !isAuthenticated && ip) {
       // Se IP é novo, já marcar que visitou registro
       localStorage.setItem(`registro_visitado_${ip}`, 'true');
       
-      // Só redirecionar se não está na página de registro
-      if (!window.location.pathname.includes('Registro')) {
+      // Só redirecionar se não está já na página de registro
+      const isOnRegistroPage = window.location.href.includes('/registro');
+      if (!isOnRegistroPage) {
         navigate(createPageUrl('Registro'));
       }
     }
