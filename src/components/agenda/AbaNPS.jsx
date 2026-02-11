@@ -16,8 +16,8 @@ export default function AbaNPS({ agendamento }) {
     },
   });
 
-  // Gerar link único do NPS usando o ID do agendamento
-  const linkNPS = `${window.location.origin}/FormularioNPS?id=${agendamento.id}`;
+  // Link do SurveyMonkey para NPS
+  const linkNPS = 'https://pt.surveymonkey.com/r/5fsjf7c';
 
   const copiarLink = () => {
     navigator.clipboard.writeText(linkNPS);
