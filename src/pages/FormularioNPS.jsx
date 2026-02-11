@@ -201,7 +201,7 @@ export default function FormularioNPSPage() {
 
               {/* 3. Clínica */}
               <div className="space-y-2">
-                <Label className="text-base">
+                <Label className="text-sm sm:text-base">
                   * 3. Em qual clínica você foi atendido?
                 </Label>
                 <Input
