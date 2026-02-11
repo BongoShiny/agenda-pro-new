@@ -454,7 +454,8 @@ export default function AgendaDiaView({
                               setProfissionalBloquear(terapeuta);
                               setDialogBloquearAberto(true);
                             }}
-                            className="text-base md:text-lg hover:scale-110 transition-transform"
+                            className="text-base md:text-lg hover:scale-110 transition-transform p-2 -m-2"
+                            style={{ minWidth: '44px', minHeight: '44px', touchAction: 'manipulation' }}
                             title="Bloquear horários"
                           >
                             🚫
@@ -707,8 +708,9 @@ export default function AgendaDiaView({
                           isAdmin={isAdmin}
                         >
                           <button
-                            className="w-full h-full hover:bg-blue-50/40 cursor-pointer transition-colors rounded"
+                            className="w-full h-full hover:bg-blue-50/40 dark:hover:bg-blue-900/20 cursor-pointer transition-colors rounded"
                             onClick={() => handleSlotClick(unidadeSelecionada.id, terapeuta.id, horario)}
+                            style={{ touchAction: 'manipulation' }}
                           />
                         </SlotMenu>
                       ) : !isOcupado && !temAgendamentoReal && temBloqueio ? (
@@ -840,8 +842,9 @@ export default function AgendaDiaView({
                             textoAgendar="Agendar Avaliação"
                           >
                             <button
-                              className="w-full h-full hover:bg-purple-100 cursor-pointer transition-colors rounded"
+                              className="w-full h-full hover:bg-purple-100 dark:hover:bg-purple-900/20 cursor-pointer transition-colors rounded"
                               onClick={() => handleSlotClick(unidadeSelecionada.id, "avaliacao", horario)}
+                              style={{ touchAction: 'manipulation' }}
                             />
                           </SlotMenu>
                         ) : (
