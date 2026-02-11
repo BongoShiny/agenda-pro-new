@@ -1078,7 +1078,7 @@ export default function RankingVendedoresPage() {
             </div>
 
             <div className="border-t pt-4">
-              <h3 className="font-semibold mb-3">Tipos de Pacotes</Label>
+              <h3 className="font-semibold mb-3">Tipos de Pacotes</h3>
               <div className="grid grid-cols-4 gap-4">
                 <div>
                   <Label className="text-xs">Pacote 8</Label>
