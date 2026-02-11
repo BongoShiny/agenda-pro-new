@@ -412,16 +412,20 @@ export default function AnaliseCruzadaPage() {
             <CardTitle className="text-base md:text-lg">Matriz Cruzada - Recepção x Terapeuta</CardTitle>
             <div className="flex flex-wrap items-center gap-3 mt-2 text-xs">
               <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-green-500"></div>
-                <span>Acima da média</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 rounded bg-yellow-500"></div>
-                <span>Dentro da média</span>
-              </div>
-              <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded bg-red-500"></div>
-                <span>Abaixo da média</span>
+                <span>Crítico (0-34,9%)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded bg-orange-500"></div>
+                <span>Atenção (35-49,9%)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded bg-green-500"></div>
+                <span>Ótimo (50-99,9%)</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 rounded bg-green-600"></div>
+                <span>Excelente (100%)</span>
               </div>
             </div>
           </CardHeader>
@@ -460,11 +464,16 @@ export default function AnaliseCruzadaPage() {
                         }
 
                         const taxa = (dados.convertidos / dados.total) * 100;
-                        const corFundo = taxa >= parseFloat(taxaMediaGeral) 
-                          ? 'bg-green-500' 
-                          : taxa >= parseFloat(taxaMediaGeral) * 0.7
-                          ? 'bg-yellow-500'
-                          : 'bg-red-500';
+                        let corFundo;
+                        if (taxa <= 34.9) {
+                          corFundo = 'bg-red-500';
+                        } else if (taxa >= 35 && taxa <= 49.9) {
+                          corFundo = 'bg-orange-500';
+                        } else if (taxa >= 50 && taxa <= 99.9) {
+                          corFundo = 'bg-green-500';
+                        } else if (taxa === 100) {
+                          corFundo = 'bg-green-600';
+                        }
 
                         return (
                           <td key={ter} className="border border-gray-300 px-2 py-2 md:px-4 md:py-3">
@@ -509,24 +518,45 @@ export default function AnaliseCruzadaPage() {
             </CardHeader>
             <CardContent className="pt-6">
               <div className="space-y-3">
-                {rankingRecepcao.map((rec, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-900">
-                        {idx + 1}
+                {rankingRecepcao.map((rec, idx) => {
+                  let corBorda, corFundo, corTexto;
+                  if (rec.taxa <= 34.9) {
+                    corBorda = 'border-red-300';
+                    corFundo = 'bg-red-50';
+                    corTexto = 'text-red-900';
+                  } else if (rec.taxa >= 35 && rec.taxa <= 49.9) {
+                    corBorda = 'border-orange-300';
+                    corFundo = 'bg-orange-50';
+                    corTexto = 'text-orange-900';
+                  } else if (rec.taxa >= 50 && rec.taxa <= 99.9) {
+                    corBorda = 'border-green-300';
+                    corFundo = 'bg-green-50';
+                    corTexto = 'text-green-900';
+                  } else if (rec.taxa === 100) {
+                    corBorda = 'border-green-400';
+                    corFundo = 'bg-green-100';
+                    corTexto = 'text-green-900';
+                  }
+                  
+                  return (
+                    <div key={idx} className={`flex items-center justify-between p-3 border rounded-lg ${corBorda} ${corFundo}`}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-900">
+                          {idx + 1}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900">{rec.nome}</p>
+                          <p className="text-xs text-gray-500">
+                            {rec.total} atendimentos | {rec.convertidos} conversões
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">{rec.nome}</p>
-                        <p className="text-xs text-gray-500">
-                          {rec.total} atendimentos | {rec.convertidos} conversões
-                        </p>
+                      <div className="text-right">
+                        <p className={`text-2xl font-bold ${corTexto}`}>{rec.taxa.toFixed(0)}%</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-purple-900">{rec.taxa.toFixed(0)}%</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
@@ -541,24 +571,45 @@ export default function AnaliseCruzadaPage() {
             </CardHeader>
             <CardContent className="pt-6">
               <div className="space-y-3">
-                {rankingTerapeuta.map((ter, idx) => (
-                  <div key={idx} className="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center font-bold text-amber-900">
-                        {idx + 1}
+                {rankingTerapeuta.map((ter, idx) => {
+                  let corBorda, corFundo, corTexto;
+                  if (ter.taxa <= 34.9) {
+                    corBorda = 'border-red-300';
+                    corFundo = 'bg-red-50';
+                    corTexto = 'text-red-900';
+                  } else if (ter.taxa >= 35 && ter.taxa <= 49.9) {
+                    corBorda = 'border-orange-300';
+                    corFundo = 'bg-orange-50';
+                    corTexto = 'text-orange-900';
+                  } else if (ter.taxa >= 50 && ter.taxa <= 99.9) {
+                    corBorda = 'border-green-300';
+                    corFundo = 'bg-green-50';
+                    corTexto = 'text-green-900';
+                  } else if (ter.taxa === 100) {
+                    corBorda = 'border-green-400';
+                    corFundo = 'bg-green-100';
+                    corTexto = 'text-green-900';
+                  }
+                  
+                  return (
+                    <div key={idx} className={`flex items-center justify-between p-3 border rounded-lg ${corBorda} ${corFundo}`}>
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center font-bold text-amber-900">
+                          {idx + 1}
+                        </div>
+                        <div>
+                          <p className="font-semibold text-gray-900">{ter.nome}</p>
+                          <p className="text-xs text-gray-500">
+                            {ter.total} atendimentos | {ter.convertidos} conversões
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <p className="font-semibold text-gray-900">{ter.nome}</p>
-                        <p className="text-xs text-gray-500">
-                          {ter.total} atendimentos | {ter.convertidos} conversões
-                        </p>
+                      <div className="text-right">
+                        <p className={`text-2xl font-bold ${corTexto}`}>{ter.taxa.toFixed(0)}%</p>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-2xl font-bold text-amber-900">{ter.taxa.toFixed(0)}%</p>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </CardContent>
           </Card>
