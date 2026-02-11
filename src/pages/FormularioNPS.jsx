@@ -230,15 +230,15 @@ export default function FormularioNPSPage() {
                 <Label className="text-base">
                   5. Que nota você daria para o terapeuta que te atendeu?
                 </Label>
-                <div className="flex justify-between gap-2">
+                <div className="grid grid-cols-5 sm:grid-cols-10 gap-1 sm:gap-2">
                   {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(nota => (
                     <button
                       key={nota}
                       type="button"
                       onClick={() => setFormData({ ...formData, nota_terapeuta: nota })}
-                      className={`w-10 h-10 rounded-full border-2 transition-all ${
+                      className={`w-8 h-8 sm:w-10 sm:h-10 rounded-full border-2 text-sm sm:text-base transition-all ${
                         formData.nota_terapeuta === nota
-                          ? 'bg-amber-600 text-white border-amber-600 scale-110'
+                          ? 'bg-amber-600 text-white border-amber-600'
                           : 'bg-white text-gray-700 border-gray-300 hover:border-amber-400'
                       }`}
                     >
