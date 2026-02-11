@@ -54,11 +54,12 @@ export default function HomePage() {
       try {
         const user = await base44.auth.me();
         
-        // Verificar se o cargo é "sem_acesso" - sem acesso ao sistema
+        // Bloquear COMPLETAMENTE se o cargo é "sem_acesso"
         if (user?.cargo === "sem_acesso") {
           setUsuarioAtual(user);
           setCarregando(false);
-          return; // Não redirecionar, renderizar página de sem acesso
+          // Não permitir acesso a nenhuma página
+          return;
         }
         
         setUsuarioAtual(user);

@@ -9,34 +9,28 @@ const UserNotRegisteredError = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gradient-to-b from-white to-slate-50">
-      <div className="max-w-md w-full p-8 bg-white rounded-lg shadow-lg border border-slate-100">
-        <div className="text-center">
-          <div className="inline-flex items-center justify-center w-16 h-16 mb-6 rounded-full bg-orange-100">
-            <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-            </svg>
-          </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-4">Acesso Sem Permissão</h1>
-          <p className="text-slate-600 mb-8">
-            Você não tem permissão para acessar este sistema no momento. Entre em contato com o administrador.
-          </p>
-          <div className="p-4 bg-slate-50 rounded-md text-sm text-slate-600 mb-6">
-            <p>O que você pode fazer:</p>
-            <ul className="list-disc list-inside mt-2 space-y-1">
-              <li>Verifique se está conectado com a conta correta</li>
-              <li>Entre em contato com o administrador do sistema</li>
-              <li>Faça logout e tente conectar novamente</li>
-            </ul>
-          </div>
-          <Button
-            onClick={handleMudarLogin}
-            className="w-full gap-2 bg-blue-600 hover:bg-blue-700"
-          >
-            <LogOut className="w-4 h-4" />
-            Mudar de Login
-          </Button>
-        </div>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white">
+      <style>{`
+        @keyframes blink {
+          0%, 49% { opacity: 1; }
+          50%, 100% { opacity: 0; }
+        }
+        .blink-animation {
+          animation: blink 0.7s infinite;
+        }
+      `}</style>
+      
+      <div className="text-center blink-animation">
+        <h1 className="text-5xl font-bold text-red-600 mb-4">VOCÊ NÃO TEM PERMISSÃO</h1>
+        <p className="text-xl text-gray-700 mb-8">Acesso bloqueado pelo administrador</p>
+        
+        <Button
+          onClick={handleMudarLogin}
+          className="gap-2 bg-blue-600 hover:bg-blue-700 text-lg px-8 py-6"
+        >
+          <LogOut className="w-5 h-5" />
+          Mudar de Login
+        </Button>
       </div>
     </div>
   );
