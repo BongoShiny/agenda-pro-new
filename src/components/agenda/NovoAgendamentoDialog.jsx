@@ -102,6 +102,7 @@ export default function NovoAgendamentoDialog({
   const [erroHorarioOcupado, setErroHorarioOcupado] = useState(false);
   const [erroHorarioFechado, setErroHorarioFechado] = useState(false);
   const [uploadingFile, setUploadingFile] = useState(null);
+  const [dragOverFile, setDragOverFile] = useState(null);
 
 
   const { data: vendedores = [] } = useQuery({
@@ -1055,7 +1056,16 @@ export default function NovoAgendamentoDialog({
                       <Label className="text-xs text-gray-500">Comprovante {num}</Label>
                       
                       {!formData[`comprovante_${num}`] ? (
-                        <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center hover:border-blue-500 transition-colors">
+                        <div 
+                          className={`border-2 border-dashed rounded-lg p-4 text-center transition-all ${
+                            dragOverFile === num 
+                              ? 'border-blue-500 bg-blue-50' 
+                              : 'border-gray-300 hover:border-blue-400'
+                          }`}
+                          onDrop={(e) => handleDrop(e, num)}
+                          onDragOver={(e) => handleDragOver(e, num)}
+                          onDragLeave={handleDragLeave}
+                        >
                           <Input
                             type="file"
                             accept="image/*,application/pdf"
@@ -1064,13 +1074,13 @@ export default function NovoAgendamentoDialog({
                             className="text-xs hidden"
                             id={`file-${num}`}
                           />
-                          <label htmlFor={`file-${num}`} className="cursor-pointer">
+                          <label htmlFor={`file-${num}`} className="cursor-pointer block">
                             {uploadingFile === num ? (
                               <div className="text-xs text-blue-600">📤 Enviando...</div>
                             ) : (
                               <div className="text-xs text-gray-500">
-                                <div className="mb-1">📁</div>
-                                Arraste ou clique
+                                <div className="mb-1 text-2xl">📁</div>
+                                <div>Arraste ou clique</div>
                               </div>
                             )}
                           </label>
