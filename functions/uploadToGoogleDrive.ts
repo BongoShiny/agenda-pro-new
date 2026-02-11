@@ -11,7 +11,9 @@ Deno.serve(async (req) => {
 
     const formData = await req.formData();
     const file = formData.get('file');
-    const unidadeNome = formData.get('unidade_nome') || 'Comprovantes';
+    const unidadeNome = formData.get('unidade_nome') || 'UNIDADE';
+    const clienteNome = formData.get('cliente_nome') || 'Cliente';
+    const tipoArquivo = formData.get('tipo_arquivo') || 'Outros'; // comprovante, contrato, avaliacao_termal
 
     if (!file) {
       return Response.json({ error: 'No file provided' }, { status: 400 });
@@ -20,35 +22,52 @@ Deno.serve(async (req) => {
     // Obter o access token do Google Drive
     const accessToken = await base44.asServiceRole.connectors.getAccessToken("googledrive");
 
-    // Buscar ou criar pasta da unidade
-    const searchResponse = await fetch(
-      `https://www.googleapis.com/drive/v3/files?q=name='${encodeURIComponent(unidadeNome)}' and mimeType='application/vnd.google-apps.folder' and trashed=false`,
-      {
-        headers: { 'Authorization': `Bearer ${accessToken}` }
+    // Função auxiliar para buscar ou criar pasta
+    const getOrCreateFolder = async (folderName, parentId = null) => {
+      let query = `name='${encodeURIComponent(folderName)}' and mimeType='application/vnd.google-apps.folder' and trashed=false`;
+      if (parentId) {
+        query += ` and '${parentId}' in parents`;
       }
-    );
 
-    const searchData = await searchResponse.json();
-    let folderId;
+      const searchResponse = await fetch(
+        `https://www.googleapis.com/drive/v3/files?q=${encodeURIComponent(query)}`,
+        { headers: { 'Authorization': `Bearer ${accessToken}` } }
+      );
 
-    if (searchData.files && searchData.files.length > 0) {
-      folderId = searchData.files[0].id;
-    } else {
+      const searchData = await searchResponse.json();
+
+      if (searchData.files && searchData.files.length > 0) {
+        return searchData.files[0].id;
+      }
+
       // Criar pasta
-      const createFolderResponse = await fetch('https://www.googleapis.com/drive/v3/files', {
+      const createBody = {
+        name: folderName,
+        mimeType: 'application/vnd.google-apps.folder'
+      };
+      if (parentId) {
+        createBody.parents = [parentId];
+      }
+
+      const createResponse = await fetch('https://www.googleapis.com/drive/v3/files', {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${accessToken}`,
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify({
-          name: unidadeNome,
-          mimeType: 'application/vnd.google-apps.folder'
-        })
+        body: JSON.stringify(createBody)
       });
-      const folderData = await createFolderResponse.json();
-      folderId = folderData.id;
-    }
+
+      const folderData = await createResponse.json();
+      return folderData.id;
+    };
+
+    // Estrutura: UNIDADE > Cliente > Tipo (comprovante/contrato/avaliacao_termal)
+    const unidadeFolderId = await getOrCreateFolder(unidadeNome);
+    const clienteFolderId = await getOrCreateFolder(clienteNome, unidadeFolderId);
+    const tipoFolderId = await getOrCreateFolder(tipoArquivo, clienteFolderId);
+    
+    const folderId = tipoFolderId;
 
     // Ler o arquivo como bytes
     const fileBytes = await file.arrayBuffer();

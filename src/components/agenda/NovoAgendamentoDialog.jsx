@@ -403,7 +403,9 @@ export default function NovoAgendamentoDialog({
     try {
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
-      formDataUpload.append('unidade_nome', formData.unidade_nome || 'Comprovantes');
+      formDataUpload.append('unidade_nome', formData.unidade_nome || 'UNIDADE');
+      formDataUpload.append('cliente_nome', formData.cliente_nome || 'Cliente');
+      formDataUpload.append('tipo_arquivo', 'Comprovante');
 
       const { data } = await base44.functions.invoke('uploadToGoogleDrive', formDataUpload);
       
@@ -436,7 +438,9 @@ export default function NovoAgendamentoDialog({
     try {
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
-      formDataUpload.append('unidade_nome', formData.unidade_nome || 'Comprovantes');
+      formDataUpload.append('unidade_nome', formData.unidade_nome || 'UNIDADE');
+      formDataUpload.append('cliente_nome', formData.cliente_nome || 'Cliente');
+      formDataUpload.append('tipo_arquivo', 'Comprovante');
       
       const { data } = await base44.functions.invoke('uploadToGoogleDrive', formDataUpload);
       
