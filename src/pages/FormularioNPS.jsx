@@ -328,13 +328,13 @@ export default function FormularioNPSPage() {
                 <Label className="text-base">
                   9. Como você avalia a clareza das informações recebidas antes da sua primeira sessão?
                 </Label>
-                <div className="grid grid-cols-4 gap-2">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {["Ótima", "Boa", "Regular", "Ruim"].map(opcao => (
                     <button
                       key={opcao}
                       type="button"
                       onClick={() => setFormData({ ...formData, clareza_informacoes: opcao })}
-                      className={`p-3 rounded-lg border-2 transition-all ${
+                      className={`p-2 sm:p-3 text-sm sm:text-base rounded-lg border-2 transition-all ${
                         formData.clareza_informacoes === opcao
                           ? 'bg-amber-600 text-white border-amber-600'
                           : 'bg-white text-gray-700 border-gray-300 hover:border-amber-400'
