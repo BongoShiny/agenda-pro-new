@@ -257,12 +257,6 @@ export default function GerenciarUsuariosPage() {
   const [cargoSelecionado, setCargoSelecionado] = useState("");
   const [unidadesSelecionadas, setUnidadesSelecionadas] = useState([]);
 
-  const { data: unidades = [] } = useQuery({
-    queryKey: ['unidades'],
-    queryFn: () => base44.entities.Unidade.list("nome"),
-    initialData: [],
-  });
-
   const handleRejeitar = async (usuario) => {
     const confirmar = window.confirm(`Deseja rejeitar o registro de ${usuario.full_name}? O usuário não poderá acessar o sistema.`);
     if (!confirmar) return;
