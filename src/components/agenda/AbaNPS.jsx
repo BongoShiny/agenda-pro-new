@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Link2, Copy, Check, ExternalLink } from "lucide-react";
+import { Link2, Copy, Check } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
 
 export default function AbaNPS({ agendamento }) {
   const [copiado, setCopiado] = useState(false);
+  const [mostraFormulario, setMostraFormulario] = useState(false);
 
   const { data: respostaNPS } = useQuery({
     queryKey: ['resposta-nps', agendamento.id],
@@ -16,8 +17,8 @@ export default function AbaNPS({ agendamento }) {
     },
   });
 
-  // Link do SurveyMonkey para NPS
-  const linkNPS = 'https://pt.surveymonkey.com/r/5fsjf7c';
+  // Gerar link único do NPS usando o ID do agendamento
+  const linkNPS = `${window.location.origin}/FormularioNPS?id=${agendamento.id}`;
 
   const copiarLink = () => {
     navigator.clipboard.writeText(linkNPS);
@@ -25,9 +26,7 @@ export default function AbaNPS({ agendamento }) {
     setTimeout(() => setCopiado(false), 2000);
   };
 
-  const abrirLink = () => {
-    window.open(linkNPS, '_blank');
-  };
+
 
   return (
     <div className="space-y-4">
@@ -65,12 +64,12 @@ export default function AbaNPS({ agendamento }) {
                 )}
               </Button>
               <Button
-                onClick={abrirLink}
+                onClick={() => setMostraFormulario(true)}
                 variant="outline"
                 size="sm"
                 className="gap-2"
               >
-                <ExternalLink className="w-4 h-4" />
+                <Link2 className="w-4 h-4" />
                 Abrir Formulário
               </Button>
             </div>
@@ -137,6 +136,30 @@ export default function AbaNPS({ agendamento }) {
             O cliente ainda não respondeu o formulário NPS
           </p>
         </Card>
+      )}
+
+      {/* Modal do Formulário */}
+      {mostraFormulario && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Formulário NPS</h2>
+              <button
+                onClick={() => setMostraFormulario(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              >
+                ×
+              </button>
+            </div>
+            <iframe
+              src={linkNPS}
+              className="w-full h-full"
+              style={{ height: '70vh' }}
+              frameBorder="0"
+              title="Formulário NPS"
+            />
+          </div>
+        </div>
       )}
     </div>
   );
