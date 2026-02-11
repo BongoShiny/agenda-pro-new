@@ -138,36 +138,34 @@ export default function AbaNPS({ agendamento }) {
         </Card>
       )}
 
-      {/* Modal do Formulário */}
+      {/* Painel do Formulário */}
       {mostraFormulario && (
-        <div className="fixed inset-0 bg-black z-[9999] overflow-hidden" style={{top: 0, left: 0, right: 0, bottom: 0}}>
-          <div className="bg-white w-screen h-screen flex flex-col">
-            <div className="sticky top-0 bg-white border-b p-4 flex justify-between items-center">
-              <h2 className="text-lg font-semibold">Formulário NPS</h2>
-              <div className="flex gap-2">
-                <button
-                  onClick={() => window.open(linkNPS, '_blank')}
-                  className="text-gray-500 hover:text-gray-700 p-1"
-                  title="Abrir em tela cheia"
-                >
-                  <Maximize2 className="w-5 h-5" />
-                </button>
-                <button
-                  onClick={() => setMostraFormulario(false)}
-                  className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
-                >
-                  ×
-                </button>
-              </div>
+        <div className="border-t border-gray-200 mt-4 bg-white rounded-lg overflow-hidden">
+          <div className="bg-white border-b p-4 flex justify-between items-center sticky top-0 z-10">
+            <h2 className="text-lg font-semibold">Formulário NPS</h2>
+            <div className="flex gap-2">
+              <button
+                onClick={() => window.open(linkNPS, '_blank')}
+                className="text-gray-500 hover:text-gray-700 p-1"
+                title="Abrir em tela cheia"
+              >
+                <Maximize2 className="w-5 h-5" />
+              </button>
+              <button
+                onClick={() => setMostraFormulario(false)}
+                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
+              >
+                ×
+              </button>
             </div>
-            <iframe
-              src={linkNPS}
-              className="w-full flex-1 h-full"
-              frameBorder="0"
-              title="Formulário NPS"
-              style={{minHeight: '100vh', maxHeight: '100vh'}}
-            />
           </div>
+          <iframe
+            src={linkNPS}
+            className="w-full"
+            frameBorder="0"
+            title="Formulário NPS"
+            style={{height: '800px'}}
+          />
         </div>
       )}
     </div>
