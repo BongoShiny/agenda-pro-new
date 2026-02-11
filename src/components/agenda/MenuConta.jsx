@@ -13,11 +13,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { User, LogOut, Monitor, Shield, Building2, FileSpreadsheet, DollarSign, X, Trash2, AlertCircle } from "lucide-react";
+import { User, LogOut, Monitor, Shield, Building2, FileSpreadsheet, DollarSign, X, Trash2, AlertCircle, Moon, Sun } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { useTheme } from "@/components/ThemeContext";
 
 export default function MenuConta({ usuarioAtual, onClose }) {
+  const { isDark, toggleTheme } = useTheme();
   const [showDispositivos, setShowDispositivos] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState("");
@@ -291,6 +293,16 @@ export default function MenuConta({ usuarioAtual, onClose }) {
             </div>
           </div>
         )}
+
+        <Button 
+          variant="outline" 
+          className="w-full"
+          onClick={toggleTheme}
+          style={{ minHeight: '44px' }}
+        >
+          {isDark ? <Sun className="w-5 h-5 mr-2" /> : <Moon className="w-5 h-5 mr-2" />}
+          {isDark ? 'Modo Claro' : 'Modo Escuro'}
+        </Button>
 
         <Button 
           variant="destructive" 
