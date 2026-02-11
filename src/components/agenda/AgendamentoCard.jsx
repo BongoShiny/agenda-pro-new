@@ -57,8 +57,6 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [dropdownPacienteOpen, setDropdownPacienteOpen] = useState(false);
   const [enviandoWhatsApp, setEnviandoWhatsApp] = useState(false);
-  const [optimisticStatus, setOptimisticStatus] = useState(null);
-  const [optimisticStatusPaciente, setOptimisticStatusPaciente] = useState(null);
   const queryClient = useQueryClient();
   
   // Verificar se usuário pode enviar lembretes (pós venda ou superior)
@@ -162,12 +160,9 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
     );
   }
 
-  const currentStatus = optimisticStatus || agendamento.status;
-  const currentStatusPaciente = optimisticStatusPaciente !== null ? optimisticStatusPaciente : agendamento.status_paciente;
-  
-  const StatusIcon = statusIcons[currentStatus] || Clock;
-  const bgColorStatus = statusColors[currentStatus] || "bg-gray-500";
-  const bgColorPaciente = statusPacienteColors[currentStatusPaciente];
+  const StatusIcon = statusIcons[agendamento.status] || Clock;
+  const bgColorStatus = statusColors[agendamento.status] || "bg-gray-500";
+  const bgColorPaciente = statusPacienteColors[agendamento.status_paciente];
 
   return (
     <Card
@@ -227,8 +222,8 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
         <div className="mt-auto pt-0.5 flex justify-between gap-1" onClick={(e) => e.stopPropagation()}>
           {/* Status do agendamento */}
           {readOnly ? (
-            <div className="bg-white/20 text-white border-0 text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 rounded min-h-[28px] md:min-h-[32px] flex items-center">
-              {statusLabels[currentStatus] || currentStatus}
+            <div className="bg-white/20 text-white border-0 text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 rounded">
+              {statusLabels[agendamento.status] || agendamento.status}
             </div>
           ) : (
             <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
@@ -238,10 +233,9 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
                     e.stopPropagation();
                     setDropdownOpen(!dropdownOpen);
                   }}
-                  className="bg-white/20 text-white border-0 text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 cursor-pointer hover:bg-white/30 transition-all flex items-center gap-0.5 rounded min-h-[28px] md:min-h-[32px]"
-                  style={{ touchAction: 'manipulation' }}
+                  className="bg-white/20 text-white border-0 text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 cursor-pointer hover:bg-white/30 transition-all flex items-center gap-0.5 rounded"
                 >
-                  {statusLabels[currentStatus] || currentStatus}
+                  {statusLabels[agendamento.status] || agendamento.status}
                   <ChevronDown className="w-2.5 h-2.5" />
                 </button>
               </DropdownMenuTrigger>
@@ -249,67 +243,52 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
               <DropdownMenuItem 
                 onClick={(e) => {
                   e.stopPropagation();
-                  setOptimisticStatus("agendado");
                   if (onStatusChange) onStatusChange(agendamento, "agendado");
                   setDropdownOpen(false);
-                  setTimeout(() => setOptimisticStatus(null), 2000);
                 }}
-                className={currentStatus === "agendado" ? "bg-gray-100" : ""}
-                style={{ minHeight: '44px' }}
+                className={agendamento.status === "agendado" ? "bg-gray-100" : ""}
               >
-                {currentStatus === "agendado" && "✓ "}Agendado
+                {agendamento.status === "agendado" && "✓ "}Agendado
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={(e) => {
                   e.stopPropagation();
-                  setOptimisticStatus("confirmado");
                   if (onStatusChange) onStatusChange(agendamento, "confirmado");
                   setDropdownOpen(false);
-                  setTimeout(() => setOptimisticStatus(null), 2000);
                 }}
-                className={currentStatus === "confirmado" ? "bg-gray-100" : ""}
-                style={{ minHeight: '44px' }}
+                className={agendamento.status === "confirmado" ? "bg-gray-100" : ""}
               >
-                {currentStatus === "confirmado" && "✓ "}Confirmado
+                {agendamento.status === "confirmado" && "✓ "}Confirmado
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={(e) => {
                   e.stopPropagation();
-                  setOptimisticStatus("ausencia");
                   if (onStatusChange) onStatusChange(agendamento, "ausencia");
                   setDropdownOpen(false);
-                  setTimeout(() => setOptimisticStatus(null), 2000);
                 }}
-                className={currentStatus === "ausencia" ? "bg-gray-100" : ""}
-                style={{ minHeight: '44px' }}
+                className={agendamento.status === "ausencia" ? "bg-gray-100" : ""}
               >
-                {currentStatus === "ausencia" && "✓ "}Ausência
+                {agendamento.status === "ausencia" && "✓ "}Ausência
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={(e) => {
                   e.stopPropagation();
-                  setOptimisticStatus("cancelado");
                   if (onStatusChange) onStatusChange(agendamento, "cancelado");
                   setDropdownOpen(false);
-                  setTimeout(() => setOptimisticStatus(null), 2000);
                 }}
-                className={currentStatus === "cancelado" ? "bg-gray-100" : ""}
-                style={{ minHeight: '44px' }}
+                className={agendamento.status === "cancelado" ? "bg-gray-100" : ""}
               >
-                {currentStatus === "cancelado" && "✓ "}Cancelado
+                {agendamento.status === "cancelado" && "✓ "}Cancelado
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={(e) => {
                   e.stopPropagation();
-                  setOptimisticStatus("concluido");
                   if (onStatusChange) onStatusChange(agendamento, "concluido");
                   setDropdownOpen(false);
-                  setTimeout(() => setOptimisticStatus(null), 2000);
                 }}
-                className={currentStatus === "concluido" ? "bg-gray-100" : ""}
-                style={{ minHeight: '44px' }}
+                className={agendamento.status === "concluido" ? "bg-gray-100" : ""}
               >
-                {currentStatus === "concluido" && "✓ "}Concluído
+                {agendamento.status === "concluido" && "✓ "}Concluído
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -318,10 +297,10 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
           {/* Status do paciente */}
           {readOnly ? (
             <div 
-              className="text-white border-0 text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 rounded min-h-[28px] md:min-h-[32px] flex items-center"
+              className="text-white border-0 text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 rounded"
               style={{ backgroundColor: bgColorPaciente || 'rgba(255,255,255,0.2)' }}
             >
-              {statusPacienteLabels[currentStatusPaciente] || "-"}
+              {statusPacienteLabels[agendamento.status_paciente] || "-"}
             </div>
           ) : (
             <DropdownMenu open={dropdownPacienteOpen} onOpenChange={setDropdownPacienteOpen}>
@@ -331,10 +310,10 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
                     e.stopPropagation();
                     setDropdownPacienteOpen(!dropdownPacienteOpen);
                   }}
-                  className="text-white border-0 text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 cursor-pointer hover:opacity-80 transition-all flex items-center gap-0.5 rounded min-h-[28px] md:min-h-[32px]"
-                  style={{ backgroundColor: bgColorPaciente || 'rgba(255,255,255,0.2)', touchAction: 'manipulation' }}
+                  className="text-white border-0 text-[8px] md:text-[10px] px-1 md:px-1.5 py-0.5 cursor-pointer hover:opacity-80 transition-all flex items-center gap-0.5 rounded"
+                  style={{ backgroundColor: bgColorPaciente || 'rgba(255,255,255,0.2)' }}
                 >
-                  {statusPacienteLabels[currentStatusPaciente] || "-"}
+                  {statusPacienteLabels[agendamento.status_paciente] || "-"}
                   <ChevronDown className="w-2.5 h-2.5" />
                 </button>
               </DropdownMenuTrigger>
@@ -342,56 +321,44 @@ export default function AgendamentoCard({ agendamento, onClick, onStatusChange, 
               <DropdownMenuItem 
                 onClick={(e) => {
                   e.stopPropagation();
-                  setOptimisticStatusPaciente("");
                   if (onStatusPacienteChange) onStatusPacienteChange(agendamento, "");
                   setDropdownPacienteOpen(false);
-                  setTimeout(() => setOptimisticStatusPaciente(null), 2000);
                 }}
-                className={!currentStatusPaciente ? "bg-gray-100" : ""}
-                style={{ minHeight: '44px' }}
+                className={!agendamento.status_paciente ? "bg-gray-100" : ""}
               >
-                {!currentStatusPaciente && "✓ "}-
+                {!agendamento.status_paciente && "✓ "}-
               </DropdownMenuItem>
               <DropdownMenuItem 
                 onClick={(e) => {
                   e.stopPropagation();
-                  setOptimisticStatusPaciente("paciente_novo");
                   if (onStatusPacienteChange) onStatusPacienteChange(agendamento, "paciente_novo");
                   setDropdownPacienteOpen(false);
-                  setTimeout(() => setOptimisticStatusPaciente(null), 2000);
                 }}
-                className={currentStatusPaciente === "paciente_novo" ? "bg-gray-100" : ""}
-                style={{ minHeight: '44px' }}
+                className={agendamento.status_paciente === "paciente_novo" ? "bg-gray-100" : ""}
               >
-                {currentStatusPaciente === "paciente_novo" && "✓ "}Paciente Novo
+                {agendamento.status_paciente === "paciente_novo" && "✓ "}Paciente Novo
               </DropdownMenuItem>
 
               <DropdownMenuItem 
                 onClick={(e) => {
                   e.stopPropagation();
-                  setOptimisticStatusPaciente("ultima_sessao");
                   if (onStatusPacienteChange) onStatusPacienteChange(agendamento, "ultima_sessao");
                   setDropdownPacienteOpen(false);
-                  setTimeout(() => setOptimisticStatusPaciente(null), 2000);
                 }}
-                className={currentStatusPaciente === "ultima_sessao" ? "bg-gray-100" : ""}
-                style={{ minHeight: '44px' }}
+                className={agendamento.status_paciente === "ultima_sessao" ? "bg-gray-100" : ""}
               >
-                {currentStatusPaciente === "ultima_sessao" && "✓ "}Última Sessão
+                {agendamento.status_paciente === "ultima_sessao" && "✓ "}Última Sessão
               </DropdownMenuItem>
               
               <DropdownMenuItem 
                 onClick={(e) => {
                   e.stopPropagation();
-                  setOptimisticStatusPaciente("voucher");
                   if (onStatusPacienteChange) onStatusPacienteChange(agendamento, "voucher");
                   setDropdownPacienteOpen(false);
-                  setTimeout(() => setOptimisticStatusPaciente(null), 2000);
                 }}
-                className={currentStatusPaciente === "voucher" ? "bg-black text-white font-semibold" : ""}
-                style={{ minHeight: '44px' }}
+                className={agendamento.status_paciente === "voucher" ? "bg-black text-white font-semibold" : ""}
               >
-                {currentStatusPaciente === "voucher" && "✓ "}Voucher
+                {agendamento.status_paciente === "voucher" && "✓ "}Voucher
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

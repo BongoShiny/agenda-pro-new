@@ -28,17 +28,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import MobileReportCard from "@/components/reports/MobileReportCard";
 
 export default function RelatoriosClientesPage() {
-  const [isMobile, setIsMobile] = React.useState(false);
-
-  React.useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
   const [usuarioAtual, setUsuarioAtual] = useState(null);
   const [carregando, setCarregando] = useState(true);
   const [busca, setBusca] = useState("");
@@ -512,8 +503,8 @@ export default function RelatoriosClientesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900" style={{ paddingBottom: '70px' }}>
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-4 sm:px-6 py-4" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 1rem)' }}>
+    <div className="min-h-screen bg-gray-50">
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-7xl mx-auto flex items-center gap-4">
           <Link to={createPageUrl("Administrador")}>
             <Button variant="outline" size="icon">
@@ -739,25 +730,8 @@ export default function RelatoriosClientesPage() {
           </div>
         </div>
 
-        {/* Tabela Desktop / Cards Mobile */}
-        {isMobile ? (
-          <div className="space-y-3">
-            {agendamentosPaginados.map((ag) => (
-              <MobileReportCard 
-                key={ag.id} 
-                agendamento={ag} 
-                statusLabels={statusLabels}
-                type="client"
-              />
-            ))}
-            {agendamentosFiltrados.length === 0 && (
-              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                Nenhum agendamento encontrado
-              </div>
-            )}
-          </div>
-        ) : (
-        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+        {/* Tabela estilo Excel */}
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           {/* Barra de scroll superior */}
           <div 
             className="overflow-x-scroll border-b-2 border-gray-300 bg-gray-100" 
@@ -1042,38 +1016,52 @@ export default function RelatoriosClientesPage() {
               </tbody>
             </table>
             </div>
-          </div>
-        )}
-            
-        {/* Paginação */}
-        {totalPaginas > 1 && (
-         <div className="flex items-center justify-between p-4 border-t bg-gray-50 dark:bg-gray-800 mt-4 rounded-b-lg">
-           <div className="text-sm text-gray-600 dark:text-gray-400">
-             Mostrando {indexInicio + 1}-{Math.min(indexFim, agendamentosFiltrados.length)} de {agendamentosFiltrados.length}
-           </div>
-           <div className="flex gap-2">
-             <Button
-               variant="outline"
-               size="sm"
-               onClick={() => setPaginaAtual(p => Math.max(1, p - 1))}
-               disabled={paginaAtual === 1}
-               style={{ minHeight: '44px' }}
-             >
-               Anterior
-             </Button>
-             <Button
-               variant="outline"
-               size="sm"
-               onClick={() => setPaginaAtual(p => Math.min(totalPaginas, p + 1))}
-               disabled={paginaAtual === totalPaginas}
-               style={{ minHeight: '44px' }}
-             >
-               Próxima
-             </Button>
-           </div>
-         </div>
-        )}
-      </div>
-    </div>
-  );
-}
+
+            {/* Paginação */}
+            {totalPaginas > 1 && (
+             <div className="flex items-center justify-between p-4 border-t bg-gray-50">
+               <div className="text-sm text-gray-600">
+                 Mostrando {indexInicio + 1}-{Math.min(indexFim, agendamentosFiltrados.length)} de {agendamentosFiltrados.length} registros
+               </div>
+               <div className="flex gap-2">
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   onClick={() => setPaginaAtual(p => Math.max(1, p - 1))}
+                   disabled={paginaAtual === 1}
+                 >
+                   Anterior
+                 </Button>
+                 <div className="flex items-center gap-1">
+                   {Array.from({ length: Math.min(5, totalPaginas) }, (_, i) => {
+                     const page = i + 1;
+                     return (
+                       <Button
+                         key={page}
+                         variant={paginaAtual === page ? "default" : "outline"}
+                         size="sm"
+                         onClick={() => setPaginaAtual(page)}
+                         className="w-8 h-8 p-0"
+                       >
+                         {page}
+                       </Button>
+                     );
+                   })}
+                   {totalPaginas > 5 && <span className="text-gray-500">...</span>}
+                 </div>
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   onClick={() => setPaginaAtual(p => Math.min(totalPaginas, p + 1))}
+                   disabled={paginaAtual === totalPaginas}
+                 >
+                   Próxima
+                 </Button>
+               </div>
+             </div>
+            )}
+            </div>
+            </div>
+            </div>
+            );
+            }

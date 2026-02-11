@@ -5,24 +5,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { User, LogOut, Monitor, Shield, Building2, FileSpreadsheet, DollarSign, X, Trash2, AlertCircle, Moon, Sun } from "lucide-react";
+import { User, LogOut, Monitor, Shield, Building2, FileSpreadsheet, DollarSign, X, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { useTheme } from "@/components/ThemeContext";
 
 export default function MenuConta({ usuarioAtual, onClose }) {
-  const { isDark, toggleTheme } = useTheme();
   const [showDispositivos, setShowDispositivos] = useState(false);
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
-  const [deleteConfirmation, setDeleteConfirmation] = useState("");
   const queryClient = useQueryClient();
 
   const { data: dispositivos = [] } = useQuery({
@@ -111,36 +99,6 @@ export default function MenuConta({ usuarioAtual, onClose }) {
     base44.auth.logout();
   };
 
-  const handleDeleteAccount = async () => {
-    if (deleteConfirmation !== usuarioAtual?.email) {
-      alert("❌ Email não corresponde. Operação cancelada.");
-      return;
-    }
-
-    try {
-      // Registrar exclusão
-      await base44.entities.LogAcao.create({
-        tipo: "logout",
-        usuario_email: usuarioAtual?.email,
-        descricao: `Conta excluída pelo usuário`,
-        entidade_tipo: "Usuario"
-      });
-
-      // Limpar localStorage
-      localStorage.clear();
-
-      alert("✅ Conta excluída com sucesso. Redirecionando...");
-      
-      // Redirecionar para login
-      setTimeout(() => {
-        base44.auth.logout("/");
-      }, 1000);
-    } catch (error) {
-      console.error("Erro ao excluir conta:", error);
-      alert("❌ Erro ao excluir conta: " + error.message);
-    }
-  };
-
   const cargoLabels = {
     administrador: { label: "Superior", icon: Shield, color: "bg-red-600" },
     superior: { label: "Superior", icon: Shield, color: "bg-red-600" },
@@ -155,12 +113,12 @@ export default function MenuConta({ usuarioAtual, onClose }) {
   const CargoIcon = cargoInfo.icon;
 
   return (
-    <div className="fixed bottom-20 right-4 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-2xl border border-gray-200 dark:border-gray-700 z-50 max-h-[80vh] overflow-y-auto">
-      <div className="p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+    <div className="fixed bottom-4 right-4 w-80 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-[80vh] overflow-y-auto">
+      <div className="p-4 border-b border-gray-200 bg-gray-50">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="font-semibold text-gray-900 dark:text-white">Minha Conta</h3>
-          <Button variant="ghost" size="icon" onClick={onClose} className="h-11 w-11" style={{ minHeight: '44px', minWidth: '44px' }}>
-            <X className="h-5 w-5" />
+          <h3 className="font-semibold text-gray-900">Minha Conta</h3>
+          <Button variant="ghost" size="icon" onClick={onClose} className="h-6 w-6">
+            <X className="h-4 w-4" />
           </Button>
         </div>
         
@@ -169,8 +127,8 @@ export default function MenuConta({ usuarioAtual, onClose }) {
             <CargoIcon className={`w-6 h-6 ${cargoInfo.color.replace('bg-', 'text-')}`} />
           </div>
           <div className="flex-1">
-            <div className="font-medium text-gray-900 dark:text-white">{usuarioAtual?.full_name}</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">{usuarioAtual?.email}</div>
+            <div className="font-medium text-gray-900">{usuarioAtual?.full_name}</div>
+            <div className="text-xs text-gray-500">{usuarioAtual?.email}</div>
           </div>
         </div>
       </div>
@@ -295,96 +253,18 @@ export default function MenuConta({ usuarioAtual, onClose }) {
         )}
 
         <Button 
-          variant="outline" 
-          className="w-full"
-          onClick={toggleTheme}
-          style={{ minHeight: '44px' }}
-        >
-          {isDark ? <Sun className="w-5 h-5 mr-2" /> : <Moon className="w-5 h-5 mr-2" />}
-          {isDark ? 'Modo Claro' : 'Modo Escuro'}
-        </Button>
-
-        <Button 
           variant="destructive" 
           className="w-full"
           onClick={handleLogout}
-          style={{ minHeight: '44px' }}
         >
-          <LogOut className="w-5 h-5 mr-2" />
+          <LogOut className="w-4 h-4 mr-2" />
           Sair da Conta
-        </Button>
-
-        <Button 
-          variant="outline" 
-          className="w-full text-red-600 dark:text-red-400 border-red-200 dark:border-red-800 hover:bg-red-50 dark:hover:bg-red-900/20"
-          onClick={() => setShowDeleteDialog(true)}
-          style={{ minHeight: '44px' }}
-        >
-          <AlertCircle className="w-5 h-5 mr-2" />
-          Excluir Conta
         </Button>
 
         <div className="text-xs text-gray-500 text-center pt-2 border-t border-gray-200">
           Todos os dispositivos e IPs são registrados
         </div>
       </div>
-
-      {/* Delete Account Dialog */}
-      <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="w-5 h-5" />
-              Excluir Conta
-            </DialogTitle>
-            <DialogDescription>
-              Esta ação é permanente e não pode ser desfeita. Todos os seus dados serão excluídos.
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-4 py-4">
-            <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-              <p className="text-sm text-red-800 font-semibold">⚠️ Aviso: Exclusão Permanente</p>
-              <p className="text-xs text-red-700 mt-2">
-                Para confirmar a exclusão da sua conta, digite seu email abaixo:
-              </p>
-            </div>
-
-            <div className="space-y-2">
-              <Label>Confirme seu email</Label>
-              <Input
-                type="email"
-                placeholder={usuarioAtual?.email}
-                value={deleteConfirmation}
-                onChange={(e) => setDeleteConfirmation(e.target.value)}
-                className="border-red-200 focus:border-red-500"
-              />
-              <p className="text-xs text-gray-500">
-                Você digitará: <strong>{usuarioAtual?.email}</strong>
-              </p>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setShowDeleteDialog(false);
-                setDeleteConfirmation("");
-              }}
-            >
-              Cancelar
-            </Button>
-            <Button 
-              variant="destructive"
-              onClick={handleDeleteAccount}
-              disabled={deleteConfirmation !== usuarioAtual?.email}
-            >
-              Excluir Minha Conta
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

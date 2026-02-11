@@ -1190,7 +1190,7 @@ export default function AgendaPage() {
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-50 dark:bg-gray-900" style={{ paddingBottom: '70px' }}>
+    <div className="h-screen flex flex-col bg-gray-50">
       {/* PAINEL DE DEBUG - APENAS PARA ADMINISTRADORES */}
       {isAdmin && (
         <div className="bg-yellow-100 border-b-2 border-yellow-400 p-3 text-xs font-mono">
@@ -1235,9 +1235,8 @@ export default function AgendaPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="fixed bottom-20 left-4 z-50 bg-white dark:bg-gray-800 shadow-lg border-blue-300 dark:border-blue-600"
+                  className="fixed bottom-4 left-4 z-50 bg-white shadow-lg border-blue-300"
                   onClick={() => setMostrarFiltros(!mostrarFiltros)}
-                  style={{ minHeight: '44px', minWidth: '44px' }}
                 >
                   {mostrarFiltros ? <X className="w-4 h-4 mr-2" /> : <Filter className="w-4 h-4 mr-2" />}
                   {mostrarFiltros ? "Fechar" : "Filtros"}
@@ -1247,9 +1246,8 @@ export default function AgendaPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="fixed bottom-20 right-4 z-50 bg-white dark:bg-gray-800 shadow-lg border-gray-300 dark:border-gray-600"
+                  className="fixed bottom-4 right-4 z-50 bg-white shadow-lg border-gray-300"
                   onClick={() => setMenuContaAberto(!menuContaAberto)}
-                  style={{ minHeight: '44px', minWidth: '44px' }}
                 >
                   <User className="w-4 h-4 mr-2" />
                   Conta

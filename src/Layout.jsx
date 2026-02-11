@@ -1,23 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { ThemeProvider } from "@/components/ThemeContext";
-import BottomTabNavigation from "@/components/BottomTabNavigation";
-import PageTransition from "@/components/PageTransition";
+import React, { useEffect } from "react";
 
 export default function Layout({ children, currentPageName }) {
-  const [usuarioAtual, setUsuarioAtual] = useState(null);
-  useEffect(() => {
-    const carregarUsuario = async () => {
-      try {
-        const { base44 } = await import("@/api/base44Client");
-        const user = await base44.auth.me();
-        setUsuarioAtual(user);
-      } catch (error) {
-        console.log("Usuário não autenticado");
-      }
-    };
-    carregarUsuario();
-  }, []);
-
   useEffect(() => {
     // Adicionar meta tag para desabilitar Google Translate
     const metaTag = document.querySelector('meta[name="google"]');
@@ -86,31 +69,8 @@ export default function Layout({ children, currentPageName }) {
   }, []);
 
   return (
-    <ThemeProvider>
-      <div 
-        className="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-50 min-h-screen transition-colors"
-        style={{ overscrollBehaviorY: 'none' }}
-      >
-        {/* Padding para safe-area no topo + transitions */}
-        <PageTransition>
-          {children}
-        </PageTransition>
-        
-        {/* Bottom navigation com safe-area */}
-        {usuarioAtual && <BottomTabNavigation currentPageName={currentPageName} usuarioAtual={usuarioAtual} />}
-        
-        <style>{`
-          button, a, [role="button"], nav {
-            -webkit-user-select: none;
-            user-select: none;
-            -webkit-touch-callout: none;
-          }
-          input, textarea, select, [contenteditable="true"] {
-            -webkit-user-select: text;
-            user-select: text;
-          }
-        `}</style>
-      </div>
-    </ThemeProvider>
+    <>
+      {children}
+    </>
   );
 }

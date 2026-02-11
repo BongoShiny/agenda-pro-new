@@ -405,10 +405,10 @@ export default function AgendaDiaView({
   }
 
   return (
-        <div className="flex-1 bg-gray-50 dark:bg-gray-800 relative flex flex-col overflow-hidden select-none">
+        <div className="flex-1 bg-gray-50 relative flex flex-col overflow-hidden">
           {/* Toggle de Visualização */}
           {mostrarColunaAvaliacao && (
-            <div className="bg-white dark:bg-gray-700 border-b border-gray-200 dark:border-gray-600 px-2 sm:px-4 py-2 flex items-center gap-2 overflow-x-auto" style={{ paddingTop: 'env(safe-area-inset-top)' }}>
+            <div className="bg-white border-b border-gray-200 px-4 py-2 flex items-center gap-2">
               <span className="text-sm font-medium text-gray-700">Visualizar:</span>
               <div className="flex bg-gray-100 rounded-lg p-1">
                 <button
@@ -435,34 +435,33 @@ export default function AgendaDiaView({
             </div>
           )}
 
-          <div className="border-b border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 sticky top-0 z-10 flex">
-            <div className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700"></div>
+          <div className="border-b border-gray-200 bg-white sticky top-0 z-10 flex">
+            <div className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200 bg-white"></div>
             <div 
               ref={headerScrollRef}
               className="flex-1 overflow-x-hidden"
             >
               <div className="flex min-w-max">
                 {visualizacao === "terapeutas" && terapeutasAtivos.map(terapeuta => {
-                   const horarioTerapeuta = getHorarioProfissional(terapeuta);
-                   return (
-                    <div key={terapeuta.id} className="w-[140px] sm:w-[160px] md:w-[280px] flex-shrink-0 p-2 md:p-3 border-r border-gray-200 dark:border-gray-600 last:border-r-0 bg-white dark:bg-gray-700 touch-manipulation">
+                  const horarioTerapeuta = getHorarioProfissional(terapeuta);
+                  return (
+                    <div key={terapeuta.id} className="w-[160px] md:w-[280px] flex-shrink-0 p-2 md:p-3 border-r border-gray-200 last:border-r-0">
                       <div className="flex items-center justify-center gap-1 md:gap-2">
-                        <div className="text-xs md:text-sm font-bold text-gray-900 dark:text-white truncate text-center">{terapeuta.nome}</div>
+                        <div className="text-xs md:text-sm font-bold text-gray-900 truncate text-center">{terapeuta.nome}</div>
                         {isAdmin && (
                           <button
                             onClick={() => {
                               setProfissionalBloquear(terapeuta);
                               setDialogBloquearAberto(true);
                             }}
-                            className="text-base md:text-lg hover:scale-110 transition-transform p-2 -m-2"
-                            style={{ minWidth: '44px', minHeight: '44px', touchAction: 'manipulation' }}
+                            className="text-base md:text-lg hover:scale-110 transition-transform"
                             title="Bloquear horários"
                           >
                             🚫
                           </button>
                         )}
                       </div>
-                      <div className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400 truncate text-center mt-1">{terapeuta.especialidade}</div>
+                      <div className="text-[10px] md:text-xs text-gray-500 truncate text-center mt-1">{terapeuta.especialidade}</div>
                       {horarioTerapeuta.isFolga ? (
                         <div className="text-[8px] md:text-[10px] text-orange-700 bg-orange-100 px-1 md:px-2 py-0.5 rounded mt-1 text-center font-semibold">
                           🏖️ FOLGA
@@ -490,12 +489,12 @@ export default function AgendaDiaView({
           <div className="flex-1 flex overflow-hidden">
             <div 
               ref={horariosScrollRef}
-              className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 overflow-hidden"
+              className="w-12 md:w-20 flex-shrink-0 border-r border-gray-200 bg-gray-50 overflow-hidden"
             >
               {visualizacao === "terapeutas" && todosHorarios.map((horario) => (
                 <div
                   key={horario}
-                  className="h-14 sm:h-16 md:h-20 flex items-start justify-center pt-1 text-[10px] md:text-xs text-gray-600 dark:text-gray-400 font-semibold border-b border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 touch-manipulation"
+                  className="h-16 md:h-20 flex items-start justify-center pt-1 text-[10px] md:text-xs text-gray-600 font-semibold border-b border-gray-200 bg-gray-50"
                 >
                   {horario}
                 </div>
@@ -503,7 +502,7 @@ export default function AgendaDiaView({
               {visualizacao === "avaliacoes" && horariosAvaliacao.map((horario) => (
                 <div
                   key={horario}
-                  className="h-14 sm:h-16 md:h-20 flex items-start justify-center pt-1 text-[10px] md:text-xs text-gray-600 dark:text-gray-400 font-semibold border-b border-gray-200 dark:border-gray-600 bg-purple-50 dark:bg-purple-900/20 touch-manipulation"
+                  className="h-16 md:h-20 flex items-start justify-center pt-1 text-[10px] md:text-xs text-gray-600 font-semibold border-b border-gray-200 bg-purple-50"
                 >
                   {horario}
                 </div>
@@ -517,7 +516,7 @@ export default function AgendaDiaView({
             >
           <div className="flex min-w-max">
             {visualizacao === "terapeutas" && terapeutasAtivos.map(terapeuta => (
-              <div key={terapeuta.id} className="w-[140px] sm:w-[160px] md:w-[280px] flex-shrink-0 border-r border-gray-200 dark:border-gray-600 touch-manipulation">
+              <div key={terapeuta.id} className="w-[160px] md:w-[280px] flex-shrink-0 border-r border-gray-200">
                 {todosHorarios.map((horario, idx) => {
                   const dentroDoHorario = horarioDentroDoPeriodo(horario, terapeuta);
                   const horarioTerapeuta = getHorarioProfissional(terapeuta);
@@ -708,9 +707,8 @@ export default function AgendaDiaView({
                           isAdmin={isAdmin}
                         >
                           <button
-                            className="w-full h-full hover:bg-blue-50/40 dark:hover:bg-blue-900/20 cursor-pointer transition-colors rounded"
+                            className="w-full h-full hover:bg-blue-50/40 cursor-pointer transition-colors rounded"
                             onClick={() => handleSlotClick(unidadeSelecionada.id, terapeuta.id, horario)}
-                            style={{ touchAction: 'manipulation' }}
                           />
                         </SlotMenu>
                       ) : !isOcupado && !temAgendamentoReal && temBloqueio ? (
@@ -842,9 +840,8 @@ export default function AgendaDiaView({
                             textoAgendar="Agendar Avaliação"
                           >
                             <button
-                              className="w-full h-full hover:bg-purple-100 dark:hover:bg-purple-900/20 cursor-pointer transition-colors rounded"
+                              className="w-full h-full hover:bg-purple-100 cursor-pointer transition-colors rounded"
                               onClick={() => handleSlotClick(unidadeSelecionada.id, "avaliacao", horario)}
-                              style={{ touchAction: 'manipulation' }}
                             />
                           </SlotMenu>
                         ) : (
@@ -938,11 +935,10 @@ export default function AgendaDiaView({
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogBloquearAberto(false)} style={{ minHeight: '44px' }}>
+            <Button variant="outline" onClick={() => setDialogBloquearAberto(false)}>
               Cancelar
             </Button>
             <Button 
-              style={{ minHeight: '44px' }}
               onClick={() => {
                 if (profissionalBloquear) {
                   onBloquearHorario(
