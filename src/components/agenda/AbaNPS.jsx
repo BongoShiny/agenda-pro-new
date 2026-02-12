@@ -1,13 +1,14 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Link2, Copy, Check, Maximize2 } from "lucide-react";
+import { Link2, Copy, Check } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { base44 } from "@/api/base44Client";
+import FormularioNPSFullscreen from "./FormularioNPSFullscreen";
 
 export default function AbaNPS({ agendamento }) {
   const [copiado, setCopiado] = useState(false);
-  const [mostraFormulario, setMostraFormulario] = useState(false);
+  const [mostraFormularioFullscreen, setMostraFormularioFullscreen] = useState(false);
 
   const { data: respostaNPS } = useQuery({
     queryKey: ['resposta-nps', agendamento.id],
@@ -64,7 +65,7 @@ export default function AbaNPS({ agendamento }) {
                 )}
               </Button>
               <Button
-                onClick={() => setMostraFormulario(true)}
+                onClick={() => setMostraFormularioFullscreen(true)}
                 variant="outline"
                 size="sm"
                 className="gap-2"
@@ -138,35 +139,12 @@ export default function AbaNPS({ agendamento }) {
         </Card>
       )}
 
-      {/* Painel do Formulário */}
-      {mostraFormulario && (
-        <div className="border-t border-gray-200 mt-4 bg-white rounded-lg overflow-hidden">
-          <div className="bg-white border-b p-4 flex justify-between items-center sticky top-0 z-10">
-            <h2 className="text-lg font-semibold">Formulário NPS</h2>
-            <div className="flex gap-2">
-              <button
-                onClick={() => window.open(linkNPS, '_blank')}
-                className="text-gray-500 hover:text-gray-700 p-1"
-                title="Abrir em tela cheia"
-              >
-                <Maximize2 className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => setMostraFormulario(false)}
-                className="text-gray-500 hover:text-gray-700 text-2xl font-bold"
-              >
-                ×
-              </button>
-            </div>
-          </div>
-          <iframe
-            src={linkNPS}
-            className="w-full"
-            frameBorder="0"
-            title="Formulário NPS"
-            style={{height: '800px'}}
-          />
-        </div>
+      {/* Formulário Fullscreen */}
+      {mostraFormularioFullscreen && (
+        <FormularioNPSFullscreen 
+          agendamento={agendamento}
+          onVoltar={() => setMostraFormularioFullscreen(false)}
+        />
       )}
     </div>
   );
