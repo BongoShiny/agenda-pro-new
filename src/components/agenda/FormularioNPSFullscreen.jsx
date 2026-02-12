@@ -112,7 +112,7 @@ export default function FormularioNPSFullscreen({ agendamento, onVoltar }) {
     <div className="fixed inset-0 z-50 bg-gradient-to-br from-amber-900 via-amber-800 to-amber-900 overflow-y-auto">
       {/* Header fixo */}
       <div className="sticky top-0 z-10 bg-amber-900/95 backdrop-blur-sm border-b border-amber-700 px-4 py-3">
-        <div className="max-w-2xl mx-auto flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <Button 
             onClick={onVoltar} 
             variant="ghost" 
@@ -127,15 +127,15 @@ export default function FormularioNPSFullscreen({ agendamento, onVoltar }) {
       </div>
 
       {/* Conteúdo */}
-      <div className="max-w-2xl mx-auto px-4 py-8">
-        <div className="text-center mb-6">
+      <div className="w-full h-full flex flex-col bg-gradient-to-br from-amber-900 via-amber-800 to-amber-900">
+        <div className="text-center py-6">
           <div className="bg-white rounded-lg p-4 inline-block">
             <h2 className="text-2xl font-bold text-amber-900">Vibe Terapias</h2>
           </div>
         </div>
 
-        <Card>
-          <CardContent className="pt-6">
+        <Card className="flex-1 rounded-none border-x-0">
+          <CardContent className="pt-6 h-full">
             <h3 className="text-xl font-bold text-amber-900 mb-6 text-center">
               Formulário de NPS - Vibe Terapias
             </h3>
