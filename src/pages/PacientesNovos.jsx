@@ -4,14 +4,14 @@ import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Clock, Users, CheckCircle2, XCircle, RefreshCw } from "lucide-react";
+import { ArrowLeft, Clock, Users, CheckCircle2, XCircle, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { format } from "date-fns";
+import { format, addDays, subDays, parseISO } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 export default function PacientesNovosPage() {
-  const hoje = format(new Date(), "yyyy-MM-dd");
+  const [dataSelecionada, setDataSelecionada] = useState(format(new Date(), "yyyy-MM-dd"));
   const [agendamentosAtivos, setAgendamentosAtivos] = useState([]);
 
   const { data: usuarioAtual } = useQuery({
@@ -20,11 +20,11 @@ export default function PacientesNovosPage() {
   });
 
   const { data: agendamentosIniciais = [], refetch } = useQuery({
-    queryKey: ['agendamentos-pacientes-novos', hoje],
+    queryKey: ['agendamentos-pacientes-novos', dataSelecionada],
     queryFn: async () => {
       const todos = await base44.entities.Agendamento.list("-hora_inicio");
       return todos.filter(ag => 
-        ag.data === hoje && 
+        ag.data === dataSelecionada && 
         (ag.status_paciente === "paciente_novo" || ag.status_paciente === "ultima_sessao") &&
         ag.status !== "bloqueio" &&
         ag.tipo !== "bloqueio"
@@ -55,7 +55,7 @@ export default function PacientesNovosPage() {
           return prev;
         });
       } else if (event.type === 'create') {
-        if (event.data.data === hoje && 
+        if (event.data.data === dataSelecionada && 
             (event.data.status_paciente === "paciente_novo" || event.data.status_paciente === "ultima_sessao")) {
           setAgendamentosAtivos(prev => [...prev, event.data]);
         }
@@ -63,7 +63,7 @@ export default function PacientesNovosPage() {
     });
 
     return () => unsubscribe();
-  }, [agendamentosIniciais, hoje]);
+  }, [agendamentosIniciais, dataSelecionada]);
 
   // Verificar acesso
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
@@ -205,6 +205,13 @@ export default function PacientesNovosPage() {
     );
   };
 
+  const navegarData = (dias) => {
+    const novaData = addDays(parseISO(dataSelecionada), dias);
+    setDataSelecionada(format(novaData, "yyyy-MM-dd"));
+  };
+
+  const isHoje = dataSelecionada === format(new Date(), "yyyy-MM-dd");
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
@@ -223,16 +230,42 @@ export default function PacientesNovosPage() {
                 </div>
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900">Pacientes Novos & Últimas Sessões</h1>
-                  <p className="text-sm text-gray-500">
-                    {format(new Date(), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                  </p>
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => navegarData(-1)}
+                      className="h-7 w-7"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <p className="text-sm text-gray-700 font-medium min-w-[200px] text-center">
+                      {format(parseISO(dataSelecionada), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                      {isHoje && <span className="ml-2 text-blue-600">(Hoje)</span>}
+                    </p>
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => navegarData(1)}
+                      className="h-7 w-7"
+                    >
+                      <ChevronRight className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </div>
             </div>
-            <Button onClick={() => refetch()} variant="outline" className="gap-2">
-              <RefreshCw className="w-4 h-4" />
-              Atualizar
-            </Button>
+            <div className="flex items-center gap-2">
+              {!isHoje && (
+                <Button onClick={() => setDataSelecionada(format(new Date(), "yyyy-MM-dd"))} variant="outline" className="gap-2">
+                  Hoje
+                </Button>
+              )}
+              <Button onClick={() => refetch()} variant="outline" className="gap-2">
+                <RefreshCw className="w-4 h-4" />
+                Atualizar
+              </Button>
+            </div>
           </div>
         </div>
       </div>
