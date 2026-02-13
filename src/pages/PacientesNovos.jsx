@@ -26,6 +26,7 @@ export default function PacientesNovosPage() {
       return todos.filter(ag => 
         (ag.status_paciente === "paciente_novo" || ag.status_paciente === "ultima_sessao") &&
         ag.status !== "bloqueio" &&
+        ag.status !== "cancelado" &&
         ag.tipo !== "bloqueio"
       );
     },
