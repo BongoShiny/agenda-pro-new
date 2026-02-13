@@ -52,8 +52,8 @@ export default function AnaliseVendasPage() {
       // Excluir bloqueios e fechados
       if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
       
-      // Excluir vendedores específicos
-      if (ag.vendedor_nome?.toLowerCase() === "ponto" || ag.vendedor_nome === "-") return false;
+      // Excluir vendedores específicos e sem vendedor
+      if (ag.vendedor_nome?.toLowerCase() === "ponto" || ag.vendedor_nome === "-" || ag.vendedor_nome === "Sem Vendedor" || !ag.vendedor_nome) return false;
 
       // Considerar apenas vendas com valor combinado > 0
       if (!ag.valor_combinado || ag.valor_combinado <= 0) return false;
