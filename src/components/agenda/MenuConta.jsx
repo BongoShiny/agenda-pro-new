@@ -112,6 +112,9 @@ export default function MenuConta({ usuarioAtual, onClose }) {
   const cargoInfo = cargoLabels[cargo] || cargoLabels.funcionario;
   const CargoIcon = cargoInfo.icon;
 
+  // Verificar se é superior (admin/gerência)
+  const isSuperior = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades";
+
   return (
     <div className="fixed bottom-4 right-4 w-80 bg-white rounded-lg shadow-2xl border border-gray-200 z-50 max-h-[80vh] overflow-y-auto">
       <div className="p-4 border-b border-gray-200 bg-gray-50">
@@ -142,7 +145,7 @@ export default function MenuConta({ usuarioAtual, onClose }) {
           </Badge>
         </div>
 
-        {!showDispositivos ? (
+        {isSuperior && !showDispositivos ? (
           <Button 
             variant="outline" 
             className="w-full justify-start"
@@ -151,7 +154,7 @@ export default function MenuConta({ usuarioAtual, onClose }) {
             <Monitor className="w-4 h-4 mr-2" />
             Ver Dispositivos Conectados
           </Button>
-        ) : (
+        ) : isSuperior && showDispositivos ? (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-xs font-medium text-gray-500 uppercase">Dispositivos</label>
