@@ -1,10 +1,46 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
+import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, BarChart3, UserPlus, DollarSign } from "lucide-react";
 
 export default function MetricasPage() {
+  const navigate = useNavigate();
+  const [usuarioAtual, setUsuarioAtual] = useState(null);
+  const [carregando, setCarregando] = useState(true);
+
+  useEffect(() => {
+    const carregarUsuario = async () => {
+      try {
+        const user = await base44.auth.me();
+        setUsuarioAtual(user);
+        
+        const isAdmin = user?.cargo === "administrador" || user?.cargo === "superior" || user?.role === "admin";
+        const isGerencia = user?.cargo === "gerencia_unidades";
+        const isMetricas = user?.cargo === "metricas";
+        
+        if (!isAdmin && !isGerencia && !isMetricas) {
+          navigate(createPageUrl("Agenda"));
+        }
+      } catch (error) {
+        console.error("Erro ao carregar usuário:", error);
+        navigate(createPageUrl("Agenda"));
+      } finally {
+        setCarregando(false);
+      }
+    };
+    carregarUsuario();
+  }, [navigate]);
+
+  if (carregando) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-gray-500">Carregando...</div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-200 px-6 py-4">

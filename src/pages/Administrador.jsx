@@ -71,12 +71,14 @@ export default function AdministradorPage() {
               </p>
             </div>
           </div>
-          <Link to={createPageUrl("Metricas")}>
-            <Button variant="outline" className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Métricas
-            </Button>
-          </Link>
+          {(isAdmin || isGerencia || isMetricas) && (
+            <Link to={createPageUrl("Metricas")}>
+              <Button variant="outline" className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
+                <BarChart3 className="w-4 h-4 mr-2" />
+                Métricas
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
