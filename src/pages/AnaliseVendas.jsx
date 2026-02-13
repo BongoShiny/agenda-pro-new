@@ -46,7 +46,7 @@ export default function AnaliseVendasPage() {
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
   const unidadesFiltradas = isAdmin ? unidades : unidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
 
-  // Filtrar vendas no período
+  // Filtrar vendas no período (pela data_pagamento, igual no Home)
   const vendasFiltradas = useMemo(() => {
     return agendamentos.filter(ag => {
       // Excluir bloqueios e fechados
@@ -55,18 +55,14 @@ export default function AnaliseVendasPage() {
       // Excluir vendedores específicos
       if (ag.vendedor_nome?.toLowerCase() === "ponto" || ag.vendedor_nome === "-") return false;
 
-      // Considerar vendas com conversão OU com valor combinado preenchido
-      const temConversao = ag.data_conversao && ag.conversao_converteu;
-      const temValor = ag.valor_combinado && ag.valor_combinado > 0;
-      
-      if (!temConversao && !temValor) return false;
+      // Considerar apenas vendas com valor combinado > 0
+      if (!ag.valor_combinado || ag.valor_combinado <= 0) return false;
 
-      // Usar data_conversao se existir, senão usar data_pagamento ou data do agendamento
-      const dataVenda = ag.data_conversao || ag.data_pagamento || ag.data;
-      if (!dataVenda) return false;
+      // Filtrar pela data_pagamento
+      if (!ag.data_pagamento) return false;
       
-      const dataVendaFormatada = dataVenda.substring(0, 10);
-      if (dataVendaFormatada < dataInicio || dataVendaFormatada > dataFim) return false;
+      const dataPagamento = ag.data_pagamento.substring(0, 10);
+      if (dataPagamento < dataInicio || dataPagamento > dataFim) return false;
 
       if (unidadeFiltro !== "todas" && ag.unidade_id !== unidadeFiltro) return false;
       if (vendedorFiltro !== "todos" && ag.vendedor_id !== vendedorFiltro) return false;
