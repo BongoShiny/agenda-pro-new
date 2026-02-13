@@ -24,6 +24,8 @@ export default function AnaliseCruzadaPage() {
   const [unidadeAnalise, setUnidadeAnalise] = useState("todas");
   const [filtroPerformance, setFiltroPerformance] = useState("todos");
   const [gapExpandido, setGapExpandido] = useState(null);
+  const [recepcaoExpandida, setRecepcaoExpandida] = useState(null);
+  const [terapeutaExpandido, setTerapeutaExpandido] = useState(null);
 
   const { data: usuarioAtual } = useQuery({
     queryKey: ['usuario-atual'],
@@ -823,23 +825,60 @@ export default function AnaliseCruzadaPage() {
                     corFundo = 'bg-green-100';
                     corTexto = 'text-green-900';
                   }
+
+                  const agendamentosRecepcao = agendamentosAnalise.filter(ag => {
+                    const recepcao = ag.conversao_recepcionista || ag.conversao_recepcionista_nao_converteu || "Sem Recepção";
+                    return normalizarNome(recepcao) === normalizarNome(rec.nome);
+                  });
                   
                   return (
-                    <div key={idx} className={`flex items-center justify-between p-3 border rounded-lg ${corBorda} ${corFundo}`}>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-900">
-                          {idx + 1}
+                    <div key={idx}>
+                      <div
+                        onClick={() => setRecepcaoExpandida(recepcaoExpandida === rec.nome ? null : rec.nome)}
+                        className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:shadow-md transition-all ${corBorda} ${corFundo}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-purple-100 flex items-center justify-center font-bold text-purple-900">
+                            {idx + 1}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">{rec.nome}</p>
+                            <p className="text-xs text-gray-500">
+                              {rec.total} atendimentos | {rec.convertidos} conversões
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">{rec.nome}</p>
-                          <p className="text-xs text-gray-500">
-                            {rec.total} atendimentos | {rec.convertidos} conversões
-                          </p>
+                        <div className="flex items-center gap-2">
+                          <p className={`text-2xl font-bold ${corTexto}`}>{rec.taxa.toFixed(0)}%</p>
+                          <ChevronDown className={`w-5 h-5 transition-transform ${recepcaoExpandida === rec.nome ? 'rotate-180' : ''}`} />
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className={`text-2xl font-bold ${corTexto}`}>{rec.taxa.toFixed(0)}%</p>
-                      </div>
+
+                      {recepcaoExpandida === rec.nome && (
+                        <div className="mt-2 mb-4 bg-white rounded-lg border p-4">
+                          <div className="space-y-2">
+                            {agendamentosRecepcao.map((ag) => (
+                              <div key={ag.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
+                                <div className="flex-1">
+                                  <div className="font-semibold">{ag.cliente_nome}</div>
+                                  <div className="text-gray-600">{ag.cliente_telefone}</div>
+                                </div>
+                                <div className="flex-1">
+                                  <div>{ag.data} às {ag.hora_inicio}</div>
+                                  <div className="text-gray-600">Terapeuta: {ag.conversao_profissional_nome || ag.profissional_nome}</div>
+                                </div>
+                                <div>
+                                  {ag.conversao_converteu ? (
+                                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Converteu</span>
+                                  ) : (
+                                    <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Não converteu</span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
@@ -876,23 +915,60 @@ export default function AnaliseCruzadaPage() {
                     corFundo = 'bg-green-100';
                     corTexto = 'text-green-900';
                   }
+
+                  const agendamentosTerapeuta = agendamentosAnalise.filter(ag => {
+                    const terapeuta = ag.conversao_profissional_nome || ag.profissional_nome || "Sem Terapeuta";
+                    return normalizarNome(terapeuta) === normalizarNome(ter.nome);
+                  });
                   
                   return (
-                    <div key={idx} className={`flex items-center justify-between p-3 border rounded-lg ${corBorda} ${corFundo}`}>
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center font-bold text-amber-900">
-                          {idx + 1}
+                    <div key={idx}>
+                      <div
+                        onClick={() => setTerapeutaExpandido(terapeutaExpandido === ter.nome ? null : ter.nome)}
+                        className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer hover:shadow-md transition-all ${corBorda} ${corFundo}`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full bg-amber-100 flex items-center justify-center font-bold text-amber-900">
+                            {idx + 1}
+                          </div>
+                          <div>
+                            <p className="font-semibold text-gray-900">{ter.nome}</p>
+                            <p className="text-xs text-gray-500">
+                              {ter.total} atendimentos | {ter.convertidos} conversões
+                            </p>
+                          </div>
                         </div>
-                        <div>
-                          <p className="font-semibold text-gray-900">{ter.nome}</p>
-                          <p className="text-xs text-gray-500">
-                            {ter.total} atendimentos | {ter.convertidos} conversões
-                          </p>
+                        <div className="flex items-center gap-2">
+                          <p className={`text-2xl font-bold ${corTexto}`}>{ter.taxa.toFixed(0)}%</p>
+                          <ChevronDown className={`w-5 h-5 transition-transform ${terapeutaExpandido === ter.nome ? 'rotate-180' : ''}`} />
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className={`text-2xl font-bold ${corTexto}`}>{ter.taxa.toFixed(0)}%</p>
-                      </div>
+
+                      {terapeutaExpandido === ter.nome && (
+                        <div className="mt-2 mb-4 bg-white rounded-lg border p-4">
+                          <div className="space-y-2">
+                            {agendamentosTerapeuta.map((ag) => (
+                              <div key={ag.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg text-sm">
+                                <div className="flex-1">
+                                  <div className="font-semibold">{ag.cliente_nome}</div>
+                                  <div className="text-gray-600">{ag.cliente_telefone}</div>
+                                </div>
+                                <div className="flex-1">
+                                  <div>{ag.data} às {ag.hora_inicio}</div>
+                                  <div className="text-gray-600">Recepção: {ag.conversao_recepcionista || ag.conversao_recepcionista_nao_converteu || "N/A"}</div>
+                                </div>
+                                <div>
+                                  {ag.conversao_converteu ? (
+                                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded text-xs">Converteu</span>
+                                  ) : (
+                                    <span className="px-2 py-1 bg-red-100 text-red-800 rounded text-xs">Não converteu</span>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   );
                 })}
