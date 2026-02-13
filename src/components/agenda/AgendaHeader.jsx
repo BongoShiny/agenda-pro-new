@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, ShieldCheck, DollarSign } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, ShieldCheck, DollarSign, EyeOff, Eye } from "lucide-react";
 import { format, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -8,6 +8,8 @@ import { createPageUrl } from "@/utils";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import RankingVendedores from "./RankingVendedores";
+import { base44 } from "@/api/base44Client";
+import { useState } from "react";
 
 // Usar mesma lógica de formatação em todos os componentes
 // FUNÇÃO CRÍTICA: Garantir que NUNCA haja conversão de timezone
@@ -30,8 +32,48 @@ export default function AgendaHeader({
   onNovoAgendamento,
   usuarioAtual,
   isVendedor,
-  navigate
+  navigate,
+  configVisibilidade,
+  onAtualizarVisibilidade
 }) {
+  const [menuBloqueioAberto, setMenuBloqueioAberto] = useState(false);
+
+  const toggleVisibilidade = async (tipo) => {
+    const isSuperior = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
+    if (!isSuperior) return;
+
+    try {
+      if (configVisibilidade?.id) {
+        // Atualizar configuração existente
+        await base44.entities.ConfiguracaoVisibilidadeAgenda.update(configVisibilidade.id, {
+          agenda_visivel_para_todos: tipo === "todos" ? !configVisibilidade.agenda_visivel_para_todos : configVisibilidade.agenda_visivel_para_todos,
+          agenda_visivel_para_superiores: tipo === "superiores" ? !configVisibilidade.agenda_visivel_para_superiores : configVisibilidade.agenda_visivel_para_superiores,
+          bloqueada_por: usuarioAtual.email,
+          bloqueada_em: new Date().toISOString()
+        });
+      } else {
+        // Criar nova configuração
+        await base44.entities.ConfiguracaoVisibilidadeAgenda.create({
+          agenda_visivel_para_todos: tipo === "todos" ? false : true,
+          agenda_visivel_para_superiores: tipo === "superiores" ? false : true,
+          bloqueada_por: usuarioAtual.email,
+          bloqueada_em: new Date().toISOString()
+        });
+      }
+      
+      onAtualizarVisibilidade();
+      setMenuBloqueioAberto(false);
+      
+      const novaSituacao = tipo === "todos" 
+        ? (configVisibilidade.agenda_visivel_para_todos === false ? "desbloqueada" : "bloqueada")
+        : (configVisibilidade.agenda_visivel_para_superiores === false ? "desbloqueada (superiores)" : "bloqueada (superiores)");
+      
+      alert(`✅ Agenda ${novaSituacao} com sucesso!`);
+    } catch (error) {
+      console.error("Erro ao alterar visibilidade:", error);
+      alert("❌ Erro ao alterar visibilidade: " + error.message);
+    }
+  };
   const formatarDataExibicao = () => {
     // NUNCA usar new Date() com parâmetros - pode causar timezone issues
     // Usar a data local direto
@@ -110,6 +152,7 @@ export default function AgendaHeader({
   };
 
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades" || usuarioAtual?.cargo === "financeiro" || usuarioAtual?.cargo === "pos_venda";
+  const isSuperior = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
 
   return (
     <div className="bg-white border-b border-gray-200">
@@ -174,6 +217,48 @@ export default function AgendaHeader({
           </div>
 
           <div className="flex items-center gap-2">
+            {isSuperior && (
+              <div className="relative">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => setMenuBloqueioAberto(!menuBloqueioAberto)}
+                  className={configVisibilidade?.agenda_visivel_para_todos === false ? "bg-orange-50 border-orange-300 text-orange-700" : "bg-gray-50"}
+                >
+                  {configVisibilidade?.agenda_visivel_para_todos === false ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </Button>
+                
+                {menuBloqueioAberto && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setMenuBloqueioAberto(false)} />
+                    <div className="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-3">
+                      <div className="text-sm font-semibold text-gray-700 mb-2">Controle de Visibilidade</div>
+                      
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full justify-start mb-2"
+                        onClick={() => toggleVisibilidade("todos")}
+                      >
+                        {configVisibilidade?.agenda_visivel_para_todos === false ? <Eye className="w-4 h-4 mr-2" /> : <EyeOff className="w-4 h-4 mr-2" />}
+                        {configVisibilidade?.agenda_visivel_para_todos === false ? "Desbloquear" : "Bloquear"} para Todos
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full justify-start"
+                        onClick={() => toggleVisibilidade("superiores")}
+                      >
+                        {configVisibilidade?.agenda_visivel_para_superiores === false ? <Eye className="w-4 h-4 mr-2" /> : <EyeOff className="w-4 h-4 mr-2" />}
+                        {configVisibilidade?.agenda_visivel_para_superiores === false ? "Desbloquear" : "Bloquear"} até Superior
+                      </Button>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+            
             {isAdmin && (
               <Link to={createPageUrl("Administrador")}>
                 <Button variant="outline" size="sm" className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100">
@@ -237,6 +322,54 @@ export default function AgendaHeader({
           </div>
 
           <div className="flex items-center gap-3">
+            {isSuperior && (
+              <div className="relative">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setMenuBloqueioAberto(!menuBloqueioAberto)}
+                  className={configVisibilidade?.agenda_visivel_para_todos === false ? "bg-orange-50 border-orange-300 text-orange-700" : ""}
+                >
+                  {configVisibilidade?.agenda_visivel_para_todos === false ? <EyeOff className="w-4 h-4 mr-2" /> : <Eye className="w-4 h-4 mr-2" />}
+                  Visibilidade
+                </Button>
+                
+                {menuBloqueioAberto && (
+                  <>
+                    <div className="fixed inset-0 z-40" onClick={() => setMenuBloqueioAberto(false)} />
+                    <div className="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
+                      <div className="text-sm font-semibold text-gray-700 mb-3">Controle de Visibilidade da Agenda</div>
+                      
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full justify-start mb-2"
+                        onClick={() => toggleVisibilidade("todos")}
+                      >
+                        {configVisibilidade?.agenda_visivel_para_todos === false ? <Eye className="w-4 h-4 mr-2" /> : <EyeOff className="w-4 h-4 mr-2" />}
+                        {configVisibilidade?.agenda_visivel_para_todos === false ? "Desbloquear" : "Bloquear"} para Todos
+                      </Button>
+                      
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="w-full justify-start"
+                        onClick={() => toggleVisibilidade("superiores")}
+                      >
+                        {configVisibilidade?.agenda_visivel_para_superiores === false ? <Eye className="w-4 h-4 mr-2" /> : <EyeOff className="w-4 h-4 mr-2" />}
+                        {configVisibilidade?.agenda_visivel_para_superiores === false ? "Desbloquear" : "Bloquear"} até Superior
+                      </Button>
+                      
+                      {configVisibilidade?.bloqueada_por && (
+                        <div className="mt-3 pt-3 border-t text-xs text-gray-500">
+                          Bloqueada por: {configVisibilidade.bloqueada_por}
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+            
             {isAdmin && (
               <Link to={createPageUrl("Administrador")}>
                 <Button variant="outline" className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100">
