@@ -99,7 +99,7 @@ export default function PacientesNovosPage() {
     return (
       <div 
         key={ag.id} 
-        className={`p-4 rounded-lg border-2 ${
+        className={`p-3 md:p-4 rounded-lg border-2 ${
           temConversao 
             ? (converteu ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300')
             : 'bg-white border-gray-200'
@@ -107,14 +107,14 @@ export default function PacientesNovosPage() {
       >
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <div className="flex items-center gap-2 mb-2">
+            <div className="flex items-center gap-2 mb-2 flex-wrap">
               <Clock className="w-4 h-4 text-gray-500" />
-              <span className="font-bold text-lg text-gray-900">{ag.hora_inicio}</span>
+              <span className="font-bold text-base md:text-lg text-gray-900">{ag.hora_inicio}</span>
               {ag.status_paciente === "paciente_novo" && (
-                <Badge className="bg-blue-500">Paciente Novo</Badge>
+                <Badge className="bg-blue-500 text-xs">Paciente Novo</Badge>
               )}
               {ag.status_paciente === "ultima_sessao" && (
-                <Badge className="bg-purple-500">Última Sessão</Badge>
+                <Badge className="bg-purple-500 text-xs">Última Sessão</Badge>
               )}
             </div>
 
@@ -216,8 +216,54 @@ export default function PacientesNovosPage() {
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 shadow-sm sticky top-0 z-10">
-        <div className="max-w-7xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-3 md:px-6 py-3 md:py-4">
+          {/* Mobile Layout */}
+          <div className="md:hidden space-y-3">
+            <div className="flex items-center justify-between">
+              <Link to={createPageUrl("Agenda")}>
+                <Button variant="outline" size="icon" className="h-9 w-9">
+                  <ArrowLeft className="w-4 h-4" />
+                </Button>
+              </Link>
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                <h1 className="text-lg font-bold text-gray-900">Pacientes Novos & Últimas Sessões</h1>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1">
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => navegarData(-1)}
+                  className="h-8 w-8"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </Button>
+                <p className="text-sm text-gray-700 font-medium px-2 text-center">
+                  {format(parseISO(dataSelecionada), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
+                  {isHoje && <span className="ml-1 text-blue-600">(Hoje)</span>}
+                </p>
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={() => navegarData(1)}
+                  className="h-8 w-8"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </Button>
+              </div>
+              <Button onClick={() => refetch()} variant="outline" size="sm">
+                <RefreshCw className="w-4 h-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Desktop Layout */}
+          <div className="hidden md:flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Link to={createPageUrl("Agenda")}>
                 <Button variant="outline" size="icon">
@@ -270,7 +316,7 @@ export default function PacientesNovosPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="max-w-7xl mx-auto p-3 md:p-6 space-y-4 md:space-y-6">
         {Object.keys(agendamentosPorUnidade).length === 0 ? (
           <Card>
             <CardContent className="py-12 text-center text-gray-500">
@@ -280,15 +326,15 @@ export default function PacientesNovosPage() {
           </Card>
         ) : (
           Object.values(agendamentosPorUnidade).map(({ unidade, pacientesNovos, ultimasSessoes }) => (
-            <div key={unidade.id} className="space-y-4">
+            <div key={unidade.id} className="space-y-3 md:space-y-4">
               {/* Header da Unidade */}
-              <div className="flex items-center gap-3 pb-2 border-b-2 border-gray-300">
+              <div className="flex items-center gap-2 md:gap-3 pb-2 border-b-2 border-gray-300">
                 <div 
-                  className="w-4 h-4 rounded-full" 
+                  className="w-3 h-3 md:w-4 md:h-4 rounded-full flex-shrink-0" 
                   style={{ backgroundColor: unidade.cor || '#3B82F6' }}
                 />
-                <h2 className="text-2xl font-bold text-gray-900">{unidade.nome}</h2>
-                <Badge variant="outline" className="ml-2">
+                <h2 className="text-lg md:text-2xl font-bold text-gray-900">{unidade.nome}</h2>
+                <Badge variant="outline" className="ml-auto md:ml-2 text-xs">
                   {pacientesNovos.length + ultimasSessoes.length} agendamentos
                 </Badge>
               </div>
