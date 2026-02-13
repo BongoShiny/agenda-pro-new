@@ -22,9 +22,8 @@ export default function PacientesNovosPage() {
   const { data: agendamentosIniciais = [], refetch } = useQuery({
     queryKey: ['agendamentos-pacientes-novos', dataSelecionada],
     queryFn: async () => {
-      const todos = await base44.entities.Agendamento.list("-hora_inicio");
+      const todos = await base44.entities.Agendamento.filter({ data: dataSelecionada }, "-hora_inicio", 500);
       return todos.filter(ag => 
-        ag.data === dataSelecionada && 
         (ag.status_paciente === "paciente_novo" || ag.status_paciente === "ultima_sessao") &&
         ag.status !== "bloqueio" &&
         ag.tipo !== "bloqueio"
