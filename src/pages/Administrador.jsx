@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Settings, FileText, ShieldCheck, ArrowLeft, FileSpreadsheet, DollarSign, MessageCircle, BarChart3, Calendar, UserCheck, AlertCircle, UserPlus } from "lucide-react";
+import { Users, Settings, FileText, ShieldCheck, ArrowLeft, FileSpreadsheet, DollarSign, MessageCircle, BarChart3, Calendar, UserCheck, AlertCircle, UserPlus, Download } from "lucide-react";
 
 export default function AdministradorPage() {
   const [usuarioAtual, setUsuarioAtual] = useState(null);
@@ -49,6 +49,45 @@ export default function AdministradorPage() {
     return null;
   }
 
+  const exportarUsuarios = async () => {
+    try {
+      const usuarios = await base44.entities.User.list();
+      
+      const headers = ["id", "created_date", "updated_date", "created_by_id", "is_sample", "email", "full_name", "cargo", "role", "unidades_acesso", "ativo", "invite_token", "invite_expires_at", "password_hash", "password_salt"];
+      
+      const linhas = usuarios.map(u => [
+        u.id || "",
+        u.created_date || "",
+        u.updated_date || "",
+        u.created_by || "",
+        "", // is_sample (não existe no Base44)
+        u.email || "",
+        u.full_name || "",
+        u.cargo || "",
+        u.role || "",
+        u.unidades_acesso ? JSON.stringify(u.unidades_acesso) : "",
+        u.ativo !== undefined ? String(u.ativo) : "",
+        "", // invite_token (não acessível)
+        "", // invite_expires_at (não acessível)
+        "", // password_hash (não acessível por segurança)
+        ""  // password_salt (não acessível por segurança)
+      ]);
+
+      const csv = [headers, ...linhas].map(row => row.map(cell => `"${cell}"`).join(",")).join("\n");
+      const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `usuarios_export_${new Date().toISOString().split('T')[0]}.csv`;
+      link.click();
+      
+      alert(`✅ ${usuarios.length} usuários exportados com sucesso!`);
+    } catch (error) {
+      console.error("Erro ao exportar usuários:", error);
+      alert("❌ Erro ao exportar: " + error.message);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-200 px-6 py-4">
@@ -71,14 +110,22 @@ export default function AdministradorPage() {
               </p>
             </div>
           </div>
-          {(isAdmin || isGerencia || isMetricas) && (
-            <Link to={createPageUrl("Metricas")}>
-              <Button variant="outline" className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
-                <BarChart3 className="w-4 h-4 mr-2" />
-                Métricas
+          <div className="flex gap-2">
+            {isAdmin && (
+              <Button onClick={exportarUsuarios} variant="outline" className="bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100">
+                <Download className="w-4 h-4 mr-2" />
+                Exportar Usuários
               </Button>
-            </Link>
-          )}
+            )}
+            {(isAdmin || isGerencia || isMetricas) && (
+              <Link to={createPageUrl("Metricas")}>
+                <Button variant="outline" className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
+                  <BarChart3 className="w-4 h-4 mr-2" />
+                  Métricas
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 
