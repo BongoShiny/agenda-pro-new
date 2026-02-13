@@ -1191,9 +1191,9 @@ export default function AgendaPage() {
 
   return (
     <div className="h-screen flex flex-col bg-gray-50">
-      {/* PAINEL DE DEBUG - APENAS PARA ADMINISTRADORES */}
+      {/* PAINEL DE DEBUG - APENAS PARA ADMINISTRADORES - OCULTO NO MOBILE */}
       {isAdmin && (
-        <div className="bg-yellow-100 border-b-2 border-yellow-400 p-3 text-xs font-mono">
+        <div className="hidden md:block bg-yellow-100 border-b-2 border-yellow-400 p-3 text-xs font-mono">
           <div className="max-w-7xl mx-auto grid grid-cols-4 gap-4">
             <div>
               <strong>👤 Usuário:</strong> {usuarioAtual?.email || "carregando..."}
@@ -1235,22 +1235,22 @@ export default function AgendaPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  className="fixed bottom-4 left-4 z-50 bg-white shadow-lg border-blue-300"
+                  className="fixed bottom-4 left-4 z-50 bg-white shadow-lg border-blue-300 h-10 md:h-9"
                   onClick={() => setMostrarFiltros(!mostrarFiltros)}
                 >
-                  {mostrarFiltros ? <X className="w-4 h-4 mr-2" /> : <Filter className="w-4 h-4 mr-2" />}
-                  {mostrarFiltros ? "Fechar" : "Filtros"}
+                  {mostrarFiltros ? <X className="w-4 h-4 md:mr-2" /> : <Filter className="w-4 h-4 md:mr-2" />}
+                  <span className="hidden md:inline">{mostrarFiltros ? "Fechar" : "Filtros"}</span>
                 </Button>
 
                 {/* Botão para abrir menu de conta */}
                 <Button
                   variant="outline"
                   size="sm"
-                  className="fixed bottom-4 right-4 z-50 bg-white shadow-lg border-gray-300"
+                  className="fixed bottom-4 right-4 z-50 bg-white shadow-lg border-gray-300 h-10 md:h-9"
                   onClick={() => setMenuContaAberto(!menuContaAberto)}
                 >
-                  <User className="w-4 h-4 mr-2" />
-                  Conta
+                  <User className="w-4 h-4 md:mr-2" />
+                  <span className="hidden md:inline">Conta</span>
                 </Button>
 
                 {/* Filtros: Aparece apenas quando clicado */}
