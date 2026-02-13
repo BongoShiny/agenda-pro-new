@@ -64,7 +64,7 @@ export default function AnaliseVendasPage() {
 
   // Calcular KPIs
   const totalVendas = vendasFiltradas.length;
-  const valorTotal = vendasFiltradas.reduce((acc, ag) => acc + (ag.conversao_valor_final || 0), 0);
+  const valorTotal = vendasFiltradas.reduce((acc, ag) => acc + (ag.valor_combinado || 0), 0);
   const ticketMedio = totalVendas > 0 ? valorTotal / totalVendas : 0;
   const totalFechou = vendasFiltradas.filter(ag => ag.conversao_tipo === "fechou" || !ag.conversao_tipo).length;
   const totalRenovou = vendasFiltradas.filter(ag => ag.conversao_tipo === "renovou").length;
@@ -88,7 +88,7 @@ export default function AnaliseVendasPage() {
       }
       
       vendedoresMap[vendedorId].totalVendas++;
-      vendedoresMap[vendedorId].valorTotal += ag.conversao_valor_final || 0;
+      vendedoresMap[vendedorId].valorTotal += ag.valor_combinado || 0;
       
       if (ag.conversao_tipo === "fechou" || !ag.conversao_tipo) {
         vendedoresMap[vendedorId].fechou++;
@@ -119,7 +119,7 @@ export default function AnaliseVendasPage() {
       }
       
       unidadesMap[unidadeId].totalVendas++;
-      unidadesMap[unidadeId].valorTotal += ag.conversao_valor_final || 0;
+      unidadesMap[unidadeId].valorTotal += ag.valor_combinado || 0;
     });
     
     return Object.values(unidadesMap)
@@ -144,7 +144,7 @@ export default function AnaliseVendasPage() {
       ag.vendedor_nome || "",
       ag.conversao_profissional_nome || ag.profissional_nome || "",
       ag.conversao_tipo === "renovou" ? "Renovou" : "Fechou",
-      ag.conversao_valor_final || 0
+      ag.valor_combinado || 0
     ]);
 
     const csvContent = [
@@ -520,7 +520,7 @@ export default function AnaliseVendasPage() {
                           )}
                         </td>
                         <td className="p-3 text-right font-bold text-green-600">
-                          {formatarMoeda(ag.conversao_valor_final || 0)}
+                          {formatarMoeda(ag.valor_combinado || 0)}
                         </td>
                       </tr>
                     ))
