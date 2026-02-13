@@ -168,18 +168,21 @@ export default function AnaliseCruzadaPage() {
     }
 
     matrizDados[chave].total++;
-    if (ag.conversao_converteu === true) {
-      matrizDados[chave].convertidos++;
-      
-      // Se conversao_tipo não existe, considera como "fechou" (compatibilidade com dados antigos)
-      const tipoConversao = ag.conversao_tipo || "fechou";
-      
-      if (tipoConversao === "fechou") {
-        matrizFechou[chave].total++;
+    
+    // Se conversao_tipo não existe, considera como "fechou" (compatibilidade com dados antigos)
+    const tipoConversao = ag.conversao_tipo || "fechou";
+    
+    if (tipoConversao === "fechou") {
+      matrizFechou[chave].total++;
+      if (ag.conversao_converteu === true) {
         matrizFechou[chave].convertidos++;
-      } else if (tipoConversao === "renovou") {
-        matrizRenovou[chave].total++;
+        matrizDados[chave].convertidos++;
+      }
+    } else if (tipoConversao === "renovou") {
+      matrizRenovou[chave].total++;
+      if (ag.conversao_converteu === true) {
         matrizRenovou[chave].convertidos++;
+        matrizDados[chave].convertidos++;
       }
     }
   });
