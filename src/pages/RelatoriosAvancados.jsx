@@ -73,8 +73,12 @@ export default function RelatoriosAvancadosPage() {
   const agendamentosFiltrados = agendamentos
     .filter(ag => ag.status !== "bloqueio" && ag.tipo !== "bloqueio" && ag.cliente_nome !== "FECHADO")
     .filter(ag => {
-      const dataAg = ag.data;
-      if (dataAg < dataInicio || dataAg > dataFim) return false;
+      // CRÍTICO: Normalizar data para comparação (remover hora/timestamp se houver)
+      const dataAg = ag.data ? ag.data.substring(0, 10) : "";
+      const dataInicioNorm = dataInicio.substring(0, 10);
+      const dataFimNorm = dataFim.substring(0, 10);
+      
+      if (dataAg < dataInicioNorm || dataAg > dataFimNorm) return false;
       if (profissionalFiltro !== "todos" && ag.profissional_id !== profissionalFiltro) return false;
       if (servicoFiltro !== "todos" && ag.servico_id !== servicoFiltro) return false;
       if (unidadeFiltro !== "todos" && ag.unidade_id !== unidadeFiltro) return false;

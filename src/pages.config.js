@@ -65,6 +65,7 @@ import HistoricoAgendamentos from './pages/HistoricoAgendamentos';
 import HistoricoClientes from './pages/HistoricoClientes';
 import Home from './pages/Home';
 import LancarVendas from './pages/LancarVendas';
+import Metricas from './pages/Metricas';
 import PacientesNovos from './pages/PacientesNovos';
 import RankingVendedores from './pages/RankingVendedores';
 import RelatorioErrosImportacao from './pages/RelatorioErrosImportacao';
@@ -73,7 +74,6 @@ import RelatoriosCRM from './pages/RelatoriosCRM';
 import RelatoriosClientes from './pages/RelatoriosClientes';
 import RelatoriosFinanceiros from './pages/RelatoriosFinanceiros';
 import WhatsAppCompleto from './pages/WhatsAppCompleto';
-import Metricas from './pages/Metricas';
 import __Layout from './Layout.jsx';
 
 
@@ -96,6 +96,7 @@ export const PAGES = {
     "HistoricoClientes": HistoricoClientes,
     "Home": Home,
     "LancarVendas": LancarVendas,
+    "Metricas": Metricas,
     "PacientesNovos": PacientesNovos,
     "RankingVendedores": RankingVendedores,
     "RelatorioErrosImportacao": RelatorioErrosImportacao,
@@ -104,7 +105,6 @@ export const PAGES = {
     "RelatoriosClientes": RelatoriosClientes,
     "RelatoriosFinanceiros": RelatoriosFinanceiros,
     "WhatsAppCompleto": WhatsAppCompleto,
-    "Metricas": Metricas,
 }
 
 export const pagesConfig = {
