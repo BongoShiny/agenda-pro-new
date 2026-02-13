@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { createPageUrl } from "@/utils";
-import { Users, Settings, FileText, ShieldCheck, ArrowLeft, FileSpreadsheet, DollarSign, MessageCircle, BarChart3, Calendar, UserCheck, AlertCircle } from "lucide-react";
+import { Users, Settings, FileText, ShieldCheck, ArrowLeft, FileSpreadsheet, DollarSign, MessageCircle, BarChart3, Calendar, UserCheck, AlertCircle, UserPlus } from "lucide-react";
 
 export default function AdministradorPage() {
   const [usuarioAtual, setUsuarioAtual] = useState(null);
@@ -84,6 +84,18 @@ export default function AdministradorPage() {
                 </div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-2">Análises</h3>
                 <p className="text-sm text-gray-500">Dashboard com visão geral, métricas e análises do sistema</p>
+              </div>
+            </Link>
+          )}
+
+          {(isAdmin || isGerencia) && (
+            <Link to={createPageUrl("PacientesNovos")} className="block">
+              <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-blue-300 transition-all cursor-pointer h-full">
+                <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center mb-4">
+                  <UserPlus className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Pacientes Novos</h3>
+                <p className="text-sm text-gray-500">Acompanhe pacientes novos e últimas sessões do dia</p>
               </div>
             </Link>
           )}
