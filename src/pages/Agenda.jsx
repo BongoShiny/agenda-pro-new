@@ -398,6 +398,12 @@ export default function AgendaPage() {
     initialData: [],
   });
 
+  const { data: configVisibilidade = [] } = useQuery({
+    queryKey: ['config-visibilidade-agenda'],
+    queryFn: () => base44.entities.ConfiguracaoVisibilidadeAgenda.list(),
+    initialData: [],
+  });
+
   // Buscar prontuários
   const { data: prontuarios = [] } = useQuery({
     queryKey: ['prontuarios'],
@@ -1174,6 +1180,40 @@ export default function AgendaPage() {
   // Verificar se é admin, gerência ou pós-venda - todos têm permissões administrativas
   const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin" || usuarioAtual?.cargo === "gerencia_unidades" || usuarioAtual?.cargo === "pos_venda";
   const isVendedor = usuarioAtual?.cargo === "vendedor";
+  
+  // Verificar visibilidade da agenda
+  const config = configVisibilidade[0] || {};
+  const agendaBloqueada = config.agenda_visivel_para_todos === false;
+  const agendaBloqueadaParaSuperior = config.agenda_visivel_para_superiores === false;
+  
+  const isSuperior = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
+  
+  // Bloquear acesso se necessário
+  if (agendaBloqueada && !isSuperior) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🔒</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Agenda Bloqueada</h1>
+          <p className="text-gray-600">A agenda foi temporariamente bloqueada por um superior.</p>
+          <p className="text-sm text-gray-500 mt-2">Bloqueada por: {config.bloqueada_por}</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (agendaBloqueadaParaSuperior && isSuperior) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">🔒</div>
+          <h1 className="text-2xl font-bold text-gray-900 mb-2">Agenda Bloqueada (Modo Superior)</h1>
+          <p className="text-gray-600">A agenda foi bloqueada inclusive para superiores.</p>
+          <p className="text-sm text-gray-500 mt-2">Bloqueada por: {config.bloqueada_por}</p>
+        </div>
+      </div>
+    );
+  }
 
   // Loading enquanto carrega dados
   if (!usuarioAtual || unidades.length === 0) {
@@ -1228,6 +1268,8 @@ export default function AgendaPage() {
         isProfissional={isProfissional}
         isVendedor={isVendedor}
         navigate={navigate}
+        configVisibilidade={config}
+        onAtualizarVisibilidade={() => queryClient.invalidateQueries({ queryKey: ['config-visibilidade-agenda'] })}
       />
 
       <div className="flex-1 flex overflow-hidden relative">
