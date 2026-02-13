@@ -867,12 +867,11 @@ export default function AgendaDiaView({
                           return (
                             <div
                               key={agendamento.id}
-                              style={alturaStyle}
-                              className="absolute inset-x-0.5 md:inset-x-1 z-10 top-0 md:!h-[calc(var(--numero-slots)*5rem)]"
                               style={{
                                 '--numero-slots': numeroSlots,
                                 height: `calc(${numeroSlots} * 4rem)`,
                               }}
+                              className="absolute inset-x-0.5 md:inset-x-1 z-10 top-0 md:!h-[calc(var(--numero-slots)*5rem)]"
                             >
                               <AgendamentoCard
                                 agendamento={agendamento}

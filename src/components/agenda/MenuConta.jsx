@@ -145,7 +145,7 @@ export default function MenuConta({ usuarioAtual, onClose }) {
           </Badge>
         </div>
 
-        {isSuperior && !showDispositivos ? (
+        {isSuperior && !showDispositivos && (
           <Button 
             variant="outline" 
             className="w-full justify-start"
@@ -154,7 +154,9 @@ export default function MenuConta({ usuarioAtual, onClose }) {
             <Monitor className="w-4 h-4 mr-2" />
             Ver Dispositivos Conectados
           </Button>
-        ) : isSuperior && showDispositivos ? (
+        )}
+
+        {isSuperior && showDispositivos && (
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <label className="text-xs font-medium text-gray-500 uppercase">Dispositivos</label>
