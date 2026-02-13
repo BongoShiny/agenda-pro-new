@@ -58,7 +58,7 @@ export default function AdministradorPage() {
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3 flex-1">
             <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
               <ShieldCheck className="w-5 h-5 text-red-600" />
             </div>
@@ -71,6 +71,12 @@ export default function AdministradorPage() {
               </p>
             </div>
           </div>
+          <Link to={createPageUrl("Metricas")}>
+            <Button variant="outline" className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Métricas
+            </Button>
+          </Link>
         </div>
       </div>
 

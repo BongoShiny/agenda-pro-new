@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, ShieldCheck, DollarSign, BarChart3 } from "lucide-react";
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Plus, ShieldCheck, DollarSign } from "lucide-react";
 import { format, addDays, subDays } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -174,13 +174,6 @@ export default function AgendaHeader({
           </div>
 
           <div className="flex items-center gap-2">
-            <Link to={createPageUrl("Metricas")}>
-              <Button variant="outline" size="sm" className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
-                <BarChart3 className="w-4 h-4 mr-1" />
-                Métricas
-              </Button>
-            </Link>
-
             {isAdmin && (
               <Link to={createPageUrl("Administrador")}>
                 <Button variant="outline" size="sm" className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100">
@@ -244,13 +237,6 @@ export default function AgendaHeader({
           </div>
 
           <div className="flex items-center gap-3">
-            <Link to={createPageUrl("Metricas")}>
-              <Button variant="outline" className="bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
-                <BarChart3 className="w-4 h-4 mr-2" />
-                Métricas
-              </Button>
-            </Link>
-
             {isAdmin && (
               <Link to={createPageUrl("Administrador")}>
                 <Button variant="outline" className="bg-red-50 border-red-200 text-red-700 hover:bg-red-100">
