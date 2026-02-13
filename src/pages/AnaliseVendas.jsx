@@ -49,26 +49,27 @@ export default function AnaliseVendasPage() {
   // Filtrar vendas no período (pela data_pagamento, igual no Home)
   const vendasFiltradas = useMemo(() => {
     return agendamentos.filter(ag => {
-      // Excluir bloqueios e fechados
-      if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
-      
-      // Excluir vendedores específicos e sem vendedor
-      if (ag.vendedor_nome?.toLowerCase() === "ponto" || ag.vendedor_nome === "-" || ag.vendedor_nome === "Sem Vendedor" || !ag.vendedor_nome) return false;
+        // Excluir bloqueios e fechados
+        if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
 
-      // Considerar apenas vendas com valor combinado > 0
-      if (!ag.valor_combinado || ag.valor_combinado <= 0) return false;
+        // Excluir vendedores específicos e sem vendedor
+        if (ag.vendedor_nome?.toLowerCase() === "ponto" || ag.vendedor_nome === "-" || ag.vendedor_nome === "Sem Vendedor" || !ag.vendedor_nome) return false;
 
-      // Filtrar pela data_pagamento
-      if (!ag.data_pagamento) return false;
-      
-      const dataPagamento = ag.data_pagamento.substring(0, 10);
-      if (dataPagamento < dataInicio || dataPagamento > dataFim) return false;
+        // Considerar apenas vendas com valor combinado > 0
+        if (!ag.valor_combinado || ag.valor_combinado <= 0) return false;
 
-      if (unidadeFiltro !== "todas" && ag.unidade_id !== unidadeFiltro) return false;
-      if (vendedorFiltro !== "todos" && ag.vendedor_id !== vendedorFiltro) return false;
+        // Filtrar pela data - priorizar data_pagamento, depois data, depois data_conversao
+        const dataVenda = ag.data_pagamento || ag.data || ag.data_conversao;
+        if (!dataVenda) return false;
 
-      return true;
-    });
+        const dataVendaFormatada = dataVenda.substring(0, 10);
+        if (dataVendaFormatada < dataInicio || dataVendaFormatada > dataFim) return false;
+
+        if (unidadeFiltro !== "todas" && ag.unidade_id !== unidadeFiltro) return false;
+        if (vendedorFiltro !== "todos" && ag.vendedor_id !== vendedorFiltro) return false;
+
+        return true;
+      });
   }, [agendamentos, dataInicio, dataFim, unidadeFiltro, vendedorFiltro]);
 
   // Calcular KPIs

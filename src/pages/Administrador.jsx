@@ -113,6 +113,18 @@ export default function AdministradorPage() {
           )}
 
           {(isAdmin || isGerencia || isMetricas) && (
+          <Link to={createPageUrl("AnaliseVendas")} className="block">
+            <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-green-300 transition-all cursor-pointer h-full">
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center mb-4">
+                <DollarSign className="w-6 h-6 text-green-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">Análise de Vendas</h3>
+              <p className="text-sm text-gray-500">Métricas de vendas, rankings e performance por período</p>
+            </div>
+          </Link>
+          )}
+
+          {(isAdmin || isGerencia || isMetricas) && (
             <Link to={createPageUrl("RelatoriosAvancados")} className="block">
               <div className="bg-white rounded-xl border border-gray-200 p-6 hover:shadow-lg hover:border-purple-300 transition-all cursor-pointer h-full">
                 <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center mb-4">
