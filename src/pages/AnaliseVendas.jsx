@@ -42,7 +42,11 @@ export default function AnaliseVendasPage() {
     initialData: [],
   });
 
-  // Filtrar vendas no período (ANTES da verificação de acesso)
+  // Verificar acesso
+  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
+  const unidadesFiltradas = isAdmin ? unidades : unidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
+
+  // Filtrar vendas no período
   const vendasFiltradas = useMemo(() => {
     return agendamentos.filter(ag => {
       if (!ag.data_conversao || !ag.conversao_converteu) return false;
@@ -121,21 +125,6 @@ export default function AnaliseVendasPage() {
     return Object.values(unidadesMap)
       .sort((a, b) => b.valorTotal - a.valorTotal);
   }, [vendasFiltradas]);
-
-  // Verificar acesso (DEPOIS de todos os hooks)
-  const isAdmin = usuarioAtual?.cargo === "administrador" || usuarioAtual?.cargo === "superior" || usuarioAtual?.role === "admin";
-  const unidadesFiltradas = isAdmin ? unidades : unidades.filter(u => usuarioAtual?.unidades_acesso?.includes(u.id));
-
-  if (!isAdmin && usuarioAtual?.cargo !== "gerencia_unidades" && usuarioAtual?.cargo !== "metricas" && usuarioAtual?.cargo !== "financeiro") {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="text-red-600 text-lg font-bold mb-2">⚠️ Acesso Negado</div>
-          <p className="text-gray-600">Apenas superiores podem acessar esta página.</p>
-        </div>
-      </div>
-    );
-  }
 
   const formatarMoeda = (valor) => {
     return new Intl.NumberFormat('pt-BR', {
