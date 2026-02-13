@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, TrendingUp, TrendingDown, BarChart3, Target, ChevronDown } from "lucide-react";
+import { ArrowLeft, TrendingUp, TrendingDown, BarChart3, Target, ChevronDown, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { createPageUrl } from "@/utils";
 import { format, startOfMonth, endOfMonth } from "date-fns";
@@ -78,10 +78,14 @@ export default function AnaliseCruzadaPage() {
 
   const totalAnalises = agendamentosAnalise.length;
   const totalConversoes = agendamentosAnalise.filter(ag => ag.conversao_converteu === true).length;
+  const totalFechou = agendamentosAnalise.filter(ag => ag.conversao_converteu === true && ag.conversao_tipo === "fechou").length;
+  const totalRenovou = agendamentosAnalise.filter(ag => ag.conversao_converteu === true && ag.conversao_tipo === "renovou").length;
   const taxaMediaGeral = totalAnalises > 0 ? ((totalConversoes / totalAnalises) * 100).toFixed(1) : 0;
 
-  // Construir matriz: Recepção x Terapeuta
+  // Construir matriz: Recepção x Terapeuta (com separação fechou/renovou)
   const matrizDados = {};
+  const matrizFechou = {};
+  const matrizRenovou = {};
   const terapeutasSet = new Set();
   const recepcionistasSet = new Set();
 
@@ -150,9 +154,30 @@ export default function AnaliseCruzadaPage() {
         convertidos: 0
       };
     }
+    if (!matrizFechou[chave]) {
+      matrizFechou[chave] = {
+        total: 0,
+        convertidos: 0
+      };
+    }
+    if (!matrizRenovou[chave]) {
+      matrizRenovou[chave] = {
+        total: 0,
+        convertidos: 0
+      };
+    }
+
     matrizDados[chave].total++;
     if (ag.conversao_converteu === true) {
       matrizDados[chave].convertidos++;
+      
+      if (ag.conversao_tipo === "fechou") {
+        matrizFechou[chave].total++;
+        matrizFechou[chave].convertidos++;
+      } else if (ag.conversao_tipo === "renovou") {
+        matrizRenovou[chave].total++;
+        matrizRenovou[chave].convertidos++;
+      }
     }
   });
 
@@ -335,7 +360,7 @@ export default function AnaliseCruzadaPage() {
         </Card>
 
         {/* KPIs */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
           <Card className="border-2 border-blue-200 bg-blue-50">
             <CardContent className="pt-4 pb-4">
               <div className="text-center">
@@ -372,14 +397,26 @@ export default function AnaliseCruzadaPage() {
             </CardContent>
           </Card>
 
-          <Card className="border-2 border-orange-200 bg-orange-50">
+          <Card className="border-2 border-emerald-200 bg-emerald-50">
             <CardContent className="pt-4 pb-4">
               <div className="text-center">
-                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center mx-auto mb-2">
-                  <TrendingDown className="w-5 h-5 text-orange-600" />
+                <div className="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-2">
+                  <Plus className="w-5 h-5 text-emerald-600" />
                 </div>
-                <p className="text-xs text-orange-600 mb-1">GAPS</p>
-                <p className="text-2xl font-bold text-orange-900">{todosGaps.length}</p>
+                <p className="text-xs text-emerald-600 mb-1">FECHOU</p>
+                <p className="text-2xl font-bold text-emerald-900">{totalFechou}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="border-2 border-sky-200 bg-sky-50">
+            <CardContent className="pt-4 pb-4">
+              <div className="text-center">
+                <div className="w-10 h-10 rounded-full bg-sky-100 flex items-center justify-center mx-auto mb-2">
+                  <TrendingUp className="w-5 h-5 text-sky-600" />
+                </div>
+                <p className="text-xs text-sky-600 mb-1">RENOVOU</p>
+                <p className="text-2xl font-bold text-sky-900">{totalRenovou}</p>
               </div>
             </CardContent>
           </Card>
@@ -466,10 +503,193 @@ export default function AnaliseCruzadaPage() {
           </Card>
         )}
 
-        {/* Matriz Cruzada */}
+        {/* Matrizes Cruzadas - Fechou e Renovou */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Matriz FECHOU */}
+          <Card className="border-emerald-200">
+            <CardHeader className="bg-emerald-50">
+              <CardTitle className="text-base md:text-lg flex items-center gap-2 text-emerald-900">
+                <Plus className="w-5 h-5" />
+                Fechou Plano - Recepção x Terapeuta
+              </CardTitle>
+              <div className="flex flex-wrap items-center gap-3 mt-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-red-500"></div>
+                  <span>Crítico (0-34,9%)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-orange-500"></div>
+                  <span>Atenção (35-49,9%)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-green-500"></div>
+                  <span>Ótimo (50-99,9%)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-green-600"></div>
+                  <span>Excelente (100%)</span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto -mx-6 px-6">
+                <table className="w-full border-collapse text-xs">
+                  <thead>
+                    <tr>
+                      <th className="border border-gray-300 bg-gray-100 px-2 py-2 text-left font-semibold sticky left-0 z-10 text-xs">
+                        Recepção
+                      </th>
+                      {terapeutas.map(ter => (
+                        <th key={ter} className="border border-gray-300 bg-gray-100 px-2 py-2 text-center font-semibold min-w-[60px] text-xs">
+                          <div className="max-w-[60px] truncate">{ter}</div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recepcionistas.map(rec => (
+                      <tr key={rec}>
+                        <td className="border border-gray-300 bg-gray-50 px-2 py-2 font-semibold sticky left-0 z-10 text-xs">
+                          <div className="max-w-[60px] truncate">{rec}</div>
+                        </td>
+                        {terapeutas.map(ter => {
+                          const dados = matrizFechou[`${rec}|${ter}`];
+                          if (!dados || dados.total === 0) {
+                            return (
+                              <td key={ter} className="border border-gray-300 px-2 py-2 text-center text-gray-400">
+                                -
+                              </td>
+                            );
+                          }
+
+                          const taxa = (dados.convertidos / dados.total) * 100;
+                          let corFundo;
+                          if (taxa <= 34.9) {
+                            corFundo = 'bg-red-500';
+                          } else if (taxa >= 35 && taxa <= 49.9) {
+                            corFundo = 'bg-orange-500';
+                          } else if (taxa >= 50 && taxa <= 99.9) {
+                            corFundo = 'bg-green-500';
+                          } else if (taxa === 100) {
+                            corFundo = 'bg-green-600';
+                          }
+
+                          return (
+                            <td key={ter} className="border border-gray-300 px-2 py-2">
+                              <div className="flex flex-col items-center gap-0.5">
+                                <div className={`${corFundo} text-white font-bold px-2 py-0.5 rounded text-sm`}>
+                                  {taxa.toFixed(0)}%
+                                </div>
+                                <div className="text-[10px] text-gray-600">
+                                  {dados.convertidos}/{dados.total}
+                                </div>
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Matriz RENOVOU */}
+          <Card className="border-sky-200">
+            <CardHeader className="bg-sky-50">
+              <CardTitle className="text-base md:text-lg flex items-center gap-2 text-sky-900">
+                <TrendingUp className="w-5 h-5" />
+                Renovou Plano - Recepção x Terapeuta
+              </CardTitle>
+              <div className="flex flex-wrap items-center gap-3 mt-2 text-xs">
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-red-500"></div>
+                  <span>Crítico (0-34,9%)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-orange-500"></div>
+                  <span>Atenção (35-49,9%)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-green-500"></div>
+                  <span>Ótimo (50-99,9%)</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-4 h-4 rounded bg-green-600"></div>
+                  <span>Excelente (100%)</span>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="overflow-x-auto -mx-6 px-6">
+                <table className="w-full border-collapse text-xs">
+                  <thead>
+                    <tr>
+                      <th className="border border-gray-300 bg-gray-100 px-2 py-2 text-left font-semibold sticky left-0 z-10 text-xs">
+                        Recepção
+                      </th>
+                      {terapeutas.map(ter => (
+                        <th key={ter} className="border border-gray-300 bg-gray-100 px-2 py-2 text-center font-semibold min-w-[60px] text-xs">
+                          <div className="max-w-[60px] truncate">{ter}</div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {recepcionistas.map(rec => (
+                      <tr key={rec}>
+                        <td className="border border-gray-300 bg-gray-50 px-2 py-2 font-semibold sticky left-0 z-10 text-xs">
+                          <div className="max-w-[60px] truncate">{rec}</div>
+                        </td>
+                        {terapeutas.map(ter => {
+                          const dados = matrizRenovou[`${rec}|${ter}`];
+                          if (!dados || dados.total === 0) {
+                            return (
+                              <td key={ter} className="border border-gray-300 px-2 py-2 text-center text-gray-400">
+                                -
+                              </td>
+                            );
+                          }
+
+                          const taxa = (dados.convertidos / dados.total) * 100;
+                          let corFundo;
+                          if (taxa <= 34.9) {
+                            corFundo = 'bg-red-500';
+                          } else if (taxa >= 35 && taxa <= 49.9) {
+                            corFundo = 'bg-orange-500';
+                          } else if (taxa >= 50 && taxa <= 99.9) {
+                            corFundo = 'bg-green-500';
+                          } else if (taxa === 100) {
+                            corFundo = 'bg-green-600';
+                          }
+
+                          return (
+                            <td key={ter} className="border border-gray-300 px-2 py-2">
+                              <div className="flex flex-col items-center gap-0.5">
+                                <div className={`${corFundo} text-white font-bold px-2 py-0.5 rounded text-sm`}>
+                                  {taxa.toFixed(0)}%
+                                </div>
+                                <div className="text-[10px] text-gray-600">
+                                  {dados.convertidos}/{dados.total}
+                                </div>
+                              </div>
+                            </td>
+                          );
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Matriz Cruzada TOTAL (mantida para referência) */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base md:text-lg">Matriz Cruzada - Recepção x Terapeuta</CardTitle>
+            <CardTitle className="text-base md:text-lg">Matriz Total - Recepção x Terapeuta (Fechou + Renovou)</CardTitle>
             <div className="flex flex-wrap items-center gap-3 mt-2 text-xs">
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 rounded bg-red-500"></div>

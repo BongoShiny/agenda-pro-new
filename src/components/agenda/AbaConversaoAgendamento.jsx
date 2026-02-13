@@ -107,7 +107,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
       return;
     }
 
-    if (fechouPacote === true) {
+    if (fechouPacote === "fechou" || fechouPacote === "renovou") {
     if (!formData.data_conversao || !formData.pacote_fechado) {
       alert("⚠️ Preencha os campos obrigatórios: Data de Conversão e Plano Fechado");
       return;
@@ -147,6 +147,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         conversao_recebimento_2: parseFloat(formData.recebimento_2) || 0,
         conversao_valor_falta_pagar: parseFloat(formData.valor_falta_pagar) || 0,
         conversao_converteu: true,
+        conversao_tipo: fechouPacote,
       });
 
       // Não mostra alert, deixa a mensagem de sucesso aparecer no card
@@ -338,7 +339,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                   Caso queira editar, clique no lápis ao lado e edite o registro.
                 </p>
                 <p className="text-xs text-green-600 mt-2">
-                  {`Plano: ${agendamento.conversao_plano} | Recepção: ${agendamento.conversao_recepcionista}`}
+                  {`${agendamento.conversao_tipo === "renovou" ? "RENOVOU" : "FECHOU"} | Plano: ${agendamento.conversao_plano} | Recepção: ${agendamento.conversao_recepcionista}`}
                 </p>
               </div>
             </div>
@@ -349,7 +350,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                onClick={() => {
                  setModoEdicao(true);
                  setModoRegistro(true);
-                 setFechouPacote(true);
+                 setFechouPacote(agendamento.conversao_tipo || "fechou");
                }}
                className="flex-shrink-0 border-green-600 text-green-700 hover:bg-green-100"
               >
@@ -454,14 +455,22 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
           {!modoEdicao && (
             <div className="space-y-3">
               <Label className="text-base font-semibold">O cliente fechou um plano?</Label>
-              <div className="flex gap-3">
+              <div className="flex gap-3 flex-wrap">
                 <Button
                   type="button"
-                  variant={fechouPacote === true ? "default" : "outline"}
-                  onClick={() => setFechouPacote(true)}
-                  className={fechouPacote === true ? "bg-green-600 hover:bg-green-700" : ""}
+                  variant={fechouPacote === "fechou" ? "default" : "outline"}
+                  onClick={() => setFechouPacote("fechou")}
+                  className={fechouPacote === "fechou" ? "bg-green-600 hover:bg-green-700" : ""}
                 >
                   Sim, fechou plano
+                </Button>
+                <Button
+                  type="button"
+                  variant={fechouPacote === "renovou" ? "default" : "outline"}
+                  onClick={() => setFechouPacote("renovou")}
+                  className={fechouPacote === "renovou" ? "bg-blue-600 hover:bg-blue-700" : ""}
+                >
+                  Sim, renovou plano
                 </Button>
                 <Button
                   type="button"
@@ -475,7 +484,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
             </div>
             )}
 
-            {fechouPacote === true && (
+            {(fechouPacote === "fechou" || fechouPacote === "renovou") && (
             <div className="space-y-6 pt-4 border-t">
               {/* SEÇÃO 1: INFORMAÇÕES DO PLANO FECHADO */}
               <div className="bg-blue-50 rounded-lg p-4 space-y-4">
@@ -886,7 +895,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                 </Button>
               <Button 
                 onClick={handleSalvarRegistro}
-                disabled={fechouPacote === true ? !formData.recepcao_fechou : !formData.recepcao_nao_fechou}
+                disabled={(fechouPacote === "fechou" || fechouPacote === "renovou") ? !formData.recepcao_fechou : !formData.recepcao_nao_fechou}
                 className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Salvar Registro
