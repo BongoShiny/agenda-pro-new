@@ -78,7 +78,7 @@ export default function AnaliseCruzadaPage() {
 
   const totalAnalises = agendamentosAnalise.length;
   const totalConversoes = agendamentosAnalise.filter(ag => ag.conversao_converteu === true).length;
-  const totalFechou = agendamentosAnalise.filter(ag => ag.conversao_converteu === true && ag.conversao_tipo === "fechou").length;
+  const totalFechou = agendamentosAnalise.filter(ag => ag.conversao_converteu === true && (ag.conversao_tipo === "fechou" || !ag.conversao_tipo)).length;
   const totalRenovou = agendamentosAnalise.filter(ag => ag.conversao_converteu === true && ag.conversao_tipo === "renovou").length;
   const taxaMediaGeral = totalAnalises > 0 ? ((totalConversoes / totalAnalises) * 100).toFixed(1) : 0;
 
@@ -171,10 +171,13 @@ export default function AnaliseCruzadaPage() {
     if (ag.conversao_converteu === true) {
       matrizDados[chave].convertidos++;
       
-      if (ag.conversao_tipo === "fechou") {
+      // Se conversao_tipo não existe, considera como "fechou" (compatibilidade com dados antigos)
+      const tipoConversao = ag.conversao_tipo || "fechou";
+      
+      if (tipoConversao === "fechou") {
         matrizFechou[chave].total++;
         matrizFechou[chave].convertidos++;
-      } else if (ag.conversao_tipo === "renovou") {
+      } else if (tipoConversao === "renovou") {
         matrizRenovou[chave].total++;
         matrizRenovou[chave].convertidos++;
       }
