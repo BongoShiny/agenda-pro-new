@@ -170,6 +170,8 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
         status: "concluido",
         observacoes: formData.observacoes,
         conversao_converteu: false,
+        conversao_profissional_id: formData.terapeuta_id,
+        conversao_profissional_nome: formData.terapeuta_nome,
         conversao_motivo_nao_converteu: formData.motivo_nao_conversao,
         conversao_recepcionista_nao_converteu: formData.recepcao_nao_fechou,
         nao_conversao_valor_pago: valorPago,
@@ -383,7 +385,7 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
                   Caso queira editar, clique no lápis ao lado e edite o registro.
                 </p>
                 <div className="text-xs text-orange-600 mt-2 space-y-1">
-                 <p>{`Motivo: ${agendamento.conversao_motivo_nao_converteu}`}</p>
+                 <p>{`Recepção: ${agendamento.conversao_recepcionista_nao_converteu || "Não informado"} | Motivo: ${agendamento.conversao_motivo_nao_converteu}`}</p>
                  {agendamento.nao_conversao_valor_pago > 0 && (
                    <>
                      <p className="font-semibold">Valor Pago: R$ {agendamento.nao_conversao_valor_pago.toFixed(2)}</p>
@@ -747,13 +749,39 @@ export default function AbaConversaoAgendamento({ agendamento, onUpdate }) {
             <div className="space-y-4 pt-4 border-t">
               <h4 className="font-semibold text-gray-900">Motivo de Não Conversão</h4>
 
-              <div>
-                <Label>Data que Não Converteu *</Label>
-                <Input
-                  type="date"
-                  value={formData.data_conversao}
-                  onChange={(e) => setFormData(prev => ({ ...prev, data_conversao: e.target.value }))}
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Data que Não Converteu *</Label>
+                  <Input
+                    type="date"
+                    value={formData.data_conversao}
+                    onChange={(e) => setFormData(prev => ({ ...prev, data_conversao: e.target.value }))}
+                  />
+                </div>
+
+                <div>
+                  <Label>Profissional *</Label>
+                  <Select 
+                    value={formData.terapeuta_id} 
+                    onValueChange={(value) => {
+                      const prof = profissionais.find(p => p.id === value);
+                      setFormData(prev => ({ 
+                        ...prev, 
+                        terapeuta_id: value,
+                        terapeuta_nome: prof?.nome || ""
+                      }));
+                    }}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Selecione o profissional..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {profissionais.map(p => (
+                        <SelectItem key={p.id} value={p.id}>{p.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
               <div>
