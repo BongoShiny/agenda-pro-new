@@ -51,7 +51,7 @@ export default function AnaliseVendasPage() {
     return agendamentos.filter(ag => {
       if (!ag.data_conversao || !ag.conversao_converteu) return false;
       if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
-      if (ag.vendedor_nome?.toLowerCase() === "ponto" || ag.vendedor_nome === "-") return false;
+      if (ag.vendedor_nome?.toLowerCase() === "ponto" || ag.vendedor_nome === "-" || !ag.vendedor_nome || ag.vendedor_nome.trim() === "") return false;
 
       const dataConv = ag.data_conversao.substring(0, 10);
       if (dataConv < dataInicio || dataConv > dataFim) return false;
