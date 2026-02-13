@@ -49,12 +49,24 @@ export default function AnaliseVendasPage() {
   // Filtrar vendas no período
   const vendasFiltradas = useMemo(() => {
     return agendamentos.filter(ag => {
-      if (!ag.data_conversao || !ag.conversao_converteu) return false;
+      // Excluir bloqueios e fechados
       if (ag.status === "bloqueio" || ag.tipo === "bloqueio" || ag.cliente_nome === "FECHADO") return false;
+      
+      // Excluir vendedores específicos
       if (ag.vendedor_nome?.toLowerCase() === "ponto" || ag.vendedor_nome === "-") return false;
 
-      const dataConv = ag.data_conversao.substring(0, 10);
-      if (dataConv < dataInicio || dataConv > dataFim) return false;
+      // Considerar vendas com conversão OU com valor combinado preenchido
+      const temConversao = ag.data_conversao && ag.conversao_converteu;
+      const temValor = ag.valor_combinado && ag.valor_combinado > 0;
+      
+      if (!temConversao && !temValor) return false;
+
+      // Usar data_conversao se existir, senão usar data_pagamento ou data do agendamento
+      const dataVenda = ag.data_conversao || ag.data_pagamento || ag.data;
+      if (!dataVenda) return false;
+      
+      const dataVendaFormatada = dataVenda.substring(0, 10);
+      if (dataVendaFormatada < dataInicio || dataVendaFormatada > dataFim) return false;
 
       if (unidadeFiltro !== "todas" && ag.unidade_id !== unidadeFiltro) return false;
       if (vendedorFiltro !== "todos" && ag.vendedor_id !== vendedorFiltro) return false;
