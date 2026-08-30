@@ -1,0 +1,46 @@
+{
+  "name": "RegistroManualVendas",
+  "type": "object",
+  "properties": {
+    "unidade_id": {
+      "type": "string",
+      "description": "ID da unidade"
+    },
+    "unidade_nome": {
+      "type": "string",
+      "description": "Nome da unidade"
+    },
+    "informacoes": {
+      "type": "string",
+      "description": "Informa\u00e7\u00f5es completas da venda inseridas manualmente"
+    },
+    "data_pagamento": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do pagamento (YYYY-MM-DD)"
+    },
+    "comprovante_url": {
+      "type": "string",
+      "description": "URL do comprovante de pagamento"
+    },
+    "anotacoes": {
+      "type": "string",
+      "description": "Anota\u00e7\u00f5es internas sobre a venda (vis\u00edvel apenas no gerenciamento)"
+    },
+    "criado_por": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio que registrou a venda"
+    },
+    "data_registro": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do registro da venda"
+    }
+  },
+  "required": [
+    "unidade_id",
+    "unidade_nome",
+    "informacoes",
+    "data_pagamento"
+  ]
+}

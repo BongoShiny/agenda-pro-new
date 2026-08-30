@@ -1,0 +1,54 @@
+{
+  "name": "Vendedor",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome completo do vendedor"
+    },
+    "email": {
+      "type": "string",
+      "description": "E-mail do vendedor"
+    },
+    "telefone": {
+      "type": "string",
+      "description": "Telefone de contato"
+    },
+    "cpf": {
+      "type": "string",
+      "description": "CPF do vendedor"
+    },
+    "comissao_percentual": {
+      "type": "number",
+      "description": "Percentual de comiss\u00e3o (%)",
+      "default": 0
+    },
+    "valor_combinado_total": {
+      "type": "number",
+      "description": "Valor total combinado",
+      "default": 0
+    },
+    "valor_recebido_total": {
+      "type": "number",
+      "description": "Valor total recebido",
+      "default": 0
+    },
+    "a_receber_total": {
+      "type": "number",
+      "description": "Valor total a receber",
+      "default": 0
+    },
+    "ativo": {
+      "type": "boolean",
+      "description": "Se o vendedor est\u00e1 ativo",
+      "default": true
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es sobre o vendedor"
+    }
+  },
+  "required": [
+    "nome"
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "name": "HistoricoAlteracaoLead",
+  "type": "object",
+  "properties": {
+    "lead_id": {
+      "type": "string",
+      "description": "ID do lead que foi alterado"
+    },
+    "lead_nome": {
+      "type": "string",
+      "description": "Nome do lead"
+    },
+    "usuario_email": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio que fez a altera\u00e7\u00e3o"
+    },
+    "usuario_nome": {
+      "type": "string",
+      "description": "Nome do usu\u00e1rio"
+    },
+    "tipo_alteracao": {
+      "type": "string",
+      "enum": [
+        "criacao",
+        "edicao_dados",
+        "mudanca_status",
+        "conversao",
+        "adicao_interacao",
+        "edicao_conversao"
+      ],
+      "description": "Tipo de altera\u00e7\u00e3o realizada"
+    },
+    "campo_alterado": {
+      "type": "string",
+      "description": "Campo espec\u00edfico que foi alterado (se aplic\u00e1vel)"
+    },
+    "valor_antigo": {
+      "type": "string",
+      "description": "Valor anterior do campo"
+    },
+    "valor_novo": {
+      "type": "string",
+      "description": "Novo valor do campo"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o detalhada da altera\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "lead_id",
+    "usuario_email",
+    "tipo_alteracao"
+  ]
+}

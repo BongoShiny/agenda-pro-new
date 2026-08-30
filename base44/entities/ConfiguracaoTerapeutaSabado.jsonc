@@ -1,0 +1,45 @@
+{
+  "name": "ConfiguracaoTerapeutaSabado",
+  "type": "object",
+  "properties": {
+    "profissional_id": {
+      "type": "string",
+      "description": "ID do profissional"
+    },
+    "profissional_nome": {
+      "type": "string",
+      "description": "Nome do profissional"
+    },
+    "unidade_id": {
+      "type": "string",
+      "description": "ID da unidade"
+    },
+    "unidade_nome": {
+      "type": "string",
+      "description": "Nome da unidade"
+    },
+    "data_sabado": {
+      "type": "string",
+      "description": "Data espec\u00edfica do s\u00e1bado (formato YYYY-MM-DD) - deixe vazio para aplicar a todos os s\u00e1bados"
+    },
+    "horario_inicio": {
+      "type": "string",
+      "description": "Hor\u00e1rio de in\u00edcio do atendimento (formato HH:mm)",
+      "default": "08:00"
+    },
+    "horario_fim": {
+      "type": "string",
+      "description": "Hor\u00e1rio de fim do atendimento (formato HH:mm)",
+      "default": "12:00"
+    },
+    "ativo": {
+      "type": "boolean",
+      "description": "Se a configura\u00e7\u00e3o est\u00e1 ativa",
+      "default": true
+    }
+  },
+  "required": [
+    "profissional_id",
+    "unidade_id"
+  ]
+}

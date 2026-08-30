@@ -1,0 +1,37 @@
+{
+  "name": "ConfiguracaoSabado",
+  "type": "object",
+  "properties": {
+    "unidade_id": {
+      "type": "string",
+      "description": "ID da unidade"
+    },
+    "unidade_nome": {
+      "type": "string",
+      "description": "Nome da unidade"
+    },
+    "data_sabado": {
+      "type": "string",
+      "description": "Data do s\u00e1bado (formato YYYY-MM-DD)"
+    },
+    "limite_atendimentos_por_hora": {
+      "type": "number",
+      "description": "Quantidade m\u00e1xima de atendimentos por hor\u00e1rio",
+      "default": 4
+    },
+    "ativo": {
+      "type": "boolean",
+      "description": "Se a configura\u00e7\u00e3o est\u00e1 ativa",
+      "default": true
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es sobre a configura\u00e7\u00e3o do s\u00e1bado"
+    }
+  },
+  "required": [
+    "unidade_id",
+    "data_sabado",
+    "limite_atendimentos_por_hora"
+  ]
+}

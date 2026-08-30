@@ -1,0 +1,69 @@
+{
+  "name": "LogAcao",
+  "type": "object",
+  "properties": {
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "criou_agendamento",
+        "editou_agendamento",
+        "excluiu_agendamento",
+        "bloqueou_horario",
+        "desbloqueou_horario",
+        "criou_terapeuta",
+        "editou_terapeuta",
+        "excluiu_terapeuta",
+        "editou_usuario",
+        "acessou_relatorios",
+        "exportou_planilha",
+        "ativou_modo_editor",
+        "editou_dados_relatorio",
+        "alterou_configuracao",
+        "criou_unidade",
+        "editou_unidade",
+        "excluiu_unidade",
+        "criou_excecao_horario",
+        "excluiu_excecao_horario",
+        "login",
+        "logout",
+        "criou_vendedor",
+        "editou_vendedor",
+        "excluiu_vendedor",
+        "gerou_relatorio_pdf",
+        "gerou_relatorio_csv",
+        "salvou_prontuario",
+        "editou_prontuario"
+      ],
+      "description": "Tipo da a\u00e7\u00e3o realizada"
+    },
+    "usuario_email": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio que realizou a a\u00e7\u00e3o"
+    },
+    "descricao": {
+      "type": "string",
+      "description": "Descri\u00e7\u00e3o detalhada da a\u00e7\u00e3o"
+    },
+    "entidade_tipo": {
+      "type": "string",
+      "description": "Tipo da entidade afetada (Agendamento, Profissional, etc)"
+    },
+    "entidade_id": {
+      "type": "string",
+      "description": "ID da entidade afetada"
+    },
+    "dados_antigos": {
+      "type": "string",
+      "description": "JSON com dados antigos (para edi\u00e7\u00f5es)"
+    },
+    "dados_novos": {
+      "type": "string",
+      "description": "JSON com dados novos"
+    }
+  },
+  "required": [
+    "tipo",
+    "usuario_email",
+    "descricao"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "FiltroSalvo",
+  "type": "object",
+  "properties": {
+    "usuario_email": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio que criou o filtro"
+    },
+    "nome": {
+      "type": "string",
+      "description": "Nome do filtro salvo"
+    },
+    "filtros": {
+      "type": "string",
+      "description": "JSON com os filtros salvos (cliente, unidade, profissional, servico, status, data)"
+    },
+    "padrao": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se este \u00e9 o filtro padr\u00e3o do usu\u00e1rio"
+    }
+  },
+  "required": [
+    "usuario_email",
+    "nome",
+    "filtros"
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "name": "ErroImportacaoLead",
+  "type": "object",
+  "properties": {
+    "usuario_email": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio que fez a importa\u00e7\u00e3o"
+    },
+    "nome_lead": {
+      "type": "string",
+      "description": "Nome do lead que falhou"
+    },
+    "telefone_lead": {
+      "type": "string",
+      "description": "Telefone do lead que falhou"
+    },
+    "tipo_erro": {
+      "type": "string",
+      "enum": [
+        "telefone_invalido",
+        "nome_vazio",
+        "vendedor_nao_encontrado",
+        "unidade_nao_encontrada",
+        "lead_duplicado",
+        "erro_criacao",
+        "outro"
+      ],
+      "description": "Tipo do erro ocorrido"
+    },
+    "mensagem_erro": {
+      "type": "string",
+      "description": "Mensagem detalhada do erro"
+    },
+    "dados_linha": {
+      "type": "string",
+      "description": "JSON com os dados da linha que falhou"
+    },
+    "numero_linha": {
+      "type": "number",
+      "description": "N\u00famero da linha na planilha"
+    }
+  },
+  "required": [
+    "usuario_email",
+    "tipo_erro",
+    "mensagem_erro"
+  ]
+}

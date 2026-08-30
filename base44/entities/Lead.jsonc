@@ -1,0 +1,142 @@
+{
+  "name": "Lead",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome completo do lead"
+    },
+    "telefone": {
+      "type": "string",
+      "description": "Telefone de contato"
+    },
+    "email": {
+      "type": "string",
+      "description": "E-mail do lead"
+    },
+    "sexo": {
+      "type": "string",
+      "enum": [
+        "Masculino",
+        "Feminino",
+        "Outro"
+      ],
+      "description": "Sexo do lead"
+    },
+    "unidade_id": {
+      "type": "string",
+      "description": "ID da unidade"
+    },
+    "unidade_nome": {
+      "type": "string",
+      "description": "Nome da unidade"
+    },
+    "vendedor_id": {
+      "type": "string",
+      "description": "ID do vendedor respons\u00e1vel"
+    },
+    "vendedor_nome": {
+      "type": "string",
+      "description": "Nome do vendedor respons\u00e1vel"
+    },
+    "terapeuta_id": {
+      "type": "string",
+      "description": "ID do terapeuta que atendeu"
+    },
+    "terapeuta_nome": {
+      "type": "string",
+      "description": "Nome do terapeuta que atendeu"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "lead",
+        "avulso",
+        "plano_terapeutico",
+        "renovacao"
+      ],
+      "default": "lead",
+      "description": "Status do lead"
+    },
+    "origem": {
+      "type": "string",
+      "enum": [
+        "instagram",
+        "facebook",
+        "google",
+        "indicacao",
+        "whatsapp",
+        "telefone",
+        "presencial",
+        "outro",
+        "agenda",
+        "importacao_planilha"
+      ],
+      "description": "Origem do lead"
+    },
+    "interesse": {
+      "type": "string",
+      "description": "Servi\u00e7o/pacote de interesse"
+    },
+    "temperatura": {
+      "type": "string",
+      "enum": [
+        "quente",
+        "morno",
+        "frio"
+      ],
+      "default": "morno",
+      "description": "Temperatura do lead"
+    },
+    "data_entrada": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data e hora de entrada no sistema (quando foi criado)"
+    },
+    "data_primeiro_contato": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data e hora do primeiro contato"
+    },
+    "data_proxima_acao": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da pr\u00f3xima a\u00e7\u00e3o agendada"
+    },
+    "convertido": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o lead foi convertido em cliente"
+    },
+    "data_conversao": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da convers\u00e3o"
+    },
+    "motivo_fechamento": {
+      "type": "string",
+      "description": "Motivo do fechamento (se fechou)"
+    },
+    "motivo_perda": {
+      "type": "string",
+      "description": "Motivo da perda (se n\u00e3o fechou)"
+    },
+    "valor_negociado": {
+      "type": "number",
+      "description": "Valor negociado"
+    },
+    "anotacoes_internas": {
+      "type": "string",
+      "description": "Anota\u00e7\u00f5es internas sobre o lead"
+    },
+    "tentativas_contato": {
+      "type": "number",
+      "default": 0,
+      "description": "N\u00famero de tentativas de contato"
+    }
+  },
+  "required": [
+    "nome",
+    "telefone"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "name": "Alerta",
+  "type": "object",
+  "properties": {
+    "usuario_email": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio que receber\u00e1 o alerta"
+    },
+    "titulo": {
+      "type": "string",
+      "description": "T\u00edtulo do alerta"
+    },
+    "mensagem": {
+      "type": "string",
+      "description": "Mensagem do alerta"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "prontuario_atrasado",
+        "info",
+        "warning",
+        "error"
+      ],
+      "default": "info",
+      "description": "Tipo do alerta"
+    },
+    "agendamento_id": {
+      "type": "string",
+      "description": "ID do agendamento relacionado"
+    },
+    "lido": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o alerta foi lido"
+    },
+    "enviado_por": {
+      "type": "string",
+      "description": "Email de quem enviou o alerta"
+    }
+  },
+  "required": [
+    "usuario_email",
+    "titulo",
+    "mensagem"
+  ]
+}

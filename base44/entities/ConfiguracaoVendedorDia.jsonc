@@ -1,0 +1,63 @@
+{
+  "name": "ConfiguracaoVendedorDia",
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "string",
+      "format": "date",
+      "description": "Data espec\u00edfica (YYYY-MM-DD)"
+    },
+    "vendedor_id": {
+      "type": "string",
+      "description": "ID do vendedor"
+    },
+    "vendedor_nome": {
+      "type": "string",
+      "description": "Nome do vendedor"
+    },
+    "unidade_id": {
+      "type": "string",
+      "description": "ID da cl\u00ednica/unidade"
+    },
+    "unidade_nome": {
+      "type": "string",
+      "description": "Nome da cl\u00ednica/unidade"
+    },
+    "leads": {
+      "type": "number",
+      "default": 0,
+      "description": "Quantidade de leads"
+    },
+    "vendas_avulso": {
+      "type": "number",
+      "default": 0,
+      "description": "Quantidade de vendas avulsas"
+    },
+    "vendas_pacote": {
+      "type": "number",
+      "default": 0,
+      "description": "Quantidade de vendas com pacote"
+    },
+    "pacote_8": {
+      "type": "number",
+      "default": 0
+    },
+    "pacote_16": {
+      "type": "number",
+      "default": 0
+    },
+    "pacote_24": {
+      "type": "number",
+      "default": 0
+    },
+    "pacote_48": {
+      "type": "number",
+      "default": 0
+    }
+  },
+  "required": [
+    "data",
+    "vendedor_id",
+    "unidade_id"
+  ]
+}

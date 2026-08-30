@@ -1,0 +1,50 @@
+{
+  "name": "ConfiguracaoWhatsApp",
+  "type": "object",
+  "properties": {
+    "unidade_id": {
+      "type": "string",
+      "description": "ID da unidade"
+    },
+    "unidade_nome": {
+      "type": "string",
+      "description": "Nome da unidade"
+    },
+    "ativo": {
+      "type": "boolean",
+      "description": "Se o envio autom\u00e1tico est\u00e1 ativo",
+      "default": false
+    },
+    "mensagem_template": {
+      "type": "string",
+      "description": "Template da mensagem (use {cliente}, {profissional}, {data}, {hora}, {unidade}, {servico})"
+    },
+    "tipo_envio": {
+      "type": "string",
+      "enum": [
+        "24_horas_antes",
+        "horario_personalizado"
+      ],
+      "default": "24_horas_antes",
+      "description": "Tipo de envio: 24h antes (18h) ou hor\u00e1rio personalizado"
+    },
+    "horario_fixo": {
+      "type": "string",
+      "description": "Hor\u00e1rio fixo di\u00e1rio para envio (formato HH:mm) - usado quando tipo_envio \u00e9 horario_personalizado",
+      "default": "18:00"
+    },
+    "delay_segundos": {
+      "type": "number",
+      "description": "Delay em segundos entre cada envio",
+      "default": 50
+    },
+    "ultimo_envio_data": {
+      "type": "string",
+      "description": "Data do \u00faltimo envio (formato YYYY-MM-DD)"
+    }
+  },
+  "required": [
+    "unidade_id",
+    "unidade_nome"
+  ]
+}

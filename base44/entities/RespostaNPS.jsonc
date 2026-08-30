@@ -1,0 +1,104 @@
+{
+  "name": "RespostaNPS",
+  "type": "object",
+  "properties": {
+    "agendamento_id": {
+      "type": "string",
+      "description": "ID do agendamento relacionado"
+    },
+    "cliente_id": {
+      "type": "string",
+      "description": "ID do cliente"
+    },
+    "cliente_nome": {
+      "type": "string",
+      "description": "Nome do cliente"
+    },
+    "cliente_telefone": {
+      "type": "string",
+      "description": "Telefone do cliente"
+    },
+    "unidade_nome": {
+      "type": "string",
+      "description": "Nome da unidade"
+    },
+    "profissional_nome": {
+      "type": "string",
+      "description": "Nome do terapeuta"
+    },
+    "data_atendimento": {
+      "type": "string",
+      "description": "Data do atendimento"
+    },
+    "nota_terapeuta": {
+      "type": "number",
+      "description": "Nota de 1 a 10 para o terapeuta"
+    },
+    "nota_recomendacao": {
+      "type": "number",
+      "description": "Nota de 0 a 10 de probabilidade de recomendar"
+    },
+    "avaliacao_atencao_terapeuta": {
+      "type": "string",
+      "enum": [
+        "Ruim",
+        "Regular",
+        "Boa",
+        "Excelente"
+      ],
+      "description": "Avalia\u00e7\u00e3o da aten\u00e7\u00e3o do terapeuta"
+    },
+    "avaliacao_sessao": {
+      "type": "string",
+      "enum": [
+        "Ruim",
+        "Regular",
+        "Boa",
+        "Excelente"
+      ],
+      "description": "Avalia\u00e7\u00e3o da sess\u00e3o realizada"
+    },
+    "clareza_informacoes": {
+      "type": "string",
+      "enum": [
+        "\u00d3tima",
+        "Boa",
+        "Regular",
+        "Ruim"
+      ],
+      "description": "Clareza das informa\u00e7\u00f5es antes da primeira sess\u00e3o"
+    },
+    "experiencia_agendamento": {
+      "type": "string",
+      "enum": [
+        "\u00d3tima",
+        "Boa",
+        "Regular",
+        "Ruim"
+      ],
+      "description": "Experi\u00eancia no agendamento"
+    },
+    "recepcao_clinica": {
+      "type": "string",
+      "enum": [
+        "Insatisfat\u00f3rio",
+        "Regular",
+        "Satisfat\u00f3rio",
+        "Excelente"
+      ],
+      "description": "Como se sentiu ao chegar na cl\u00ednica"
+    },
+    "o_que_mais_gostou": {
+      "type": "string",
+      "description": "O que mais gostou na experi\u00eancia"
+    },
+    "o_que_melhorar": {
+      "type": "string",
+      "description": "O que podemos melhorar"
+    }
+  },
+  "required": [
+    "agendamento_id",
+    "cliente_nome"
+  ]
+}

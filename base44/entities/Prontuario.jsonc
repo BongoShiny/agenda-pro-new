@@ -1,0 +1,107 @@
+{
+  "name": "Prontuario",
+  "type": "object",
+  "properties": {
+    "agendamento_id": {
+      "type": "string",
+      "description": "ID do agendamento relacionado"
+    },
+    "cliente_id": {
+      "type": "string",
+      "description": "ID do cliente"
+    },
+    "cliente_nome": {
+      "type": "string",
+      "description": "Nome do cliente"
+    },
+    "cliente_telefone": {
+      "type": "string",
+      "description": "Telefone do cliente"
+    },
+    "profissional_nome": {
+      "type": "string",
+      "description": "Nome do profissional"
+    },
+    "unidade_nome": {
+      "type": "string",
+      "description": "Nome da unidade"
+    },
+    "data_sessao": {
+      "type": "string",
+      "description": "Data da sess\u00e3o"
+    },
+    "terapia_realizada": {
+      "type": "string",
+      "description": "Terapia realizada"
+    },
+    "tecnicas_utilizadas": {
+      "type": "string",
+      "description": "T\u00e9cnicas utilizadas"
+    },
+    "musculos_cabeca_pescoco": {
+      "type": "string",
+      "description": "M\u00fasculos Liberados da Cabe\u00e7a e Pesco\u00e7o"
+    },
+    "musculos_face_temporomandibular": {
+      "type": "string",
+      "description": "M\u00fasculos Liberados da Face e Regi\u00e3o Temporomandibular"
+    },
+    "musculos_face_costas_superior": {
+      "type": "string",
+      "description": "M\u00fasculos Liberados da Face e Regi\u00e3o Superior das Costas"
+    },
+    "musculos_ombros_bracos": {
+      "type": "string",
+      "description": "M\u00fasculos Liberados dos Ombros e Bra\u00e7os"
+    },
+    "musculos_toracica_lombar": {
+      "type": "string",
+      "description": "M\u00fasculos Liberados da Regi\u00e3o e Tor\u00e1cica e Lombar"
+    },
+    "musculos_quadris_coxas": {
+      "type": "string",
+      "description": "M\u00fasculos Liberados dos Quadris e Coxas"
+    },
+    "musculos_panturrilhas": {
+      "type": "string",
+      "description": "M\u00fasculos Liberados das Panturrilhas"
+    },
+    "musculos_pes": {
+      "type": "string",
+      "description": "M\u00fasculos Liberados dos P\u00e9s"
+    },
+    "musculos_abdomen": {
+      "type": "string",
+      "description": "M\u00fasculos Liberados do Abd\u00f4men"
+    },
+    "feedback_pre_sessao": {
+      "type": "string",
+      "description": "Feedback do paciente pr\u00e9 sess\u00e3o"
+    },
+    "feedback_pos_sessao": {
+      "type": "string",
+      "description": "Feedback do paciente p\u00f3s sess\u00e3o"
+    },
+    "relato_terapeuta": {
+      "type": "string",
+      "description": "Relato do Terapeuta sobre a sess\u00e3o"
+    },
+    "observacoes_proxima_sessao": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es para uma pr\u00f3xima sess\u00e3o"
+    },
+    "sessao_plano_terapeutico": {
+      "type": "string",
+      "description": "Qual a sess\u00e3o do plano terap\u00eautico"
+    },
+    "criado_por": {
+      "type": "string",
+      "description": "Email de quem criou o prontu\u00e1rio"
+    }
+  },
+  "required": [
+    "agendamento_id",
+    "cliente_nome",
+    "data_sessao"
+  ]
+}

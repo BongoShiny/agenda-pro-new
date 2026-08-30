@@ -1,0 +1,31 @@
+{
+  "name": "User",
+  "type": "object",
+  "properties": {
+    "cargo": {
+      "type": "string",
+      "enum": [
+        "administrador",
+        "superior",
+        "recepcao",
+        "financeiro",
+        "gerencia_unidades",
+        "terapeuta",
+        "pos_venda",
+        "metricas"
+      ],
+      "default": "recepcao",
+      "description": "Cargo do usu\u00e1rio no sistema"
+    },
+    "unidades_acesso": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "IDs das unidades que o usu\u00e1rio tem acesso"
+    }
+  },
+  "required": [
+    "unidades_acesso"
+  ]
+}

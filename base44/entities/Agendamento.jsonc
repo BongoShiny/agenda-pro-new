@@ -1,0 +1,420 @@
+{
+  "name": "Agendamento",
+  "type": "object",
+  "properties": {
+    "cliente_id": {
+      "type": "string",
+      "description": "ID do cliente"
+    },
+    "cliente_nome": {
+      "type": "string",
+      "description": "Nome do cliente para exibi\u00e7\u00e3o r\u00e1pida"
+    },
+    "cliente_telefone": {
+      "type": "string",
+      "description": "Telefone do cliente"
+    },
+    "profissional_id": {
+      "type": "string",
+      "description": "ID do profissional"
+    },
+    "profissional_nome": {
+      "type": "string",
+      "description": "Nome do profissional"
+    },
+    "servico_id": {
+      "type": "string",
+      "description": "ID do servi\u00e7o"
+    },
+    "servico_nome": {
+      "type": "string",
+      "description": "Nome do servi\u00e7o"
+    },
+    "unidade_id": {
+      "type": "string",
+      "description": "ID da unidade"
+    },
+    "unidade_nome": {
+      "type": "string",
+      "description": "Nome da unidade"
+    },
+    "vendedor_id": {
+      "type": "string",
+      "description": "ID do vendedor respons\u00e1vel"
+    },
+    "vendedor_nome": {
+      "type": "string",
+      "description": "Nome do vendedor"
+    },
+    "data": {
+      "type": "string",
+      "description": "Data do agendamento no formato YYYY-MM-DD (sempre usar string, nunca Date object)"
+    },
+    "hora_inicio": {
+      "type": "string",
+      "description": "Hora de in\u00edcio (formato HH:mm)"
+    },
+    "hora_fim": {
+      "type": "string",
+      "description": "Hora de t\u00e9rmino (formato HH:mm)"
+    },
+    "data_pagamento": {
+      "type": "string",
+      "format": "date",
+      "description": "Data do pagamento (YYYY-MM-DD)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "agendado",
+        "confirmado",
+        "ausencia",
+        "cancelado",
+        "concluido",
+        "bloqueio"
+      ],
+      "default": "agendado",
+      "description": "Status do agendamento"
+    },
+    "status_paciente": {
+      "type": "string",
+      "enum": [
+        "",
+        "paciente_novo",
+        "primeira_sessao",
+        "ultima_sessao",
+        "cliente_retornou"
+      ],
+      "default": "",
+      "description": "Status do paciente (novo, primeira ou \u00faltima sess\u00e3o, cliente retornou)"
+    },
+    "health_score": {
+      "type": "string",
+      "enum": [
+        "",
+        "insatisfeito",
+        "neutro",
+        "recuperado",
+        "satisfeito"
+      ],
+      "default": "",
+      "description": "Health score do cliente (satisfa\u00e7\u00e3o/recupera\u00e7\u00e3o)"
+    },
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "consulta",
+        "liberacao_miofascial",
+        "pacote",
+        "avaliacao",
+        "bloqueio",
+        "avulsa",
+        "funcionario",
+        "pacote_outro_cliente",
+        "primeira_sessao_pacote",
+        "ultima_sessao_pacote",
+        "voucher"
+      ],
+      "default": "consulta"
+    },
+    "observacoes": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es sobre o agendamento"
+    },
+    "observacoes_vendedores": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es dos vendedores"
+    },
+    "observacoes_terapeuta": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es do terapeuta"
+    },
+    "observacoes_recepcionista": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es da recepcionista"
+    },
+    "observacoes_pos_venda": {
+      "type": "string",
+      "description": "Observa\u00e7\u00f5es do p\u00f3s venda"
+    },
+    "anotacao_venda": {
+      "type": "string",
+      "description": "Anota\u00e7\u00e3o espec\u00edfica da venda (apenas para relat\u00f3rios financeiros)"
+    },
+    "sala": {
+      "type": "string",
+      "description": "Sala onde ocorrer\u00e1 o atendimento"
+    },
+    "criador_email": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio que criou o agendamento"
+    },
+    "editor_email": {
+      "type": "string",
+      "description": "Email do \u00faltimo usu\u00e1rio que editou o agendamento"
+    },
+    "cliente_pacote": {
+      "type": "string",
+      "enum": [
+        "Sim",
+        "N\u00e3o"
+      ],
+      "description": "Se o cliente possui pacote"
+    },
+    "quantas_sessoes": {
+      "type": "number",
+      "description": "Quantidade total de sess\u00f5es do pacote"
+    },
+    "sessoes_feitas": {
+      "type": "number",
+      "description": "Quantidade de sess\u00f5es j\u00e1 realizadas"
+    },
+    "valor_combinado": {
+      "type": "number",
+      "description": "Valor combinado para o atendimento"
+    },
+    "sinal": {
+      "type": "number",
+      "description": "Valor do sinal pago"
+    },
+    "recebimento_2": {
+      "type": "number",
+      "description": "Valor do segundo recebimento"
+    },
+    "final_pagamento": {
+      "type": "number",
+      "description": "Valor do pagamento final"
+    },
+    "falta_quanto": {
+      "type": "number",
+      "description": "Quanto ainda falta pagar"
+    },
+    "comprovante_1": {
+      "type": "string",
+      "description": "URL do primeiro comprovante de pagamento"
+    },
+    "comprovante_2": {
+      "type": "string",
+      "description": "URL do segundo comprovante de pagamento"
+    },
+    "comprovante_3": {
+      "type": "string",
+      "description": "URL do terceiro comprovante de pagamento"
+    },
+    "comprovante_4": {
+      "type": "string",
+      "description": "URL do quarto comprovante de pagamento"
+    },
+    "comprovante_5": {
+      "type": "string",
+      "description": "URL do quinto comprovante de pagamento"
+    },
+    "contrato_termo_url": {
+      "type": "string",
+      "description": "URL do contrato termo 30% multa assinado"
+    },
+    "avaliacao_termal_1": {
+      "type": "string",
+      "description": "URL da foto 1 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_2": {
+      "type": "string",
+      "description": "URL da foto 2 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_3": {
+      "type": "string",
+      "description": "URL da foto 3 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_4": {
+      "type": "string",
+      "description": "URL da foto 4 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_5": {
+      "type": "string",
+      "description": "URL da foto 5 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_6": {
+      "type": "string",
+      "description": "URL da foto 6 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_7": {
+      "type": "string",
+      "description": "URL da foto 7 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_8": {
+      "type": "string",
+      "description": "URL da foto 8 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_9": {
+      "type": "string",
+      "description": "URL da foto 9 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_10": {
+      "type": "string",
+      "description": "URL da foto 10 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_11": {
+      "type": "string",
+      "description": "URL da foto 11 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_12": {
+      "type": "string",
+      "description": "URL da foto 12 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_13": {
+      "type": "string",
+      "description": "URL da foto 13 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_14": {
+      "type": "string",
+      "description": "URL da foto 14 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_15": {
+      "type": "string",
+      "description": "URL da foto 15 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_16": {
+      "type": "string",
+      "description": "URL da foto 16 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_17": {
+      "type": "string",
+      "description": "URL da foto 17 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_18": {
+      "type": "string",
+      "description": "URL da foto 18 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_19": {
+      "type": "string",
+      "description": "URL da foto 19 da avalia\u00e7\u00e3o termal"
+    },
+    "avaliacao_termal_20": {
+      "type": "string",
+      "description": "URL da foto 20 da avalia\u00e7\u00e3o termal"
+    },
+    "lembrete_enviado": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se o lembrete foi enviado"
+    },
+    "lembrete_data_envio": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data/hora real do envio do lembrete"
+    },
+    "data_conversao": {
+      "type": "string",
+      "format": "date",
+      "description": "Data da convers\u00e3o (YYYY-MM-DD)"
+    },
+    "conversao_plano": {
+      "type": "string",
+      "description": "Qual plano foi fechado (plano_24_sessoes, plano_16_sessoes, etc)"
+    },
+    "conversao_profissional_id": {
+      "type": "string",
+      "description": "ID do profissional que fez a convers\u00e3o"
+    },
+    "conversao_profissional_nome": {
+      "type": "string",
+      "description": "Nome do profissional que fez a convers\u00e3o"
+    },
+    "conversao_recepcionista": {
+      "type": "string",
+      "description": "Nome da recepcionista que fechou a convers\u00e3o"
+    },
+    "conversao_motivos": {
+      "type": "string",
+      "description": "Motivos da convers\u00e3o (separados por v\u00edrgula)"
+    },
+    "conversao_forma_pagamento": {
+      "type": "string",
+      "description": "Forma de pagamento da convers\u00e3o (pix, cartao_credito, etc)"
+    },
+    "conversao_forma_pagamento_2": {
+      "type": "string",
+      "description": "Segunda forma de pagamento da convers\u00e3o"
+    },
+    "conversao_desconto": {
+      "type": "number",
+      "description": "Desconto aplicado na convers\u00e3o (%)"
+    },
+    "conversao_converteu": {
+      "type": "boolean",
+      "description": "Se a convers\u00e3o foi bem-sucedida (cliente fechou plano)"
+    },
+    "conversao_tipo": {
+      "type": "string",
+      "enum": [
+        "fechou",
+        "renovou"
+      ],
+      "description": "Tipo de convers\u00e3o: fechou novo plano ou renovou plano existente"
+    },
+    "conversao_motivo_nao_converteu": {
+      "type": "string",
+      "description": "Motivo de n\u00e3o convers\u00e3o"
+    },
+    "conversao_recepcionista_nao_converteu": {
+      "type": "string",
+      "description": "Recepcionista que tentou a convers\u00e3o (quando n\u00e3o converteu)"
+    },
+    "conversao_parcelas": {
+      "type": "number",
+      "description": "N\u00famero de parcelas da convers\u00e3o"
+    },
+    "conversao_parcelas_2": {
+      "type": "number",
+      "description": "N\u00famero de parcelas da segunda forma de pagamento"
+    },
+    "conversao_valor_original": {
+      "type": "number",
+      "description": "Valor original do plano na convers\u00e3o"
+    },
+    "conversao_valor_final": {
+      "type": "number",
+      "description": "Valor final ap\u00f3s desconto na convers\u00e3o"
+    },
+    "conversao_sinal": {
+      "type": "number",
+      "description": "Valor do sinal pago na convers\u00e3o"
+    },
+    "conversao_recebimento_2": {
+      "type": "number",
+      "description": "Valor do segundo recebimento na convers\u00e3o"
+    },
+    "conversao_valor_falta_pagar": {
+      "type": "number",
+      "description": "Valor que falta pagar na convers\u00e3o"
+    },
+    "nao_conversao_valor_pago": {
+      "type": "number",
+      "description": "Valor pago na cl\u00ednica quando n\u00e3o converteu - abate do Falta Quanto do Valor Combinado nos relat\u00f3rios Terapeuta x Recep\u00e7\u00e3o"
+    },
+    "nao_conversao_forma_pagamento": {
+      "type": "string",
+      "description": "Forma de pagamento quando n\u00e3o converteu (pix, dinheiro, boleto, cartao_credito, cartao_debito)"
+    },
+    "nao_conversao_forma_pagamento_2": {
+      "type": "string",
+      "description": "Segunda forma de pagamento quando n\u00e3o converteu"
+    },
+    "nao_conversao_parcelas": {
+      "type": "number",
+      "description": "N\u00famero de parcelas quando n\u00e3o converteu"
+    },
+    "nao_conversao_parcelas_2": {
+      "type": "number",
+      "description": "N\u00famero de parcelas da segunda forma quando n\u00e3o converteu"
+    }
+  },
+  "required": [
+    "cliente_nome",
+    "profissional_nome",
+    "unidade_id",
+    "data",
+    "hora_inicio",
+    "hora_fim"
+  ]
+}

@@ -1,0 +1,49 @@
+{
+  "name": "Profissional",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome do profissional"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email do profissional para acesso ao sistema"
+    },
+    "especialidade": {
+      "type": "string",
+      "description": "Especialidade ou \u00e1rea de atua\u00e7\u00e3o"
+    },
+    "horario_inicio": {
+      "type": "string",
+      "description": "Hor\u00e1rio de in\u00edcio do expediente (formato HH:mm)",
+      "default": "08:00"
+    },
+    "horario_fim": {
+      "type": "string",
+      "description": "Hor\u00e1rio de fim do expediente (formato HH:mm)",
+      "default": "18:00"
+    },
+    "horario_almoco_inicio": {
+      "type": "string",
+      "description": "Hor\u00e1rio de in\u00edcio do almo\u00e7o (formato HH:mm)"
+    },
+    "horario_almoco_fim": {
+      "type": "string",
+      "description": "Hor\u00e1rio de fim do almo\u00e7o (formato HH:mm)"
+    },
+    "cor": {
+      "type": "string",
+      "description": "Cor para identifica\u00e7\u00e3o na agenda",
+      "default": "#10B981"
+    },
+    "ativo": {
+      "type": "boolean",
+      "description": "Se o profissional est\u00e1 ativo",
+      "default": true
+    }
+  },
+  "required": [
+    "nome"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "name": "HorarioExcecao",
+  "type": "object",
+  "properties": {
+    "profissional_id": {
+      "type": "string",
+      "description": "ID do profissional"
+    },
+    "data": {
+      "type": "string",
+      "description": "Data espec\u00edfica da exce\u00e7\u00e3o (formato YYYY-MM-DD)"
+    },
+    "horario_inicio": {
+      "type": "string",
+      "description": "Hor\u00e1rio de in\u00edcio neste dia espec\u00edfico (formato HH:mm)"
+    },
+    "horario_fim": {
+      "type": "string",
+      "description": "Hor\u00e1rio de fim neste dia espec\u00edfico (formato HH:mm)"
+    },
+    "motivo": {
+      "type": "string",
+      "description": "Motivo da exce\u00e7\u00e3o (opcional)"
+    }
+  },
+  "required": [
+    "profissional_id",
+    "data",
+    "horario_inicio",
+    "horario_fim"
+  ]
+}

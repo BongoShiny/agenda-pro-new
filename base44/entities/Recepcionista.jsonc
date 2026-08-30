@@ -1,0 +1,32 @@
+{
+  "name": "Recepcionista",
+  "type": "object",
+  "properties": {
+    "nome": {
+      "type": "string",
+      "description": "Nome completo da recepcionista"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email da recepcionista para acesso ao sistema"
+    },
+    "unidade_id": {
+      "type": "string",
+      "description": "ID da unidade onde trabalha"
+    },
+    "unidade_nome": {
+      "type": "string",
+      "description": "Nome da unidade"
+    },
+    "ativo": {
+      "type": "boolean",
+      "default": true,
+      "description": "Se a recepcionista est\u00e1 ativa"
+    }
+  },
+  "required": [
+    "nome",
+    "email",
+    "unidade_id"
+  ]
+}

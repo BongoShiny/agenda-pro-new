@@ -1,0 +1,61 @@
+{
+  "name": "RegistroEnvioWhatsApp",
+  "type": "object",
+  "properties": {
+    "agendamento_id": {
+      "type": "string",
+      "description": "ID do agendamento relacionado"
+    },
+    "cliente_nome": {
+      "type": "string",
+      "description": "Nome do cliente"
+    },
+    "cliente_telefone": {
+      "type": "string",
+      "description": "Telefone do cliente"
+    },
+    "unidade_id": {
+      "type": "string",
+      "description": "ID da unidade"
+    },
+    "data_agendamento": {
+      "type": "string",
+      "description": "Data do agendamento (YYYY-MM-DD)"
+    },
+    "mensagem_enviada": {
+      "type": "string",
+      "description": "Mensagem que foi enviada"
+    },
+    "tipo_envio": {
+      "type": "string",
+      "enum": [
+        "automatico",
+        "manual"
+      ],
+      "description": "Se foi envio autom\u00e1tico ou manual"
+    },
+    "enviado_por": {
+      "type": "string",
+      "description": "Email do usu\u00e1rio que enviou (se manual) ou 'sistema' (se autom\u00e1tico)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "enviado",
+        "erro"
+      ],
+      "default": "enviado",
+      "description": "Status do envio"
+    },
+    "erro_mensagem": {
+      "type": "string",
+      "description": "Mensagem de erro caso o envio falhe"
+    }
+  },
+  "required": [
+    "agendamento_id",
+    "cliente_nome",
+    "data_agendamento",
+    "tipo_envio"
+  ]
+}

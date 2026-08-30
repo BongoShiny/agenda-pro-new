@@ -1,0 +1,44 @@
+{
+  "name": "ControleSincronizacaoCRM",
+  "type": "object",
+  "properties": {
+    "indice_atual": {
+      "type": "number",
+      "default": 0,
+      "description": "\u00cdndice atual da sincroniza\u00e7\u00e3o"
+    },
+    "total_agendamentos": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de agendamentos v\u00e1lidos"
+    },
+    "criados": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de leads criados"
+    },
+    "atualizados": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de leads atualizados"
+    },
+    "erros": {
+      "type": "number",
+      "default": 0,
+      "description": "Total de erros"
+    },
+    "em_progresso": {
+      "type": "boolean",
+      "default": false,
+      "description": "Se a sincroniza\u00e7\u00e3o est\u00e1 em andamento"
+    },
+    "ultima_execucao": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Data/hora da \u00faltima execu\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "indice_atual"
+  ]
+}
