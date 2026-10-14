@@ -167,21 +167,32 @@ export default function NovoAgendamentoDialog({
 
    // Filtrar profissionais pela unidade selecionada
    const profissionaisFiltrados = React.useMemo(() => {
-     // Se for avaliação, mostrar recepcionistas
-     if (isAvaliacao) {
-       return recepcionistas.filter(r => 
-         r.unidade_id === formData.unidade_id && r.ativo
-       );
-     }
+      // Se for avaliação, mostrar recepcionistas
+      if (isAvaliacao) {
+        return recepcionistas.filter(r => 
+          r.unidade_id === formData.unidade_id && r.ativo
+        );
+      }
 
-     // Para terapeutas normais
-     if (!formData.unidade_id) return profissionais.filter(p => p.ativo !== false);
+      // Para terapeutas normais
+      if (!formData.unidade_id) return profissionais.filter(p => p.ativo !== false);
 
-     const idsConfiguracao = configuracoesTerapeutas.map(ct => ct.profissional_id);
-     return profissionais.filter(p => 
-       idsConfiguracao.includes(p.id) && p.ativo !== false
-     );
-   }, [profissionais, formData.unidade_id, configuracoesTerapeutas, isAvaliacao, recepcionistas]);
+      const idsConfiguracao = configuracoesTerapeutas.map(ct => ct.profissional_id);
+      const profissionaisDaUnidade = profissionais.filter(p => 
+        idsConfiguracao.includes(p.id) && p.ativo !== false
+      );
+
+      // No modo edição, garantir que o profissional atual apareça na lista
+      // mesmo que não esteja mais configurado na unidade
+      if (modoEdicao && formData.profissional_id) {
+        const profAtual = profissionais.find(p => p.id === formData.profissional_id);
+        if (profAtual && !profissionaisDaUnidade.find(p => p.id === profAtual.id)) {
+          return [profAtual, ...profissionaisDaUnidade];
+        }
+      }
+
+      return profissionaisDaUnidade;
+    }, [profissionais, formData.unidade_id, configuracoesTerapeutas, isAvaliacao, recepcionistas, modoEdicao, formData.profissional_id]);
 
   useEffect(() => {
     if (open) {

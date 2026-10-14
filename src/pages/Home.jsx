@@ -27,6 +27,7 @@ import WidgetTarefasPendentes from "../components/dashboard/WidgetTarefasPendent
 import WidgetPerformanceVendedores from "../components/dashboard/WidgetPerformanceVendedores";
 import WidgetContasReceber from "../components/dashboard/WidgetContasReceber";
 import WidgetMetricasVendas from "../components/dashboard/WidgetMetricasVendas";
+import UserNotRegisteredError from "../components/UserNotRegisteredError";
 
 export default function HomePage() {
   const navigate = useNavigate();
@@ -138,7 +139,6 @@ export default function HomePage() {
 
   // Se o cargo é "sem_acesso", mostrar página de sem acesso
   if (usuarioAtual?.cargo === "sem_acesso") {
-    const UserNotRegisteredError = require("../components/UserNotRegisteredError").default;
     return <UserNotRegisteredError />;
   }
 
